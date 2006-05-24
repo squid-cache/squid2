@@ -41,9 +41,25 @@
 #define __FD_SETSIZE SQUID_MAXFD
 #endif
 
+#if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
+#include <windows.h>
+#include <process.h>
+static int opt_install_service = FALSE;
+static int opt_remove_service = FALSE;
+static int opt_signal_service = FALSE;
+static int opt_command_line = FALSE;
+extern void WIN32_svcstatusupdate(DWORD, DWORD);
+void WINAPI WIN32_svcHandler(DWORD);
+#endif
+
 /* for error reporting from xmalloc and friends */
 extern void (*failure_notify) (const char *);
 
+#if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
+static int opt_no_daemon = 1;
+#else
+static int opt_no_daemon = 0;
+#endif
 static int opt_parse_cfg_only = 0;
 static char *opt_syslog_facility = NULL;
 static int httpPortNumOverride = 1;
@@ -58,8 +74,6 @@ static volatile int do_shutdown = 0;
 
 static void mainRotate(void);
 static void mainReconfigure(void);
-static SIGHDLR rotate_logs;
-static SIGHDLR reconfigure;
 #if ALARM_UPDATES_TIME
 static SIGHDLR time_tick;
 #endif
@@ -88,15 +102,27 @@ static void
 usage(void)
 {
     fprintf(stderr,
+#if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
+	"Usage: %s [-dhirvzCDFRVYX] [-s | -l facility] [-f config-file] [-[au] port] [-k signal] [-n name] [-O CommandLine]\n"
+#else
 	"Usage: %s [-dhvzCDFNRVYX] [-s | -l facility] [-f config-file] [-[au] port] [-k signal]\n"
+#endif
 	"       -a port   Specify HTTP port number (default: %d).\n"
 	"       -d level  Write debugging to stderr also.\n"
 	"       -f file   Use given config-file instead of\n"
 	"                 %s\n"
 	"       -h        Print help message.\n"
+#if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
+	"       -i        Installs as a Windows Service (see -n option).\n"
+#endif
 	"       -k reconfigure|rotate|shutdown|interrupt|kill|debug|check|parse\n"
 	"                 Parse configuration file, then send signal to \n"
 	"                 running copy (except -k parse) and exit.\n"
+#if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
+	"       -n name   Specify Windows Service name to use for service operations\n"
+	"                 default is: " _WIN_SQUID_DEFAULT_SERVICE_NAME ".\n"
+	"       -r        Removes a Windows Service (see -n option).\n"
+#endif
 	"       -s | -l facility\n"
 	"                 Enable logging to syslog.\n"
 	"       -u port   Specify ICP port number (default: %d), disable with 0.\n"
@@ -105,7 +131,12 @@ usage(void)
 	"       -C        Do not catch fatal signals.\n"
 	"       -D        Disable initial DNS tests.\n"
 	"       -F        Don't serve any requests until store is rebuilt.\n"
+#if !(defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_))
 	"       -N        No daemon mode.\n"
+#else
+	"       -O options\n"
+	"                 Set Windows Service Command line options in Registry.\n"
+#endif
 	"       -R        Do not set REUSEADDR on port.\n"
 	"       -S        Double-check swap during rebuild.\n"
 	"       -V        Virtual host httpd-accelerator.\n"
@@ -121,7 +152,11 @@ mainParseOptions(int argc, char *argv[])
     extern char *optarg;
     int c;
 
+#if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
+    while ((c = getopt(argc, argv, "CDFO:RSVYXa:d:f:hik:m::n:rsl:u:vz?")) != -1) {
+#else
     while ((c = getopt(argc, argv, "CDFNRSVYXa:d:f:hk:m::sl:u:vz?")) != -1) {
+#endif
 	switch (c) {
 	case 'C':
 	    opt_catch_signals = 0;
@@ -132,9 +167,16 @@ mainParseOptions(int argc, char *argv[])
 	case 'F':
 	    opt_foreground_rebuild = 1;
 	    break;
+#if !(defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN_))
 	case 'N':
 	    opt_no_daemon = 1;
 	    break;
+#else
+	case 'O':
+	    opt_command_line = 1;
+	    WIN32_Command_Line = xstrdup(optarg);
+	    break;
+#endif
 	case 'R':
 	    opt_reuseaddr = 0;
 	    break;
@@ -171,6 +213,11 @@ mainParseOptions(int argc, char *argv[])
 	case 'h':
 	    usage();
 	    break;
+#if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
+	case 'i':
+	    opt_install_service = TRUE;
+	    break;
+#endif
 	case 'k':
 	    if ((int) strlen(optarg) < 1)
 		usage();
@@ -218,6 +265,16 @@ mainParseOptions(int argc, char *argv[])
 		fatal("Need to configure --enable-xmalloc-debug-trace to use -m option");
 #endif
 	    }
+#if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
+	case 'n':
+	    xfree(WIN32_Service_name);
+	    WIN32_Service_name = xstrdup(optarg);
+	    opt_signal_service = TRUE;
+	    break;
+	case 'r':
+	    opt_remove_service = TRUE;
+	    break;
+#endif
 	case 'l':
 	    opt_syslog_facility = xstrdup(optarg);
 	case 's':
@@ -235,6 +292,9 @@ mainParseOptions(int argc, char *argv[])
 	    break;
 	case 'v':
 	    printf("Squid Cache: Version %s\nconfigure options: %s\n", version_string, SQUID_CONFIGURE_OPTIONS);
+#if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
+	    printf("Compiled as Windows System Service.\n");
+#endif
 	    exit(0);
 	    /* NOTREACHED */
 	case 'z':
@@ -249,7 +309,7 @@ mainParseOptions(int argc, char *argv[])
 }
 
 /* ARGSUSED */
-static void
+void
 rotate_logs(int sig)
 {
     do_rotate = 1;
@@ -272,7 +332,7 @@ time_tick(int sig)
 #endif
 
 /* ARGSUSED */
-static void
+void
 reconfigure(int sig)
 {
     do_reconfigure = 1;
@@ -528,6 +588,13 @@ mainInitialize(void)
     debug(1, 0) ("Starting Squid Cache version %s for %s...\n",
 	version_string,
 	CONFIG_HOST_TYPE);
+#ifdef _SQUID_WIN32_
+    if (WIN32_run_mode == _WIN_SQUID_RUN_MODE_SERVICE) {
+	debug(1, 0) ("Running as %s Windows System Service on %s\n", WIN32_Service_name, WIN32_OS_string);
+	debug(1, 0) ("Service command line is: %s\n", WIN32_Service_Command_Line);
+    } else
+	debug(1, 0) ("Running on %s\n", WIN32_OS_string);
+#endif
     debug(1, 1) ("Process ID %d\n", (int) getpid());
     debug(1, 1) ("With %d file descriptors available\n", Squid_MaxFD);
 
@@ -620,15 +687,18 @@ mainInitialize(void)
     configured_once = 1;
 }
 
+#if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
+/* When USE_WIN32_SERVICE is defined, the main function is placed in win32.c */
+void WINAPI
+SquidMain(int argc, char **argv)
+#else
 int
 main(int argc, char **argv)
+#endif
 {
     int errcount = 0;
     int loop_delay;
     mode_t oldmask;
-#ifdef _SQUID_WIN32_
-    int WIN32_init_err;
-#endif
 
 #if HAVE_SBRK
     sbrk_start = sbrk(0);
@@ -639,8 +709,16 @@ main(int argc, char **argv)
 	Squid_MaxFD = FD_SETSIZE;
 
 #ifdef _SQUID_WIN32_
-    if ((WIN32_init_err = WIN32_Subsystem_Init()))
-	return WIN32_init_err;
+#ifdef USE_WIN32_SERVICE
+    if (WIN32_Subsystem_Init(&argc, &argv))
+	return;
+#else
+    {
+	int WIN32_init_err;
+	if ((WIN32_init_err = WIN32_Subsystem_Init()))
+	    return WIN32_init_err;
+    }
+#endif
 #endif
 
     /* call mallopt() before anything else */
@@ -681,7 +759,25 @@ main(int argc, char **argv)
     squid_start = current_time;
     failure_notify = fatal_dump;
 
+#if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
+    WIN32_svcstatusupdate(SERVICE_START_PENDING, 10000);
+#endif
     mainParseOptions(argc, argv);
+
+#if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
+    if (opt_install_service) {
+	WIN32_InstallService();
+	return;
+    }
+    if (opt_remove_service) {
+	WIN32_RemoveService();
+	return;
+    }
+    if (opt_command_line) {
+	WIN32_SetServiceCommandLine();
+	return;
+    }
+#endif
 
     /* parse configuration file
      * note: in "normal" case this used to be called from mainInitialize() */
@@ -701,7 +797,11 @@ main(int argc, char **argv)
 	parse_err = parseConfigFile(ConfigFile);
 
 	if (opt_parse_cfg_only)
+#if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
+	    return;
+#else
 	    return parse_err;
+#endif
     }
     if (-1 == opt_send_signal)
 	if (checkRunningPid())
@@ -736,7 +836,11 @@ main(int argc, char **argv)
 	setEffectiveUser();
 	debug(0, 0) ("Creating Swap Directories\n");
 	storeCreateSwapDirectories();
+#if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
+	return;
+#else
 	return 0;
+#endif
     }
     if (!opt_no_daemon)
 	watch_child(argv);
@@ -752,7 +856,14 @@ main(int argc, char **argv)
 	fd_open(1, FD_LOG, "stdout");
 	fd_open(2, FD_LOG, "stderr");
     }
+#if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
+    WIN32_svcstatusupdate(SERVICE_START_PENDING, 10000);
+#endif
     mainInitialize();
+
+#if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
+    WIN32_svcstatusupdate(SERVICE_RUNNING, 0);
+#endif
 
     /* main loop */
     for (;;) {
@@ -770,6 +881,9 @@ main(int argc, char **argv)
 		(int) wait);
 	    do_shutdown = 0;
 	    shutting_down = 1;
+#if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
+	    WIN32_svcstatusupdate(SERVICE_STOP_PENDING, (wait + 1) * 1000);
+#endif
 	    serverConnectionsClose();
 	    eventAdd("SquidShutdown", SquidShutdown, NULL, (double) (wait + 1), 1);
 	}
@@ -803,7 +917,11 @@ main(int argc, char **argv)
 	}
     }
     /* NOTREACHED */
+#if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
+    return;
+#else
     return 0;
+#endif
 }
 
 static void
@@ -813,14 +931,28 @@ sendSignal(void)
     debug_log = stderr;
     pid = readPidFile();
     if (pid > 1) {
-	if (kill(pid, opt_send_signal) &&
-	/* ignore permissions if just running check */
-	    !(opt_send_signal == 0 && errno == EPERM)) {
+#if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
+	if (opt_signal_service)
+	    WIN32_sendSignal(opt_send_signal);
+	else {
+#endif
+#if defined(_SQUID_MSWIN_) && defined(USE_WIN32_SERVICE)
 	    fprintf(stderr, "%s: ERROR: Could not send ", appname);
-	    fprintf(stderr, "signal %d to process %d: %s\n",
-		opt_send_signal, (int) pid, xstrerror());
-	    exit(1);
+	    fprintf(stderr, "signal to Squid Service:\n");
+	    fprintf(stderr, "missing -n command line switch.\n");
+#else
+	    if (kill(pid, opt_send_signal) &&
+	    /* ignore permissions if just running check */
+		!(opt_send_signal == 0 && errno == EPERM)) {
+		fprintf(stderr, "%s: ERROR: Could not send ", appname);
+		fprintf(stderr, "signal %d to process %d: %s\n",
+		    opt_send_signal, (int) pid, xstrerror());
+#endif
+		exit(1);
+	    }
+#if defined(USE_WIN32_SERVICE) && defined(_SQUID_CYGWIN_)
 	}
+#endif
     } else {
 	fprintf(stderr, "%s: ERROR: No running copy\n", appname);
 	exit(1);
@@ -994,6 +1126,9 @@ watch_child(char *argv[])
 static void
 SquidShutdown(void *unused)
 {
+#if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
+    WIN32_svcstatusupdate(SERVICE_STOP_PENDING, 10000);
+#endif
     debug(1, 1) ("Shutting down...\n");
 #if USE_DNSSERVERS
     dnsShutdown();
@@ -1021,6 +1156,9 @@ SquidShutdown(void *unused)
     authenticateShutdown();
 #if USE_UNLINKD
     unlinkdClose();
+#endif
+#if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
+    WIN32_svcstatusupdate(SERVICE_STOP_PENDING, 10000);
 #endif
     storeDirSync();		/* Flush pending object writes/unlinks */
     storeDirWriteCleanLogs(0);

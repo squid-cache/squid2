@@ -703,6 +703,7 @@ setMaxFD(void)
     /* try to use as many file descriptors as possible */
     /* System V uses RLIMIT_NOFILE and BSD uses RLIMIT_OFILE */
     struct rlimit rl;
+#if !defined(_SQUID_CYGWIN_)
 #if defined(RLIMIT_NOFILE)
     if (getrlimit(RLIMIT_NOFILE, &rl) < 0) {
 	debug(50, 0) ("setrlimit: RLIMIT_NOFILE: %s\n", xstrerror());
@@ -729,6 +730,7 @@ setMaxFD(void)
 	    fatal_dump(tmp_error_buf);
 	}
     }
+#endif
 #endif
 #else /* HAVE_SETRLIMIT */
     debug(21, 1) ("setMaxFD: Cannot increase: setrlimit() not supported on this system\n");

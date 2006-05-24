@@ -159,8 +159,13 @@ extern RemovalPolicy *mem_policy;
 extern hash_table *proxy_auth_username_cache;	/* NULL */
 extern int incoming_sockets_accepted;
 #ifdef _SQUID_WIN32_
+extern unsigned int WIN32_Socks_initialized;	/* 0 */
 extern unsigned int WIN32_OS_version;	/* 0 */
 extern char *WIN32_OS_string;	/* NULL */
+extern char *WIN32_Service_name;	/* NULL */
+extern char *WIN32_Command_Line;	/* NULL */
+extern char *WIN32_Service_Command_Line;	/* NULL */
+extern unsigned int WIN32_run_mode;	/* _WIN_SQUID_RUN_MODE_INTERACTIVE */
 #endif
 extern const char *external_acl_message;	/* NULL */
 #if HAVE_SBRK
