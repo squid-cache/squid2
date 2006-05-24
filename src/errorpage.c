@@ -177,14 +177,18 @@ errorTryLoadText(const char *page_name, const char *dir)
     char *text;
 
     snprintf(path, sizeof(path), "%s/%s", dir, page_name);
+#ifdef _SQUID_MSWIN_
+    fd = file_open(path, O_RDONLY | O_BINARY);
+#else
     fd = file_open(path, O_RDONLY | O_TEXT);
+#endif
     if (fd < 0 || fstat(fd, &sb) < 0) {
 	debug(4, 0) ("errorTryLoadText: '%s': %s\n", path, xstrerror());
 	if (fd >= 0)
 	    file_close(fd);
 	return NULL;
     }
-    text = xcalloc(sb.st_size + 2 + 1, 1);	/* 2 == space for %S */
+    text = xcalloc((size_t) sb.st_size + 2 + 1, 1);	/* 2 == space for %S */
     if (FD_READ_METHOD(fd, text, sb.st_size) != sb.st_size) {
 	debug(4, 0) ("errorTryLoadText: failed to fully read: '%s': %s\n",
 	    path, xstrerror());

@@ -442,7 +442,7 @@ netdbReloadState(void)
 	file_close(fd);
 	return;
     }
-    t = buf = xcalloc(1, sb.st_size + 1);
+    t = buf = xcalloc(1, (size_t) sb.st_size + 1);
     l = FD_READ_METHOD(fd, buf, sb.st_size);
     file_close(fd);
     if (l <= 0)

@@ -296,7 +296,7 @@ death(int sig)
 #endif
 #endif /* PRINT_STACK_TRACE */
 
-#if SA_RESETHAND == 0
+#if SA_RESETHAND == 0 && !defined(_SQUID_MSWIN_)
     signal(SIGSEGV, SIG_DFL);
     signal(SIGBUS, SIG_DFL);
     signal(sig, SIG_DFL);

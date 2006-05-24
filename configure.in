@@ -51,7 +51,7 @@ AC_SUBST(CGIEXT)
 dnl this should be expanded to a list of platform sensible support requirements.
 dnl (adding an option like --enable-cygwin-support doesn't make sense :]) - R Collins 2001
 case "$host_os" in
-cygwin|cygwin32)
+mingw|mingw32|cygwin|cygwin32)
         AM_CONDITIONAL(ENABLE_WIN32SPECIFIC, true)
 	;;
 *)
@@ -641,7 +641,14 @@ AC_ARG_ENABLE(ssl,
     echo "SSL gatewaying using OpenSSL enabled"
     AC_DEFINE(USE_SSL, 1, [Define this to include code for SSL encryption.])
     AM_CONDITIONAL(ENABLE_SSL, true)
-    SSLLIB='-lssl -lcrypto'
+    case "$host_os" in
+    mingw|mingw32)
+        SSLLIB='-lssl -lcrypto -lgdi32'
+        ;;
+    *)
+        SSLLIB='-lssl -lcrypto'
+	;;
+    esac
     USE_OPENSSL=1
   fi
 ])
@@ -1841,7 +1848,14 @@ if test $ac_cv_lib_bind_gethostbyname = "no" ; then
 		;;
     esac
 fi
-AC_CHECK_LIB(m, main)
+case "$host_os" in
+mingw|mingw32)
+	echo "Use MSVCRT for math functions."
+	;;
+	*)
+	AC_CHECK_LIB(m, main)
+	;;
+esac
 
 dnl Check for libcrypt
 dnl Some of our helpers use crypt(3) which may be in libc, or in
@@ -2630,14 +2644,21 @@ if test "$INET_NTOA_RESULT" = "1.2.3.4" ; then
 	AC_MSG_RESULT("yes")
 else
 	AC_MSG_RESULT("no")
-	echo "Will use our own inet_ntoa()."
-	# autoconf-2.13 needs the lines below switched
-#	LIBOBJS="$LIBOBJS inet_ntoa.o"
-	AC_LIBOBJ(inet_ntoa)
-#	echo "WARNING: This looks bad, and probably prevents Squid from working."
-#	echo "         If you're on IRIX and using GCC 2.8, you probably need"
-#	echo "         to use the IRIX C compiler instead."
-#	sleep 10
+	case "$host_os" in
+	mingw|mingw32)
+	    echo "Using Win32 resolver instead."
+	    ;;
+	    *)      
+	    echo "Will use our own inet_ntoa()."
+	    # autoconf-2.13 needs the lines below switched
+#	    LIBOBJS="$LIBOBJS inet_ntoa.o"
+	    AC_LIBOBJ(inet_ntoa)
+#	    echo "WARNING: This looks bad, and probably prevents Squid from working."
+#	    echo "         If you're on IRIX and using GCC 2.8, you probably need"
+#	    echo "         to use the IRIX C compiler instead."
+#	    sleep 10
+	;;
+	esac
 fi
 
 if test "$ac_cv_header_sys_statvfs_h" = "yes" ; then

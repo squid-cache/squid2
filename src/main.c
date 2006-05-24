@@ -92,7 +92,9 @@ static EVH SquidShutdown;
 static void mainSetCwd(void);
 static int checkRunningPid(void);
 
+#ifndef _SQUID_MSWIN_
 static const char *squid_start_script = "squid_start";
+#endif
 
 #if TEST_ACCESS
 #include "test_access.c"
@@ -131,9 +133,8 @@ usage(void)
 	"       -C        Do not catch fatal signals.\n"
 	"       -D        Disable initial DNS tests.\n"
 	"       -F        Don't serve any requests until store is rebuilt.\n"
-#if !(defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_))
 	"       -N        No daemon mode.\n"
-#else
+#if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
 	"       -O options\n"
 	"                 Set Windows Service Command line options in Registry.\n"
 #endif
@@ -167,11 +168,10 @@ mainParseOptions(int argc, char *argv[])
 	case 'F':
 	    opt_foreground_rebuild = 1;
 	    break;
-#if !(defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN_))
 	case 'N':
 	    opt_no_daemon = 1;
 	    break;
-#else
+#if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
 	case 'O':
 	    opt_command_line = 1;
 	    WIN32_Command_Line = xstrdup(optarg);
@@ -313,8 +313,10 @@ void
 rotate_logs(int sig)
 {
     do_rotate = 1;
+#ifndef _SQUID_MSWIN_
 #if !HAVE_SIGACTION
     signal(sig, rotate_logs);
+#endif
 #endif
 }
 
@@ -336,8 +338,10 @@ void
 reconfigure(int sig)
 {
     do_reconfigure = 1;
+#ifndef _SQUID_MSWIN_
 #if !HAVE_SIGACTION
     signal(sig, reconfigure);
+#endif
 #endif
 }
 
@@ -345,6 +349,7 @@ void
 shut_down(int sig)
 {
     do_shutdown = sig == SIGINT ? -1 : 1;
+#ifndef _SQUID_MSWIN_
 #ifdef KILL_PARENT_OPT
     if (getppid() > 1) {
 	debug(1, 1) ("Killing RunCache, pid %ld\n", (long) getppid());
@@ -355,6 +360,7 @@ shut_down(int sig)
 #if SA_RESETHAND == 0
     signal(SIGTERM, SIG_DFL);
     signal(SIGINT, SIG_DFL);
+#endif
 #endif
 }
 
@@ -687,9 +693,15 @@ mainInitialize(void)
     configured_once = 1;
 }
 
-#if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
+#if USE_WIN32_SERVICE
 /* When USE_WIN32_SERVICE is defined, the main function is placed in win32.c */
 void WINAPI
+SquidWinSvcMain(int argc, char **argv)
+{
+    SquidMain(argc, argv);
+}
+
+int
 SquidMain(int argc, char **argv)
 #else
 int
@@ -699,6 +711,9 @@ main(int argc, char **argv)
     int errcount = 0;
     int loop_delay;
     mode_t oldmask;
+#ifdef _SQUID_WIN32_
+    int WIN32_init_err;
+#endif
 
 #if HAVE_SBRK
     sbrk_start = sbrk(0);
@@ -709,16 +724,8 @@ main(int argc, char **argv)
 	Squid_MaxFD = FD_SETSIZE;
 
 #ifdef _SQUID_WIN32_
-#ifdef USE_WIN32_SERVICE
-    if (WIN32_Subsystem_Init(&argc, &argv))
-	return;
-#else
-    {
-	int WIN32_init_err;
-	if ((WIN32_init_err = WIN32_Subsystem_Init()))
-	    return WIN32_init_err;
-    }
-#endif
+    if ((WIN32_init_err = WIN32_Subsystem_Init(&argc, &argv)))
+	return WIN32_init_err;
 #endif
 
     /* call mallopt() before anything else */
@@ -767,15 +774,15 @@ main(int argc, char **argv)
 #if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
     if (opt_install_service) {
 	WIN32_InstallService();
-	return;
+	return 0;
     }
     if (opt_remove_service) {
 	WIN32_RemoveService();
-	return;
+	return 0;
     }
     if (opt_command_line) {
 	WIN32_SetServiceCommandLine();
-	return;
+	return 0;
     }
 #endif
 
@@ -797,11 +804,7 @@ main(int argc, char **argv)
 	parse_err = parseConfigFile(ConfigFile);
 
 	if (opt_parse_cfg_only)
-#if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
-	    return;
-#else
 	    return parse_err;
-#endif
     }
     if (-1 == opt_send_signal)
 	if (checkRunningPid())
@@ -836,11 +839,7 @@ main(int argc, char **argv)
 	setEffectiveUser();
 	debug(0, 0) ("Creating Swap Directories\n");
 	storeCreateSwapDirectories();
-#if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
-	return;
-#else
 	return 0;
-#endif
     }
     if (!opt_no_daemon)
 	watch_child(argv);
@@ -917,11 +916,7 @@ main(int argc, char **argv)
 	}
     }
     /* NOTREACHED */
-#if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
-    return;
-#else
     return 0;
-#endif
 }
 
 static void
@@ -961,6 +956,7 @@ sendSignal(void)
     exit(0);
 }
 
+#ifndef _SQUID_MSWIN_
 /*
  * This function is run when Squid is in daemon mode, just
  * before the parent forks and starts up the child process.
@@ -997,6 +993,7 @@ mainStartScript(const char *prog)
 	} while (rpid != cpid);
     }
 }
+#endif
 
 static int
 checkRunningPid(void)
@@ -1019,6 +1016,7 @@ checkRunningPid(void)
 static void
 watch_child(char *argv[])
 {
+#ifndef _SQUID_MSWIN_
     char *prog;
     int failcount = 0;
     time_t start;
@@ -1121,6 +1119,7 @@ watch_child(char *argv[])
 	sleep(3);
     }
     /* NOTREACHED */
+#endif
 }
 
 static void

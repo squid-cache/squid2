@@ -50,7 +50,7 @@ void WINAPI WIN32_svcHandler(DWORD);
 static int WIN32_StoreKey(const char *, DWORD, unsigned char *, int);
 static int WIN32_create_key(void);
 static void WIN32_build_argv(char *);
-void WINAPI SquidMain(DWORD, char **);
+void WINAPI SquidWinSvcMain(DWORD, char **);
 
 static SERVICE_STATUS svcStatus;
 static SERVICE_STATUS_HANDLE svcHandle;
@@ -330,13 +330,8 @@ WIN32_Exit()
     _exit(0);
 }
 
-#if USE_WIN32_SERVICE
 int
 WIN32_Subsystem_Init(int *argc, char ***argv)
-#else
-int
-WIN32_Subsystem_Init()
-#endif
 {
     WIN32_OS_version = GetOSVersion();
     if ((WIN32_OS_version == _WIN_OS_UNKNOWN) || (WIN32_OS_version == _WIN_OS_WIN32S))
@@ -688,7 +683,7 @@ main(int argc, char **argv)
 {
     SERVICE_TABLE_ENTRY DispatchTable[] =
     {
-	{NULL, SquidMain},
+	{NULL, SquidWinSvcMain},
 	{NULL, NULL}
     };
     char *c;
@@ -715,7 +710,10 @@ main(int argc, char **argv)
 	}
     } else {
 	WIN32_run_mode = _WIN_SQUID_RUN_MODE_INTERACTIVE;
-	SquidMain(argc, argv);
+#ifdef _SQUID_MSWIN_
+	opt_no_daemon = 1;
+#endif
+	return SquidMain(argc, argv);
     }
     return 0;
 }

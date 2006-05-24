@@ -23,6 +23,7 @@ Changes to squid-2.6 (not yet released)
 	- Optional support for blank passwords
 	- DNS search list improvements: added support for Windows DNS search
 	  list and display of search list in DNS stats
+	- Added the capability to run as a Windows service under Cygwin
 
 Changes to squid-2.5.STABLE14 (20 May 2006)
 	- [Minor] icons not displayed when visible_hostname is a

@@ -604,8 +604,8 @@ makeExternalAclKey(aclCheck_t * ch, external_acl_data * acl_data)
     external_acl_format *format;
     request_t *request = ch->request;
     String sb = StringNull;
-    memBufReset(&mb);
     int data_used = 0;
+    memBufReset(&mb);
     for (format = acl_data->def->format; format; format = format->next) {
 	const char *str = NULL;
 	switch (format->type) {

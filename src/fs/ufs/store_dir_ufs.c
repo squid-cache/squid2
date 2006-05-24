@@ -215,7 +215,11 @@ storeUfsDirCreateDirectory(const char *path, int should_exist)
 	} else {
 	    fatalf("Swap directory %s is not a directory.", path);
 	}
+#ifdef _SQUID_MSWIN_
+    } else if (0 == mkdir(path)) {
+#else
     } else if (0 == mkdir(path, 0755)) {
+#endif
 	debug(47, should_exist ? 1 : 3) ("%s created\n", path);
 	created = 1;
     } else {
@@ -1434,7 +1438,11 @@ storeUfsDirClean(int swap_index)
     if (dp == NULL) {
 	if (errno == ENOENT) {
 	    debug(36, 0) ("storeDirClean: WARNING: Creating %s\n", p1);
+#ifdef _SQUID_MSWIN_
+	    if (mkdir(p1) == 0)
+#else
 	    if (mkdir(p1, 0777) == 0)
+#endif
 		return 0;
 	}
 	debug(50, 0) ("storeDirClean: %s: %s\n", p1, xstrerror());

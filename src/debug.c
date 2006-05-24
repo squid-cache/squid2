@@ -380,11 +380,25 @@ _db_rotate_log(void)
 	i--;
 	snprintf(from, MAXPATHLEN, "%s.%d", debug_log_file, i - 1);
 	snprintf(to, MAXPATHLEN, "%s.%d", debug_log_file, i);
+#ifdef _SQUID_MSWIN_
+	remove(to);
+#endif
 	rename(from, to);
     }
+/*
+ * You can't rename open files on Microsoft "operating systems"
+ * so we close before renaming.
+ */
+#ifdef _SQUID_MSWIN_
+    if (debug_log != stderr)
+	fclose(debug_log);
+#endif
     /* Rotate the current log to .0 */
     if (Config.Log.rotateNumber > 0) {
 	snprintf(to, MAXPATHLEN, "%s.%d", debug_log_file, 0);
+#ifdef _SQUID_MSWIN_
+	remove(to);
+#endif
 	rename(debug_log_file, to);
     }
     /* Close and reopen the log.  It may have been renamed "manually"

@@ -1354,11 +1354,7 @@ int varyEvaluateMatch(StoreEntry * entry, request_t * req);
 /* Windows Port */
 /* win32.c */
 #ifdef _SQUID_WIN32_
-#ifdef USE_WIN32_SERVICE
 extern int WIN32_Subsystem_Init(int *, char ***);
-#else
-extern int WIN32_Subsystem_Init(void);
-#endif
 extern void WIN32_sendSignal(int);
 extern void WIN32_Abort(int);
 extern void WIN32_Exit(void);
@@ -1367,7 +1363,8 @@ extern void WIN32_InstallService(void);
 extern void WIN32_RemoveService(void);
 extern int WIN32_pipe(int[2]);
 extern int WIN32_getrusage(int, struct rusage *);
-void WIN32_ExceptionHandlerInit(void);
+extern void WIN32_ExceptionHandlerInit(void);
+extern int SquidMain(int, char **);
 #endif
 
 /* external_acl.c */
