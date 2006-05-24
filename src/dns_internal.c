@@ -1016,7 +1016,7 @@ snmp_netIdnsFn(variable_list * Var, snint * ErrP)
 	break;
     case DNS_SERVERS:
 	Answer = snmp_var_new_integer(Var->name, Var->name_length,
-	    0,
+	    nns,
 	    SMI_COUNTER32);
 	break;
     default:
