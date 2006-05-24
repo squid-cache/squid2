@@ -2529,6 +2529,7 @@ parseNeighborType(const char *s)
     return PEER_SIBLING;
 }
 
+#if USE_WCCPv2
 static void
 parse_sockaddr_in_list(sockaddr_in_list ** head)
 {
@@ -2592,6 +2593,7 @@ free_sockaddr_in_list(sockaddr_in_list ** head)
 	xfree(s);
     }
 }
+#endif
 
 #if UNUSED_CODE
 static int
