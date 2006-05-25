@@ -1025,26 +1025,6 @@ AC_ARG_ENABLE(truncate,
   fi
 ])
 
-dnl Disable hostname checks
-AC_ARG_ENABLE(hostname-checks,
-[  --disable-hostname-checks
-                          Squid by default rejects any host names with
-			  odd characters in their name to conform with
-			  internet standards. If you disagree with this
-			  you may use this switch to turn off any such
-			  checks, provided that the resolver used by
-			  Squid does not reject such host names.. This
-			  may be required to participate in testbeds for
-			  international domain names.],
-	[],
-	[enable_hostname_checks=yes])
-if test "$enable_hostname_checks" = "yes"; then
-  echo "Hostname sanity checks enabled"
-  AC_DEFINE(CHECK_HOSTNAMES, 1, [Enable hostname sanity checks])
-else
-  echo "Disabling hostname sanity checks"
-fi
-
 dnl Enable underscore in hostnames
 AC_ARG_ENABLE(underscores,
 [  --enable-underscores    Squid by default rejects any host names with _

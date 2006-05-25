@@ -1435,6 +1435,26 @@ DOC_START
 	is broken and does not follow the FTP standard.
 DOC_END
 
+NAME: check_hostnames
+TYPE: onoff
+DEFAULT: on
+LOC: Config.onoff.check_hostnames
+DOC_START
+	For security and stability reasons Squid by default checks
+	hostnames for Internet standard RFC compliance. If you do not want
+	Squid to perform these checks then turn this directive off.
+DOC_END
+
+NAME: allow_underscore
+TYPE: onoff
+DEFAULT: on
+LOC: Config.onoff.allow_underscore
+DOC_START
+	Underscore characers is not strictly allowed in Internet hostnames
+	but nevertheless used by many sites. Set this to off if you want
+	Squid to be strict about the standard.
+DOC_END
+
 NAME: cache_dns_program
 TYPE: string
 IFDEF: USE_DNSSERVERS

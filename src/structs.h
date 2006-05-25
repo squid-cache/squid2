@@ -668,6 +668,8 @@ struct _SquidConfig {
 #if LINUX_NETFILTER
 	int linux_tproxy;
 #endif
+	int check_hostnames;
+	int allow_underscore;
     } onoff;
 #if LINUX_TPROXY
     u_short tproxy_port;
