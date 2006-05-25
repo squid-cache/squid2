@@ -468,6 +468,12 @@ configDoConfigure(void)
 	}
     }
 #endif
+#if !HTTP_VIOLATIONS
+    Config.onoff.via = 1;
+#else
+    if (!Config.onoff.via)
+	debug(22, 1) ("WARNING: HTTP requires the use of Via\n");
+#endif
     if (Config.Wais.relayHost) {
 	if (Config.Wais.peer)
 	    cbdataFree(Config.Wais.peer);
