@@ -145,9 +145,9 @@ mainParseOptions(int argc, char *argv[])
     int c;
 
 #if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
-    while ((c = getopt(argc, argv, "CDFO:RSVYXd:f:hik:m::n:rsl:u:vz?")) != -1) {
+    while ((c = getopt(argc, argv, "CDFO:RSYXd:f:hik:m::n:rsl:u:vz?")) != -1) {
 #else
-    while ((c = getopt(argc, argv, "CDFNRSVYXd:f:hk:m::sl:u:vz?")) != -1) {
+    while ((c = getopt(argc, argv, "CDFNRSYXd:f:hk:m::sl:u:vz?")) != -1) {
 #endif
 	switch (c) {
 	case 'C':
@@ -173,16 +173,6 @@ mainParseOptions(int argc, char *argv[])
 	    break;
 	case 'S':
 	    opt_store_doublecheck = 1;
-	    break;
-	case 'V':
-	    if (Config.Sockaddr.http)
-		Config.Sockaddr.http->vhost = 1;
-#if USE_SSL
-	    else if (Config.Sockaddr.https)
-		Config.Sockaddr.https->http.vhost = 1;
-#endif
-	    else
-		fatal("No http_port specified\n");
 	    break;
 	case 'X':
 	    /* force full debugging */
