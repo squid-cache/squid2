@@ -50,22 +50,6 @@ static store_client_t storeClientType(StoreEntry *);
 static int CheckQuickAbort2(StoreEntry * entry);
 static void CheckQuickAbort(StoreEntry * entry);
 
-/* check if there is any client waiting for this object at all */
-/* return 1 if there is at least one client */
-int
-storeClientWaiting(const StoreEntry * e)
-{
-    MemObject *mem = e->mem_obj;
-    dlink_node *node;
-    store_client *sc;
-    for (node = mem->clients.head; node; node = node->next) {
-	sc = node->data;
-	if (sc->callback_data != NULL)
-	    return 1;
-    }
-    return 0;
-}
-
 #if STORE_CLIENT_LIST_DEBUG
 store_client *
 storeClientListSearch(const MemObject * mem, void *data)
