@@ -67,11 +67,11 @@ static void comm_select_dns_incoming(void);
 
 #if !HAVE_POLL
 static struct timeval zero_tv;
-#endif
 static fd_set global_readfds;
 static fd_set global_writefds;
 static int nreadfds;
 static int nwritefds;
+#endif
 
 /*
  * Automatic tuning for incoming requests:
@@ -580,7 +580,6 @@ comm_check_incoming_select_handlers(int nfds, int *fds)
     int i;
     int fd;
     int maxfd = 0;
-    PF *hdl = NULL;
     fd_set read_mask;
     fd_set write_mask;
     FD_ZERO(&read_mask);
@@ -610,24 +609,22 @@ comm_check_incoming_select_handlers(int nfds, int *fds)
     for (i = 0; i < nfds; i++) {
 	fd = fds[i];
 	if (FD_ISSET(fd, &read_mask)) {
-	    if ((hdl = fd_table[fd].read_handler) != NULL) {
-		fd_table[fd].read_handler = NULL;
-		commUpdateReadBits(fd, NULL);
-		hdl(fd, fd_table[fd].read_data);
-	    } else {
-		debug(5, 1) ("comm_select_incoming: FD %d NULL read handler\n",
-		    fd);
-	    }
+	    PF *hdl = fd_table[fd].read_handler;
+	    void *hdl_data = fd_table[fd].read_data;
+	    commUpdateReadHandler(fd, NULL, NULL);
+	    if (hdl)
+		hdl(fd, hdl_data);
+	    else
+		debug(5, 1) ("comm_select_incoming: FD %d NULL read handler\n", fd);
 	}
 	if (FD_ISSET(fd, &write_mask)) {
-	    if ((hdl = fd_table[fd].write_handler) != NULL) {
-		fd_table[fd].write_handler = NULL;
-		commUpdateWriteBits(fd, NULL);
-		hdl(fd, fd_table[fd].write_data);
-	    } else {
-		debug(5, 1) ("comm_select_incoming: FD %d NULL write handler\n",
-		    fd);
-	    }
+	    PF *hdl = fd_table[fd].write_handler;
+	    void *hdl_data = fd_table[fd].write_data;
+	    commUpdateWriteHandler(fd, NULL, NULL);
+	    if (hdl)
+		hdl(fd, hdl_data);
+	    else
+		debug(5, 1) ("comm_select_incoming: FD %d NULL write handler\n", fd);
 	}
     }
     return incoming_sockets_accepted;
@@ -690,31 +687,24 @@ int
 comm_select(int msec)
 {
     fd_set readfds;
-    fd_set pendingfds;
     fd_set writefds;
 #if DELAY_POOLS
     fd_set slowfds;
 #endif
-    PF *hdl = NULL;
     int fd;
     int maxfd;
     int num;
-    int pending;
     int callicp = 0, callhttp = 0;
     int calldns = 0;
     int maxindex;
     int k;
     int j;
-#if DEBUG_FDBITS
-    int i;
-#endif
-    fd_mask *fdsp;
-    fd_mask *pfdsp;
+    fd_mask *rfdsp;
+    fd_mask *wfdsp;
     fd_mask tmask;
     static time_t last_timeout = 0;
     struct timeval poll_time;
     double timeout = current_dtime + (msec / 1000.0);
-    fde *F;
     do {
 #if !ALARM_UPDATES_TIME
 	double start;
@@ -739,68 +729,53 @@ comm_select(int msec)
 	xmemcpy(&writefds, &global_writefds,
 	    howmany(maxfd, FD_MASK_BITS) * FD_MASK_BYTES);
 	/* remove stalled FDs, and deal with pending descriptors */
-	pending = 0;
-	FD_ZERO(&pendingfds);
 	maxindex = howmany(maxfd, FD_MASK_BITS);
-	fdsp = (fd_mask *) & readfds;
+	/* Note: To simplify logics we are cheating a little on pending fds
+	 * by assuming they will be ready for either read or write to trigger
+	 * the callback.
+	 */
+	rfdsp = (fd_mask *) & readfds;
 	for (j = 0; j < maxindex; j++) {
-	    if ((tmask = fdsp[j]) == 0)
+	    if ((tmask = rfdsp[j]) == 0)
 		continue;	/* no bits here */
 	    for (k = 0; k < FD_MASK_BITS; k++) {
 		if (!EBIT_TEST(tmask, k))
 		    continue;
 		/* Found a set bit */
 		fd = (j * FD_MASK_BITS) + k;
-		switch (commDeferRead(fd)) {
-		case 0:
-		    break;
-		case 1:
-		    FD_CLR(fd, &readfds);
-		    break;
+		if (fd_table[fd].read_handler) {
+		    switch (commDeferRead(fd)) {
+		    case 0:
+			break;
+		    case 1:
+			FD_CLR(fd, &readfds);
+			if (!fd_table[fd].write_handler)
+			    FD_CLR(fd, &writefds);
+			break;
 #if DELAY_POOLS
-		case -1:
-		    FD_SET(fd, &slowfds);
-		    break;
+		    case -1:
+			FD_SET(fd, &slowfds);
+			break;
 #endif
-		default:
-		    fatalf("bad return value from commDeferRead(FD %d)\n", fd);
-		}
-		if (FD_ISSET(fd, &readfds) && fd_table[fd].flags.read_pending) {
-		    FD_SET(fd, &pendingfds);
-		    pending++;
+		    default:
+			fatalf("bad return value from commDeferRead(FD %d)\n", fd);
+		    }
 		}
 	    }
 	}
-#if DEBUG_FDBITS
-	for (i = 0; i < maxfd; i++) {
-	    /* Check each open socket for a handler. */
-#if DELAY_POOLS
-	    if (fd_table[i].read_handler && commDeferRead(i) != 1) {
-#else
-	    if (fd_table[i].read_handler && !commDeferRead(i)) {
-#endif
-		assert(FD_ISSET(i, &readfds));
-	    }
-	    if (fd_table[i].write_handler) {
-		assert(FD_ISSET(i, &writefds));
-	    }
-	}
-#endif
 	if (nreadfds + nwritefds == 0) {
 	    assert(shutting_down);
 	    return COMM_SHUTDOWN;
 	}
 	if (msec > MAX_POLL_TIME)
 	    msec = MAX_POLL_TIME;
-	if (pending)
-	    msec = 0;
 	for (;;) {
 	    poll_time.tv_sec = msec / 1000;
 	    poll_time.tv_usec = (msec % 1000) * 1000;
 	    statCounter.syscalls.selects++;
 	    num = select(maxfd, &readfds, &writefds, NULL, &poll_time);
 	    statCounter.select_loops++;
-	    if (num >= 0 || pending > 0)
+	    if (num >= 0)
 		break;
 	    if (ignoreErrno(errno))
 		break;
@@ -810,10 +785,10 @@ comm_select(int msec)
 	    return COMM_ERROR;
 	    /* NOTREACHED */
 	}
-	if (num < 0 && !pending)
+	if (num < 0)
 	    continue;
-	debug(5, num ? 5 : 8) ("comm_select: %d+%d FDs ready at %d\n",
-	    num, pending, (int) squid_curtime);
+	debug(5, num ? 5 : 8) ("comm_select: %d FDs ready at %d\n",
+	    num, (int) squid_curtime);
 	statHistCount(&statCounter.select_fds_hist, num);
 	/* Check lifetime and timeout handlers ONCE each second.
 	 * Replaces brain-dead check every time through the loop! */
@@ -821,16 +796,17 @@ comm_select(int msec)
 	    last_timeout = squid_curtime;
 	    checkTimeouts();
 	}
-	if (num == 0 && pending == 0)
+	if (num == 0)
 	    continue;
 	/* Scan return fd masks for ready descriptors */
-	fdsp = (fd_mask *) & readfds;
-	pfdsp = (fd_mask *) & pendingfds;
+	rfdsp = (fd_mask *) & readfds;
+	wfdsp = (fd_mask *) & writefds;
 	maxindex = howmany(maxfd, FD_MASK_BITS);
 	for (j = 0; j < maxindex; j++) {
-	    if ((tmask = (fdsp[j] | pfdsp[j])) == 0)
+	    if ((tmask = (rfdsp[j] | wfdsp[j])) == 0)
 		continue;	/* no bits here */
 	    for (k = 0; k < FD_MASK_BITS; k++) {
+		fde *F;
 		if (tmask == 0)
 		    break;	/* no more bits left */
 		if (!EBIT_TEST(tmask, k))
@@ -838,10 +814,6 @@ comm_select(int msec)
 		/* Found a set bit */
 		fd = (j * FD_MASK_BITS) + k;
 		EBIT_CLR(tmask, k);	/* this will be done */
-#if DEBUG_FDBITS
-		debug(5, 9) ("FD %d bit set for reading\n", fd);
-		assert(FD_ISSET(fd, &readfds));
-#endif
 		if (fdIsIcp(fd)) {
 		    callicp = 1;
 		    continue;
@@ -855,68 +827,71 @@ comm_select(int msec)
 		    continue;
 		}
 		F = &fd_table[fd];
-		debug(5, 6) ("comm_select: FD %d ready for reading\n", fd);
-		if (NULL == (hdl = F->read_handler))
-		    (void) 0;
+		debug(5, 6) ("comm_select: FD %d ready for %s%s\n", fd,
+		    FD_ISSET(fd, &readfds) ? "read" : "",
+		    FD_ISSET(fd, &writefds) ? "write" : "");
+		if (F->read_handler) {
+		    int do_read = 0;
+		    switch (F->read_pending) {
+		    case COMM_PENDING_NORMAL:
+		    case COMM_PENDING_WANTS_READ:
+			do_read = FD_ISSET(fd, &readfds);
+			break;
+		    case COMM_PENDING_WANTS_WRITE:
+			do_read = FD_ISSET(fd, &writefds);
+			break;
+		    case COMM_PENDING_NOW:
+			do_read = 1;
+			break;
+		    }
 #if DELAY_POOLS
-		else if (FD_ISSET(fd, &slowfds))
-		    commAddSlowFd(fd);
+		    if (do_read && FD_ISSET(fd, &slowfds))
+			commAddSlowFd(fd);
+		    else
 #endif
-		else {
-		    F->read_handler = NULL;
-		    commUpdateReadBits(fd, NULL);
-		    hdl(fd, F->read_data);
-		    statCounter.select_fds++;
-		    if (commCheckICPIncoming)
-			comm_select_icp_incoming();
-		    if (commCheckDNSIncoming)
-			comm_select_dns_incoming();
-		    if (commCheckHTTPIncoming)
-			comm_select_http_incoming();
+		    if (do_read) {
+			PF *hdl = F->read_handler;
+			void *hdl_data = F->read_data;
+			debug(5, 6) ("comm_select: FD %d calling read_handler %p(%p)\n", fd, hdl, hdl_data);
+			commUpdateReadHandler(fd, NULL, NULL);
+			hdl(fd, hdl_data);
+			statCounter.select_fds++;
+			if (commCheckICPIncoming)
+			    comm_select_icp_incoming();
+			if (commCheckDNSIncoming)
+			    comm_select_dns_incoming();
+			if (commCheckHTTPIncoming)
+			    comm_select_http_incoming();
+		    }
 		}
-	    }
-	}
-	fdsp = (fd_mask *) & writefds;
-	for (j = 0; j < maxindex; j++) {
-	    if ((tmask = fdsp[j]) == 0)
-		continue;	/* no bits here */
-	    for (k = 0; k < FD_MASK_BITS; k++) {
-		if (tmask == 0)
-		    break;	/* no more bits left */
-		if (!EBIT_TEST(tmask, k))
-		    continue;
-		/* Found a set bit */
-		fd = (j * FD_MASK_BITS) + k;
-		EBIT_CLR(tmask, k);	/* this will be done */
-#if DEBUG_FDBITS
-		debug(5, 9) ("FD %d bit set for writing\n", fd);
-		assert(FD_ISSET(fd, &writefds));
-#endif
-		if (fdIsIcp(fd)) {
-		    callicp = 1;
-		    continue;
-		}
-		if (fdIsDns(fd)) {
-		    calldns = 1;
-		    continue;
-		}
-		if (fdIsHttp(fd)) {
-		    callhttp = 1;
-		    continue;
-		}
-		F = &fd_table[fd];
-		debug(5, 5) ("comm_select: FD %d ready for writing\n", fd);
-		if ((hdl = F->write_handler)) {
-		    F->write_handler = NULL;
-		    commUpdateWriteBits(fd, NULL);
-		    hdl(fd, F->write_data);
-		    statCounter.select_fds++;
-		    if (commCheckICPIncoming)
-			comm_select_icp_incoming();
-		    if (commCheckDNSIncoming)
-			comm_select_dns_incoming();
-		    if (commCheckHTTPIncoming)
-			comm_select_http_incoming();
+		if (F->write_handler) {
+		    int do_write = 0;
+		    switch (F->write_pending) {
+		    case COMM_PENDING_WANTS_READ:
+			do_write = FD_ISSET(fd, &readfds);
+			break;
+		    case COMM_PENDING_NORMAL:
+		    case COMM_PENDING_WANTS_WRITE:
+			do_write = FD_ISSET(fd, &writefds);
+			break;
+		    case COMM_PENDING_NOW:
+			do_write = 1;
+			break;
+		    }
+		    if (do_write) {
+			PF *hdl = F->write_handler;
+			void *hdl_data = F->write_data;
+			debug(5, 6) ("comm_select: FD %d calling write_handler %p(%p)\n", fd, hdl, hdl_data);
+			commUpdateWriteHandler(fd, NULL, NULL);
+			hdl(fd, hdl_data);
+			statCounter.select_fds++;
+			if (commCheckICPIncoming)
+			    comm_select_icp_incoming();
+			if (commCheckDNSIncoming)
+			    comm_select_dns_incoming();
+			if (commCheckHTTPIncoming)
+			    comm_select_http_incoming();
+		    }
 		}
 	    }
 	}
@@ -928,12 +903,13 @@ comm_select(int msec)
 	    comm_select_http_incoming();
 #if DELAY_POOLS
 	while ((fd = commGetSlowFd()) != -1) {
-	    F = &fd_table[fd];
+	    fde *F = &fd_table[fd];
+	    PF *hdl = F->read_handler;
+	    void *hdl_data = F->read_data;
 	    debug(5, 6) ("comm_select: slow FD %d selected for reading\n", fd);
-	    if ((hdl = F->read_handler)) {
-		F->read_handler = NULL;
-		commUpdateReadBits(fd, NULL);
-		hdl(fd, F->read_data);
+	    if (hdl) {
+		commUpdateReadHandler(fd, NULL, NULL);
+		hdl(fd, hdl_data);
 		statCounter.select_fds++;
 		if (commCheckICPIncoming)
 		    comm_select_icp_incoming();
@@ -997,9 +973,11 @@ comm_select_init(void)
     cachemgrRegister("comm_incoming",
 	"comm_incoming() stats",
 	commIncomingStats, 0, 1);
+#if !HAVE_POLL
     FD_ZERO(&global_readfds);
     FD_ZERO(&global_writefds);
     nreadfds = nwritefds = 0;
+#endif
 }
 
 #if !HAVE_POLL
@@ -1102,28 +1080,87 @@ commIncomingStats(StoreEntry * sentry)
     statHistDump(&f->comm_http_incoming, sentry, statHistIntDumper);
 }
 
-void
-commUpdateReadBits(int fd, PF * handler)
+#if !HAVE_POLL
+static void
+commUpdateSelectFds(int fd)
 {
-    if (handler && !FD_ISSET(fd, &global_readfds)) {
+    fde *F = &fd_table[fd];
+    int need_read = 0;
+    int need_write = 0;
+
+    if (F->read_handler) {
+	switch (F->read_pending) {
+	case COMM_PENDING_NORMAL:
+	    need_read = 1;
+	    break;
+	case COMM_PENDING_WANTS_WRITE:
+	    need_write = 1;
+	    break;
+	case COMM_PENDING_WANTS_READ:
+	    need_read = 1;
+	    break;
+	case COMM_PENDING_NOW:
+	    need_read = 1;	/* Not really I/O dependent, but this shuld get comm_select to wake up */
+	    need_write = 1;
+	    break;
+	}
+    }
+    if (F->write_handler) {
+	switch (F->write_pending) {
+	case COMM_PENDING_NORMAL:
+	    need_write = 1;
+	    break;
+	case COMM_PENDING_WANTS_WRITE:
+	    need_write = 1;
+	    break;
+	case COMM_PENDING_WANTS_READ:
+	    need_read = 1;
+	    break;
+	case COMM_PENDING_NOW:
+	    need_read = 1;	/* Not really I/O dependent, but this shuld get comm_select to wake up */
+	    need_write = 1;
+	    break;
+	}
+    }
+    if (need_read && !FD_ISSET(fd, &global_readfds)) {
 	FD_SET(fd, &global_readfds);
 	nreadfds++;
-    } else if (!handler && FD_ISSET(fd, &global_readfds)) {
+    } else if (!need_read && FD_ISSET(fd, &global_readfds)) {
 	FD_CLR(fd, &global_readfds);
 	nreadfds--;
     }
-}
-
-void
-commUpdateWriteBits(int fd, PF * handler)
-{
-    if (handler && !FD_ISSET(fd, &global_writefds)) {
+    if (need_write && !FD_ISSET(fd, &global_writefds)) {
 	FD_SET(fd, &global_writefds);
 	nwritefds++;
-    } else if (!handler && FD_ISSET(fd, &global_writefds)) {
+    } else if (!need_write && FD_ISSET(fd, &global_writefds)) {
 	FD_CLR(fd, &global_writefds);
 	nwritefds--;
     }
+}
+#endif
+
+void
+commUpdateReadHandler(int fd, PF * handler, void *data)
+{
+    fd_table[fd].read_handler = handler;
+    fd_table[fd].read_data = data;
+    if (!handler)
+	fd_table[fd].read_pending = COMM_PENDING_NORMAL;
+#if !HAVE_POLL
+    commUpdateSelectFds(fd);
+#endif
+}
+
+void
+commUpdateWriteHandler(int fd, PF * handler, void *data)
+{
+    fd_table[fd].write_handler = handler;
+    fd_table[fd].write_data = data;
+    if (!handler)
+	fd_table[fd].write_pending = COMM_PENDING_NORMAL;
+#if !HAVE_POLL
+    commUpdateSelectFds(fd);
+#endif
 }
 
 #else /* HAVE_EPOLL */
@@ -1308,13 +1345,13 @@ comm_select_init()
 }
 
 void
-commUpdateReadBits(int fd, PF * handler)
+commUpdateReadHandler(int fd, PF * handler, void *data)
 {
     /* Not imlpemented */
 }
 
 void
-commUpdateWriteBits(int fd, PF * handler)
+commUpdateWriteHandler(int fd, PF * handler, void *data)
 {
     /* Not imlpemented */
 }

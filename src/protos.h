@@ -195,8 +195,8 @@ extern int comm_poll(int);
 #else
 extern int comm_select(int);
 #endif
-extern void commUpdateReadBits(int, PF *);
-extern void commUpdateWriteBits(int, PF *);
+extern void commUpdateReadHandler(int, PF *, void *);
+extern void commUpdateWriteHandler(int, PF *, void *);
 extern void comm_quick_poll_required(void);
 
 extern void packerToStoreInit(Packer * p, StoreEntry * e);

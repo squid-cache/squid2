@@ -3328,7 +3328,6 @@ clientReadRequest(int fd, void *data)
     fde *F = &fd_table[fd];
     int len = conn->in.size - conn->in.offset - 1;
     debug(33, 4) ("clientReadRequest: FD %d: reading request...\n", fd);
-    commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, conn, 0);
     if (len == 0) {
 	/* Grow the request memory area to accomodate for a large request */
 	conn->in.buf = memReallocBuf(conn->in.buf, conn->in.size * 2, &conn->in.size);
@@ -3597,11 +3596,13 @@ clientReadRequest(int fd, void *data)
 	    }
 	    break;
 	}
-	if (!cbdataValid(conn)) {
-	    cbdataUnlock(conn);
-	    return;
-	}
+	if (!cbdataValid(conn))
+	    break;
     }				/* while offset > 0 && conn->body.size_left == 0 */
+    if (!cbdataValid(conn)) {
+	cbdataUnlock(conn);
+	return;
+    }
     cbdataUnlock(conn);
     /* Check if a half-closed connection was aborted in the middle */
     if (F->flags.socket_eof) {
@@ -3612,6 +3613,7 @@ clientReadRequest(int fd, void *data)
 	    return;
 	}
     }
+    commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, conn, 0);
 }
 
 /* file_read like function, for reading body content */

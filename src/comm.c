@@ -788,14 +788,10 @@ commSetSelect(int fd, unsigned int type, PF * handler, void *client_data, time_t
     assert(F->flags.open);
     debug(5, 5) ("commSetSelect: FD %d type %d\n", fd, type);
     if (type & COMM_SELECT_READ) {
-	F->read_handler = handler;
-	F->read_data = client_data;
-	commUpdateReadBits(fd, handler);
+	commUpdateReadHandler(fd, handler, client_data);
     }
     if (type & COMM_SELECT_WRITE) {
-	F->write_handler = handler;
-	F->write_data = client_data;
-	commUpdateWriteBits(fd, handler);
+	commUpdateWriteHandler(fd, handler, client_data);
     }
     if (timeout)
 	F->timeout = squid_curtime + timeout;

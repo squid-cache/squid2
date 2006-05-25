@@ -92,8 +92,8 @@ fd_close(int fd)
     F->flags.open = 0;
     fdUpdateBiggest(fd, 0);
     Number_FD--;
-    commUpdateReadBits(fd, NULL);
-    commUpdateWriteBits(fd, NULL);
+    commUpdateReadHandler(fd, NULL, NULL);
+    commUpdateWriteHandler(fd, NULL, NULL);
     memset(F, '\0', sizeof(fde));
     F->timeout = 0;
 }
