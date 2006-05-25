@@ -1,0 +1,73 @@
+<!doctype linuxdoc system>
+<article>
+<title>Squid 2.6.PRE1 release notes</title>
+<author>Squid Developers</author>
+<date>$Id$</date>
+
+<abstract>
+This document contains the release notes for version 2.6 of Squid.
+Squid is a WWW Cache application developed by the National Laboratory
+for Applied Network Research and members of the Web Caching community.
+</abstract>
+
+<toc>
+
+<sect>Key changes from squid 2.5:
+<p>
+<itemize>
+<item>...
+</itemize>
+
+<sect>Changes to squid.conf
+<p><descrip>
+<tag>http_port</tag>...
+</descrip>
+
+<sect>Known issues and limitations
+
+<P>There is a few known issues in this version of Squid which we hope to correct in a later release
+
+<descrip>
+<tag>SSL acceleration &amp epoll</tag>SSL acceleration (--enable-ssl) and epoll does not yet work properly together. We hope to have this corrected before release. Until then beware that SSL connections may hang or cause 100% CPU unless you disable epoll with --disable-epoll.
+<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=761" name="#761"></tag>assertion failed: cbdata.c:249: "c-&gt;locks &gt; 0" when using diskd
+<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=888" name="#888"></tag>ntlm_user_pool assertion error on shutdown
+<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1420" name="#1420"></tag>302 responses with an Expires header is always cached
+<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1500" name="#1500"></tag>diskd related memory corruption under heavy load
+</descrip>
+
+<P>Ipfilter 4.x compile problem on HP Tru64
+<itemize>
+    <item>Running configure --enable-ipf-transparent on an HP Tru64 5.1B system with ipfilter 4.x installed, the following error can occur:
+    <verb>
+      checking if IP-Filter header files are installed... no
+      WARNING: Cannot find necessary IP-Filter header files
+               Transparent Proxy support WILL NOT be enabled</verb>
+    To fix the problem first check if the ip_fil.h, ip_compat.h, ip_nat.h and ipl.h files are present in
+    /usr/include/netinet and copy them from ipfilter source tree if needed.
+    Don't forget to fix files permission and ownership after the copy.<newline>
+    If the error still persist, run configure making it skip the ip_compat.h test:<newline>
+    <verb>
+    env ac_cv_header_netinet_ip_compat_h=yes ./configure --enable-ipf-transparent</verb>
+    <item>On Sun Solaris 10, ipfilter 4.0.22 is provided with the OS, but related include files (ip_fil.h, ip_compat.h, ip_nat.h, ipl.h) are missing.<newline>
+      Before running configure --enable-ipf-transparent, they must be downloaded from the
+      <url url="http://cvs.opensolaris.org/source/xref/usr/src/common/ipf/" name="OpenSolaris Web Site">
+      in the /usr/include local directory. Don't forget to fix files permission and ownership after the download.
+</itemize>
+
+
+<P>In addition there is a set of limitations in this version of Squid which we hope to correct later
+
+<descrip>
+<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1059" name="#1059"></tag>mime.conf and referenced icons must be within chroot
+<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=692" name="#692"></tag>tcp_outgoing_address using an ident ACL does not work
+<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=581" name="#581"></tag>acl max_user_ip and multiple authentication schemes
+<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=528" name="#528"></tag>miss_access fails on "slow" acl types such as dst.
+<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=513" name="#513"></tag>squid -F is starting server sockets to early
+<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=457" name="#457"></tag>does not handle swap.state corruption properly
+<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=410" name="#410"></tag>unstable if runs out of disk space
+<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=355" name="#355"></tag>diskd may appear slow on low loads
+<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=219" name="#219"></tag>delay_pools stops working on -k reconfigure
+</descrip>
+
+</article>
+

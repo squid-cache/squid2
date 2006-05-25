@@ -1,4 +1,4 @@
-DOC	= release-2.5
+DOC	= release-2.6
 
 all: html
 

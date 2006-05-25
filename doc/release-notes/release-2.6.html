@@ -1,0 +1,99 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.21">
+ <TITLE>Squid 2.6.PRE1 release notes</TITLE>
+</HEAD>
+<BODY>
+<H1>Squid 2.6.PRE1 release notes</H1>
+
+<H2>Squid Developers</H2>$Id$
+<HR>
+<EM>This document contains the release notes for version 2.6 of Squid.
+Squid is a WWW Cache application developed by the National Laboratory
+for Applied Network Research and members of the Web Caching community.</EM>
+<HR>
+<H2><A NAME="s1">1. Key changes from squid 2.5:</A></H2>
+
+<P>
+<UL>
+<LI>...</LI>
+</UL>
+</P>
+
+<H2><A NAME="s2">2. Changes to squid.conf</A></H2>
+
+<P>
+<DL>
+<DT><B>http_port</B><DD><P>...</P>
+</DL>
+</P>
+
+<H2><A NAME="s3">3. Known issues and limitations</A></H2>
+
+<P>There is a few known issues in this version of Squid which we hope to correct in a later release</P>
+<P>
+<DL>
+<DT><B>SSL acceleration &amp; epoll</B><DD><P>SSL acceleration (--enable-ssl) and epoll does not yet work properly together. We hope to have this corrected before release. Until then beware that SSL connections may hang or cause 100% CPU unless you disable epoll with --disable-epoll.</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=761">#761</A></B><DD><P>assertion failed: cbdata.c:249: "c-&gt;locks &gt; 0" when using diskd</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=888">#888</A></B><DD><P>ntlm_user_pool assertion error on shutdown</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=1420">#1420</A></B><DD><P>302 responses with an Expires header is always cached</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=1500">#1500</A></B><DD><P>diskd related memory corruption under heavy load</P>
+</DL>
+</P>
+
+<P>Ipfilter 4.x compile problem on HP Tru64
+<UL>
+<LI>Running configure --enable-ipf-transparent on an HP Tru64 5.1B system with ipfilter 4.x installed, the following error can occur:
+<PRE>
+      checking if IP-Filter header files are installed... no
+      WARNING: Cannot find necessary IP-Filter header files
+               Transparent Proxy support WILL NOT be enabled
+</PRE>
+
+To fix the problem first check if the ip_fil.h, ip_compat.h, ip_nat.h and ipl.h files are present in
+/usr/include/netinet and copy them from ipfilter source tree if needed.
+Don't forget to fix files permission and ownership after the copy.<BR>
+If the error still persist, run configure making it skip the ip_compat.h test:<BR>
+<PRE>
+    env ac_cv_header_netinet_ip_compat_h=yes ./configure --enable-ipf-transparent
+</PRE>
+</LI>
+<LI>On Sun Solaris 10, ipfilter 4.0.22 is provided with the OS, but related include files (ip_fil.h, ip_compat.h, ip_nat.h, ipl.h) are missing.<BR>
+Before running configure --enable-ipf-transparent, they must be downloaded from the
+<A HREF="http://cvs.opensolaris.org/source/xref/usr/src/common/ipf/">OpenSolaris Web Site</A>
+in the /usr/include local directory. Don't forget to fix files permission and ownership after the download.</LI>
+</UL>
+</P>
+
+
+<P>In addition there is a set of limitations in this version of Squid which we hope to correct later</P>
+<P>
+<DL>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=1059">#1059</A></B><DD><P>mime.conf and referenced icons must be within chroot</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=692">#692</A></B><DD><P>tcp_outgoing_address using an ident ACL does not work</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=581">#581</A></B><DD><P>acl max_user_ip and multiple authentication schemes</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=528">#528</A></B><DD><P>miss_access fails on "slow" acl types such as dst.</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=513">#513</A></B><DD><P>squid -F is starting server sockets to early</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=457">#457</A></B><DD><P>does not handle swap.state corruption properly</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=410">#410</A></B><DD><P>unstable if runs out of disk space</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=355">#355</A></B><DD><P>diskd may appear slow on low loads</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=219">#219</A></B><DD><P>delay_pools stops working on -k reconfigure</P>
+</DL>
+</P>
+
+</BODY>
+</HTML>
