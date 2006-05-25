@@ -103,8 +103,7 @@ eventDelete(EVH * func, void *arg)
 	if (NULL != event->arg)
 	    cbdataUnlock(event->arg);
 	memFree(event, MEM_EVENT);
-	if (arg)
-	    return;
+	return;
     }
     if (arg)
 	debug_trap("eventDelete: event not found");
