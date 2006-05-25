@@ -217,11 +217,35 @@ intlistFind(intlist * list, int i)
     return 0;
 }
 
-
 /*
- * Use this #define in all the parse*() functions.  Assumes char *token is
- * defined
+ * These functions is the same as atoi/l/f, except that they check for errors
  */
+
+static long
+xatol(const char *token)
+{
+    char *end;
+    long ret = strtol(token, &end, 10);
+    if (ret == 0 && end == token)
+	self_destruct();
+    return ret;
+}
+
+static int
+xatoi(const char *token)
+{
+    return xatol(token);
+}
+
+static double
+xatof(const char *token)
+{
+    char *end;
+    double ret = strtod(token, &end);
+    if (ret == 0 && end == token)
+	self_destruct();
+    return ret;
+}
 
 int
 GetInteger(void)
@@ -543,7 +567,7 @@ parseTimeLine(time_t * tptr, const char *units)
 	self_destruct();
     if ((token = strtok(NULL, w_space)) == NULL)
 	self_destruct();
-    d = atof(token);
+    d = xatof(token);
     m = u;			/* default to 'units' if none specified */
     if (0 == d)
 	(void) 0;
@@ -595,7 +619,7 @@ parseBytesLine(squid_off_t * bptr, const char *units)
 	*bptr = (squid_off_t) - 1;
 	return;
     }
-    d = atof(token);
+    d = xatof(token);
     m = u;			/* default to 'units' if none specified */
     if (0.0 == d)
 	(void) 0;
@@ -1378,7 +1402,7 @@ parse_cachedir_option_readonly(SwapDir * sd, const char *option, const char *val
 {
     int read_only = 0;
     if (value)
-	read_only = atoi(value);
+	read_only = xatoi(value);
     else
 	read_only = 1;
     sd->flags.read_only = read_only;
@@ -1562,11 +1586,11 @@ parse_peer(peer ** head)
 	} else if (!strcasecmp(token, "multicast-responder")) {
 	    p->options.mcast_responder = 1;
 	} else if (!strncasecmp(token, "weight=", 7)) {
-	    p->weight = atoi(token + 7);
+	    p->weight = xatoi(token + 7);
 	} else if (!strcasecmp(token, "closest-only")) {
 	    p->options.closest_only = 1;
 	} else if (!strncasecmp(token, "ttl=", 4)) {
-	    p->mcast.ttl = atoi(token + 4);
+	    p->mcast.ttl = xatoi(token + 4);
 	    if (p->mcast.ttl < 0)
 		p->mcast.ttl = 0;
 	    if (p->mcast.ttl > 128)
@@ -1599,7 +1623,7 @@ parse_peer(peer ** head)
 	    p->login = xstrdup(token + 6);
 	    rfc1738_unescape(p->login);
 	} else if (!strncasecmp(token, "connect-timeout=", 16)) {
-	    p->connect_timeout = atoi(token + 16);
+	    p->connect_timeout = xatoi(token + 16);
 #if USE_CACHE_DIGESTS
 	} else if (!strncasecmp(token, "digest-url=", 11)) {
 	    p->digest_url = xstrdup(token + 11);
@@ -1607,7 +1631,7 @@ parse_peer(peer ** head)
 	} else if (!strcasecmp(token, "allow-miss")) {
 	    p->options.allow_miss = 1;
 	} else if (!strncasecmp(token, "max-conn=", 9)) {
-	    p->max_conn = atoi(token + 9);
+	    p->max_conn = xatoi(token + 9);
 	} else if (!strcasecmp(token, "originserver")) {
 	    p->options.originserver = 1;
 	} else if (!strncasecmp(token, "name=", 5)) {
@@ -1619,18 +1643,18 @@ parse_peer(peer ** head)
 	    if (token[11])
 		p->monitor.url = xstrdup(token + 11);
 	} else if (!strncasecmp(token, "monitorsize=", 12)) {
-	    p->monitor.min = atoi(token + 12);
+	    p->monitor.min = xatoi(token + 12);
 	    p->monitor.max = -1;
 	    if (strchr(token + 12, ','))
 		token = strchr(token + 12, ',');
 	    else
 		token = strchr(token + 12, '-');
 	    if (token)
-		p->monitor.max = atoi(token + 1);
+		p->monitor.max = xatoi(token + 1);
 	} else if (!strncasecmp(token, "monitorinterval=", 16)) {
-	    p->monitor.interval = atoi(token + 16);
+	    p->monitor.interval = xatoi(token + 16);
 	} else if (!strncasecmp(token, "monitortimeout=", 15)) {
-	    p->monitor.timeout = atoi(token + 15);
+	    p->monitor.timeout = xatoi(token + 15);
 	} else if (!strncasecmp(token, "forceddomain=", 13)) {
 	    safe_free(p->domain);
 	    if (token[13])
@@ -1645,7 +1669,7 @@ parse_peer(peer ** head)
 	    safe_free(p->sslkey);
 	    p->sslkey = xstrdup(token + 7);
 	} else if (strncmp(token, "sslversion=", 11) == 0) {
-	    p->sslversion = atoi(token + 11);
+	    p->sslversion = xatoi(token + 11);
 	} else if (strncmp(token, "ssloptions=", 11) == 0) {
 	    safe_free(p->ssloptions);
 	    p->ssloptions = xstrdup(token + 11);
@@ -2456,7 +2480,7 @@ parse_errormap(errormap ** head)
     while ((token = strtok(NULL, w_space))) {
 	struct error_map_entry *e = xcalloc(1, sizeof(*e));
 	e->value = xstrdup(token);
-	e->status = atoi(token);
+	e->status = xatoi(token);
 	if (!e->status)
 	    e->status = -errorPageId(token);
 	if (!e->status)
@@ -2537,7 +2561,7 @@ parse_sockaddr_in_list(sockaddr_in_list ** head)
 	    /* host:port */
 	    host = token;
 	    *t = '\0';
-	    port = (unsigned short) atoi(t + 1);
+	    port = (unsigned short) xatoi(t + 1);
 	    if (0 == port)
 		self_destruct();
 	} else if ((port = strtol(token, &tmp, 10)), !*tmp) {
@@ -2604,10 +2628,10 @@ parse_http_port_specification(http_port_list * s, char *token)
 	/* host:port */
 	host = token;
 	*t = '\0';
-	port = (unsigned short) atoi(t + 1);
+	port = (unsigned short) xatoi(t + 1);
 	if (0 == port)
 	    self_destruct();
-    } else if ((port = atoi(token)) > 0) {
+    } else if ((port = xatoi(token)) > 0) {
 	/* port */
     } else {
 	self_destruct();
@@ -2644,7 +2668,7 @@ parse_http_port_option(http_port_list * s, char *token)
 	s->vport = ntohs(s->s.sin_port);
 	s->accel = 1;
     } else if (strncmp(token, "vport=", 6) == 0) {
-	s->vport = atoi(token + 6);
+	s->vport = xatoi(token + 6);
 	s->accel = 1;
     } else if (strncmp(token, "urlgroup=", 9) == 0) {
 	s->urlgroup = xstrdup(token + 9);
@@ -2765,7 +2789,7 @@ parse_https_port_list(https_port_list ** head)
 	    safe_free(s->key);
 	    s->key = xstrdup(token + 4);
 	} else if (strncmp(token, "version=", 8) == 0) {
-	    s->version = atoi(token + 8);
+	    s->version = xatoi(token + 8);
 	    if (s->version < 1 || s->version > 4)
 		self_destruct();
 	} else if (strncmp(token, "options=", 8) == 0) {
