@@ -113,7 +113,9 @@ static int check_null_sockaddr_in_list(const sockaddr_in_list *);
 static void parse_http_port_list(http_port_list **);
 static void dump_http_port_list(StoreEntry *, const char *, const http_port_list *);
 static void free_http_port_list(http_port_list **);
+#if 0
 static int check_null_http_port_list(const http_port_list *);
+#endif
 #if USE_SSL
 static void parse_https_port_list(https_port_list **);
 static void dump_https_port_list(StoreEntry *, const char *, const https_port_list *);
@@ -2751,11 +2753,13 @@ free_http_port_list(http_port_list ** head)
     }
 }
 
+#if UNUSED_CODE
 static int
 check_null_http_port_list(const http_port_list * s)
 {
     return NULL == s;
 }
+#endif
 
 #if USE_SSL
 static void

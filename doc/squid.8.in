@@ -62,8 +62,6 @@ the Squid FAQ and the documentation at the
 home page http://www.squid-cache.org
 .PP
 .SH OPTIONS
-.IP "-a port"
-Specify HTTP port number (default: 3128).
 .IP "-d level"
 Write debugging to stderr also.
 .IP "-f file"

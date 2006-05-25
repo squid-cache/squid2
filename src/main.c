@@ -57,7 +57,6 @@ extern void (*failure_notify) (const char *);
 
 static int opt_parse_cfg_only = 0;
 static char *opt_syslog_facility = NULL;
-static int httpPortNumOverride = 1;
 static int icpPortNumOverride = 1;	/* Want to detect "-u 0" */
 static int configured_once = 0;
 #if MALLOC_DBG
@@ -149,9 +148,9 @@ mainParseOptions(int argc, char *argv[])
     int c;
 
 #if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
-    while ((c = getopt(argc, argv, "CDFO:RSVYXa:d:f:hik:m::n:rsl:u:vz?")) != -1) {
+    while ((c = getopt(argc, argv, "CDFO:RSVYXd:f:hik:m::n:rsl:u:vz?")) != -1) {
 #else
-    while ((c = getopt(argc, argv, "CDFNRSVYXa:d:f:hk:m::sl:u:vz?")) != -1) {
+    while ((c = getopt(argc, argv, "CDFNRSVYXd:f:hk:m::sl:u:vz?")) != -1) {
 #endif
 	switch (c) {
 	case 'C':
@@ -194,9 +193,6 @@ mainParseOptions(int argc, char *argv[])
 	    break;
 	case 'Y':
 	    opt_reload_hit_only = 1;
-	    break;
-	case 'a':
-	    httpPortNumOverride = atoi(optarg);
 	    break;
 	case 'd':
 	    opt_debug_stderr = atoi(optarg);
@@ -575,9 +571,6 @@ mainInitialize(void)
     squid_signal(SIGCHLD, sig_child, SA_NODEFER | SA_RESTART);
 
     setEffectiveUser();
-    assert(Config.Sockaddr.http);
-    if (httpPortNumOverride != 1)
-	Config.Sockaddr.http->s.sin_port = htons(httpPortNumOverride);
     if (icpPortNumOverride != 1)
 	Config.Port.icp = (u_short) icpPortNumOverride;
 

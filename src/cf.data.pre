@@ -56,7 +56,6 @@ COMMENT_END
 NAME: http_port ascii_port
 TYPE: http_port_list
 DEFAULT: none
-DEFAULT_IF_NONE: @DEFAULT_HTTP_PORT@
 LOC: Config.Sockaddr.http
 DOC_START
 	Usage:	port [options]
@@ -100,6 +99,11 @@ DOC_START
 	and an external interface we recommend you to specify the
 	internal address:port in http_port. This way Squid will only be
 	visible on the internal address.
+
+NOCOMMENT_START
+# Squid normally listens to port 3128
+http_port 3128
+NOCOMMENT_END
 DOC_END
 
 NAME: https_port

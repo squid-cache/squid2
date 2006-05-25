@@ -72,7 +72,7 @@ send_announce(const ipcache_addrs * ia, void *junk)
     assert(Config.Sockaddr.http);
     snprintf(tbuf, 256, "Running on %s %d %d\n",
 	getMyHostname(),
-	(int) ntohs(Config.Sockaddr.http->s.sin_port),
+	getMyPort(),
 	(int) Config.Port.icp);
     strcat(sndbuf, tbuf);
     if (Config.adminEmail) {

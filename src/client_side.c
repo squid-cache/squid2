@@ -1607,7 +1607,7 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
     /* Append X-Cache-Lookup: -- temporary hack, to be removed @?@ @?@ */
     httpHeaderPutStrf(hdr, HDR_X_CACHE_LOOKUP, "%s from %s:%d",
 	http->lookup_type ? http->lookup_type : "NONE",
-	getMyHostname(), ntohs(Config.Sockaddr.http->s.sin_port));
+	getMyHostname(), getMyPort());
 #endif
     if (httpReplyBodySize(request->method, rep) < 0) {
 	debug(33, 3) ("clientBuildReplyHeader: can't keep-alive, unknown body size\n");
@@ -3490,11 +3490,11 @@ clientReadRequest(int fd, void *data)
 	    if (!http->flags.internal) {
 		if (internalCheck(strBuf(request->urlpath))) {
 		    if (internalHostnameIs(request->host)) {
-			request->port = ntohs(Config.Sockaddr.http->s.sin_port);
+			request->port = getMyPort();
 			http->flags.internal = 1;
 		    } else if (Config.onoff.global_internal_static && internalStaticCheck(strBuf(request->urlpath))) {
 			xstrncpy(request->host, internalHostname(), SQUIDHOSTNAMELEN);
-			request->port = ntohs(Config.Sockaddr.http->s.sin_port);
+			request->port = getMyPort();
 			http->flags.internal = 1;
 		    }
 		}
