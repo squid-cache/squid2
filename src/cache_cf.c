@@ -414,7 +414,7 @@ configDoConfigure(void)
     storeConfigure();
     snprintf(ThisCache, sizeof(ThisCache), "%s:%d (%s)",
 	uniqueHostname(),
-	(int) ntohs(Config.Sockaddr.http->s.sin_port),
+	getMyPort(),
 	visible_appname_string);
     /*
      * the extra space is for loop detection in client_side.c -- we search
@@ -422,7 +422,7 @@ configDoConfigure(void)
      */
     snprintf(ThisCache2, sizeof(ThisCache), " %s:%d (%s)",
 	uniqueHostname(),
-	(int) ntohs(Config.Sockaddr.http->s.sin_port),
+	getMyPort(),
 	visible_appname_string);
     if (!Config.udpMaxHitObjsz || Config.udpMaxHitObjsz > SQUID_UDP_SO_SNDBUF)
 	Config.udpMaxHitObjsz = SQUID_UDP_SO_SNDBUF;
