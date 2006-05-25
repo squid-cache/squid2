@@ -97,15 +97,17 @@ eventDelete(EVH * func, void *arg)
     for (E = &tasks; (event = *E) != NULL; E = &(*E)->next) {
 	if (event->func != func)
 	    continue;
-	if (event->arg != arg)
+	if (arg && event->arg != arg)
 	    continue;
 	*E = event->next;
 	if (NULL != event->arg)
 	    cbdataUnlock(event->arg);
 	memFree(event, MEM_EVENT);
-	return;
+	if (arg)
+	    return;
     }
-    debug_trap("eventDelete: event not found");
+    if (arg)
+	debug_trap("eventDelete: event not found");
 }
 
 void
