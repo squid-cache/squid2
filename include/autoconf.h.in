@@ -19,9 +19,6 @@
 /* What default UDP port to use for ICP listening? */
 #undef CACHE_ICP_PORT
 
-/* Enable hostname sanity checks */
-#undef CHECK_HOSTNAMES
-
 /* Host type from configure */
 #undef CONFIG_HOST_TYPE
 
