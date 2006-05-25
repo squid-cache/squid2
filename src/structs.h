@@ -434,6 +434,7 @@ struct _SquidConfig {
 	int pct;
 	squid_off_t max;
     } quickAbort;
+    squid_off_t readAheadGap;
     RemovalPolicySettings *replPolicy;
     RemovalPolicySettings *memPolicy;
     time_t negativeTtl;

@@ -150,7 +150,7 @@ storeSwapOutMaintainMemObject(StoreEntry * e)
 	 * flush until it has less than READ_AHEAD_GAP bytes in memory */
 	if (EBIT_TEST(e->flags, ENTRY_DEFER_READ)) {
 
-	    if (mem->inmem_hi - mem->inmem_lo <= READ_AHEAD_GAP) {
+	    if (mem->inmem_hi - mem->inmem_lo <= Config.readAheadGap) {
 		EBIT_CLR(e->flags, ENTRY_DEFER_READ);
 #if HAVE_EPOLL
 		if (mem->serverfd != 0) {

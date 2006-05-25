@@ -2250,6 +2250,15 @@ DOC_START
 	cached set 'quick_abort_min' to '-1 KB'.
 DOC_END
 
+NAME: read_ahead_gap
+COMMENT: buffer-size
+TYPE: kb_size_t
+LOC: Config.readAheadGap
+DEFAULT: 16 KB
+DOC_START
+	The amount of data the cache will buffer ahead of what has been
+	sent to the client when retrieving an object from another server.
+DOC_END
 
 NAME: negative_ttl
 COMMENT: time-units

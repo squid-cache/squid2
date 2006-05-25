@@ -898,7 +898,7 @@ fwdCheckDeferRead(int fd, void *data)
 	 * is disk clients pending on a too large object being fetched and a
 	 * few other corner cases.
 	 */
-	if (fd >= 0 && mem->inmem_hi - mem->inmem_lo > SM_PAGE_SIZE + Config.Store.maxInMemObjSize + READ_AHEAD_GAP) {
+	if (fd >= 0 && mem->inmem_hi - mem->inmem_lo > SM_PAGE_SIZE + Config.Store.maxInMemObjSize + Config.readAheadGap) {
 #if HAVE_EPOLL
 	    EBIT_SET(e->flags, ENTRY_DEFER_READ);
 	    mem->serverfd = fd;
@@ -907,7 +907,7 @@ fwdCheckDeferRead(int fd, void *data)
 	    return 1;
 	}
     }
-    if (fd >= 0 && mem->inmem_hi - storeLowestMemReaderOffset(e) > READ_AHEAD_GAP) {
+    if (fd >= 0 && mem->inmem_hi - storeLowestMemReaderOffset(e) > Config.readAheadGap) {
 	EBIT_SET(e->flags, ENTRY_DEFER_READ);
 #if HAVE_EPOLL
 	mem->serverfd = fd;
