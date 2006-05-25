@@ -137,8 +137,6 @@ httpMaybeRemovePublic(StoreEntry * e, http_status status)
     int remove = 0;
     int forbidden = 0;
     StoreEntry *pe;
-    if (!EBIT_TEST(e->flags, KEY_PRIVATE))
-	return;
     switch (status) {
     case HTTP_OK:
     case HTTP_NON_AUTHORITATIVE_INFORMATION:
@@ -170,14 +168,16 @@ httpMaybeRemovePublic(StoreEntry * e, http_status status)
     }
     if (!remove && !forbidden)
 	return;
-    assert(e->mem_obj);
-    if (e->mem_obj->request)
-	pe = storeGetPublicByRequest(e->mem_obj->request);
-    else
-	pe = storeGetPublic(e->mem_obj->url, e->mem_obj->method);
-    if (pe != NULL) {
-	assert(e != pe);
-	storeRelease(pe);
+    if (EBIT_TEST(e->flags, KEY_PRIVATE)) {
+	assert(e->mem_obj);
+	if (e->mem_obj->request)
+	    pe = storeGetPublicByRequest(e->mem_obj->request);
+	else
+	    pe = storeGetPublic(e->mem_obj->url, e->mem_obj->method);
+	if (pe != NULL) {
+	    assert(e != pe);
+	    storeRelease(pe);
+	}
     }
     /*
      * Also remove any cached HEAD response in case the object has
@@ -187,8 +187,7 @@ httpMaybeRemovePublic(StoreEntry * e, http_status status)
 	pe = storeGetPublicByRequestMethod(e->mem_obj->request, METHOD_HEAD);
     else
 	pe = storeGetPublic(e->mem_obj->url, METHOD_HEAD);
-    if (pe != NULL) {
-	assert(e != pe);
+    if (pe != NULL && e != pe) {
 	storeRelease(pe);
     }
     if (forbidden)
@@ -330,7 +329,7 @@ httpCachableReply(HttpStateData * httpState)
  * Returns false if the variance cannot be stored
  */
 const char *
-httpMakeVaryMark(request_t * request, HttpReply * reply)
+httpMakeVaryMark(const request_t * request, HttpReply * reply)
 {
     String vary, hdr;
     const char *pos = NULL;
@@ -457,8 +456,6 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
     storeTimestampsSet(entry);
     /* Check if object is cacheable or not based on reply code */
     debug(11, 3) ("httpProcessReplyHeader: HTTP CODE: %d\n", reply->sline.status);
-    if (neighbors_do_private_keys && !Config.onoff.collapsed_forwarding)
-	httpMaybeRemovePublic(entry, reply->sline.status);
     if (httpHeaderHas(&reply->header, HDR_VARY)
 #if X_ACCELERATOR_VARY
 	|| httpHeaderHas(&reply->header, HDR_X_ACCELERATOR_VARY)
@@ -495,6 +492,8 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 	else if (EBIT_TEST(reply->cache_control->mask, CC_MUST_REVALIDATE))
 	    EBIT_SET(entry->flags, ENTRY_REVALIDATE);
     }
+    if (neighbors_do_private_keys && !Config.onoff.collapsed_forwarding)
+	httpMaybeRemovePublic(entry, reply->sline.status);
     if (httpState->flags.keepalive)
 	if (httpState->peer)
 	    httpState->peer->stats.n_keepalives_sent++;
@@ -859,7 +858,13 @@ httpBuildRequestHeader(request_t * request,
     /* append our IMS header */
     if (request->lastmod > -1)
 	httpHeaderPutTime(hdr_out, HDR_IF_MODIFIED_SINCE, request->lastmod);
-
+    if (request->etag)
+	httpHeaderPutStr(hdr_out, HDR_IF_NONE_MATCH, request->etag);
+    else if (request->etags) {
+	int i;
+	for (i = 0; i < request->etags->count; i++)
+	    httpHeaderPutStr(hdr_out, HDR_IF_NONE_MATCH, request->etags->items[i]);
+    }
     /* decide if we want to do Ranges ourselves 
      * (and fetch the whole object now)
      * We want to handle Ranges ourselves iff

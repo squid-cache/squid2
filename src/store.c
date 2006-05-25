@@ -334,6 +334,13 @@ storeGetPublic(const char *uri, const method_t method)
 StoreEntry *
 storeGetPublicByRequestMethod(request_t * req, const method_t method)
 {
+    if (req->vary) {
+	/* Varying objects... */
+	if (req->vary->key)
+	    return storeGet(storeKeyScan(req->vary->key));
+	else
+	    return NULL;
+    }
     return storeGet(storeKeyPublicByRequestMethod(req, method));
 }
 
@@ -377,6 +384,447 @@ storeSetPrivateKey(StoreEntry * e)
     assert(hash_lookup(store_table, newkey) == NULL);
     EBIT_SET(e->flags, KEY_PRIVATE);
     storeHashInsert(e, newkey);
+}
+
+typedef struct {
+    StoreEntry *oe;
+    StoreEntry *e;
+    store_client *sc;
+    char *url;
+    char *key;
+    char *vary_headers;
+    char *etag;
+    int offset;
+    int seen_offset;
+    char *buf;
+    size_t buf_size;
+    int done:1;
+    struct {
+	char *key;
+	char *etag;
+	int this_key:1;
+	int key_used:1;
+	int ignore:1;
+    } current;
+} AddVaryState;
+
+CBDATA_TYPE(AddVaryState);
+static void
+free_AddVaryState(void *data)
+{
+    AddVaryState *state = data;
+    debug(11, 2) ("free_AddVaryState: %p\n", data);
+    if (!state->done && state->key) {
+	storeAppendPrintf(state->e, "Key: %s\n", state->key);
+	if (state->etag)
+	    storeAppendPrintf(state->e, "ETag: %s\n", state->etag);
+	storeAppendPrintf(state->e, "VaryData: %s\n", state->vary_headers);
+    }
+    storeBufferFlush(state->e);
+    storeTimestampsSet(state->e);
+    storeComplete(state->e);
+    storeTimestampsSet(state->e);
+    storeUnlockObject(state->e);
+    state->e = NULL;
+    if (state->oe) {
+	storeUnlockObject(state->oe);
+	state->oe = NULL;
+    }
+    safe_free(state->url);
+    safe_free(state->key);
+    safe_free(state->vary_headers);
+    safe_free(state->etag);
+    safe_free(state->current.key);
+    safe_free(state->current.etag);
+    if (state->buf) {
+	memFreeBuf(state->buf_size, state->buf);
+	state->buf = NULL;
+    }
+}
+
+static int inline
+strmatchbeg(const char *search, const char *match, int maxlen)
+{
+    int mlen = strlen(match);
+    if (maxlen < mlen)
+	return -1;
+    return strncmp(search, match, mlen);
+}
+
+static int inline
+strmatch(const char *search, const char *match, int maxlen)
+{
+    int mlen = strlen(match);
+    if (maxlen < mlen)
+	return -1;
+    return strncmp(search, match, maxlen);
+}
+
+static void
+storeAddVaryFlush(AddVaryState * state)
+{
+    if (state->current.ignore || state->current.key_used) {
+	/* do nothing */
+    } else if (state->current.this_key) {
+	if (state->current.key)
+	    storeAppendPrintf(state->e, "Key: %s\n", state->current.key);
+	else
+	    storeAppendPrintf(state->e, "Key: %s\n", state->key);
+	if (state->etag)
+	    storeAppendPrintf(state->e, "ETag: %s\n", state->etag);
+	storeAppendPrintf(state->e, "VaryData: %s\n", state->vary_headers);
+	state->done = 1;
+	state->current.key_used = 1;
+    } else if (state->current.key) {
+	storeAppendPrintf(state->e, "Key: %s\n", state->current.key);
+	safe_free(state->current.key);
+	if (state->current.etag) {
+	    storeAppendPrintf(state->e, "ETag: %s\n", state->current.etag);
+	    safe_free(state->current.etag);
+	}
+	state->current.key_used = 1;
+    }
+}
+
+static void
+storeAddVaryReadOld(void *data, char *buf, ssize_t size)
+{
+    AddVaryState *state = data;
+    int l = size;
+    char *e;
+    char *p = buf;
+    debug(11, 3) ("storeAddVaryReadOld: %p offset=%d seen_offset=%d size=%d\n", data, state->offset, state->seen_offset, (int) size);
+    if (size <= 0) {
+	storeUnregister(state->sc, state->oe, state);
+	state->sc = NULL;
+	cbdataFree(state);
+	debug(11, 2) ("storeAddVaryReadOld: DONE\n");
+	return;
+    }
+    state->seen_offset = state->offset + size;
+    while ((e = memchr(p, '\n', l)) != NULL) {
+	int l2;
+	char *p2;
+	if (strmatchbeg(p, "Key: ", l) == 0) {
+	    /* key field */
+	    p2 = p + 5;
+	    l2 = e - p2;
+	    if (state->current.this_key) {
+		storeAddVaryFlush(state);
+	    }
+	    safe_free(state->current.key);
+	    safe_free(state->current.etag);
+	    memset(&state->current, 0, sizeof(state->current));
+	    state->current.key = xmalloc(l2 + 1);
+	    memcpy(state->current.key, p2, l2);
+	    state->current.key[l2] = '\0';
+	    if (state->key) {
+		if (strcmp(state->current.key, state->key) == 0) {
+		    state->current.this_key = 1;
+		}
+	    }
+	    debug(11, 3) ("storeAddVaryReadOld: Key: %s%s\n", state->current.key, state->current.this_key ? " (THIS)" : "");
+	} else if (strmatchbeg(p, "ETag: ", l) == 0) {
+	    /* etag field */
+	    p2 = p + 6;
+	    l2 = e - p2;
+	    safe_free(state->current.etag);
+	    state->current.etag = xmalloc(l2 + 1);
+	    memcpy(state->current.etag, p2, l2);
+	    state->current.etag[l2] = '\0';
+	    if (state->etag && strcmp(state->current.etag, state->etag) == 0) {
+		if (!state->key) {
+		    state->current.this_key = 1;
+		} else {
+		    const cache_key *oldkey = storeKeyScan(state->current.key);
+		    if (strmatch(p2, state->key, l) != 0) {
+			StoreEntry *old_e = storeGet(oldkey);
+			if (old_e)
+			    storeRelease(old_e);
+			safe_free(state->current.key);
+			state->current.key = xstrdup(state->key);
+			state->current.this_key = 1;
+		    }
+		}
+	    } else if (state->current.this_key) {
+		state->current.ignore = 1;
+	    }
+	    debug(11, 2) ("storeAddVaryReadOld: ETag: %s%s%s\n", state->current.etag, state->current.this_key ? " (THIS)" : "", state->current.ignore ? " (IGNORE)" : "");
+	} else if (!state->current.ignore && strmatchbeg(p, "VaryData: ", l) == 0) {
+	    /* vary field */
+	    p2 = p + 10;
+	    l2 = e - p2;
+	    storeAddVaryFlush(state);
+	    if (strmatch(p2, state->vary_headers, l2) != 0) {
+		storeAppend(state->e, p, e - p + 1);
+		debug(11, 3) ("storeAddVaryReadOld: %s\n", p);
+	    }
+	}
+	e += 1;
+	l -= e - p;
+	p = e;
+	if (l == 0)
+	    break;
+	assert(l > 0);
+	assert(p < (buf + size));
+    }
+    if (p == state->buf && size == state->buf_size) {
+	/* Oops.. the buffer size is not sufficient. Grow */
+	if (state->buf_size < 65536) {
+	    debug(11, 2) ("storeAddVaryReadOld: Increasing entry buffer size to %d\n", (int) state->buf_size * 2);
+	    state->buf = memReallocBuf(state->buf, state->buf_size * 2, &state->buf_size);
+	} else {
+	    /* This does not look good. Bail out. This should match the size <= 0 case above */
+	    debug(11, 1) ("storeAddVaryReadOld: Buffer very large and still can't fit the data.. bailing out\n");
+	    storeUnregister(state->sc, state->oe, state);
+	    state->sc = NULL;
+	    cbdataFree(state);
+	    return;
+	}
+    }
+    state->offset += p - buf;
+    debug(11, 3) ("storeAddVaryReadOld: %p offset=%d seen_offset=%d\n", data, state->offset, state->seen_offset);
+    storeClientCopy(state->sc, state->oe,
+	state->seen_offset,
+	state->offset,
+	state->buf_size,
+	state->buf,
+	storeAddVaryReadOld,
+	state);
+}
+
+/*
+ * Adds/updates a Vary record.
+ * For updates only one of key or etag needs to be specified
+ * At leas one of key or etag must be specified, preferably both.
+ */
+void
+storeAddVary(const char *url, const char *log_url, const method_t method, const cache_key * key, const char *etag, const char *vary, const char *vary_headers)
+{
+    AddVaryState *state;
+    http_version_t version;
+    request_flags flags = null_request_flags;
+    CBDATA_INIT_TYPE_FREECB(AddVaryState, free_AddVaryState);
+    state = cbdataAlloc(AddVaryState);
+    state->url = xstrdup(url);
+    if (key)
+	state->key = xstrdup(storeKeyText(key));
+    state->vary_headers = xstrdup(vary_headers);
+    if (etag)
+	state->etag = xstrdup(etag);
+    state->oe = storeGetPublic(url, method);
+    debug(11, 2) ("storeAddVary: %s (%s) %s %s\n",
+	state->url, state->key, state->vary_headers, state->etag);
+    if (state->oe)
+	storeLockObject(state->oe);
+    flags.cachable = 1;
+    state->e = storeCreateEntry(url, log_url, flags, method);
+    httpBuildVersion(&version, 1, 0);
+    httpReplySetHeaders(state->e->mem_obj->reply, version, HTTP_OK, "Internal marker object", "x-squid-internal/vary", -1, -1, squid_curtime + 100000);
+    httpHeaderPutStr(&state->e->mem_obj->reply->header, HDR_VARY, vary);
+    storeSetPublicKey(state->e);
+    storeBuffer(state->e);
+    httpReplySwapOut(state->e->mem_obj->reply, state->e);
+    storeBufferFlush(state->e);
+    if (state->oe) {
+	/* Here we need to tack on the old etag/vary information, and we should
+	 * merge, clean up etc
+	 *
+	 * Suggestion:
+	 * swap in the old file, looking for ETag, Key and VaryData. If a match is
+	 * found then 
+	 * - on ETag, update the key, and expire the old object if different
+	 * - on Key, drop the old data if ETag is different, else nothing
+	 * - on VaryData, remove the line if a different key. If this makes
+	 *   the searched key "empty" then expire it and remove it from the
+	 *   map
+	 * - VaryData is added last in the Key record it corresponds to (after
+	 *   modifications above)
+	 */
+	/* Swap in the dummy Vary object */
+	if (!state->oe->mem_obj) {
+	    storeCreateMemObject(state->oe, state->url, log_url);
+	    state->oe->mem_obj->method = method;
+	}
+	state->sc = storeClientListAdd(state->oe, state);
+	state->buf = memAllocBuf(4096, &state->buf_size);
+	debug(11, 3) ("storeAddVary: %p\n", state);
+	storeClientCopy(state->sc, state->oe, 0, 0,
+	    state->buf_size,
+	    state->buf,
+	    storeAddVaryReadOld,
+	    state);
+	return;
+    } else {
+	cbdataFree(state);
+    }
+}
+
+static MemPool *VaryData_pool = NULL;
+
+void
+storeLocateVaryDone(VaryData * data)
+{
+    int i;
+    safe_free(data->key);
+    data->etag = NULL;		/* points to an entry in etags */
+    for (i = 0; i < data->etags.count; i++) {
+	safe_free(data->etags.items[i]);
+    }
+    arrayClean(&data->etags);
+    memPoolFree(VaryData_pool, data);
+}
+
+typedef struct {
+    VaryData *data;
+    STLVCB *callback;
+    void *callback_data;
+    StoreEntry *e;
+    store_client *sc;
+    char *buf;
+    size_t buf_size;
+    char *vary_data;
+    int offset, seen_offset;
+    struct {
+	char *key;
+	char *etag;
+    } current;
+} LocateVaryState;
+
+CBDATA_TYPE(LocateVaryState);
+
+static void
+storeLocateVaryCallback(LocateVaryState * state)
+{
+    if (cbdataValid(state->callback_data)) {
+	VaryData *data = state->data;
+	if (data->key || data->etags.count) {
+	    state->callback(data, state->callback_data);
+	    state->data = NULL;	/* now owned by the caller */
+	} else {
+	    state->callback(NULL, state->callback_data);
+	}
+    }
+    cbdataUnlock(state->callback_data);
+    if (state->data) {
+	storeLocateVaryDone(state->data);
+	state->data = NULL;
+    }
+    state->current.etag = NULL;	/* shared by data->entries[x] */
+    safe_free(state->vary_data);
+    safe_free(state->current.key);
+    if (state->sc) {
+	storeUnregister(state->sc, state->e, state);
+	state->sc = NULL;
+    }
+    if (state->e) {
+	storeUnlockObject(state->e);
+	state->e = NULL;
+    }
+    if (state->buf) {
+	memFreeBuf(state->buf_size, state->buf);
+	state->buf = NULL;
+    }
+    cbdataFree(state);
+    debug(11, 2) ("storeLocateVary: DONE\n");
+}
+
+static void
+storeLocateVaryRead(void *data, char *buf, ssize_t size)
+{
+    LocateVaryState *state = data;
+    char *e;
+    char *p = buf;
+    int l = size;
+    debug(11, 3) ("storeLocateVaryRead: %s %p offset=%d seen_offset=%d size=%d\n", state->vary_data, data, state->offset, state->seen_offset, (int) size);
+    if (size <= 0) {
+	storeLocateVaryCallback(state);
+	return;
+    }
+    state->seen_offset = state->offset + size;
+    while ((e = memchr(p, '\n', l)) != NULL) {
+	int l2;
+	char *p2;
+	if (strmatchbeg(p, "Key: ", l) == 0) {
+	    /* key field */
+	    p2 = p + 5;
+	    l2 = e - p2;
+	    safe_free(state->current.key);
+	    state->current.etag = NULL;
+	    safe_free(state->current.etag);
+	    memset(&state->current, 0, sizeof(state->current));
+	    state->current.key = xmalloc(l2 + 1);
+	    memcpy(state->current.key, p2, l2);
+	    state->current.key[l2] = '\0';
+	    debug(11, 3) ("storeLocateVaryRead: Key: %s\n", state->current.key);
+	} else if (strmatchbeg(p, "ETag: ", l) == 0) {
+	    /* etag field */
+	    char *etag;
+	    p2 = p + 6;
+	    l2 = e - p2;
+	    etag = xmalloc(l2 + 1);
+	    memcpy(etag, p2, l2);
+	    etag[l2] = '\0';
+	    state->current.etag = etag;
+	    arrayAppend(&state->data->etags, etag);
+	    debug(11, 3) ("storeLocateVaryRead: ETag: %s\n", etag);
+	} else if (strmatchbeg(p, "VaryData: ", l) == 0) {
+	    /* vary field */
+	    p2 = p + 10;
+	    l2 = e - p2;
+	    if (strmatch(p2, state->vary_data, l2) == 0) {
+		/* A matching vary header found */
+		safe_free(state->data->key);
+		state->data->key = xstrdup(state->current.key);
+		state->data->etag = state->current.etag;
+		debug(11, 2) ("storeLocateVaryRead: MATCH! %s %s\n", state->current.key, state->current.etag);
+	    }
+	}
+	e += 1;
+	l -= e - p;
+	p = e;
+	if (l == 0)
+	    break;
+	assert(l > 0);
+	assert(p < (buf + size));
+    }
+    state->offset += p - buf;
+    if (p == state->buf && size == state->buf_size) {
+	/* Oops.. the buffer size is not sufficient. Grow */
+	if (state->buf_size < 65536) {
+	    debug(11, 2) ("storeLocateVaryRead: Increasing entry buffer size to %d\n", (int) state->buf_size * 2);
+	    state->buf = memReallocBuf(state->buf, state->buf_size * 2, &state->buf_size);
+	} else {
+	    /* This does not look good. Bail out. This should match the size <= 0 case above */
+	    debug(11, 1) ("storeLocateVaryRead: Buffer very large and still can't fit the data.. bailing out\n");
+	    storeLocateVaryCallback(state);
+	    return;
+	}
+    }
+    debug(11, 3) ("storeLocateVaryRead: %p offset=%d seen_offset=%d\n", data, state->offset, state->seen_offset);
+    storeClientCopy(state->sc, state->e, state->seen_offset, state->offset, state->buf_size, state->buf, storeLocateVaryRead, state);
+}
+
+void
+storeLocateVary(StoreEntry * e, int offset, const char *vary_data, STLVCB * callback, void *cbdata)
+{
+    LocateVaryState *state;
+    debug(11, 2) ("storeLocateVary: %s\n", vary_data);
+    CBDATA_INIT_TYPE(LocateVaryState);
+    if (!VaryData_pool)
+	VaryData_pool = memPoolCreate("VaryData", sizeof(VaryData));
+    state = cbdataAlloc(LocateVaryState);
+    state->vary_data = xstrdup(vary_data);
+    state->data = memPoolAlloc(VaryData_pool);
+    state->e = e;
+    storeLockObject(state->e);
+    state->callback_data = cbdata;
+    cbdataLock(cbdata);
+    state->callback = callback;
+    state->buf = memAllocBuf(4096, &state->buf_size);
+    state->sc = storeClientListAdd(state->e, state);
+    state->offset = state->seen_offset = offset;
+    storeClientCopy(state->sc, state->e, state->seen_offset, state->offset, state->buf_size, state->buf, storeLocateVaryRead, state);
 }
 
 void
@@ -427,36 +875,27 @@ storeSetPublicKey(StoreEntry * e)
 		    request->vary_headers = xstrdup(vary);
 	    }
 	}
-	if (mem->vary_headers && !storeGetPublic(mem->url, mem->method)) {
-	    /* Create "vary" base object */
-	    http_version_t version;
-	    String vary;
-	    pe = storeCreateEntry(mem->url, mem->log_url, request->flags, request->method);
-	    httpBuildVersion(&version, 1, 0);
-	    httpReplySetHeaders(pe->mem_obj->reply, version, HTTP_OK, "Internal marker object", "x-squid-internal/vary", -1, -1, squid_curtime + 100000);
-	    vary = httpHeaderGetList(&mem->reply->header, HDR_VARY);
-	    if (strBuf(vary)) {
-		httpHeaderPutStr(&pe->mem_obj->reply->header, HDR_VARY, strBuf(vary));
-		stringClean(&vary);
-	    }
-#if X_ACCELERATOR_VARY
-	    vary = httpHeaderGetList(&mem->reply->header, HDR_X_ACCELERATOR_VARY);
-	    if (strBuf(vary)) {
-		httpHeaderPutStr(&pe->mem_obj->reply->header, HDR_X_ACCELERATOR_VARY, strBuf(vary));
-		stringClean(&vary);
-	    }
-#endif
-	    storeSetPublicKey(pe);
-	    storeBuffer(pe);
-	    httpReplySwapOut(pe->mem_obj->reply, pe);
-	    storeBufferFlush(pe);
-	    storeTimestampsSet(pe);
-	    storeComplete(pe);
-	    storeUnlockObject(pe);
-	}
 	newkey = storeKeyPublicByRequest(mem->request);
-    } else
+	if (mem->vary_headers) {
+	    String vary = StringNull;
+	    String varyhdr;
+	    varyhdr = httpHeaderGetList(&mem->reply->header, HDR_VARY);
+	    if (strBuf(varyhdr))
+		strListAdd(&vary, strBuf(varyhdr), ',');
+	    stringClean(&varyhdr);
+#if X_ACCELERATOR_VARY
+	    /* This needs to match the order in http.c:httpMakeVaryMark */
+	    varyhdr = httpHeaderGetList(&mem->reply->header, HDR_X_ACCELERATOR_VARY);
+	    if (strBuf(varyhdr))
+		strListAdd(&vary, strBuf(varyhdr), ',');
+	    stringClean(&varyhdr);
+#endif
+	    storeAddVary(mem->url, mem->log_url, mem->method, newkey, httpHeaderGetStr(&mem->reply->header, HDR_ETAG), strBuf(vary), mem->vary_headers);
+	    stringClean(&vary);
+	}
+    } else {
 	newkey = storeKeyPublic(mem->url, mem->method);
+    }
     if ((e2 = (StoreEntry *) hash_lookup(store_table, newkey))) {
 	debug(20, 3) ("storeSetPublicKey: Making old '%s' private.\n", mem->url);
 	storeSetPrivateKey(e2);

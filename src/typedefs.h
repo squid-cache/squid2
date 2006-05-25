@@ -399,4 +399,7 @@ typedef struct _external_acl_entry external_acl_entry;
 
 typedef void ERRMAPCB(StoreEntry *, int body_offset, squid_off_t content_length, void *data);
 
+typedef struct _VaryData VaryData;
+typedef void STLVCB(VaryData * vary, void *cbdata);
+
 #endif /* SQUID_TYPEDEFS_H */

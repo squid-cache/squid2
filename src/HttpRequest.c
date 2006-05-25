@@ -71,6 +71,13 @@ requestDestroy(request_t * req)
     if (req->range)
 	httpHdrRangeDestroy(req->range);
     stringClean(&req->extacl_log);
+    if (req->vary) {
+	if (req->etags == &req->vary->etags)
+	    req->etags = NULL;
+	storeLocateVaryDone(req->vary);
+    }
+    assert(req->etags == NULL);
+    safe_free(req->etag);
     memFree(req, MEM_REQUEST_T);
 }
 

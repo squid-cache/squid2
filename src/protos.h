@@ -314,11 +314,7 @@ extern int httpAnonHdrAllowed(http_hdr_type hdr_id);
 extern int httpAnonHdrDenied(http_hdr_type hdr_id);
 extern void httpBuildRequestHeader(request_t *, request_t *, StoreEntry *, HttpHeader *, http_state_flags);
 extern void httpBuildVersion(http_version_t * version, unsigned int major, unsigned int minor);
-extern const char *httpMakeVaryMark(request_t * request, HttpReply * reply);
-
-/* ETag */
-extern int etagParseInit(ETag * etag, const char *str);
-extern int etagIsEqual(const ETag * tag1, const ETag * tag2);
+extern const char *httpMakeVaryMark(const request_t * request, HttpReply * reply);
 
 /* Http Status Line */
 /* init/clean */
@@ -448,7 +444,6 @@ extern squid_off_t httpHeaderGetSize(const HttpHeader * hdr, http_hdr_type id);
 extern time_t httpHeaderGetTime(const HttpHeader * hdr, http_hdr_type id);
 extern TimeOrTag httpHeaderGetTimeOrTag(const HttpHeader * hdr, http_hdr_type id);
 extern HttpHdrCc *httpHeaderGetCc(const HttpHeader * hdr);
-extern ETag httpHeaderGetETag(const HttpHeader * hdr, http_hdr_type id);
 extern HttpHdrRange *httpHeaderGetRange(const HttpHeader * hdr);
 extern HttpHdrContRange *httpHeaderGetContRange(const HttpHeader * hdr);
 extern const char *httpHeaderGetStr(const HttpHeader * hdr, http_hdr_type id);
@@ -1349,10 +1344,7 @@ extern unsigned int url_checksum(const char *url);
  */
 extern StatCounters *snmpStatGet(int);
 
-/* Vary support functions */
-int varyEvaluateMatch(StoreEntry * entry, request_t * req);
-
-/* Windows Port */
+/* CygWin & Windows NT Port */
 /* win32.c */
 #ifdef _SQUID_WIN32_
 extern int WIN32_Subsystem_Init(int *, char ***);
@@ -1402,5 +1394,10 @@ extern void peerMonitorNow(peer *);
 /* errormap.c */
 extern void errorMapInit(void);
 extern int errorMapStart(const errormap * map, request_t * req, HttpReply * reply, const char *aclname, ERRMAPCB * callback, void *data);
+
+/* ETag support */
+void storeLocateVaryDone(VaryData * data);
+void storeLocateVary(StoreEntry * e, int offset, const char *vary_data, STLVCB * callback, void *cbdata);
+void storeAddVary(const char *url, const char *log_url, const method_t method, const cache_key * key, const char *etag, const char *vary, const char *vary_headers);
 
 #endif /* SQUID_PROTOS_H */

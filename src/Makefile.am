@@ -135,7 +135,6 @@ squid_SOURCES = \
 	$(DNSSOURCE) \
 	enums.h \
 	errorpage.c \
-	ETag.c \
 	event.c \
 	errormap.c \
 	external_acl.c \

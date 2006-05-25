@@ -155,6 +155,7 @@ static void clientAbortBody(request_t * req);
 #if USE_SSL
 static void httpsAcceptSSL(ConnStateData * connState, SSL_CTX * sslContext);
 #endif
+static int varyEvaluateMatch(StoreEntry * entry, request_t * request);
 
 #if USE_IDENT
 static void
@@ -504,12 +505,140 @@ clientCheckNoCacheDone(int answer, void *data)
 }
 
 static void
+clientHandleETagMiss(clientHttpRequest * http)
+{
+    StoreEntry *entry = http->entry;
+    MemObject *mem = entry->mem_obj;
+    request_t *request = http->request;
+
+    if (mem->reply) {
+	const char *etag = httpHeaderGetStr(&mem->reply->header, HDR_ETAG);
+	if (etag) {
+	    /* This has to match storeSetPublicKey, except for the key which is NULL */
+	    String vary = StringNull;
+	    String varyhdr;
+	    varyhdr = httpHeaderGetList(&mem->reply->header, HDR_VARY);
+	    if (strBuf(varyhdr))
+		strListAdd(&vary, strBuf(varyhdr), ',');
+	    stringClean(&varyhdr);
+#if X_ACCELERATOR_VARY
+	    /* This needs to match the order in http.c:httpMakeVaryMark */
+	    varyhdr = httpHeaderGetList(&mem->reply->header, HDR_X_ACCELERATOR_VARY);
+	    if (strBuf(varyhdr))
+		strListAdd(&vary, strBuf(varyhdr), ',');
+	    stringClean(&varyhdr);
+#endif
+	    storeAddVary(mem->url, mem->log_url, mem->method, NULL, httpHeaderGetStr(&mem->reply->header, HDR_ETAG), strBuf(vary), httpMakeVaryMark(request, mem->reply));
+	    stringClean(&vary);
+	}
+    }
+    request->done_etag = 1;
+    if (request->vary) {
+	storeLocateVaryDone(request->vary);
+	request->vary = NULL;
+	request->etags = NULL;	/* pointed into request->vary */
+    }
+    safe_free(request->etag);
+    safe_free(request->vary_headers);
+    storeUnregister(http->sc, entry, http);
+    storeUnlockObject(entry);
+    clientProcessRequest(http);
+}
+
+static void
+clientHandleETagReply(void *data, char *buf, ssize_t size)
+{
+    clientHttpRequest *http = data;
+    StoreEntry *entry = http->entry;
+    MemObject *mem;
+    const char *url = storeUrl(entry);
+    http_status status;
+    debug(33, 3) ("clientHandleETagReply: %s, %d bytes\n", url, (int) size);
+    if (entry == NULL) {
+	/* client aborted */
+	memFree(buf, MEM_CLIENT_SOCK_BUF);
+	return;
+    }
+    if (size < 0 && !EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
+	memFree(buf, MEM_CLIENT_SOCK_BUF);
+	clientHandleETagMiss(http);
+	return;
+    }
+    mem = entry->mem_obj;
+    status = mem->reply->sline.status;
+    if (EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
+	debug(33, 3) ("clientHandleETagReply: ABORTED '%s'\n", url);
+	memFree(buf, MEM_CLIENT_SOCK_BUF);
+	clientHandleETagMiss(http);
+	return;
+    }
+    if (STORE_PENDING == entry->store_status && 0 == status) {
+	debug(33, 3) ("clientHandleETagReply: Incomplete headers for '%s'\n", url);
+	if (size >= CLIENT_SOCK_SZ) {
+	    /* will not get any bigger than that */
+	    debug(33, 3) ("clientHandleETagReply: Reply is too large '%s'\n", url);
+	    memFree(buf, MEM_CLIENT_SOCK_BUF);
+	    clientHandleETagMiss(http);
+	} else {
+	    storeClientCopy(http->sc, entry,
+		http->out.offset + size,
+		http->out.offset,
+		CLIENT_SOCK_SZ,
+		buf,
+		clientHandleETagReply,
+		http);
+	}
+	return;
+    }
+    if (HTTP_NOT_MODIFIED == mem->reply->sline.status) {
+	/* Remember the ETag and restart */
+	memFree(buf, MEM_CLIENT_SOCK_BUF);
+	clientHandleETagMiss(http);
+	return;
+    }
+    /* Send the new object to the client */
+    clientSendMoreData(data, buf, size);
+    return;
+}
+
+static void
+clientProcessETag(clientHttpRequest * http)
+{
+    char *url = http->uri;
+    StoreEntry *entry = NULL;
+    debug(33, 3) ("clientProcessETag: '%s'\n", http->uri);
+    entry = storeCreateEntry(url,
+	http->log_uri,
+	http->request->flags,
+	http->request->method);
+    http->sc = storeClientListAdd(entry, http);
+#if DELAY_POOLS
+    /* delay_id is already set on original store client */
+    delaySetStoreClient(http->sc, delayClient(http));
+#endif
+    http->entry = entry;
+    http->out.offset = 0;
+    fwdStart(http->conn->fd, http->entry, http->request);
+    /* Register with storage manager to receive updates when data comes in. */
+    if (EBIT_TEST(entry->flags, ENTRY_ABORTED))
+	debug(33, 0) ("clientProcessETag: found ENTRY_ABORTED object\n");
+    storeClientCopy(http->sc, entry,
+	http->out.offset,
+	http->out.offset,
+	CLIENT_SOCK_SZ,
+	memAllocate(MEM_CLIENT_SOCK_BUF),
+	clientHandleETagReply,
+	http);
+}
+
+static void
 clientProcessExpired(void *data)
 {
     clientHttpRequest *http = data;
     char *url = http->uri;
     StoreEntry *entry = NULL;
     int hit = 0;
+    const char *etag;
     debug(33, 3) ("clientProcessExpired: '%s'\n", http->uri);
     assert(http->entry->lastmod >= 0);
     /*
@@ -571,6 +700,9 @@ clientProcessExpired(void *data)
     debug(33, 5) ("clientProcessExpired: lastmod %ld\n", (long int) entry->lastmod);
     http->entry = entry;
     http->out.offset = 0;
+    etag = httpHeaderGetStr(&http->old_entry->mem_obj->reply->header, HDR_ETAG);
+    if (etag)
+	http->request->etag = xstrdup(etag);
     if (!hit)
 	fwdStart(http->conn->fd, http->entry, http->request);
     /* Register with storage manager to receive updates when data comes in. */
@@ -604,6 +736,20 @@ clientGetsOldEntry(StoreEntry * new_entry, StoreEntry * old_entry, request_t * r
     if (HTTP_NOT_MODIFIED != status) {
 	debug(33, 5) ("clientGetsOldEntry: NO, reply=%d\n", status);
 	return 0;
+    }
+    /* If the ETag matches the clients If-None-Match, then return
+     * the servers 304 reply
+     */
+    if (httpHeaderHas(&new_entry->mem_obj->reply->header, HDR_ETAG) &&
+	httpHeaderHas(&request->header, HDR_IF_NONE_MATCH)) {
+	const char *etag = httpHeaderGetStr(&new_entry->mem_obj->reply->header, HDR_ETAG);
+	String etags = httpHeaderGetList(&request->header, HDR_IF_NONE_MATCH);
+	int etag_match = strListIsMember(&etags, etag, ',');
+	stringClean(&etags);
+	if (etag_match) {
+	    debug(33, 5) ("clientGetsOldEntry: NO, client If-None-Match\n");
+	    return 0;
+	}
     }
     /* If the client did not send IMS in the request, then it
      * must get the old object, not this "Not Modified" reply */
@@ -1361,22 +1507,22 @@ clientIfRangeMatch(clientHttpRequest * http, HttpReply * rep)
     if (!spec.valid)
 	return 0;
     /* got an ETag? */
-    if (spec.tag.str) {
-	ETag rep_tag = httpHeaderGetETag(&rep->header, HDR_ETAG);
+    if (spec.tag) {
+	const char *rep_tag = httpHeaderGetStr(&rep->header, HDR_ETAG);
 	debug(33, 3) ("clientIfRangeMatch: ETags: %s and %s\n",
-	    spec.tag.str, rep_tag.str ? rep_tag.str : "<none>");
-	if (!rep_tag.str)
+	    spec.tag, rep_tag ? rep_tag : "<none>");
+	if (!rep_tag)
 	    return 0;		/* entity has no etag to compare with! */
-	if (spec.tag.weak || rep_tag.weak) {
+	if (spec.tag[0] == 'W' || rep_tag[0] == 'W') {
 	    debug(33, 1) ("clientIfRangeMatch: Weak ETags are not allowed in If-Range: %s ? %s\n",
-		spec.tag.str, rep_tag.str);
+		spec.tag, rep_tag);
 	    return 0;		/* must use strong validator for sub-range requests */
 	}
-	return etagIsEqual(&rep_tag, &spec.tag);
+	return strcmp(rep_tag, spec.tag) == 0;
     }
     /* got modification time? */
-    if (spec.time >= 0) {
-	return http->entry->lastmod <= spec.time;
+    else if (spec.time >= 0) {
+	return http->entry->lastmod == spec.time;
     }
     assert(0);			/* should not happen */
     return 0;
@@ -1680,6 +1826,31 @@ clientBuildReply(clientHttpRequest * http, const char *buf, size_t size)
 }
 
 /*
+ * clientProcessVary is called when it is detected that a object
+ * varies and we need to get the correct variant
+ */
+static void
+clientProcessVary(VaryData * vary, void *data)
+{
+    clientHttpRequest *http = data;
+    if (!vary) {
+	clientProcessRequest(http);
+	return;
+    }
+    if (vary->key) {
+	debug(33, 2) ("clientProcessVary: HIT key=%s etag=%s\n", vary->key, vary->etag);
+    } else {
+	int i;
+	debug(33, 2) ("clientProcessVary MISS\n");
+	for (i = 0; i < vary->etags.count; i++) {
+	    debug(33, 3) ("ETag: %s\n", (char *) vary->etags.items[i]);
+	}
+    }
+    http->request->vary = vary;
+    clientProcessRequest(http);
+}
+
+/*
  * clientCacheHit should only be called until the HTTP reply headers
  * have been parsed.  Normally this should be a single call, but
  * it might take more than one.  As soon as we have the headers,
@@ -1693,6 +1864,7 @@ clientCacheHit(void *data, char *buf, ssize_t size)
     StoreEntry *e = http->entry;
     MemObject *mem;
     request_t *r = http->request;
+    int is_modified = -1;
     debug(33, 3) ("clientCacheHit: %s, %d bytes\n", http->uri, (int) size);
     http->flags.hit = 0;
     if (http->entry == NULL) {
@@ -1752,20 +1924,28 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	debug(33, 2) ("clientProcessHit: Vary MATCH!\n");
 	break;
     case VARY_OTHER:
-	/* This is not the correct entity for this request. We need
-	 * to requery the cache.
-	 */
-	memFree(buf, MEM_CLIENT_SOCK_BUF);
-	http->entry = NULL;
-	storeUnregister(http->sc, e, http);
-	http->sc = NULL;
-	storeUnlockObject(e);
-	/* Note: varyEvalyateMatch updates the request with vary information
-	 * so we only get here once. (it also takes care of cancelling loops)
-	 */
-	debug(33, 2) ("clientProcessHit: Vary detected!\n");
-	clientProcessRequest(http);
-	return;
+	{
+	    /* This is not the correct entity for this request. We need
+	     * to requery the cache.
+	     */
+	    store_client *sc = http->sc;
+	    http->entry = NULL;	/* saved in e */
+	    memFree(buf, MEM_CLIENT_SOCK_BUF);
+	    /* Warning: storeUnregister may abort the object so we must
+	     * call storeLocateVary before unregistering, and
+	     * storeLocateVary may complete immediately so we cannot
+	     * rely on the http structure for this...
+	     */
+	    http->sc = NULL;
+	    storeLocateVary(e, e->mem_obj->reply->hdr_sz, r->vary_headers, clientProcessVary, http);
+	    storeUnregister(sc, e, http);
+	    storeUnlockObject(e);
+	    /* Note: varyEvalyateMatch updates the request with vary information
+	     * so we only get here once. (it also takes care of cancelling loops)
+	     */
+	    debug(33, 2) ("clientProcessHit: Vary detected!\n");
+	    return;
+	}
     case VARY_CANCEL:
 	/* varyEvaluateMatch found a object loop. Process as miss */
 	debug(33, 1) ("clientProcessHit: Vary object loop!\n");
@@ -1800,6 +1980,32 @@ clientCacheHit(void *data, char *buf, ssize_t size)
     if (Config.refresh_stale_window > 0 && e->mem_obj && e->mem_obj->refresh_timestamp + Config.refresh_stale_window > squid_curtime && !refreshCheckHTTPStale(e, r)) {
 	debug(33, 2) ("clientProcessHit: refresh_stale HIT\n");
 	goto hit;
+    }
+    if (httpHeaderHas(&r->header, HDR_IF_MATCH)) {
+	String req_etags;
+	const char *rep_etag = httpHeaderGetStr(&e->mem_obj->reply->header, HDR_ETAG);
+	int has_etag;
+	if (!rep_etag) {
+	    /* The cached object does not have a entity tag. This cannot
+	     * be a hit for the requested object.
+	     */
+	    http->log_type = LOG_TCP_MISS;
+	    memFree(buf, MEM_CLIENT_SOCK_BUF);
+	    clientProcessMiss(http);
+	    return;
+	}
+	req_etags = httpHeaderGetList(&http->request->header, HDR_IF_MATCH);
+	has_etag = strListIsMember(&req_etags, rep_etag, ',');
+	stringClean(&req_etags);
+	if (!has_etag) {
+	    /* The entity tags does not match. This cannot be a
+	     * hit for this object. Qyery the origin.
+	     */
+	    http->log_type = LOG_TCP_MISS;
+	    memFree(buf, MEM_CLIENT_SOCK_BUF);
+	    clientProcessMiss(http);
+	    return;
+	}
     }
     if (!Config.onoff.offline && refreshCheckHTTP(e, r) && !http->flags.internal) {
 	debug(33, 5) ("clientCacheHit: in refreshCheck() block\n");
@@ -1847,7 +2053,37 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	return;
     }
   hit:
-    if (r->flags.ims) {
+    if (httpHeaderHas(&r->header, HDR_IF_NONE_MATCH)) {
+	String req_etags;
+	const char *rep_etag = httpHeaderGetStr(&e->mem_obj->reply->header, HDR_ETAG);
+	int has_etag;
+	if (mem->reply->sline.status != HTTP_OK) {
+	    debug(33, 4) ("clientCacheHit: Reply code %d != 200\n",
+		mem->reply->sline.status);
+	    memFree(buf, MEM_CLIENT_SOCK_BUF);
+	    http->log_type = LOG_TCP_MISS;
+	    clientProcessMiss(http);
+	    return;
+	}
+	if (!rep_etag) {
+	    /* The cached object does not have a entity tag, but the client
+	     * obviously thinks there should be one... Query the origin to
+	     * be on the safe side.
+	     */
+	    http->log_type = LOG_TCP_MISS;
+	    memFree(buf, MEM_CLIENT_SOCK_BUF);
+	    clientProcessMiss(http);
+	    return;
+	}
+	req_etags = httpHeaderGetList(&http->request->header, HDR_IF_NONE_MATCH);
+	has_etag = strListIsMember(&req_etags, rep_etag, ',');
+	stringClean(&req_etags);
+	if (has_etag) {
+	    http->log_type = LOG_TCP_IMS_HIT;
+	    is_modified = 0;
+	}
+    }
+    if (is_modified != 0 && r->flags.ims) {
 	/*
 	 * Handle If-Modified-Since requests from the client
 	 */
@@ -1857,29 +2093,33 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	    memFree(buf, MEM_CLIENT_SOCK_BUF);
 	    http->log_type = LOG_TCP_MISS;
 	    clientProcessMiss(http);
+	    return;
 	} else if (modifiedSince(e, http->request)) {
 	    http->log_type = LOG_TCP_IMS_HIT;
 	    clientSendMoreHeaderData(data, buf, size);
-	} else {
-	    time_t timestamp = e->timestamp;
-	    MemBuf mb = httpPacked304Reply(e->mem_obj->reply);
-	    http->log_type = LOG_TCP_IMS_HIT;
-	    memFree(buf, MEM_CLIENT_SOCK_BUF);
-	    storeUnregister(http->sc, e, http);
-	    http->sc = NULL;
-	    storeUnlockObject(e);
-	    e = clientCreateStoreEntry(http, http->request->method, null_request_flags);
-	    /*
-	     * Copy timestamp from the original entry so the 304
-	     * reply has a meaningful Age: header.
-	     */
-	    e->timestamp = timestamp;
-	    http->entry = e;
-	    httpReplyParse(e->mem_obj->reply, mb.buf, mb.size);
-	    storeAppend(e, mb.buf, mb.size);
-	    memBufClean(&mb);
-	    storeComplete(e);
+	    return;
 	}
+	is_modified = 0;
+    }
+    if (is_modified == 0) {
+	time_t timestamp = e->timestamp;
+	MemBuf mb = httpPacked304Reply(e->mem_obj->reply);
+	http->log_type = LOG_TCP_IMS_HIT;
+	memFree(buf, MEM_CLIENT_SOCK_BUF);
+	storeUnregister(http->sc, e, http);
+	http->sc = NULL;
+	storeUnlockObject(e);
+	e = clientCreateStoreEntry(http, http->request->method, null_request_flags);
+	/*
+	 * Copy timestamp from the original entry so the 304
+	 * reply has a meaningful Age: header.
+	 */
+	e->timestamp = timestamp;
+	http->entry = e;
+	httpReplyParse(e->mem_obj->reply, mb.buf, mb.size);
+	storeAppend(e, mb.buf, mb.size);
+	memBufClean(&mb);
+	storeComplete(e);
 	return;
     }
     /*
@@ -2837,6 +3077,16 @@ clientProcessRequest2(clientHttpRequest * http)
     if (NULL == e) {
 	/* this object isn't in the cache */
 	debug(33, 3) ("clientProcessRequest2: storeGet() MISS\n");
+	if (r->vary) {
+	    if (r->done_etag) {
+		debug(33, 1) ("clientProcessRequest2: ETag loop\n");
+	    } else if (r->etags) {
+		debug(33, 2) ("clientProcessRequest2: ETag miss\n");
+		r->etags = NULL;
+	    } else if (r->vary->etags.count > 0) {
+		r->etags = &r->vary->etags;
+	    }
+	}
 	return LOG_TCP_MISS;
     }
     if (Config.onoff.offline) {
@@ -3014,13 +3264,9 @@ clientProcessMiss(clientHttpRequest * http)
 	return;
     }
     assert(http->out.offset == 0);
-    http->entry = clientCreateStoreEntry(http, r->method, r->flags);
-    if (Config.onoff.collapsed_forwarding && r->flags.cachable && !r->flags.need_validation && (r->method = METHOD_GET || r->method == METHOD_HEAD)) {
-	http->entry->mem_obj->refresh_timestamp = squid_curtime;
-	storeSetPublicKey(http->entry);
-    }
     if (http->redirect.status) {
 	HttpReply *rep = httpReplyCreate();
+	http->entry = clientCreateStoreEntry(http, r->method, r->flags);
 #if LOG_TCP_REDIRECTS
 	http->log_type = LOG_TCP_REDIRECT;
 #endif
@@ -3031,8 +3277,17 @@ clientProcessMiss(clientHttpRequest * http)
 	storeComplete(http->entry);
 	return;
     }
+    if (r->etags) {
+	clientProcessETag(http);
+	return;
+    }
+    http->entry = clientCreateStoreEntry(http, r->method, r->flags);
     if (http->flags.internal)
 	r->protocol = PROTO_INTERNAL;
+    if (Config.onoff.collapsed_forwarding && r->flags.cachable && !r->flags.need_validation && (r->method = METHOD_GET || r->method == METHOD_HEAD)) {
+	http->entry->mem_obj->refresh_timestamp = squid_curtime;
+	storeSetPublicKey(http->entry);
+    }
     fwdStart(http->conn->fd, http->entry, r);
 }
 
@@ -4476,7 +4731,7 @@ clientHttpConnectionsClose(void)
     NHttpSockets = 0;
 }
 
-int
+static int
 varyEvaluateMatch(StoreEntry * entry, request_t * request)
 {
     const char *vary = request->vary_headers;
@@ -4518,6 +4773,7 @@ varyEvaluateMatch(StoreEntry * entry, request_t * request)
 	    /* Ouch.. we cannot handle this kind of variance */
 	    /* XXX This cannot really happen, but just to be complete */
 	    return VARY_CANCEL;
+#if NOT_FOR_ETAGS
 	} else if (strcmp(vary, entry->mem_obj->vary_headers) == 0) {
 	    return VARY_MATCH;
 	} else {
@@ -4527,6 +4783,10 @@ varyEvaluateMatch(StoreEntry * entry, request_t * request)
 	    debug(33, 1) ("varyEvaluateMatch: Oops. Not a Vary match on second attempt, '%s' '%s'\n",
 		entry->mem_obj->url, vary);
 	    return VARY_CANCEL;
+#else
+	} else {
+	    return VARY_MATCH;
+#endif
 	}
     }
 }

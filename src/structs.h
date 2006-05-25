@@ -976,7 +976,7 @@ struct _HttpHdrContRange {
 
 /* some fields can hold either time or etag specs (e.g. If-Range) */
 struct _TimeOrTag {
-    ETag tag;			/* entity tag */
+    const char *tag;		/* entity tag */
     time_t time;
     int valid;			/* true if struct is usable */
 };
@@ -1829,7 +1829,11 @@ struct _request_t {
     err_type err_type;
     char *peer_login;		/* Configured peer login:password */
     time_t lastmod;		/* Used on refreshes */
-    const char *vary_headers;	/* Used when varying entities are detected. Changes how the store key is calculated */
+    char *vary_headers;		/* Used when varying entities are detected. Changes how the store key is calculated */
+    VaryData *vary;
+    Array *etags;		/* possible known entity tags (Vary MISS) */
+    char *etag;			/* current entity tag, cache validation */
+    unsigned int done_etag:1;	/* We have done clientProcessETag on this, don't attempt it again */
     char *urlgroup;		/* urlgroup, returned by redirectors */
     char *peer_domain;		/* Configured peer forceddomain */
     BODY_HANDLER *body_reader;
@@ -2413,6 +2417,12 @@ struct _errormap {
     errormap *next;
     char *url;
     struct error_map_entry *map;
+};
+
+struct _VaryData {
+    char *key;
+    char *etag;
+    Array etags;
 };
 
 #endif /* SQUID_STRUCTS_H */

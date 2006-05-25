@@ -87,7 +87,7 @@ static const HttpHeaderFieldAttrs HeadersAttrs[] =
     {"Content-Type", HDR_CONTENT_TYPE, ftStr},
     {"Cookie", HDR_COOKIE, ftStr},
     {"Date", HDR_DATE, ftDate_1123},
-    {"ETag", HDR_ETAG, ftETag},
+    {"ETag", HDR_ETAG, ftStr},
     {"Expires", HDR_EXPIRES, ftDate_1123},
     {"From", HDR_FROM, ftStr},
     {"Host", HDR_HOST, ftStr},
@@ -1106,18 +1106,6 @@ httpHeaderGetAuth(const HttpHeader * hdr, http_hdr_type id, const char *auth_sch
     return base64_decode(field);
 }
 
-ETag
-httpHeaderGetETag(const HttpHeader * hdr, http_hdr_type id)
-{
-    ETag etag =
-    {NULL, -1};
-    HttpHeaderEntry *e;
-    assert(Headers[id].type == ftETag);		/* must be of an appropriate type */
-    if ((e = httpHeaderFindEntry(hdr, id)))
-	etagParseInit(&etag, strBuf(e->value));
-    return etag;
-}
-
 TimeOrTag
 httpHeaderGetTimeOrTag(const HttpHeader * hdr, http_hdr_type id)
 {
@@ -1128,17 +1116,20 @@ httpHeaderGetTimeOrTag(const HttpHeader * hdr, http_hdr_type id)
     if ((e = httpHeaderFindEntry(hdr, id))) {
 	const char *str = strBuf(e->value);
 	/* try as an ETag */
-	if (etagParseInit(&tot.tag, str)) {
-	    tot.valid = tot.tag.str != NULL;
+	if (*str == '"' || (str[0] == 'W' && str[1] == '/')) {
+	    tot.tag = str;
 	    tot.time = -1;
+	    tot.valid = 1;
 	} else {
 	    /* or maybe it is time? */
 	    tot.time = parse_rfc1123(str);
-	    tot.valid = tot.time >= 0;
-	    tot.tag.str = NULL;
+	    if (tot.time >= 0)
+		tot.valid = 1;
+	    tot.tag = NULL;
 	}
+    } else {
+	tot.time = -1;
     }
-    assert(tot.time < 0 || !tot.tag.str);	/* paranoid */
     return tot;
 }
 
