@@ -68,9 +68,6 @@ static volatile int do_shutdown = 0;
 
 static void mainRotate(void);
 static void mainReconfigure(void);
-#if ALARM_UPDATES_TIME
-static SIGHDLR time_tick;
-#endif
 static void mainInitialize(void);
 static void usage(void);
 static void mainParseOptions(int, char **);
@@ -310,19 +307,6 @@ rotate_logs(int sig)
 #endif
 #endif
 }
-
-#if ALARM_UPDATES_TIME
-static void
-time_tick(int sig)
-{
-    getCurrentTime();
-    alarm(1);
-#if !HAVE_SIGACTION
-    signal(sig, time_tick);
-#endif
-}
-
-#endif
 
 /* ARGSUSED */
 void
@@ -665,10 +649,6 @@ mainInitialize(void)
     squid_signal(SIGHUP, reconfigure, SA_RESTART);
     squid_signal(SIGTERM, shut_down, SA_NODEFER | SA_RESETHAND | SA_RESTART);
     squid_signal(SIGINT, shut_down, SA_NODEFER | SA_RESETHAND | SA_RESTART);
-#if ALARM_UPDATES_TIME
-    squid_signal(SIGALRM, time_tick, SA_RESTART);
-    alarm(1);
-#endif
     memCheckInit();
     debug(1, 1) ("Ready to serve requests.\n");
     if (!configured_once) {

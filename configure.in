@@ -560,22 +560,6 @@ AC_ARG_ENABLE(snmp,
 AC_SUBST(SNMPLIB)
 AC_SUBST(makesnmplib)
 
-dnl This do not work well.. disable for now so people do not
-dnl enable it and thereby cause problems.. (tired of seeing people
-dnl having enabled this, and then complaining...)
-dnl
-dnl AC_ARG_ENABLE(time-hack,
-dnl [  --enable-time-hack      Update internal timestamp only once per second],
-dnl [ if test "$enableval" = "yes" ; then
-dnl     echo "Update internal timestamp only once per second"
-dnl     AC_DEFINE(ALARM_UPDATES_TIME, 1, [Squid frequently calls gettimeofday() for accurate timestamping.
-dnl	If you are concerned that gettimeofday() is called too often, and
-dnl	could be causing performance degradation, then you can define
-dnl	ALARM_UPDATES_TIME and cause Squid's clock to be updated at regular
-dnl	intervals (one second) with ALARM signals.])
-dnl   fi
-dnl ])
-
 AC_ARG_ENABLE(cachemgr-hostname,
 [  --enable-cachemgr-hostname[=hostname]
                           Make cachemgr.cgi default to this host],

@@ -215,9 +215,7 @@ comm_check_incoming_poll_handlers(int nfds, int *fds)
     }
     if (!nfds)
 	return -1;
-#if !ALARM_UPDATES_TIME
     getCurrentTime();
-#endif
     statCounter.syscalls.polls++;
     if (poll(pfds, npfds, 0) < 1)
 	return incoming_sockets_accepted;
@@ -316,11 +314,9 @@ comm_poll(int msec)
     static time_t last_timeout = 0;
     double timeout = current_dtime + (msec / 1000.0);
     do {
-#if !ALARM_UPDATES_TIME
 	double start;
 	getCurrentTime();
 	start = current_dtime;
-#endif
 	/* Handle any fs callbacks that need doing */
 	storeDirCallback();
 #if DELAY_POOLS
@@ -561,10 +557,8 @@ comm_poll(int msec)
 	    }
 	}
 #endif
-#if !ALARM_UPDATES_TIME
 	getCurrentTime();
 	statCounter.select_time += (current_dtime - start);
-#endif
 	return COMM_OK;
     }
     while (timeout > current_dtime);
@@ -600,9 +594,7 @@ comm_check_incoming_select_handlers(int nfds, int *fds)
     }
     if (maxfd++ == 0)
 	return -1;
-#if !ALARM_UPDATES_TIME
     getCurrentTime();
-#endif
     statCounter.syscalls.selects++;
     if (select(maxfd, &read_mask, &write_mask, NULL, &zero_tv) < 1)
 	return incoming_sockets_accepted;
@@ -706,11 +698,9 @@ comm_select(int msec)
     struct timeval poll_time;
     double timeout = current_dtime + (msec / 1000.0);
     do {
-#if !ALARM_UPDATES_TIME
 	double start;
 	getCurrentTime();
 	start = current_dtime;
-#endif
 #if DELAY_POOLS
 	FD_ZERO(&slowfds);
 #endif
@@ -920,10 +910,8 @@ comm_select(int msec)
 	    }
 	}
 #endif
-#if !ALARM_UPDATES_TIME
 	getCurrentTime();
 	statCounter.select_time += (current_dtime - start);
-#endif
 	return COMM_OK;
     }
     while (timeout > current_dtime);
@@ -1439,11 +1427,9 @@ comm_epoll(int msec)
     debug(50, 3) ("comm_epoll: timeout %d\n", msec);
 
     do {
-#if !ALARM_UPDATES_TIME
 	double start;
 	getCurrentTime();
 	start = current_dtime;
-#endif
 	ts.tv_sec = msec / 1000;
 	ts.tv_nsec = (msec % 1000) * 1000;
 
@@ -1526,10 +1512,8 @@ comm_epoll(int msec)
 		}
 	    }
 	}
-#if !ALARM_UPDATES_TIME
 	getCurrentTime();
 	statCounter.select_time += (current_dtime - start);
-#endif
 	return COMM_OK;
     }
     while (timeout > current_dtime);
