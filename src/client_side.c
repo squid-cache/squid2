@@ -3290,7 +3290,7 @@ clientReadDefer(int fd, void *data)
     ConnStateData *conn = data;
     if (conn->body.size_left && !F->flags.socket_eof) {
 	if (conn->in.offset >= conn->in.size - 1) {
-#if HAVE_EPOLL
+#if USE_EPOLL
 	    /* The commResumeFD function is called in this file */
 	    conn->in.clientfd = fd;
 	    commDeferFD(fd);
@@ -3301,7 +3301,7 @@ clientReadDefer(int fd, void *data)
 	}
     } else {
 	if (conn->defer.until > squid_curtime) {
-#if HAVE_EPOLL
+#if USE_EPOLL
 	    /* This is a second resolution timer, so commEpollBackon will 
 	     * handle the resume for this defer call */
 	    commDeferFD(fd);
@@ -3711,7 +3711,7 @@ clientProcessBody(ConnStateData * conn)
 	conn->body.size_left -= size;
 	/* Move any remaining data */
 	conn->in.offset -= size;
-#if HAVE_EPOLL
+#if USE_EPOLL
 	/* Resume the fd if necessary */
 	if (conn->in.clientfd) {
 	    if (conn->in.offset < conn->in.size - 1) {

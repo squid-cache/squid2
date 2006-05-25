@@ -375,7 +375,7 @@ commResetFD(ConnectStateData * cs)
 	commSetTcpNoDelay(cs->fd);
 #endif
 
-#if HAVE_EPOLL
+#if USE_EPOLL
     // If we are using epoll(), we need to make sure that this fd will be polled
     commSetSelect(cs->fd, 0, NULL, NULL, 0);
 #endif
@@ -779,7 +779,7 @@ commSetDefer(int fd, DEFER * func, void *data)
 }
 
 /* Epoll redefines this function in comm_select.c */
-#if !HAVE_EPOLL
+#if !USE_EPOLL
 void
 commSetSelect(int fd, unsigned int type, PF * handler, void *client_data, time_t timeout)
 {

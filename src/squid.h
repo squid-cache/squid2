@@ -250,15 +250,15 @@
  *  -- Oskar Pearson <oskar@is.co.za>
  *  -- Stewart Forster <slf@connect.com.au>
  */
-#if HAVE_POLL
+#if USE_POLL
 #if HAVE_POLL_H
 #include <poll.h>
 #else /* HAVE_POLL_H */
 #undef HAVE_POLL
 #endif /* HAVE_POLL_H */
-#endif /* HAVE_POLL */
+#endif /* USE_POLL */
 
-#if HAVE_EPOLL
+#if USE_EPOLL
 #include <sys/epoll.h>
 #endif
 
@@ -393,7 +393,7 @@ struct rusage {
 #include "Stack.h"
 
 /* Needed for poll() on Linux at least */
-#if HAVE_POLL
+#if USE_POLL
 #ifndef POLLRDNORM
 #define POLLRDNORM POLLIN
 #endif

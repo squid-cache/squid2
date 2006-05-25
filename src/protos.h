@@ -163,7 +163,7 @@ extern int comm_open(int, int, struct in_addr, u_short port, int, const char *no
 extern int comm_openex(int, int, struct in_addr, u_short, int, unsigned char TOS, const char *);
 extern u_short comm_local_port(int fd);
 
-#if HAVE_EPOLL
+#if USE_EPOLL
 extern void commDeferFD(int fd);
 extern void commResumeFD(int fd);
 #endif
@@ -189,12 +189,14 @@ extern void commCloseAllSockets(void);
  * comm_select.c
  */
 extern void comm_select_init(void);
-#if HAVE_EPOLL
+#if USE_EPOLL
 extern int comm_epoll(int);
-#elif HAVE_POLL
+#elif USE_POLL
 extern int comm_poll(int);
-#else
+#elif USE_SELECT
 extern int comm_select(int);
+#else
+#error USE_POLL, USE_EPOLL or USE_SELECT need to be defined!
 #endif
 extern void commUpdateReadHandler(int, PF *, void *);
 extern void commUpdateWriteHandler(int, PF *, void *);

@@ -107,9 +107,6 @@
 /* Define to 1 if you have the `drand48' function. */
 #undef HAVE_DRAND48
 
-/* Supports epoll */
-#undef HAVE_EPOLL
-
 /* Define to 1 if you have the `epoll_ctl' function. */
 #undef HAVE_EPOLL_CTL
 
@@ -404,6 +401,9 @@
 
 /* Define to 1 if you have the <sched.h> header file. */
 #undef HAVE_SCHED_H
+
+/* Define to 1 if you have the `select' function. */
+#undef HAVE_SELECT
 
 /* Define to 1 if you have the `seteuid' function. */
 #undef HAVE_SETEUID
@@ -750,6 +750,9 @@
    dnsserver processes instead. */
 #undef USE_DNSSERVERS
 
+/* Use epoll() for the IO loop */
+#undef USE_EPOLL
+
 /* Define if we should use GNU regex */
 #undef USE_GNUREGEX
 
@@ -775,9 +778,15 @@
    (USE_SSL) */
 #undef USE_OPENSSL
 
+/* Use poll() for the IO loop */
+#undef USE_POLL
+
 /* If you want to log Referer request header values, define this. By default,
    they are written to referer.log in the Squid log directory. */
 #undef USE_REFERER_LOG
+
+/* Use select() for the IO loop */
+#undef USE_SELECT
 
 /* Define this to include code for SSL encryption. */
 #undef USE_SSL

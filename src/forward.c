@@ -873,7 +873,7 @@ fwdCheckDeferRead(int fd, void *data)
     else {
 	int i = delayMostBytesWanted(mem, INT_MAX);
 	if (0 == i) {
-#if HAVE_EPOLL
+#if USE_EPOLL
 	    if (fd >= 0) {
 		mem->serverfd = fd;
 		commDeferFD(fd);
@@ -899,7 +899,7 @@ fwdCheckDeferRead(int fd, void *data)
 	 * few other corner cases.
 	 */
 	if (fd >= 0 && mem->inmem_hi - mem->inmem_lo > SM_PAGE_SIZE + Config.Store.maxInMemObjSize + Config.readAheadGap) {
-#if HAVE_EPOLL
+#if USE_EPOLL
 	    EBIT_SET(e->flags, ENTRY_DEFER_READ);
 	    mem->serverfd = fd;
 	    commDeferFD(fd);
@@ -909,7 +909,7 @@ fwdCheckDeferRead(int fd, void *data)
     }
     if (fd >= 0 && mem->inmem_hi - storeLowestMemReaderOffset(e) > Config.readAheadGap) {
 	EBIT_SET(e->flags, ENTRY_DEFER_READ);
-#if HAVE_EPOLL
+#if USE_EPOLL
 	mem->serverfd = fd;
 	commDeferFD(fd);
 #endif

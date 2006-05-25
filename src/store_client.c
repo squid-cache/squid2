@@ -269,7 +269,7 @@ storeClientCopy3(StoreEntry * e, store_client * sc)
 	    debug(20, 3) ("storeClientCopy3: %s - clearing ENTRY_DEFER_READ\n", e->mem_obj->url);
 	    /* Clear the flag and re-poll the fd */
 	    EBIT_CLR(e->flags, ENTRY_DEFER_READ);
-#if HAVE_EPOLL
+#if USE_EPOLL
 	    if (mem->serverfd != 0) {
 		commResumeFD(mem->serverfd);
 		mem->serverfd = 0;

@@ -841,9 +841,9 @@ main(int argc, char **argv)
 	eventRun();
 	if ((loop_delay = eventNextTime()) < 0)
 	    loop_delay = 0;
-#if HAVE_EPOLL
+#if USE_EPOLL
 	switch (comm_epoll(loop_delay)) {
-#elif HAVE_POLL
+#elif USE_POLL
 	    switch (comm_poll(loop_delay)) {
 #else
 	switch (comm_select(loop_delay)) {

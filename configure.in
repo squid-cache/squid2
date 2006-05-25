@@ -778,6 +778,24 @@ AC_ARG_ENABLE(poll,
   esac
 ])
 
+dnl Enable select()
+AC_ARG_ENABLE(select,
+[  --enable-select         Enable select() support.
+  --disable-select        Disable select() support. ],
+
+[
+  case "$enableval" in
+  yes)
+    echo "Forcing select() to be enabled"
+    ac_cv_func_select='yes'
+    ;;
+  no)
+    echo "Forcing select() to be disabled"
+    ac_cv_func_select='no'
+    ;;
+  esac
+])
+
 dnl Enable epoll()
 AC_ARG_ENABLE(epoll,
 [  --enable-epoll          Enable epoll() instead of poll() or select().  
@@ -788,12 +806,11 @@ AC_ARG_ENABLE(epoll,
   case "$enableval" in
   yes)
     echo "Forcing epoll() to be enabled"
-    ac_cv_func_epoll='yes'
-    ac_cv_func_poll='no'
+    force_epoll='yes'
     ;;
   no)
     echo "Forcing epoll() to be disabled"
-    ac_cv_func_epoll='no'
+    ac_cv_func_epoll_ctl='no'
     ;;
   esac
 ])
@@ -1868,17 +1885,7 @@ fi
 
 LIB_EPOLL=''
 dnl Check for libepoll
-if test "$ac_cv_func_epoll" = "yes"; then
-    AC_CHECK_FUNCS(epoll_ctl,[AC_DEFINE_UNQUOTED(HAVE_EPOLL, 1, [Supports epoll])],
-	[AC_CHECK_LIB(epoll, epoll_ctl,[AC_DEFINE_UNQUOTED(HAVE_EPOLL, 1, [Supports epoll])] LIB_EPOLL="-lepoll",
-	    [echo "Error - no epoll found";
-	     echo "Try running 'sh ./scripts/get_epoll-lib.sh'";
-	     echo "then run configure again";
-	     exit -1],
-	    [-L ./lib]
-	)]
-    )
-fi
+AC_CHECK_LIB(epoll, epoll_ctl,[LIB_EPOLL="-lepoll"],,[-L ./lib])
 AC_SUBST(LIB_EPOLL)
 
 dnl -lintl is needed on SCO version 3.2v4.2 for strftime()
@@ -2080,6 +2087,7 @@ AC_CHECK_FUNCS(\
 	res_init \
 	rint \
 	sbrk \
+	select \
 	seteuid \
 	setgroups \
 	setpgrp \
@@ -2101,6 +2109,63 @@ AC_CHECK_FUNCS(\
 	bswap_16 \
 	bswap_32 \
 )
+
+SAVED_LIBS="$LIBS"
+LIBS="$LIBS $LIB_EPOLL"
+AC_CHECK_FUNCS(epoll_ctl)
+LIBS="$SAVED_LIBS"
+
+dnl Verify that epoll really works
+if test ac_cv_func_epoll_ctl = yes; then
+  AC_CACHE_CHECK(if epoll works, ac_cv_epoll_works,
+    AC_TRY_RUN([
+#include <sys/epoll.h>
+int main(int argc, char **argv)
+{
+    int fd = epoll_create(256);
+    if (fd < 0) {
+	perror("epoll_create:");
+	exit(1);
+    }
+    exit(0);
+}
+    ], [ac_cv_epoll_works=yes; ac_cv_func_epol_ctl=no], [ac_cv_epoll_works=no]))
+  if test ac_cv_epoll_works = no && test ac_force_epoll = yes; then
+	echo "Error - no epoll found";
+	echo "Try running 'sh ./scripts/get_epoll-lib.sh'";
+	echo "then run configure again";
+	exit -1
+  fi
+fi
+
+dnl Magic which checks whether we are forcing a type of comm loop we
+dnl are actually going to (ab)use
+
+dnl Actually do the define magic now
+dnl mostly ripped from squid-commloops, thanks to adrian and benno
+
+if test "$ac_cv_func_epoll_ctl" = "yes" ; then
+        SELECT_TYPE="epoll"
+        AC_DEFINE(USE_EPOLL,1,[Use epoll() for the IO loop])
+        AC_CHECK_LIB(epoll, epoll_create, [EPOLL_LIBS="-lepoll"])
+        AC_SUBST(EPOLL_LIBS)
+elif test "$ac_cv_func_poll" = "yes" ; then
+
+        SELECT_TYPE="poll"
+        AC_DEFINE(USE_POLL,1,[Use poll() for the IO loop])
+elif test "$ac_cv_func_select" = "yes" ; then
+        SELECT_TYPE="select"
+        AC_DEFINE(USE_SELECT,1,[Use select() for the IO loop])
+else
+        echo "Eep!  Can't find poll, epoll, or select!"
+        echo "I'll try select and hope for the best."
+        SELECT_TYPE="select"
+        AC_DEFINE(USE_SELECT,1)
+fi
+echo "Using ${SELECT_TYPE} for select loop."
+AM_CONDITIONAL([USE_POLL], [test $SELECT_TYPE = poll])
+AM_CONDITIONAL([USE_EPOLL], [test $SELECT_TYPE = epoll])
+AM_CONDITIONAL([USE_SELECT], [test $SELECT_TYPE = select])
 
 dnl Yay!  Another Linux brokenness.  Its not good enough
 dnl to know that setresuid() exists, because RedHat 5.0 declares

@@ -311,7 +311,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE build build_cpu build_vendor build_os host host_cpu host_vendor host_os PKGCONFIG CGIEXT ENABLE_WIN32SPECIFIC_TRUE ENABLE_WIN32SPECIFIC_FALSE CACHE_HTTP_PORT CACHE_ICP_PORT LIBDLMALLOC LIB_MALLOC STORE_OBJS STORE_LIBS STORE_MODULES STORE_MODULE_SUBDIRS REPL_POLICIES REPL_OBJS REPL_LIBS ENABLE_PINGER_TRUE ENABLE_PINGER_FALSE USE_DELAY_POOLS_TRUE USE_DELAY_POOLS_FALSE USE_SNMP_TRUE USE_SNMP_FALSE SNMPLIB makesnmplib ENABLE_HTCP_TRUE ENABLE_HTCP_FALSE ENABLE_SSL_TRUE ENABLE_SSL_FALSE NEED_OWN_MD5_TRUE NEED_OWN_MD5_FALSE SSLLIB ERR_DEFAULT_LANGUAGE ERR_LANGUAGES MAKE_LEAKFINDER_TRUE MAKE_LEAKFINDER_FALSE USE_DNSSERVER_TRUE USE_DNSSERVER_FALSE OPT_DEFAULT_HOSTS AUTH_MODULES AUTH_OBJS AUTH_LIBS BASIC_AUTH_HELPERS NTLM_AUTH_HELPERS DIGEST_AUTH_HELPERS NEGOTIATE_AUTH_HELPERS EXTERNAL_ACL_HELPERS CPP EGREP LIBSASL ENABLE_UNLINKD_TRUE ENABLE_UNLINKD_FALSE RANLIB ac_ct_RANLIB LN_S SH FALSE TRUE RM MV MKDIR LN PERL AR AR_R ALLOCA CRYPTLIB LIB_EPOLL LIB_LDAP LIB_LBER LIB_DB NEED_OWN_SNPRINTF_TRUE NEED_OWN_SNPRINTF_FALSE NEED_OWN_STRSEP_TRUE NEED_OWN_STRSEP_FALSE REGEXLIB LIBREGEX LIBOBJS XTRA_OBJS XTRA_LIBS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE build build_cpu build_vendor build_os host host_cpu host_vendor host_os PKGCONFIG CGIEXT ENABLE_WIN32SPECIFIC_TRUE ENABLE_WIN32SPECIFIC_FALSE CACHE_HTTP_PORT CACHE_ICP_PORT LIBDLMALLOC LIB_MALLOC STORE_OBJS STORE_LIBS STORE_MODULES STORE_MODULE_SUBDIRS REPL_POLICIES REPL_OBJS REPL_LIBS ENABLE_PINGER_TRUE ENABLE_PINGER_FALSE USE_DELAY_POOLS_TRUE USE_DELAY_POOLS_FALSE USE_SNMP_TRUE USE_SNMP_FALSE SNMPLIB makesnmplib ENABLE_HTCP_TRUE ENABLE_HTCP_FALSE ENABLE_SSL_TRUE ENABLE_SSL_FALSE NEED_OWN_MD5_TRUE NEED_OWN_MD5_FALSE SSLLIB ERR_DEFAULT_LANGUAGE ERR_LANGUAGES MAKE_LEAKFINDER_TRUE MAKE_LEAKFINDER_FALSE USE_DNSSERVER_TRUE USE_DNSSERVER_FALSE OPT_DEFAULT_HOSTS AUTH_MODULES AUTH_OBJS AUTH_LIBS BASIC_AUTH_HELPERS NTLM_AUTH_HELPERS DIGEST_AUTH_HELPERS NEGOTIATE_AUTH_HELPERS EXTERNAL_ACL_HELPERS CPP EGREP LIBSASL ENABLE_UNLINKD_TRUE ENABLE_UNLINKD_FALSE RANLIB ac_ct_RANLIB LN_S SH FALSE TRUE RM MV MKDIR LN PERL AR AR_R ALLOCA CRYPTLIB LIB_EPOLL LIB_LDAP LIB_LBER LIB_DB EPOLL_LIBS USE_POLL_TRUE USE_POLL_FALSE USE_EPOLL_TRUE USE_EPOLL_FALSE USE_SELECT_TRUE USE_SELECT_FALSE NEED_OWN_SNPRINTF_TRUE NEED_OWN_SNPRINTF_FALSE NEED_OWN_STRSEP_TRUE NEED_OWN_STRSEP_FALSE REGEXLIB LIBREGEX LIBOBJS XTRA_OBJS XTRA_LIBS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -916,6 +916,8 @@ Optional Features:
                           smarter than the configure script, you may enable
                           poll with this option.
   --disable-poll          Disable the use of poll().
+  --enable-select         Enable select() support.
+  --disable-select        Disable select() support.
   --enable-epoll          Enable epoll() instead of poll() or select().
                           epoll() is best where available, but must be
                           explicitly set at the moment.
@@ -4230,6 +4232,23 @@ if test "${enable_poll+set}" = set; then
 
 fi;
 
+# Check whether --enable-select or --disable-select was given.
+if test "${enable_select+set}" = set; then
+  enableval="$enable_select"
+
+  case "$enableval" in
+  yes)
+    echo "Forcing select() to be enabled"
+    ac_cv_func_select='yes'
+    ;;
+  no)
+    echo "Forcing select() to be disabled"
+    ac_cv_func_select='no'
+    ;;
+  esac
+
+fi;
+
 # Check whether --enable-epoll or --disable-epoll was given.
 if test "${enable_epoll+set}" = set; then
   enableval="$enable_epoll"
@@ -4237,12 +4256,11 @@ if test "${enable_epoll+set}" = set; then
   case "$enableval" in
   yes)
     echo "Forcing epoll() to be enabled"
-    ac_cv_func_epoll='yes'
-    ac_cv_func_poll='no'
+    force_epoll='yes'
     ;;
   no)
     echo "Forcing epoll() to be disabled"
-    ac_cv_func_epoll='no'
+    ac_cv_func_epoll_ctl='no'
     ;;
   esac
 
@@ -13820,119 +13838,13 @@ fi
 fi
 
 LIB_EPOLL=''
-if test "$ac_cv_func_epoll" = "yes"; then
-
-for ac_func in epoll_ctl
-do
-as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
-echo "$as_me:$LINENO: checking for $ac_func" >&5
-echo $ECHO_N "checking for $ac_func... $ECHO_C" >&6
-if eval "test \"\${$as_ac_var+set}\" = set"; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-/* Define $ac_func to an innocuous variant, in case <limits.h> declares $ac_func.
-   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
-#define $ac_func innocuous_$ac_func
-
-/* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char $ac_func (); below.
-    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
-    <limits.h> exists even on freestanding compilers.  */
-
-#ifdef __STDC__
-# include <limits.h>
-#else
-# include <assert.h>
-#endif
-
-#undef $ac_func
-
-/* Override any gcc2 internal prototype to avoid an error.  */
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-/* We use char because int might match the return type of a gcc2
-   builtin and then its argument prototype would still apply.  */
-char $ac_func ();
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_$ac_func) || defined (__stub___$ac_func)
-choke me
-#else
-char (*f) () = $ac_func;
-#endif
-#ifdef __cplusplus
-}
-#endif
-
-int
-main ()
-{
-return f != $ac_func;
-  ;
-  return 0;
-}
-_ACEOF
-rm -f conftest.$ac_objext conftest$ac_exeext
-if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
-  (eval $ac_link) 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_c_werror_flag"
-			 || test ! -s conftest.err'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; } &&
-	 { ac_try='test -s conftest$ac_exeext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
-  eval "$as_ac_var=yes"
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-eval "$as_ac_var=no"
-fi
-rm -f conftest.err conftest.$ac_objext \
-      conftest$ac_exeext conftest.$ac_ext
-fi
-echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_var'}'`" >&5
-echo "${ECHO_T}`eval echo '${'$as_ac_var'}'`" >&6
-if test `eval echo '${'$as_ac_var'}'` = yes; then
-  cat >>confdefs.h <<_ACEOF
-#define `echo "HAVE_$ac_func" | $as_tr_cpp` 1
-_ACEOF
-
-cat >>confdefs.h <<_ACEOF
-#define HAVE_EPOLL 1
-_ACEOF
-
-else
-  echo "$as_me:$LINENO: checking for epoll_ctl in -lepoll" >&5
+echo "$as_me:$LINENO: checking for epoll_ctl in -lepoll" >&5
 echo $ECHO_N "checking for epoll_ctl in -lepoll... $ECHO_C" >&6
 if test "${ac_cv_lib_epoll_epoll_ctl+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-lepoll -L ./lib
-	 $LIBS"
+LIBS="-lepoll -L ./lib $LIBS"
 cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
@@ -13991,23 +13903,9 @@ fi
 echo "$as_me:$LINENO: result: $ac_cv_lib_epoll_epoll_ctl" >&5
 echo "${ECHO_T}$ac_cv_lib_epoll_epoll_ctl" >&6
 if test $ac_cv_lib_epoll_epoll_ctl = yes; then
-
-cat >>confdefs.h <<_ACEOF
-#define HAVE_EPOLL 1
-_ACEOF
- LIB_EPOLL="-lepoll"
-else
-  echo "Error - no epoll found";
-	     echo "Try running 'sh ./scripts/get_epoll-lib.sh'";
-	     echo "then run configure again";
-	     exit -1
+  LIB_EPOLL="-lepoll"
 fi
 
-
-fi
-done
-
-fi
 
 
 case "$host" in
@@ -14405,6 +14303,7 @@ fi
 
 
 
+
 for ac_func in \
 	bcopy \
 	backtrace_symbols_fd \
@@ -14439,6 +14338,7 @@ for ac_func in \
 	res_init \
 	rint \
 	sbrk \
+	select \
 	seteuid \
 	setgroups \
 	setpgrp \
@@ -14559,6 +14459,311 @@ _ACEOF
 
 fi
 done
+
+
+SAVED_LIBS="$LIBS"
+LIBS="$LIBS $LIB_EPOLL"
+
+for ac_func in epoll_ctl
+do
+as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
+echo "$as_me:$LINENO: checking for $ac_func" >&5
+echo $ECHO_N "checking for $ac_func... $ECHO_C" >&6
+if eval "test \"\${$as_ac_var+set}\" = set"; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+/* Define $ac_func to an innocuous variant, in case <limits.h> declares $ac_func.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define $ac_func innocuous_$ac_func
+
+/* System header to define __stub macros and hopefully few prototypes,
+    which can conflict with char $ac_func (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef $ac_func
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char $ac_func ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_$ac_func) || defined (__stub___$ac_func)
+choke me
+#else
+char (*f) () = $ac_func;
+#endif
+#ifdef __cplusplus
+}
+#endif
+
+int
+main ()
+{
+return f != $ac_func;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  eval "$as_ac_var=yes"
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+eval "$as_ac_var=no"
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+fi
+echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_var'}'`" >&5
+echo "${ECHO_T}`eval echo '${'$as_ac_var'}'`" >&6
+if test `eval echo '${'$as_ac_var'}'` = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define `echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+LIBS="$SAVED_LIBS"
+
+if test ac_cv_func_epoll_ctl = yes; then
+  echo "$as_me:$LINENO: checking if epoll works" >&5
+echo $ECHO_N "checking if epoll works... $ECHO_C" >&6
+if test "${ac_cv_epoll_works+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  if test "$cross_compiling" = yes; then
+  { { echo "$as_me:$LINENO: error: cannot run test program while cross compiling
+See \`config.log' for more details." >&5
+echo "$as_me: error: cannot run test program while cross compiling
+See \`config.log' for more details." >&2;}
+   { (exit 1); exit 1; }; }
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+#include <sys/epoll.h>
+int main(int argc, char **argv)
+{
+    int fd = epoll_create(256);
+    if (fd < 0) {
+	perror("epoll_create:");
+	exit(1);
+    }
+    exit(0);
+}
+
+_ACEOF
+rm -f conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && { ac_try='./conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_epoll_works=yes; ac_cv_func_epol_ctl=no
+else
+  echo "$as_me: program exited with status $ac_status" >&5
+echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+( exit $ac_status )
+ac_cv_epoll_works=no
+fi
+rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+fi
+fi
+echo "$as_me:$LINENO: result: $ac_cv_epoll_works" >&5
+echo "${ECHO_T}$ac_cv_epoll_works" >&6
+  if test ac_cv_epoll_works = no && test ac_force_epoll = yes; then
+	echo "Error - no epoll found";
+	echo "Try running 'sh ./scripts/get_epoll-lib.sh'";
+	echo "then run configure again";
+	exit -1
+  fi
+fi
+
+
+
+if test "$ac_cv_func_epoll_ctl" = "yes" ; then
+        SELECT_TYPE="epoll"
+
+cat >>confdefs.h <<\_ACEOF
+#define USE_EPOLL 1
+_ACEOF
+
+        echo "$as_me:$LINENO: checking for epoll_create in -lepoll" >&5
+echo $ECHO_N "checking for epoll_create in -lepoll... $ECHO_C" >&6
+if test "${ac_cv_lib_epoll_epoll_create+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lepoll  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char epoll_create ();
+int
+main ()
+{
+epoll_create ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_epoll_epoll_create=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_lib_epoll_epoll_create=no
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_epoll_epoll_create" >&5
+echo "${ECHO_T}$ac_cv_lib_epoll_epoll_create" >&6
+if test $ac_cv_lib_epoll_epoll_create = yes; then
+  EPOLL_LIBS="-lepoll"
+fi
+
+
+elif test "$ac_cv_func_poll" = "yes" ; then
+
+        SELECT_TYPE="poll"
+
+cat >>confdefs.h <<\_ACEOF
+#define USE_POLL 1
+_ACEOF
+
+elif test "$ac_cv_func_select" = "yes" ; then
+        SELECT_TYPE="select"
+
+cat >>confdefs.h <<\_ACEOF
+#define USE_SELECT 1
+_ACEOF
+
+else
+        echo "Eep!  Can't find poll, epoll, or select!"
+        echo "I'll try select and hope for the best."
+        SELECT_TYPE="select"
+        cat >>confdefs.h <<\_ACEOF
+#define USE_SELECT 1
+_ACEOF
+
+fi
+echo "Using ${SELECT_TYPE} for select loop."
+
+
+if test $SELECT_TYPE = poll; then
+  USE_POLL_TRUE=
+  USE_POLL_FALSE='#'
+else
+  USE_POLL_TRUE='#'
+  USE_POLL_FALSE=
+fi
+
+
+
+if test $SELECT_TYPE = epoll; then
+  USE_EPOLL_TRUE=
+  USE_EPOLL_FALSE='#'
+else
+  USE_EPOLL_TRUE='#'
+  USE_EPOLL_FALSE=
+fi
+
+
+
+if test $SELECT_TYPE = select; then
+  USE_SELECT_TRUE=
+  USE_SELECT_FALSE='#'
+else
+  USE_SELECT_TRUE='#'
+  USE_SELECT_FALSE=
+fi
 
 
 echo "$as_me:$LINENO: checking if setresuid is implemented" >&5
@@ -16288,6 +16493,27 @@ echo "$as_me: error: conditional \"ENABLE_UNLINKD\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
+if test -z "${USE_POLL_TRUE}" && test -z "${USE_POLL_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"USE_POLL\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"USE_POLL\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+if test -z "${USE_EPOLL_TRUE}" && test -z "${USE_EPOLL_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"USE_EPOLL\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"USE_EPOLL\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+if test -z "${USE_SELECT_TRUE}" && test -z "${USE_SELECT_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"USE_SELECT\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"USE_SELECT\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
 if test -z "${NEED_OWN_SNPRINTF_TRUE}" && test -z "${NEED_OWN_SNPRINTF_FALSE}"; then
   { { echo "$as_me:$LINENO: error: conditional \"NEED_OWN_SNPRINTF\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
@@ -17017,6 +17243,13 @@ s,@LIB_EPOLL@,$LIB_EPOLL,;t t
 s,@LIB_LDAP@,$LIB_LDAP,;t t
 s,@LIB_LBER@,$LIB_LBER,;t t
 s,@LIB_DB@,$LIB_DB,;t t
+s,@EPOLL_LIBS@,$EPOLL_LIBS,;t t
+s,@USE_POLL_TRUE@,$USE_POLL_TRUE,;t t
+s,@USE_POLL_FALSE@,$USE_POLL_FALSE,;t t
+s,@USE_EPOLL_TRUE@,$USE_EPOLL_TRUE,;t t
+s,@USE_EPOLL_FALSE@,$USE_EPOLL_FALSE,;t t
+s,@USE_SELECT_TRUE@,$USE_SELECT_TRUE,;t t
+s,@USE_SELECT_FALSE@,$USE_SELECT_FALSE,;t t
 s,@NEED_OWN_SNPRINTF_TRUE@,$NEED_OWN_SNPRINTF_TRUE,;t t
 s,@NEED_OWN_SNPRINTF_FALSE@,$NEED_OWN_SNPRINTF_FALSE,;t t
 s,@NEED_OWN_STRSEP_TRUE@,$NEED_OWN_STRSEP_TRUE,;t t

@@ -152,7 +152,7 @@ storeSwapOutMaintainMemObject(StoreEntry * e)
 
 	    if (mem->inmem_hi - mem->inmem_lo <= Config.readAheadGap) {
 		EBIT_CLR(e->flags, ENTRY_DEFER_READ);
-#if HAVE_EPOLL
+#if USE_EPOLL
 		if (mem->serverfd != 0) {
 		    commResumeFD(mem->serverfd);
 		    mem->serverfd = 0;

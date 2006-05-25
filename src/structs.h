@@ -863,7 +863,7 @@ struct _fde {
     squid_off_t bytes_read;
     squid_off_t bytes_written;
     int uses;			/* ie # req's over persistent conn */
-#if HAVE_EPOLL
+#if USE_EPOLL
     unsigned epoll_state;	/* keep track of the epoll state */
     unsigned epoll_backoff;	/* keep track of whether the fd is backed off */
 #endif
@@ -1200,7 +1200,7 @@ struct _ConnStateData {
 	char *buf;
 	size_t offset;
 	size_t size;
-#if HAVE_EPOLL
+#if USE_EPOLL
 	int clientfd;		/* Record the client's fd if we have too much 
 				 * data waiting to send to the server */
 #endif
@@ -1640,7 +1640,7 @@ struct _MemObject {
     mem_hdr data_hdr;
     squid_off_t inmem_hi;
     squid_off_t inmem_lo;
-#if HAVE_EPOLL
+#if USE_EPOLL
     int serverfd;		/* Record the server's fd if we have too much
 				 * data waiting to send to the client */
 #endif
@@ -2014,7 +2014,7 @@ struct _StatCounters {
 	    int recvfroms;
 	    int sendtos;
 	} sock;
-#if HAVE_POLL || HAVE_EPOLL
+#if USE_POLL || USE_EPOLL
 	int polls;
 #else
 	int selects;

@@ -62,6 +62,16 @@ else
 WIN32SOURCE = 
 endif
 
+if USE_POLL
+COMMLOOP_SOURCE = comm_poll.c
+endif
+if USE_EPOLL
+COMMLOOP_SOURCE = comm_epoll.c
+endif
+if USE_SELECT
+COMMLOOP_SOURCE = comm_select.c
+endif
+
 SUBDIRS		= fs repl auth
 
 INCLUDES        = -I. -I$(srcdir) -I$(top_builddir)/include -I$(top_srcdir)/include
@@ -99,6 +109,9 @@ EXTRA_squid_SOURCES = \
 	unlinkd.c \
 	ssl_support.c \
 	ssl_support.h \
+	comm_epoll.c \
+	comm_poll.c \
+	comm_select.c \
 	win32.c
 
 squid_SOURCES = \
@@ -114,7 +127,7 @@ squid_SOURCES = \
 	client_db.c \
 	client_side.c \
 	comm.c \
-	comm_select.c \
+	$(COMMLOOP_SOURCE) \
 	debug.c \
 	defines.h \
 	$(DELAY_POOL_SOURCE) \
