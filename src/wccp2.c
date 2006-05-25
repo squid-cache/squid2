@@ -646,7 +646,7 @@ wccp2ConnectionOpen(void)
     struct wccp2_router_list_t *router_list_ptr;
 
     debug(80, 5) ("wccp2ConnectionOpen: Called\n");
-    if (wccp2_numrouters == 0) {
+    if (wccp2_numrouters == 0 || !wccp2_service_list_head) {
 	debug(80, 2) ("WCCPv2 Disabled.\n");
 	return;
     }
@@ -693,8 +693,10 @@ wccp2ConnectionOpen(void)
 	}
 	service_list_ptr = service_list_ptr->next;
     }
-    if (wccp2_numrouters == 1)
+    if (wccp2_numrouters == 1) {
+	router.sin_family = AF_INET;
 	connect(theWccp2Connection, (struct sockaddr *) &router, router_len);
+    }
     wccp2_connected = 1;
 }
 
@@ -1413,7 +1415,6 @@ parse_wccp2_service_info(void *v)
 	    "without having shut down WCCP! Try reloading squid again.\n");
 	return;
     }
-    srv = wccp2_service_list_head;
     debug(80, 5) ("parse_wccp2_service_info: called\n");
     bzero(portlist, sizeof(portlist));
     /* First argument: id */
