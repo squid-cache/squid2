@@ -85,14 +85,14 @@ am__squid_SOURCES_DIST = access_log.c acl.c asn.c authenticate.c \
 	cache_cf.c CacheDigest.c cache_manager.c carp.c cbdata.c \
 	client_db.c client_side.c comm.c comm_epoll.c comm_poll.c \
 	comm_select.c debug.c defines.h delay_pools.c disk.c \
-	dns_internal.c dns.c enums.h errorpage.c ETag.c event.c \
-	errormap.c external_acl.c fd.c filemap.c forward.c fqdncache.c \
-	ftp.c globals.h gopher.c helper.c htcp.c http.c \
-	HttpStatusLine.c HttpHdrCc.c HttpHdrRange.c HttpHdrContRange.c \
-	HttpHeader.c HttpHeaderTools.c HttpBody.c HttpMsg.c \
-	HttpReply.c HttpRequest.c icmp.c icp_v2.c icp_v3.c ident.c \
-	internal.c ipc.c ipcache.c leakfinder.c locrewrite.c logfile.c \
-	main.c mem.c MemPool.c MemBuf.c mime.c multicast.c neighbors.c \
+	dns_internal.c dns.c enums.h errorpage.c event.c errormap.c \
+	external_acl.c fd.c filemap.c forward.c fqdncache.c ftp.c \
+	globals.h gopher.c helper.c htcp.c http.c HttpStatusLine.c \
+	HttpHdrCc.c HttpHdrRange.c HttpHdrContRange.c HttpHeader.c \
+	HttpHeaderTools.c HttpBody.c HttpMsg.c HttpReply.c \
+	HttpRequest.c icmp.c icp_v2.c icp_v3.c ident.c internal.c \
+	ipc.c ipcache.c leakfinder.c locrewrite.c logfile.c main.c \
+	mem.c MemPool.c MemBuf.c mime.c multicast.c neighbors.c \
 	net_db.c Packer.c pconn.c peer_digest.c peer_monitor.c \
 	peer_select.c peer_sourcehash.c peer_userhash.c protos.h \
 	redirect.c referer.c refresh.c send-announce.c snmp_core.c \
@@ -121,22 +121,22 @@ am_squid_OBJECTS = access_log.$(OBJEXT) acl.$(OBJEXT) asn.$(OBJEXT) \
 	cbdata.$(OBJEXT) client_db.$(OBJEXT) client_side.$(OBJEXT) \
 	comm.$(OBJEXT) $(am__objects_1) debug.$(OBJEXT) \
 	$(am__objects_2) disk.$(OBJEXT) $(am__objects_3) \
-	errorpage.$(OBJEXT) ETag.$(OBJEXT) event.$(OBJEXT) \
-	errormap.$(OBJEXT) external_acl.$(OBJEXT) fd.$(OBJEXT) \
-	filemap.$(OBJEXT) forward.$(OBJEXT) fqdncache.$(OBJEXT) \
-	ftp.$(OBJEXT) gopher.$(OBJEXT) helper.$(OBJEXT) \
-	$(am__objects_4) http.$(OBJEXT) HttpStatusLine.$(OBJEXT) \
-	HttpHdrCc.$(OBJEXT) HttpHdrRange.$(OBJEXT) \
-	HttpHdrContRange.$(OBJEXT) HttpHeader.$(OBJEXT) \
-	HttpHeaderTools.$(OBJEXT) HttpBody.$(OBJEXT) HttpMsg.$(OBJEXT) \
-	HttpReply.$(OBJEXT) HttpRequest.$(OBJEXT) icmp.$(OBJEXT) \
-	icp_v2.$(OBJEXT) icp_v3.$(OBJEXT) ident.$(OBJEXT) \
-	internal.$(OBJEXT) ipc.$(OBJEXT) ipcache.$(OBJEXT) \
-	$(am__objects_5) locrewrite.$(OBJEXT) logfile.$(OBJEXT) \
-	main.$(OBJEXT) mem.$(OBJEXT) MemPool.$(OBJEXT) \
-	MemBuf.$(OBJEXT) mime.$(OBJEXT) multicast.$(OBJEXT) \
-	neighbors.$(OBJEXT) net_db.$(OBJEXT) Packer.$(OBJEXT) \
-	pconn.$(OBJEXT) peer_digest.$(OBJEXT) peer_monitor.$(OBJEXT) \
+	errorpage.$(OBJEXT) event.$(OBJEXT) errormap.$(OBJEXT) \
+	external_acl.$(OBJEXT) fd.$(OBJEXT) filemap.$(OBJEXT) \
+	forward.$(OBJEXT) fqdncache.$(OBJEXT) ftp.$(OBJEXT) \
+	gopher.$(OBJEXT) helper.$(OBJEXT) $(am__objects_4) \
+	http.$(OBJEXT) HttpStatusLine.$(OBJEXT) HttpHdrCc.$(OBJEXT) \
+	HttpHdrRange.$(OBJEXT) HttpHdrContRange.$(OBJEXT) \
+	HttpHeader.$(OBJEXT) HttpHeaderTools.$(OBJEXT) \
+	HttpBody.$(OBJEXT) HttpMsg.$(OBJEXT) HttpReply.$(OBJEXT) \
+	HttpRequest.$(OBJEXT) icmp.$(OBJEXT) icp_v2.$(OBJEXT) \
+	icp_v3.$(OBJEXT) ident.$(OBJEXT) internal.$(OBJEXT) \
+	ipc.$(OBJEXT) ipcache.$(OBJEXT) $(am__objects_5) \
+	locrewrite.$(OBJEXT) logfile.$(OBJEXT) main.$(OBJEXT) \
+	mem.$(OBJEXT) MemPool.$(OBJEXT) MemBuf.$(OBJEXT) \
+	mime.$(OBJEXT) multicast.$(OBJEXT) neighbors.$(OBJEXT) \
+	net_db.$(OBJEXT) Packer.$(OBJEXT) pconn.$(OBJEXT) \
+	peer_digest.$(OBJEXT) peer_monitor.$(OBJEXT) \
 	peer_select.$(OBJEXT) peer_sourcehash.$(OBJEXT) \
 	peer_userhash.$(OBJEXT) redirect.$(OBJEXT) referer.$(OBJEXT) \
 	refresh.$(OBJEXT) send-announce.$(OBJEXT) $(am__objects_6) \
@@ -422,7 +422,6 @@ squid_SOURCES = \
 	$(DNSSOURCE) \
 	enums.h \
 	errorpage.c \
-	ETag.c \
 	event.c \
 	errormap.c \
 	external_acl.c \
@@ -702,7 +701,6 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CacheDigest.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ETag.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/HttpBody.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/HttpHdrCc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/HttpHdrContRange.Po@am__quote@
