@@ -491,17 +491,14 @@ struct _SquidConfig {
 #if USE_WCCP
     struct {
 	struct in_addr router;
-	struct in_addr incoming;
-	struct in_addr outgoing;
+	struct in_addr address;
 	int version;
     } Wccp;
 #endif
 #if USE_WCCPv2
     struct {
 	sockaddr_in_list *router;
-	struct in_addr incoming;
-	struct in_addr outgoing;
-	int version;
+	struct in_addr address;
 	int forwarding_method;
 	int return_method;
 	void *info;

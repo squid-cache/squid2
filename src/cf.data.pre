@@ -3981,12 +3981,6 @@ TYPE: int
 LOC: Config.Wccp.version
 DEFAULT: 4
 IFDEF: USE_WCCP
-DOC_NONE
-NAME: wccp2_version
-TYPE: int
-LOC: Config.Wccp2.version
-DEFAULT: 4
-IFDEF: USE_WCCPv2
 DOC_START
 	According to some users, Cisco IOS 11.2 only supports WCCP
 	version 3.  If you're using that version of IOS, change
@@ -4090,48 +4084,22 @@ DOC_START
 	'wccp2_service dynamic <id> entry.
 DOC_END
 
-NAME: wccp_incoming_address
+NAME: wccp_address
 TYPE: address
-LOC: Config.Wccp.incoming
+LOC: Config.Wccp.address
 DEFAULT: 0.0.0.0
 IFDEF: USE_WCCP
 DOC_NONE
-NAME: wccp_outgoing_address
+NAME: wccp2_address
 TYPE: address
-LOC: Config.Wccp.outgoing
-DEFAULT: 255.255.255.255
-IFDEF: USE_WCCP
-DOC_NONE
-NAME: wccp2_incoming_address
-TYPE: address
-LOC: Config.Wccp2.incoming
+LOC: Config.Wccp2.address
 DEFAULT: 0.0.0.0
-IFDEF: USE_WCCPv2
-DOC_NONE
-NAME: wccp2_outgoing_address
-TYPE: address
-LOC: Config.Wccp2.outgoing
-DEFAULT: 255.255.255.255
 IFDEF: USE_WCCPv2
 DOC_START
-        wccp_incoming_address   Use this option if you require WCCP
-				messages to be received on only one
-				interface.  Do NOT use this option if
-				you're unsure how many interfaces you
-				have, or if you know you have only one
-				interface.
-
-	wccp_outgoing_address	Use this option if you require WCCP
-				messages to be sent out on only one
-				interface.  Do NOT use this option if
-				you're unsure how many interfaces you
-				have, or if you know you have only one
-				interface.
+        Use this option if you require WCCP to use a specific
+	interface address.
 
         The default behavior is to not bind to any specific address.
-
-        NOTE, wccp_incoming_address and wccp_outgoing_address can not have
-        the same value since they both use port 2048.
 DOC_END
 
 

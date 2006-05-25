@@ -50,8 +50,7 @@
 #define WCCP_ASSIGN_BUCKET 9
 
 
-static int theInWccp2Connection = -1;
-static int theOutWccp2Connection = -1;
+static int theWccp2Connection = -1;
 static int wccp2_connected = 0;
 
 static PF wccp2HandleUdp;
@@ -308,7 +307,6 @@ void wccp2_add_service_list(int service, int service_id, int service_priority,
  * The functions used during startup:
  * wccp2Init
  * wccp2ConnectionOpen
- * wccp2ConnectionShutdown
  * wccp2ConnectionClose
  */
 
@@ -631,7 +629,7 @@ wccp2Init(void)
 	/* Add the event if everything initialised correctly */
 	if (wccp2_numrouters) {
 	    if (!eventFind(wccp2HereIam, NULL)) {
-		eventAdd("wccp2HereIam", wccp2HereIam, NULL, 10.0, 1);
+		eventAdd("wccp2HereIam", wccp2HereIam, NULL, 1, 1);
 	    }
 	}
 	service_list_ptr = service_list_ptr->next;
@@ -652,40 +650,21 @@ wccp2ConnectionOpen(void)
 	debug(80, 2) ("WCCPv2 Disabled.\n");
 	return;
     }
-    theInWccp2Connection = comm_open(SOCK_DGRAM,
+    theWccp2Connection = comm_open(SOCK_DGRAM,
 	0,
-	Config.Wccp2.incoming,
+	Config.Wccp2.address,
 	port,
 	COMM_NONBLOCKING,
 	"WCCP2 Socket");
-    if (theInWccp2Connection < 0)
+    if (theWccp2Connection < 0)
 	fatal("Cannot open WCCP Port");
-    commSetSelect(theInWccp2Connection,
+    commSetSelect(theWccp2Connection,
 	COMM_SELECT_READ,
 	wccp2HandleUdp,
 	NULL,
 	0);
     debug(80, 1) ("Accepting WCCP v2 messages on port %d, FD %d.\n",
-	(int) port, theInWccp2Connection);
-
-    if (Config.Wccp2.outgoing.s_addr != no_addr.s_addr) {
-	theOutWccp2Connection = comm_open(SOCK_DGRAM,
-	    0,
-	    Config.Wccp2.outgoing,
-	    port,
-	    COMM_NONBLOCKING,
-	    "WCCP2 Socket (outgoing)");
-	if (theOutWccp2Connection < 0)
-	    fatal("Cannot open Outgoing WCCP Port");
-	commSetSelect(theOutWccp2Connection,
-	    COMM_SELECT_READ,
-	    wccp2HandleUdp,
-	    NULL, 0);
-	debug(80, 1) ("Outgoing WCCPv2 messages on port %d, FD %d.\n",
-	    (int) port, theOutWccp2Connection);
-    } else {
-	theOutWccp2Connection = theInWccp2Connection;
-    }
+	(int) port, theWccp2Connection);
 
     debug(80, 1) ("Initialising all WCCPv2 lists\n");
 
@@ -698,38 +677,25 @@ wccp2ConnectionOpen(void)
 	    router.sin_family = AF_INET;
 	    router.sin_port = htons(port);
 	    router.sin_addr = router_list_ptr->router_sendto_address;
-	    if (connect(theOutWccp2Connection, (struct sockaddr *) &router, router_len))
+	    if (connect(theWccp2Connection, (struct sockaddr *) &router, router_len))
 		fatal("Unable to connect WCCP out socket");
 	    local_len = sizeof(local);
 	    memset(&local, '\0', local_len);
-	    if (getsockname(theOutWccp2Connection, (struct sockaddr *) &local, &local_len))
+	    if (getsockname(theWccp2Connection, (struct sockaddr *) &local, &local_len))
 		fatal("Unable to getsockname on WCCP out socket");
 
 	    router_list_ptr->local_ip = local.sin_addr;
 
 	    /* Disconnect the sending socket */
 	    router.sin_family = AF_UNSPEC;
-	    if (connect(theOutWccp2Connection, (struct sockaddr *) &router, router_len))
+	    if (connect(theWccp2Connection, (struct sockaddr *) &router, router_len))
 		fatal("Unable to disconnect WCCP out socket");
 	}
 	service_list_ptr = service_list_ptr->next;
     }
+    if (wccp2_numrouters == 1)
+	connect(theWccp2Connection, (struct sockaddr *) &router, router_len);
     wccp2_connected = 1;
-}
-
-void
-wccp2ConnectionShutdown(void)
-{
-    if (theInWccp2Connection < 0)
-	return;
-    if (wccp2_connected == 0)
-	return;
-    if (theInWccp2Connection != theOutWccp2Connection) {
-	debug(80, 1) ("FD %d Closing WCCP socket\n", theInWccp2Connection);
-	comm_close(theInWccp2Connection);
-    }
-    assert(theOutWccp2Connection > -1);
-    commSetSelect(theOutWccp2Connection, COMM_SELECT_READ, NULL, NULL, 0);
 }
 
 void
@@ -745,10 +711,10 @@ wccp2ConnectionClose(void)
     if (wccp2_connected == 0) {
 	return;
     }
-    wccp2ConnectionShutdown();
-    if (theOutWccp2Connection > -1) {
-	debug(80, 1) ("FD %d Closing WCCP socket\n", theOutWccp2Connection);
-	comm_close(theOutWccp2Connection);
+    if (theWccp2Connection > -1) {
+	debug(80, 1) ("FD %d Closing WCCP socket\n", theWccp2Connection);
+	comm_close(theWccp2Connection);
+	theWccp2Connection = -1;
     }
     /* for each router on each service send a packet */
     service_list_ptr = wccp2_service_list_head;
@@ -774,6 +740,9 @@ wccp2ConnectionClose(void)
 	service_list_ptr = service_list_ptr_next;
     }
     wccp2_service_list_head = NULL;
+    eventDelete(wccp2HereIam, NULL);
+    eventDelete(wccp2AssignBuckets, NULL);
+    eventDelete(wccp2HereIam, NULL);
     wccp2_connected = 0;
 }
 
@@ -1093,7 +1062,7 @@ wccp2HereIam(void *voidnotused)
 	    }
 	    debug(80, 3) ("Sending HereIam packet size %d\n", (int) service_list_ptr->wccp_packet_size);
 	    /* Send the packet */
-	    sendto(theOutWccp2Connection,
+	    sendto(theWccp2Connection,
 		&service_list_ptr->wccp_packet,
 		service_list_ptr->wccp_packet_size,
 		0,
@@ -1249,7 +1218,7 @@ wccp2AssignBuckets(void *voidnotused)
 	    }
 	    if (ntohl(router_list_ptr->num_caches)) {
 		/* send packet */
-		sendto(theOutWccp2Connection,
+		sendto(theWccp2Connection,
 		    &wccp_packet,
 		    offset,
 		    0,

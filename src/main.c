@@ -373,10 +373,10 @@ serverConnectionsClose(void)
     snmpConnectionShutdown();
 #endif
 #if USE_WCCP
-    wccpConnectionShutdown();
+    wccpConnectionClose();
 #endif
 #if USE_WCCPv2
-    wccp2ConnectionShutdown();
+    wccp2ConnectionClose();
 #endif
     asnFreeMemory();
 }
@@ -394,12 +394,6 @@ mainReconfigure(void)
 #endif
 #ifdef SQUID_SNMP
     snmpConnectionClose();
-#endif
-#if USE_WCCP
-    wccpConnectionClose();
-#endif
-#if USE_WCCPv2
-    wccp2ConnectionClose();
 #endif
 #if USE_DNSSERVERS
     dnsShutdown();

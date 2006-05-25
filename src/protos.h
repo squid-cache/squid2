@@ -569,14 +569,12 @@ extern variable_list *snmp_meshCtblFn(variable_list *, snint *);
 #if USE_WCCP
 extern void wccpInit(void);
 extern void wccpConnectionOpen(void);
-extern void wccpConnectionShutdown(void);
 extern void wccpConnectionClose(void);
 #endif /* USE_WCCP */
 
 #if USE_WCCPv2
 extern void wccp2Init(void);
 extern void wccp2ConnectionOpen(void);
-extern void wccp2ConnectionShutdown(void);
 extern void wccp2ConnectionClose(void);
 #endif /* USE_WCCPv2 */
 
