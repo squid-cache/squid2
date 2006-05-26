@@ -778,7 +778,7 @@ NOCOMMENT_END
 DOC_END
 
 
-NAME: no_cache
+NAME: cache no_cache
 TYPE: acl_access
 DEFAULT: none
 LOC: Config.accessList.noCache
@@ -790,10 +790,11 @@ DOC_START
 	You must use the word 'DENY' to indicate the ACL names which should
 	NOT be cached.
 
+	Default is to allow all to be cached
 NOCOMMENT_START
 #We recommend you to use the following two lines.
 acl QUERY urlpath_regex cgi-bin \?
-no_cache deny QUERY
+cache deny QUERY
 NOCOMMENT_END
 DOC_END
 
