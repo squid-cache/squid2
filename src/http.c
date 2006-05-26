@@ -329,24 +329,32 @@ httpCachableReply(HttpStateData * httpState)
  * Returns false if the variance cannot be stored
  */
 const char *
-httpMakeVaryMark(const request_t * request, HttpReply * reply)
+httpMakeVaryMark(request_t * request, HttpReply * reply)
 {
-    String vary, hdr;
+    String vary = StringNull, hdr;
     const char *pos = NULL;
     const char *item;
     const char *value;
     int ilen;
-    static String vstr =
-    {0, 0, NULL};
+    String vstr = StringNull;
 
     stringClean(&vstr);
-    vary = httpHeaderGetList(&reply->header, HDR_VARY);
+    hdr = httpHeaderGetList(&reply->header, HDR_VARY);
+    if (strBuf(hdr))
+	strListAdd(&vary, strBuf(hdr), ',');
+    stringClean(&hdr);
+#if X_ACCELERATOR_VARY
+    hdr = httpHeaderGetList(&reply->header, HDR_X_ACCELERATOR_VARY);
+    if (strBuf(hdr))
+	strListAdd(&vary, strBuf(hdr), ',');
+    stringClean(&hdr);
+#endif
     while (strListGetItem(&vary, ',', &item, &ilen, &pos)) {
 	char *name = xmalloc(ilen + 1);
 	xstrncpy(name, item, ilen + 1);
 	Tolower(name);
 	if (strcmp(name, "*") == 0) {
-	    /* Can not handle "Vary: *" withtout ETag support */
+	    /* Can not handle "Vary: *" efficiently, bail out making the response not cached */
 	    safe_free(name);
 	    stringClean(&vary);
 	    stringClean(&vstr);
@@ -364,30 +372,14 @@ httpMakeVaryMark(const request_t * request, HttpReply * reply)
 	}
 	stringClean(&hdr);
     }
-    stringClean(&vary);
-#if X_ACCELERATOR_VARY
-    pos = NULL;
-    vary = httpHeaderGetList(&reply->header, HDR_X_ACCELERATOR_VARY);
-    while (strListGetItem(&vary, ',', &item, &ilen, &pos)) {
-	char *name = xmalloc(ilen + 1);
-	xstrncpy(name, item, ilen + 1);
-	Tolower(name);
-	strListAdd(&vstr, name, ',');
-	hdr = httpHeaderGetByName(&request->header, name);
-	safe_free(name);
-	value = strBuf(hdr);
-	if (value) {
-	    value = rfc1738_escape_part(value);
-	    stringAppend(&vstr, "=\"", 2);
-	    stringAppend(&vstr, value, strlen(value));
-	    stringAppend(&vstr, "\"", 1);
-	}
-	stringClean(&hdr);
-    }
-    stringClean(&vary);
-#endif
+    safe_free(request->vary_hdr);
+    request->vary_hdr = xstrdup(strBuf(vary));
+    safe_free(request->vary_headers);
+    request->vary_headers = xstrdup(strBuf(vstr));
     debug(11, 3) ("httpMakeVaryMark: %s\n", strBuf(vstr));
-    return strBuf(vstr);
+    stringClean(&vary);
+    stringClean(&vstr);
+    return request->vary_headers;
 }
 
 /* rewrite this later using new interfaces @?@ */
@@ -461,7 +453,9 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 	|| httpHeaderHas(&reply->header, HDR_X_ACCELERATOR_VARY)
 #endif
 	) {
-	const char *vary = httpMakeVaryMark(httpState->orig_request, reply);
+	const char *vary = NULL;
+	if (Config.onoff.cache_vary)
+	    vary = httpMakeVaryMark(httpState->orig_request, reply);
 	if (!vary) {
 	    httpMakePrivate(entry);
 	    goto no_cache;

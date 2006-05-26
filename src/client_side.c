@@ -514,22 +514,7 @@ clientHandleETagMiss(clientHttpRequest * http)
     if (mem->reply) {
 	const char *etag = httpHeaderGetStr(&mem->reply->header, HDR_ETAG);
 	if (etag) {
-	    /* This has to match storeSetPublicKey, except for the key which is NULL */
-	    String vary = StringNull;
-	    String varyhdr;
-	    varyhdr = httpHeaderGetList(&mem->reply->header, HDR_VARY);
-	    if (strBuf(varyhdr))
-		strListAdd(&vary, strBuf(varyhdr), ',');
-	    stringClean(&varyhdr);
-#if X_ACCELERATOR_VARY
-	    /* This needs to match the order in http.c:httpMakeVaryMark */
-	    varyhdr = httpHeaderGetList(&mem->reply->header, HDR_X_ACCELERATOR_VARY);
-	    if (strBuf(varyhdr))
-		strListAdd(&vary, strBuf(varyhdr), ',');
-	    stringClean(&varyhdr);
-#endif
-	    storeAddVary(mem->url, mem->log_url, mem->method, NULL, httpHeaderGetStr(&mem->reply->header, HDR_ETAG), strBuf(vary), httpMakeVaryMark(request, mem->reply));
-	    stringClean(&vary);
+	    storeAddVary(mem->url, mem->log_url, mem->method, NULL, httpHeaderGetStr(&mem->reply->header, HDR_ETAG), request->vary_hdr, request->vary_headers);
 	}
     }
     request->done_etag = 1;
@@ -540,6 +525,7 @@ clientHandleETagMiss(clientHttpRequest * http)
     }
     safe_free(request->etag);
     safe_free(request->vary_headers);
+    safe_free(request->vary_hdr);
     storeUnregister(http->sc, entry, http);
     storeUnlockObject(entry);
     clientProcessRequest(http);
@@ -4756,7 +4742,6 @@ varyEvaluateMatch(StoreEntry * entry, request_t * request)
 	 */
 	vary = httpMakeVaryMark(request, entry->mem_obj->reply);
 	if (vary) {
-	    request->vary_headers = xstrdup(vary);
 	    return VARY_OTHER;
 	} else {
 	    /* Ouch.. we cannot handle this kind of variance */
@@ -4764,29 +4749,14 @@ varyEvaluateMatch(StoreEntry * entry, request_t * request)
 	    return VARY_CANCEL;
 	}
     } else {
-	if (!vary) {
+	if (!vary)
 	    vary = httpMakeVaryMark(request, entry->mem_obj->reply);
-	    if (vary)
-		request->vary_headers = xstrdup(vary);
-	}
 	if (!vary) {
 	    /* Ouch.. we cannot handle this kind of variance */
 	    /* XXX This cannot really happen, but just to be complete */
 	    return VARY_CANCEL;
-#if NOT_FOR_ETAGS
-	} else if (strcmp(vary, entry->mem_obj->vary_headers) == 0) {
-	    return VARY_MATCH;
-	} else {
-	    /* Oops.. we have already been here and still haven't
-	     * found the requested variant. Bail out
-	     */
-	    debug(33, 1) ("varyEvaluateMatch: Oops. Not a Vary match on second attempt, '%s' '%s'\n",
-		entry->mem_obj->url, vary);
-	    return VARY_CANCEL;
-#else
 	} else {
 	    return VARY_MATCH;
-#endif
 	}
     }
 }

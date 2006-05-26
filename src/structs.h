@@ -667,6 +667,7 @@ struct _SquidConfig {
 #endif
 	int check_hostnames;
 	int allow_underscore;
+	int cache_vary;
     } onoff;
 #if LINUX_TPROXY
     u_short tproxy_port;
@@ -1668,6 +1669,7 @@ struct _MemObject {
 #if URL_CHECKSUM_DEBUG
     unsigned int chksum;
 #endif
+    const char *vary_hdr;
     const char *vary_headers;
     StoreEntry *ims_entry;
     time_t refresh_timestamp;
@@ -1829,6 +1831,7 @@ struct _request_t {
     err_type err_type;
     char *peer_login;		/* Configured peer login:password */
     time_t lastmod;		/* Used on refreshes */
+    char *vary_hdr;		/* Used when varying entities are detected. Changes how the store key is calculated */
     char *vary_headers;		/* Used when varying entities are detected. Changes how the store key is calculated */
     VaryData *vary;
     Array *etags;		/* possible known entity tags (Vary MISS) */

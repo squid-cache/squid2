@@ -798,6 +798,15 @@ cache deny QUERY
 NOCOMMENT_END
 DOC_END
 
+NAME: cache_vary
+TYPE: onoff
+DEFAULT: on
+LOC: Config.onoff.cache_vary
+DOC_START
+	A list of ACL elements which, if matched, cause the replies with
+	varying entities (Vary header) to not be cached.
+DOC_END
+
 
 COMMENT_START
  OPTIONS WHICH AFFECT THE CACHE SIZE
