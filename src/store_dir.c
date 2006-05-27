@@ -272,7 +272,7 @@ storeDirSwapLog(const StoreEntry * e, int op)
 	e->swap_dirn,
 	e->swap_filen);
     sd = &Config.cacheSwap.swapDirs[e->swap_dirn];
-    sd->log.write(sd, e, op);
+    (sd->log.write) (sd, e, op);
 }
 
 void
@@ -430,7 +430,7 @@ storeDirWriteCleanLogs(int reopen)
 		continue;
 	    if (EBIT_TEST(e->flags, ENTRY_SPECIAL))
 		continue;
-	    sd->log.clean.write(sd, e);
+	    (sd->log.clean.write) (sd, e);
 	    if ((++n & 0xFFFF) == 0) {
 		getCurrentTime();
 		debug(20, 1) ("  %7d entries written so far.\n", n);
