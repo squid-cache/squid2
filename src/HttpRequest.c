@@ -76,6 +76,7 @@ requestDestroy(request_t * req)
 	if (req->etags == &req->vary->etags)
 	    req->etags = NULL;
 	storeLocateVaryDone(req->vary);
+	req->vary = NULL;
     }
     assert(req->etags == NULL);
     safe_free(req->etag);
