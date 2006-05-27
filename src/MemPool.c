@@ -306,7 +306,7 @@ memPoolFree(MemPool * pool, void *obj)
     memMeterDec(pool->meter.inuse);
     memMeterDel(TheMeter.inuse, pool->obj_size);
     mem_pool_free_calls++;
-    (void) VALGRIND_CHECK_READABLE(obj, pool->obj_size);
+    (void) VALGRIND_CHECK_WRITEABLE(obj, pool->obj_size);
 #if DEBUG_MEMPOOL
     {
 	struct mempool_cookie *cookie = (void *) (((unsigned char *) obj) + pool->real_obj_size);
