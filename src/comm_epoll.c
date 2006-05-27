@@ -137,6 +137,10 @@ commDeferFD(int fd)
     assert(F->flags.open);
 
     /* set up ev struct */
+    if (RUNNING_ON_VALGRIND) {
+	/* Keep valgrind happy.. complains about uninitialized bytes otherwise */
+	memset(&ev, 0, sizeof(ev));
+    }
     ev.events = 0;
     ev.data.fd = fd;
 
