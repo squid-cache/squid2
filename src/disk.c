@@ -113,10 +113,10 @@ file_close(int fd)
 #if CALL_FSYNC_BEFORE_CLOSE
     fsync(fd);
 #endif
-    close(fd);
     debug(6, F->flags.close_request ? 2 : 5)
 	("file_close: FD %d, really closing\n", fd);
     fd_close(fd);
+    close(fd);
     statCounter.syscalls.disk.closes++;
 }
 

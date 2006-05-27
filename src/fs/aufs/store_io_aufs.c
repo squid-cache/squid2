@@ -446,8 +446,8 @@ storeAufsIOCallback(storeIOState * sio, int errflag)
 	return;
     debug(79, 9) ("%s:%d\n", __FILE__, __LINE__);
 #if ASYNC_CLOSE
-    aioClose(fd);
     fd_close(fd);
+    aioClose(fd);
 #else
     aioCancel(fd);
     file_close(fd);
