@@ -1529,6 +1529,7 @@ AC_CHECK_HEADERS( \
 
 AC_C_CONST
 AC_C_BIGENDIAN
+AC_C_INLINE
 
 AC_CACHE_CHECK(if ANSI prototypes work,ac_cv_have_ansi_prototypes, [
   AC_TRY_COMPILE([int foo(char *); int foo (char *bar) {return 1;}],
