@@ -48,6 +48,7 @@
 static int storeDirValidSwapDirSize(int, squid_off_t);
 static STDIRSELECT storeDirSelectSwapDirRoundRobin;
 static STDIRSELECT storeDirSelectSwapDirLeastLoad;
+static void startOneSwapDirCreation(SwapDir *);
 
 /*
  * This function pointer is set according to 'store_dir_select_algorithm'
@@ -74,27 +75,45 @@ storeDirInit(void)
 }
 
 void
+startOneSwapDirCreation(SwapDir * sd)
+{
+    /*
+     * On Windows, fork() is not available.
+     * The following is a workaround for create store directories sequentially
+     * when running on native Windows port.
+     */
+#ifndef _SQUID_MSWIN_
+    if (fork())
+	return;
+#endif
+    if (NULL != sd->newfs)
+	sd->newfs(sd);
+#ifndef _SQUID_MSWIN_
+    exit(0);
+#endif
+}
+
+void
 storeCreateSwapDirectories(void)
 {
     int i;
-    SwapDir *sd;
+#ifndef _SQUID_MSWIN_
     pid_t pid;
     int status;
-    for (i = 0; i < Config.cacheSwap.n_configured; i++) {
-	if (fork())
-	    continue;
-	sd = &Config.cacheSwap.swapDirs[i];
-	if (NULL != sd->newfs)
-	    sd->newfs(sd);
-	exit(0);
-    }
-    do {
-#ifdef _SQUID_NEXT_
-	pid = wait3(&status, WNOHANG, NULL);
-#else
-	pid = waitpid(-1, &status, 0);
 #endif
-    } while (pid > 0 || (pid < 0 && errno == EINTR));
+
+    for (i = 0; i < Config.cacheSwap.n_configured; i++) {
+	startOneSwapDirCreation(&Config.cacheSwap.swapDirs[i]);
+#ifndef _SQUID_MSWIN_
+	do {
+#ifdef _SQUID_NEXT_
+	    pid = wait3(&status, WNOHANG, NULL);
+#else
+	    pid = waitpid(-1, &status, 0);
+#endif
+	} while (pid > 0 || (pid < 0 && errno == EINTR));
+#endif /* _SQUID_MSWIN_ */
+    }
 }
 
 /*
