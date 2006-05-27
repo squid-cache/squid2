@@ -327,7 +327,7 @@ storeDiskdDirOpenSwapLog(SwapDir * sd)
     char *path;
     int fd;
     path = storeDiskdDirSwapLogFile(sd, NULL);
-    fd = file_open(path, O_WRONLY | O_CREAT);
+    fd = file_open(path, O_WRONLY | O_CREAT | O_BINARY);
     if (fd < 0) {
 	debug(50, 1) ("%s: %s\n", path, xstrerror());
 	fatal("storeDiskdDirOpenSwapLog: Failed to open swap log.");
@@ -1205,7 +1205,7 @@ storeDiskdDirGetNextFile(RebuildState * rb, sfileno * filn_p, int *size)
 	    snprintf(rb->fullfilename, SQUID_MAXPATHLEN, "%s/%s",
 		rb->fullpath, rb->entry->d_name);
 	    debug(20, 3) ("storeDiskdDirGetNextFile: Opening %s\n", rb->fullfilename);
-	    fd = file_open(rb->fullfilename, O_RDONLY);
+	    fd = file_open(rb->fullfilename, O_RDONLY | O_BINARY);
 	    if (fd < 0)
 		debug(50, 1) ("storeDiskdDirGetNextFile: %s: %s\n", rb->fullfilename, xstrerror());
 	    else
@@ -1320,7 +1320,7 @@ storeDiskdDirCloseTmpSwapLog(SwapDir * sd)
     if (xrename(new_path, swaplog_path) < 0) {
 	fatal("storeDiskdDirCloseTmpSwapLog: rename failed");
     }
-    fd = file_open(swaplog_path, O_WRONLY | O_CREAT);
+    fd = file_open(swaplog_path, O_WRONLY | O_CREAT | O_BINARY);
     if (fd < 0) {
 	debug(50, 1) ("%s: %s\n", swaplog_path, xstrerror());
 	fatal("storeDiskdDirCloseTmpSwapLog: Failed to open swap log.");
@@ -1379,7 +1379,7 @@ storeDiskdDirOpenTmpSwapLog(SwapDir * sd, int *clean_flag, int *zero_flag)
     if (diskdinfo->swaplog_fd >= 0)
 	file_close(diskdinfo->swaplog_fd);
     /* open a write-only FD for the new log */
-    fd = file_open(new_path, O_WRONLY | O_CREAT | O_TRUNC);
+    fd = file_open(new_path, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY);
     if (fd < 0) {
 	debug(50, 1) ("%s: %s\n", new_path, xstrerror());
 	fatal("storeDirOpenTmpSwapLog: Failed to open swap log.");
@@ -1387,7 +1387,7 @@ storeDiskdDirOpenTmpSwapLog(SwapDir * sd, int *clean_flag, int *zero_flag)
     diskdinfo->swaplog_fd = fd;
     storeDiskdWriteSwapLogheader(fd);
     /* open a read-only stream of the old log */
-    fp = fopen(swaplog_path, "r");
+    fp = fopen(swaplog_path, "rb");
     if (fp == NULL) {
 	debug(50, 0) ("%s: %s\n", swaplog_path, xstrerror());
 	fatal("Failed to open swap log for reading");
@@ -1438,7 +1438,7 @@ storeDiskdDirWriteCleanStart(SwapDir * sd)
     state->outbuf_offset = 0;
     state->walker = sd->repl->WalkInit(sd->repl);
     unlink(state->cln);
-    state->fd = file_open(state->new, O_WRONLY | O_CREAT | O_TRUNC);
+    state->fd = file_open(state->new, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY);
     if (state->fd < 0) {
 	xfree(state->new);
 	xfree(state->cur);
@@ -1549,7 +1549,7 @@ storeDiskdDirWriteCleanDone(SwapDir * sd)
     else if (state->fd < 0)
 	(void) 0;
     else
-	file_close(file_open(state->cln, O_WRONLY | O_CREAT | O_TRUNC));
+	file_close(file_open(state->cln, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY));
     /* close */
     safe_free(state->cur);
     safe_free(state->new);

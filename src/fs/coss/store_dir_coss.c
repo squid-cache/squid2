@@ -146,7 +146,7 @@ storeCossDirOpenSwapLog(SwapDir * sd)
     char *path;
     int fd;
     path = storeCossDirSwapLogFile(sd, NULL);
-    fd = file_open(path, O_WRONLY | O_CREAT);
+    fd = file_open(path, O_WRONLY | O_CREAT | O_BINARY);
     if (fd < 0) {
 	debug(79, 1) ("%s: %s\n", path, xstrerror());
 	fatal("storeCossDirOpenSwapLog: Failed to open swap log.");
@@ -182,7 +182,7 @@ storeCossDirInit(SwapDir * sd)
 #else
     a_file_setupqueue(&cs->aq);
 #endif
-    cs->fd = file_open(sd->path, O_RDWR | O_CREAT);
+    cs->fd = file_open(sd->path, O_RDWR | O_CREAT | O_BINARY);
     if (cs->fd < 0) {
 	debug(79, 1) ("%s: %s\n", sd->path, xstrerror());
 	fatal("storeCossDirInit: Failed to open a COSS file.");
@@ -280,7 +280,7 @@ storeCossDirCloseTmpSwapLog(SwapDir * sd)
     if (xrename(new_path, swaplog_path) < 0) {
 	fatal("storeCossDirCloseTmpSwapLog: rename failed");
     }
-    fd = file_open(swaplog_path, O_WRONLY | O_CREAT);
+    fd = file_open(swaplog_path, O_WRONLY | O_CREAT | O_BINARY);
     if (fd < 0) {
 	debug(50, 1) ("%s: %s\n", swaplog_path, xstrerror());
 	fatal("storeCossDirCloseTmpSwapLog: Failed to open swap log.");
@@ -314,14 +314,14 @@ storeCossDirOpenTmpSwapLog(SwapDir * sd, int *clean_flag, int *zero_flag)
     if (cs->swaplog_fd >= 0)
 	file_close(cs->swaplog_fd);
     /* open a write-only FD for the new log */
-    fd = file_open(new_path, O_WRONLY | O_CREAT | O_TRUNC);
+    fd = file_open(new_path, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY);
     if (fd < 0) {
 	debug(50, 1) ("%s: %s\n", new_path, xstrerror());
 	fatal("storeDirOpenTmpSwapLog: Failed to open swap log.");
     }
     cs->swaplog_fd = fd;
     /* open a read-only stream of the old log */
-    fp = fopen(swaplog_path, "r");
+    fp = fopen(swaplog_path, "rb");
     if (fp == NULL) {
 	debug(50, 0) ("%s: %s\n", swaplog_path, xstrerror());
 	fatal("Failed to open swap log for reading");
@@ -365,7 +365,7 @@ storeCossDirWriteCleanStart(SwapDir * sd)
     struct stat sb;
 #endif
     state->new = xstrdup(storeCossDirSwapLogFile(sd, ".clean"));
-    state->fd = file_open(state->new, O_WRONLY | O_CREAT | O_TRUNC);
+    state->fd = file_open(state->new, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY);
     if (state->fd < 0) {
 	xfree(state->new);
 	xfree(state);
@@ -481,7 +481,7 @@ storeCossDirWriteCleanDone(SwapDir * sd)
     else if (state->fd < 0)
 	(void) 0;
     else
-	file_close(file_open(state->cln, O_WRONLY | O_CREAT | O_TRUNC));
+	file_close(file_open(state->cln, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY));
     /* close */
     safe_free(state->cur);
     safe_free(state->new);
