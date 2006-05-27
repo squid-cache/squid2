@@ -83,6 +83,10 @@ libregex_a_AR = $(AR) $(ARFLAGS)
 libregex_a_LIBADD =
 am_libregex_a_OBJECTS = GNUregex.$(OBJEXT)
 libregex_a_OBJECTS = $(am_libregex_a_OBJECTS)
+libsspwin32_a_AR = $(AR) $(ARFLAGS)
+libsspwin32_a_LIBADD =
+am_libsspwin32_a_OBJECTS = sspwin32.$(OBJEXT)
+libsspwin32_a_OBJECTS = $(am_libsspwin32_a_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/include
 depcomp = $(SHELL) $(top_srcdir)/cfgaux/depcomp
 am__depfiles_maybe = depfiles
@@ -92,11 +96,11 @@ CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 SOURCES = $(libdlmalloc_a_SOURCES) $(libmiscutil_a_SOURCES) \
 	$(EXTRA_libmiscutil_a_SOURCES) $(libntlmauth_a_SOURCES) \
-	$(libregex_a_SOURCES)
+	$(libregex_a_SOURCES) $(libsspwin32_a_SOURCES)
 DIST_SOURCES = $(libdlmalloc_a_SOURCES) \
 	$(am__libmiscutil_a_SOURCES_DIST) \
 	$(EXTRA_libmiscutil_a_SOURCES) $(libntlmauth_a_SOURCES) \
-	$(libregex_a_SOURCES)
+	$(libregex_a_SOURCES) $(libsspwin32_a_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -270,15 +274,19 @@ target_alias = @target_alias@
 @NEED_OWN_STRSEP_TRUE@STRSEPSOURCE = strsep.c
 @NEED_OWN_MD5_FALSE@MD5SOURCE = 
 @NEED_OWN_MD5_TRUE@MD5SOURCE = md5.c
+@ENABLE_WIN32SPECIFIC_FALSE@LIBSSPWIN32 = 
+@ENABLE_WIN32SPECIFIC_TRUE@LIBSSPWIN32 = libsspwin32.a
 EXTRA_LIBRARIES = \
 	libdlmalloc.a \
-	libregex.a
+	libregex.a \
+	libsspwin32.a
 
 noinst_LIBRARIES = \
 	@LIBDLMALLOC@ \
 	libmiscutil.a \
 	libntlmauth.a \
-	@LIBREGEX@
+	@LIBREGEX@ \
+	$(LIBSSPWIN32)
 
 EXTRA_libmiscutil_a_SOURCES = \
 	md5.c \
@@ -323,6 +331,9 @@ libntlmauth_a_SOURCES = \
 
 libntlmauth_a_LIBADD = \
 	@LIBOBJS@
+
+libsspwin32_a_SOURCES = \
+	sspwin32.c
 
 INCLUDES = -I$(top_builddir)/include -I$(top_srcdir)/include
 all: all-am
@@ -377,6 +388,10 @@ libregex.a: $(libregex_a_OBJECTS) $(libregex_a_DEPENDENCIES)
 	-rm -f libregex.a
 	$(libregex_a_AR) libregex.a $(libregex_a_OBJECTS) $(libregex_a_LIBADD)
 	$(RANLIB) libregex.a
+libsspwin32.a: $(libsspwin32_a_OBJECTS) $(libsspwin32_a_DEPENDENCIES) 
+	-rm -f libsspwin32.a
+	$(libsspwin32_a_AR) libsspwin32.a $(libsspwin32_a_OBJECTS) $(libsspwin32_a_LIBADD)
+	$(RANLIB) libsspwin32.a
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -409,6 +424,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/safe_inet_addr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/snprintf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/splay.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sspwin32.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/strsep.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stub_memaccount.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/util.Po@am__quote@
