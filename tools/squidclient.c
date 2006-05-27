@@ -75,6 +75,9 @@
 #if HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
+#if HAVE_GETOPT_H
+#include <getopt.h>
+#endif
 
 #include "util.h"
 
