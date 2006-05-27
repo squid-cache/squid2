@@ -16,4 +16,4 @@ LDADD	= -L$(top_builddir)/lib -lnetapi32 -ladvapi32 -lsspwin32 \
 
 INCLUDES = -I$(top_builddir)/include -I$(top_srcdir)/include -I$(top_srcdir)/src
 
-EXTRA_DIST = README.txt
+EXTRA_DIST = readme.txt
