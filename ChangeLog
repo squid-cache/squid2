@@ -16,17 +16,30 @@ Changes to squid-2.6 (not yet released)
 	- LDAP based Digest helper (Note: not true LDAP integration, just using
 	  LDAP for storage of the Digest hashes)
 	- Improved helper communication protocol
-	- External ACL improvements. %PATH, log= (more to come before release)
+	- External ACL improvements. %PATH, log=, grace=, and more..
 	- Improved SSL support with hardware offload, client certificate
 	  support (primitive), chained certificates and numerous bug fixes
+	- DNS lookups now use the search path from /etc/resolv.conf or
+	  the Windows registry
 	- Linux epoll support
+	- collapsed forwarding to optimize reverse proxies or other
+	  setups having very many clients going to the same URL
+	- New improved COSS implementation
 	- Optional support for blank passwords
-	- DNS search list improvements: added support for Windows DNS search
-	  list and display of search list in DNS stats
+	- The old and obsolete Samba-2.2.X winbind helpers have been removed
+	- external acls now uses the simplified URL-escaped protol "3.0" by
+	  default.
+	- Linux TPROXY support
+	- Support for proxying of Microsoft Integrated Login by adding
+	  support for the deviations from the HTTP protocol required
+	  to support these authentication mechanisms
 	- Added the capability to run as a Windows service under Cygwin
 	- CARP now plays well with the other peering algorithms
 	- read_ahead_gap option to read ahead more than 16KB of the reply
+	- check_hostnames and allow_underscore squid.conf options
 	- http_port is now optional, allowing for SSL only operation
+	- Full ETag/Vary support, caching responses which varies with
+	  request details (browser, language etc).
 
 Changes to squid-2.5.STABLE14 (20 May 2006)
 	- [Minor] icons not displayed when visible_hostname is a
