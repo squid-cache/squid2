@@ -176,6 +176,10 @@ commResumeFD(int fd)
 	F->epoll_backoff = 0;
 	return;
     }
+    if (RUNNING_ON_VALGRIND) {
+	/* Keep valgrind happy.. complains about uninitialized bytes otherwise */
+	memset(&ev, 0, sizeof(ev));
+    }
     /* we need to re-add the fd to the epoll list with EPOLLIN set */
     ev.events = F->epoll_state | EPOLLIN | EPOLLHUP | EPOLLERR;
     ev.data.fd = fd;
@@ -245,6 +249,10 @@ commSetSelect(int fd, unsigned int type, PF * handler, void *client_data, time_t
     assert(F->flags.open);
     debug(5, 8) ("commSetSelect(fd=%d,type=%u,handler=%p,client_data=%p,timeout=%ld)\n", fd, type, handler, client_data, timeout);
 
+    if (RUNNING_ON_VALGRIND) {
+	/* Keep valgrind happy.. complains about uninitialized bytes otherwise */
+	memset(&ev, 0, sizeof(ev));
+    }
     ev.events = 0;
     ev.data.fd = fd;
 
