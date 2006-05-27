@@ -3,5 +3,5 @@
 #  $Id$
 #
 
-DIST_SUBDIRS	=
+DIST_SUBDIRS	= mswin_sspi
 SUBDIRS		= @NEGOTIATE_AUTH_HELPERS@
