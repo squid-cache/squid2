@@ -870,12 +870,16 @@ commSetNonBlocking(int fd)
     int dummy = 0;
 #ifdef _SQUID_WIN32_
     int nonblocking = TRUE;
+#ifdef _SQUID_CYGWIN_
     if (fd_table[fd].type != FD_PIPE) {
+#endif
 	if (ioctl(fd, FIONBIO, &nonblocking) < 0) {
 	    debug(50, 0) ("commSetNonBlocking: FD %d: %s %u\n", fd, xstrerror(), fd_table[fd].type);
 	    return COMM_ERROR;
 	}
+#ifdef _SQUID_CYGWIN_
     } else {
+#endif
 #endif
 	if ((flags = fcntl(fd, F_GETFL, dummy)) < 0) {
 	    debug(50, 0) ("FD %d: fcntl F_GETFL: %s\n", fd, xstrerror());
