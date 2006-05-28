@@ -3718,6 +3718,7 @@ clientReadRequest(int fd, void *data)
 		err = errorCon(ERR_INVALID_URL, HTTP_BAD_REQUEST);
 		err->src_addr = conn->peer.sin_addr;
 		err->url = xstrdup(http->uri);
+		err->request = requestLink(request);
 		http->al.http.code = err->http_status;
 		http->log_type = LOG_TCP_DENIED;
 		http->entry = clientCreateStoreEntry(http, method, null_request_flags);
