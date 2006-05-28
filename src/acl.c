@@ -1341,6 +1341,7 @@ aclMatchRegex(relist * data, const char *word)
 		data->next = first->next;
 		first->next = data;
 	    }
+	    debug(28, 2) ("aclMatchRegex: match '%s' found in '%s'\n", data->pattern, word);
 	    return 1;
 	}
 	prev = data;
