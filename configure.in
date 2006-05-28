@@ -1084,11 +1084,15 @@ AC_ARG_ENABLE(auth,
     AUTH_MODULES="basic"
   fi
 ])
-echo "Auth scheme modules built: $AUTH_MODULES"
+if test -z "$AUTH_MODULES"; then
+    echo "Auth scheme modules built: None"
+else
+    echo "Auth scheme modules built: $AUTH_MODULES"
+    AUTH_OBJS="auth/lib`echo $AUTH_MODULES|sed -e 's% %.a auth/lib%g'`.a"
+    AUTH_LIBS="`echo $AUTH_OBJS|sed -e 's%auth/%%g'`"
+fi
 AC_SUBST(AUTH_MODULES)
-AUTH_OBJS="auth/lib`echo $AUTH_MODULES|sed -e 's% %.a auth/lib%g'`.a"
 AC_SUBST(AUTH_OBJS)
-AUTH_LIBS="`echo $AUTH_OBJS|sed -e 's%auth/%%g'`"
 AC_SUBST(AUTH_LIBS)
 
 dnl Select basic auth scheme helpers to build
