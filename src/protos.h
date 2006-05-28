@@ -1244,6 +1244,7 @@ extern void internalStart(request_t *, StoreEntry *);
 extern int internalCheck(const char *urlpath);
 extern int internalStaticCheck(const char *urlpath);
 extern char *internalLocalUri(const char *dir, const char *name);
+extern char *internalStoreUri(const char *dir, const char *name);
 extern char *internalRemoteUri(const char *, u_short, const char *, const char *);
 extern const char *internalHostname(void);
 extern int internalHostnameIs(const char *);

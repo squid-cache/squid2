@@ -3268,8 +3268,6 @@ clientProcessMiss(clientHttpRequest * http)
 	return;
     }
     http->entry = clientCreateStoreEntry(http, r->method, r->flags);
-    if (http->flags.internal)
-	r->protocol = PROTO_INTERNAL;
     if (Config.onoff.collapsed_forwarding && r->flags.cachable && !r->flags.need_validation && (r->method = METHOD_GET || r->method == METHOD_HEAD)) {
 	http->entry->mem_obj->refresh_timestamp = squid_curtime;
 	storeSetPublicKey(http->entry);
@@ -3446,9 +3444,9 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
   accel:{
 	int vhost = conn->port->vhost || conn->port->transparent;
 	int vport = conn->port->vport || conn->transparent;
-	if ((Config.onoff.global_internal_static || conn->transparent) && internalCheck(url)) {
+	if (Config.onoff.global_internal_static && conn->port->accel && internalCheck(url)) {
 	    /* prepend our name & port */
-	    http->uri = xstrdup(internalLocalUri(NULL, url));
+	    http->uri = xstrdup(internalStoreUri("", url));
 	    http->flags.internal = 1;
 	    http->flags.accel = 1;
 	    debug(33, 5) ("INTERNAL REWRITE: '%s'\n", http->uri);
@@ -3478,6 +3476,12 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 		inet_ntoa(http->conn->me.sin_addr),
 		vport, url);
 	    debug(33, 5) ("VPORT REWRITE: '%s'\n", http->uri);
+	} else if (internalCheck(url)) {
+	    /* prepend our name & port */
+	    http->uri = xstrdup(internalStoreUri("", url));
+	    http->flags.internal = 1;
+	    http->flags.accel = 1;
+	    debug(33, 5) ("INTERNAL REWRITE: '%s'\n", http->uri);
 	} else {
 	    goto invalid_request;
 	}
@@ -3729,20 +3733,15 @@ clientReadRequest(int fd, void *data)
 	    if (conn->port->urlgroup)
 		request->urlgroup = xstrdup(conn->port->urlgroup);
 	    request->flags.accelerated = http->flags.accel;
-	    if (!http->flags.internal) {
-		if (internalCheck(strBuf(request->urlpath))) {
-		    if (internalHostnameIs(request->host)) {
-			request->port = getMyPort();
-			http->flags.internal = 1;
-		    } else if (Config.onoff.global_internal_static && internalStaticCheck(strBuf(request->urlpath))) {
-			xstrncpy(request->host, internalHostname(), SQUIDHOSTNAMELEN);
-			request->port = getMyPort();
-			http->flags.internal = 1;
-		    }
-		}
+	    if (!http->flags.internal && internalCheck(strBuf(request->urlpath))) {
+		if (internalHostnameIs(request->host))
+		    http->flags.internal = 1;
+		else if (Config.onoff.global_internal_static && internalStaticCheck(strBuf(request->urlpath)))
+		    http->flags.internal = 1;
 		if (http->flags.internal) {
-		    request->protocol = PROTO_HTTP;
-		    request->login[0] = '\0';
+		    request_t *old_request = requestLink(request);
+		    request = urlParse(method, internalStoreUri("", strBuf(request->urlpath)));
+		    requestUnlink(old_request);
 		}
 	    }
 	    /*

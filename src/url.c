@@ -542,6 +542,7 @@ urlCheckRequest(const request_t * r)
     switch (r->protocol) {
     case PROTO_URN:
     case PROTO_HTTP:
+    case PROTO_INTERNAL:
     case PROTO_CACHEOBJ:
 	rc = 1;
 	break;

@@ -410,7 +410,7 @@ mimeLoadIconFile(const char *icon)
     request_t *r;
     if (type == NULL)
 	fatal("Unknown icon format while reading mime.conf\n");
-    buf = internalLocalUri("/squid-internal-static/icons/", icon);
+    buf = internalStoreUri("/squid-internal-static/icons/", icon);
     xstrncpy(url, buf, MAX_URL);
     if (storeGetPublic(url, METHOD_GET))
 	return;

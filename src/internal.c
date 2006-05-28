@@ -126,8 +126,32 @@ internalRemoteUri(const char *host, u_short port, const char *dir, const char *n
 char *
 internalLocalUri(const char *dir, const char *name)
 {
-    return internalRemoteUri(getMyHostname(),
-	0, dir, name);
+    return internalRemoteUri(internalHostname(),
+	getMyPort(), dir, name);
+}
+
+static const char *
+internalUniqueHostname(void)
+{
+    LOCAL_ARRAY(char, host, SQUIDHOSTNAMELEN + 1);
+    xstrncpy(host, uniqueHostname(), SQUIDHOSTNAMELEN);
+    if (Config.appendDomain && !strchr(host, '.'))
+	strncat(host, Config.appendDomain, SQUIDHOSTNAMELEN -
+	    strlen(host) - 1);
+    Tolower(host);
+    return host;
+}
+
+/*
+ * makes internal url for store
+ */
+char *
+internalStoreUri(const char *dir, const char *name)
+{
+    static MemBuf mb = MemBufNULL;
+    memBufReset(&mb);
+    memBufPrintf(&mb, "internal://%s%s%s", internalUniqueHostname(), dir ? dir : "", name);
+    return mb.buf;
 }
 
 const char *
@@ -147,6 +171,8 @@ internalHostnameIs(const char *arg)
 {
     wordlist *w;
     if (0 == strcmp(arg, internalHostname()))
+	return 1;
+    if (Config.uniqueHostname && 0 == strcmp(arg, internalUniqueHostname()))
 	return 1;
     for (w = Config.hostnameAliases; w; w = w->next)
 	if (0 == strcmp(arg, w->key))
