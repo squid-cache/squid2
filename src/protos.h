@@ -1182,6 +1182,8 @@ extern int getMyPort(void);
 char *strwordtok(char *buf, char **t);
 void strwordquote(MemBuf * mb, const char *str);
 
+void setUmask(mode_t mask);
+
 #if USE_HTCP
 extern void htcpInit(void);
 extern void htcpQuery(StoreEntry * e, request_t * req, peer * p);

@@ -412,6 +412,7 @@ mainReconfigure(void)
     errorClean();
     enter_suid();		/* root to read config file */
     parseConfigFile(ConfigFile);
+    setUmask(Config.umask);
     setEffectiveUser();
     _db_init(Config.Log.log, Config.debugOptions);
     ipcache_restart();		/* clear stuck entries */
@@ -663,7 +664,6 @@ main(int argc, char **argv)
 {
     int errcount = 0;
     int loop_delay;
-    mode_t oldmask;
 #ifdef _SQUID_WIN32_
     int WIN32_init_err;
 #endif
@@ -696,16 +696,6 @@ main(int argc, char **argv)
     mallopt(M_NLBLKS, 32);
 #endif
 #endif /* HAVE_MALLOPT */
-
-    /*
-     * The plan here is to set the umask to 007 (deny others for
-     * read,write,execute), but only if the umask is not already
-     * set.  Unfortunately, there is no way to get the current
-     * umask value without setting it.
-     */
-    oldmask = umask(S_IRWXO);
-    if (oldmask)
-	umask(oldmask);
 
     memset(&local_addr, '\0', sizeof(struct in_addr));
     safe_inet_addr(localhost, &local_addr);
@@ -759,6 +749,7 @@ main(int argc, char **argv)
 	if (opt_parse_cfg_only)
 	    return parse_err;
     }
+    setUmask(Config.umask);
     if (-1 == opt_send_signal)
 	if (checkRunningPid())
 	    exit(1);

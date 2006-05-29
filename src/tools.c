@@ -1244,3 +1244,20 @@ getMyPort(void)
     fatal("No port defined");
     return 0;			/* NOT REACHED */
 }
+
+/*
+ * Set the umask to at least the given mask. This is in addition
+ * to the umask set at startup
+ */
+void
+setUmask(mode_t mask)
+{
+    static mode_t orig_umask = ~0;
+    if (orig_umask == ~0) {
+	/* Unfortunately, there is no way to get the current
+	 * umask value without setting it.
+	 */
+	orig_umask = umask(mask);
+    }
+    umask(mask | orig_umask);
+}

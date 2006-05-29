@@ -793,6 +793,7 @@ struct _SquidConfig {
     } ssl_client;
 #endif
     time_t refresh_stale_window;
+    int umask;
 };
 
 struct _SquidConfig2 {

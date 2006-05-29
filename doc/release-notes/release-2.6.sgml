@@ -59,6 +59,7 @@ for Applied Network Research and members of the Web Caching community.
 <tag>via</tag>New directive to disable the use of the Via directive
 <tag>wccp2_*</tag>WCCP2 protocol support
 <tag>linux_tproxy, tproxy_port</tag>Linux TPROXY support for masquerading outgoing connections as the original client
+<tag>umask</tag>New directive enforcing a minimum umask
 </descrip>
 
 <sect>Known issues and limitations
