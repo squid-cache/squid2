@@ -66,7 +66,6 @@ for Applied Network Research and members of the Web Caching community.
 <P>There is a few known issues in this version of Squid which we hope to correct in a later release
 
 <descrip>
-<tag>SSL acceleration &amp epoll</tag>SSL acceleration (--enable-ssl) and epoll does not yet work properly together. We hope to have this corrected before release. Until then beware that SSL connections may hang or cause 100% CPU unless you disable epoll with --disable-epoll.
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=761" name="#761"></tag>assertion failed: cbdata.c:249: "c-&gt;locks &gt; 0" when using diskd
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=888" name="#888"></tag>ntlm_user_pool assertion error on shutdown
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1420" name="#1420"></tag>302 responses with an Expires header is always cached
