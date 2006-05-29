@@ -26,9 +26,20 @@
  */
 #include "config.h"
 
+/* MS VisualStudio Projects are monolitich, so we need the following
+ * #ifndef to exclude the MD5 code from compile process when we are
+ * not build SSL support.
+ */
+#if !USE_SSL
+#if HAVE_STRING_H
 #include <string.h>		/* for memcpy() */
+#endif
+#if HAVE_SYS_TYPES_H
 #include <sys/types.h>		/* for stupid systems */
+#endif
+#if HAVE_NETINET_IN_H
 #include <netinet/in.h>		/* for ntohl() */
+#endif
 
 #include "md5.h"
 
@@ -244,4 +255,5 @@ MD5Transform(uint32_t buf[4], uint32_t const in[16])
     buf[3] += d;
 }
 
+#endif
 #endif
