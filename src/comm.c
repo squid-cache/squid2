@@ -72,7 +72,6 @@ static void commConnectCallback(ConnectStateData * cs, int status);
 static int commResetFD(ConnectStateData * cs);
 static int commRetryConnect(ConnectStateData * cs);
 CBDATA_TYPE(ConnectStateData);
-static void commUpdateEvents(int fd, int force);
 
 static MemPool *comm_write_pool = NULL;
 static MemPool *conn_close_pool = NULL;
@@ -779,14 +778,18 @@ commSetDefer(int fd, DEFER * func, void *data)
     F->defer_data = data;
 }
 
-static void
+void
 commUpdateEvents(int fd, int force)
 {
     fde *F = &fd_table[fd];
     int need_read = 0;
     int need_write = 0;
 
-    if (F->read_handler) {
+    if (F->read_handler
+#if USE_EPOLL
+	&& !F->epoll_backoff
+#endif
+	) {
 	switch (F->read_pending) {
 	case COMM_PENDING_NORMAL:
 	    need_read = 1;

@@ -888,8 +888,12 @@ fwdCheckDeferRead(int fd, void *data)
 	    rc = -1;
     }
 #endif
-    if (EBIT_TEST(e->flags, ENTRY_DEFER_READ))
+    if (EBIT_TEST(e->flags, ENTRY_DEFER_READ)) {
+#if USE_EPOLL
+	commDeferFD(mem->serverfd);
+#endif
 	return 1;
+    }
     if (EBIT_TEST(e->flags, ENTRY_FWD_HDR_WAIT))
 	return rc;
     if (EBIT_TEST(e->flags, RELEASE_REQUEST)) {

@@ -40,9 +40,6 @@ static int MAX_POLL_TIME = 1000;	/* see also comm_quick_poll_required() */
 static int kdpfd;
 static struct epoll_event *pevents;
 
-/* Array to keep track of backed off filedescriptors */
-static int backoff_fds[FD_SETSIZE];
-
 static void checkTimeouts(void);
 static int commDeferRead(int fd);
 
@@ -65,114 +62,31 @@ epolltype_atoi(int x)
     }
 }
 
-/* Bring all fds back online */
-static void
-commEpollBackon(void)
-{
-    fde *F;
-    int i;
-    int fd;
-    int j = 0;
-
-    for (i = 0; i < FD_SETSIZE; i++) {
-	if (backoff_fds[i]) {
-	    /* record the fd and zero the descriptor */
-	    fd = backoff_fds[i];
-	    F = &fd_table[fd];
-	    backoff_fds[i] = 0;
-
-	    /* If the fd is no longer backed off, ignore */
-	    if (!(F->epoll_backoff)) {
-		continue;
-	    }
-	    /* If the fd is still meant to be backed off, add it to the start of
-	     * the list and continue */
-	    if (commDeferRead(fd) == 1) {
-		backoff_fds[j++] = fd;
-		continue;
-	    }
-	    debug(5, 4) ("commEpollBackon: fd=%d\n", fd);
-
-	    /* Resume operations for this fd */
-	    commResumeFD(fd);
-	} else {
-	    /* Once we hit a non-backed off FD, we can break */
-	    break;
-	}
-    }
-}
-
-
-/* Back off on the next epoll for the given fd */
-static void
-commEpollBackoff(int fd)
-{
-    commDeferFD(fd);
-}
-
 /* Defer reads from this fd */
 void
 commDeferFD(int fd)
 {
     fde *F = &fd_table[fd];
-    struct epoll_event ev;
-    int epoll_ctl_type = 0;
-    int i;
+
+    /* die if we have no fd (very unlikely), if the fd has no existing epoll 
+     * state, if we are given a bad fd, or if the fd is not open. */
+    assert(fd >= 0);
+    assert(F->epoll_state);
+    assert(F->flags.open);
 
     /* Return if the fd is already backed off */
     if (F->epoll_backoff) {
 	return;
     }
-    for (i = 0; i < FD_SETSIZE; i++) {
-	if (!(backoff_fds[i]) || (backoff_fds[i] == fd)) {
-	    break;
-	}
-    }
-
-    /* die if we have no fd (very unlikely), if the fd has no existing epoll 
-     * state, if we are given a bad fd, or if the fd is not open. */
-    assert(i < FD_SETSIZE);
-    assert(F->epoll_state);
-    assert(fd >= 0);
-    assert(F->flags.open);
-
-    /* set up ev struct */
-    if (RUNNING_ON_VALGRIND) {
-	/* Keep valgrind happy.. complains about uninitialized bytes otherwise */
-	memset(&ev, 0, sizeof(ev));
-    }
-    ev.events = 0;
-    ev.data.fd = fd;
-
-    /* If we were only waiting for reads, delete the fd, otherwise remove the 
-     * read event */
-    if (F->epoll_state == (EPOLLIN | EPOLLHUP | EPOLLERR)) {
-	epoll_ctl_type = EPOLL_CTL_DEL;
-    } else {
-	epoll_ctl_type = EPOLL_CTL_MOD;
-	ev.events = (F->epoll_state - EPOLLIN);
-    }
-    debug(5, 5) ("commDeferFD: epoll_ctl_type=%s, fd=%d epoll_state=%d\n", epolltype_atoi(epoll_ctl_type), fd, F->epoll_state);
-
-    if (epoll_ctl(kdpfd, epoll_ctl_type, fd, &ev) < 0) {
-	/* If an error occurs, log it */
-	debug(5, 1) ("commDeferFD: epoll_ctl(,%s,,): failed on fd=%d: %s\n", epolltype_atoi(epoll_ctl_type), fd, xstrerror());
-    } else {
-	backoff_fds[i] = fd;
-	F->epoll_backoff = 1;
-	F->epoll_state = ev.events;
-    }
+    F->epoll_backoff = 1;
+    commUpdateEvents(fd, 0);
 }
 
 /* Resume reading from the given fd */
 void
 commResumeFD(int fd)
 {
-    struct epoll_event ev;
-    int epoll_ctl_type = 0;
-    fde *F;
-
-    F = &fd_table[fd];
+    fde *F = &fd_table[fd];
 
     /* If the fd has been modified, do nothing and remove the flag */
     if (!(F->read_handler) || !(F->epoll_backoff)) {
@@ -180,37 +94,13 @@ commResumeFD(int fd)
 	F->epoll_backoff = 0;
 	return;
     }
-    if (RUNNING_ON_VALGRIND) {
-	/* Keep valgrind happy.. complains about uninitialized bytes otherwise */
-	memset(&ev, 0, sizeof(ev));
-    }
-    /* we need to re-add the fd to the epoll list with EPOLLIN set */
-    ev.events = F->epoll_state | EPOLLIN | EPOLLHUP | EPOLLERR;
-    ev.data.fd = fd;
-
-    /* If epoll_state is not set, then this fd is only waiting for
-     * reads, and needs adding, otherwise we mod it to add  EPOLLIN */
-    if (!(F->epoll_state)) {
-	epoll_ctl_type = EPOLL_CTL_ADD;
-    } else {
-	epoll_ctl_type = EPOLL_CTL_MOD;
-    }
-    debug(5, 5) ("commResumeFD: epoll_ctl_type=%s, fd=%d\n", epolltype_atoi(epoll_ctl_type), fd);
-
-    /* Try and add the fd back into the epoll struct */
-    if (epoll_ctl(kdpfd, epoll_ctl_type, fd, &ev) < 0) {
-	/* If an error occurs, log */
-	debug(5, 1) ("commResumeFD: epoll_ctl(,%s,,): failed on fd=%d: %s\n", epolltype_atoi(epoll_ctl_type), fd, xstrerror());
-    } else {
-	F->epoll_backoff = 0;
-	F->epoll_state = ev.events;
-    }
+    F->epoll_backoff = 0;
+    commUpdateEvents(fd, 0);
 }
 
 void
 comm_select_init()
 {
-    int i;
     pevents = (struct epoll_event *) xmalloc(SQUID_MAXFD * sizeof(struct epoll_event));
     if (!pevents) {
 	fatalf("comm_select_init: xmalloc() failed: %s\n", xstrerror());
@@ -221,9 +111,6 @@ comm_select_init()
 
     if (kdpfd < 0) {
 	fatalf("comm_select_init: epoll_create(): %s\n", xstrerror());
-    }
-    for (i = 0; i < FD_SETSIZE; i++) {
-	backoff_fds[i] = 0;
     }
 }
 
@@ -313,9 +200,6 @@ comm_epoll(int msec)
 	if (last_timeout < squid_curtime) {
 	    last_timeout = squid_curtime;
 	    checkTimeouts();
-
-	    /* bring backed off connections back online */
-	    commEpollBackon();
 	}
 	/* Check for disk io callbacks */
 	storeDirCallback();
@@ -369,7 +253,7 @@ comm_epoll(int msec)
 		    case 1:
 			if (!(F->epoll_backoff)) {
 			    debug(5, 1) ("comm_epoll(): WARNING defer handler for fd=%d (desc=%s) does not call commDeferFD() - backing off manually\n", fd, F->desc);
-			    commEpollBackoff(fd);
+			    commDeferFD(fd);
 			}
 			break;
 		    default:
@@ -403,7 +287,7 @@ comm_epoll(int msec)
 		    case 1:
 			if (!(F->epoll_backoff)) {
 			    debug(5, 1) ("comm_epoll(): WARNING defer handler for fd=%d (desc=%s) does not call commDeferFD() - backing off manually\n", fd, F->desc);
-			    commEpollBackoff(fd);
+			    commDeferFD(fd);
 			}
 			break;
 		    default:
@@ -444,6 +328,8 @@ checkTimeouts(void)
 	F = &fd_table[fd];
 	if (!F->flags.open)
 	    continue;
+	if (F->epoll_backoff)
+	    commResumeFD(fd);
 	if (F->timeout == 0)
 	    continue;
 	if (F->timeout > squid_curtime)
