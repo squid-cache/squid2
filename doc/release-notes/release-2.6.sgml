@@ -67,6 +67,7 @@ for Applied Network Research and members of the Web Caching community.
 <P>There is a few known issues in this version of Squid which we hope to correct in a later release
 
 <descrip>
+<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1584" name="#1584"></tag>WCCPv2 unable to register with more than one router on Linux
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1590" name="#1590"></tag>"ETag Loop" warnings in cache.log
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=761" name="#761"></tag>assertion failed: cbdata.c:249: "c-&gt;locks &gt; 0" when using diskd
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=888" name="#888"></tag>ntlm_user_pool assertion error on shutdown
