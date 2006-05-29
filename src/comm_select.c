@@ -655,8 +655,8 @@ commIncomingStats(StoreEntry * sentry)
     statHistDump(&f->comm_http_incoming, sentry, statHistIntDumper);
 }
 
-static void
-commSetEvents(int fd, int need_read, int need_write)
+void
+commSetEvents(int fd, int need_read, int need_write, int force)
 {
     if (need_read && !FD_ISSET(fd, &global_readfds)) {
 	FD_SET(fd, &global_readfds);

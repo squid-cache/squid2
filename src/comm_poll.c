@@ -34,6 +34,8 @@
 
 #include "squid.h"
 
+#include <sys/poll.h>
+
 static int MAX_POLL_TIME = 1000;	/* see also comm_quick_poll_required() */
 
 #ifndef        howmany
@@ -604,8 +606,9 @@ commIncomingStats(StoreEntry * sentry)
 }
 
 void
-commSetEvents(int fd, int need_read, int need_write)
+commSetEvents(int fd, int need_read, int need_write, int force)
 {
+    /* XXX Here we could optimize the poll arrays quite considerably */
 }
 
 static int

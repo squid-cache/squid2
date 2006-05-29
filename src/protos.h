@@ -190,15 +190,9 @@ extern void commCloseAllSockets(void);
  */
 extern void comm_select_init(void);
 extern void comm_select_shutdown(void);
-#if USE_EPOLL
 extern int comm_epoll(int);
-#elif USE_POLL
 extern int comm_poll(int);
-#elif USE_SELECT
 extern int comm_select(int);
-#else
-#error USE_POLL, USE_EPOLL or USE_SELECT need to be defined!
-#endif
 extern void commSetEvents(int fd, int need_read, int need_write, int force);
 extern void commUpdateReadHandler(int, PF *, void *);
 extern void commUpdateWriteHandler(int, PF *, void *);

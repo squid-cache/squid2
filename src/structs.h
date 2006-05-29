@@ -2021,11 +2021,8 @@ struct _StatCounters {
 	    int recvfroms;
 	    int sendtos;
 	} sock;
-#if USE_POLL || USE_EPOLL
 	int polls;
-#else
 	int selects;
-#endif
     } syscalls;
     int aborted_requests;
     struct {
