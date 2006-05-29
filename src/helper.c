@@ -310,7 +310,6 @@ helperStatefulReset(helper_stateful_server * srv)
     if (srv->flags.shutdown) {
 	int wfd = srv->wfd;
 	srv->wfd = -1;
-	shutdown(wfd, 1);
 	comm_close(wfd);
     } else {
 	helperStatefulKickQueue(hlp);
@@ -471,7 +470,6 @@ helperShutdown(helper * hlp)
 	srv->flags.closing = 1;
 	wfd = srv->wfd;
 	srv->wfd = -1;
-	shutdown(wfd, 1);
 	comm_close(wfd);
     }
 }
@@ -511,7 +509,6 @@ helperStatefulShutdown(statefulhelper * hlp)
 	srv->flags.closing = 1;
 	wfd = srv->wfd;
 	srv->wfd = -1;
-	shutdown(wfd, 1);
 	comm_close(wfd);
     }
 }
@@ -731,7 +728,6 @@ helperHandleRead(int fd, void *data)
 	    int wfd = srv->wfd;
 	    srv->flags.closing = 1;
 	    srv->wfd = -1;
-	    shutdown(wfd, 1);
 	    comm_close(wfd);
 	}
     } else {
@@ -962,7 +958,6 @@ helperDispatch_done(int fd, char *buf, size_t size, int status, void *data)
 	    srv->flags.closing = 1;
 	    wfd = srv->wfd;
 	    srv->wfd = -1;
-	    shutdown(wfd, 1);
 	    comm_close(wfd);
 	}
     }

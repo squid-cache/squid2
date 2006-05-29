@@ -221,6 +221,8 @@ ipcCreate(int type, const char *prog, const char *const args[], const char *name
 	commSetTimeout(prfd, -1, NULL, NULL);
 	commSetNonBlocking(prfd);
 	commSetNonBlocking(pwfd);
+	commSetCloseOnExec(prfd);
+	commSetCloseOnExec(pwfd);
 	if (rfd)
 	    *rfd = prfd;
 	if (wfd)
