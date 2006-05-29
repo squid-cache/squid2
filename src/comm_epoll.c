@@ -237,25 +237,7 @@ comm_select_shutdown()
 }
 
 void
-commUpdateReadHandler(int fd, PF * handler, void *data)
-{
-    fd_table[fd].read_handler = handler;
-    fd_table[fd].read_data = data;
-    if (!handler)
-	fd_table[fd].read_pending = COMM_PENDING_NORMAL;
-}
-
-void
-commUpdateWriteHandler(int fd, PF * handler, void *data)
-{
-    fd_table[fd].write_handler = handler;
-    fd_table[fd].write_data = data;
-    if (!handler)
-	fd_table[fd].write_pending = COMM_PENDING_NORMAL;
-}
-
-void
-commSetSelect(int fd, unsigned int type, PF * handler, void *client_data, time_t timeout)
+commSetEvents(int fd, int need_read, int need_write, int force)
 {
     fde *F = &fd_table[fd];
     int epoll_ctl_type = 0;
@@ -263,7 +245,7 @@ commSetSelect(int fd, unsigned int type, PF * handler, void *client_data, time_t
 
     assert(fd >= 0);
     assert(F->flags.open);
-    debug(5, 8) ("commSetSelect(fd=%d,type=%u,handler=%p,client_data=%p,timeout=%ld)\n", fd, type, handler, client_data, timeout);
+    debug(5, 8) ("commUpdateEvents(fd=%d)\n", fd);
 
     if (RUNNING_ON_VALGRIND) {
 	/* Keep valgrind happy.. complains about uninitialized bytes otherwise */
@@ -272,36 +254,19 @@ commSetSelect(int fd, unsigned int type, PF * handler, void *client_data, time_t
     ev.events = 0;
     ev.data.fd = fd;
 
-    if (type & COMM_SELECT_READ) {
-	/* Only add the epoll event if the fd is not backed off */
-	if (handler && !(F->epoll_backoff)) {
-	    ev.events |= EPOLLIN;
-	}
-	F->read_handler = handler;
-	F->read_data = client_data;
-
-	// Otherwise, use previously stored value if the fd is not backed off
-    } else if ((F->epoll_state & EPOLLIN) && (F->read_handler) && !(F->epoll_backoff)) {
+    if (need_read & !F->epoll_backoff)
 	ev.events |= EPOLLIN;
-    }
-    if (type & COMM_SELECT_WRITE) {
-	if (handler) {
-	    ev.events |= EPOLLOUT;
-	}
-	F->write_handler = handler;
-	F->write_data = client_data;
 
-	// Otherwise, use previously stored value
-    } else if ((F->epoll_state & EPOLLOUT) && (F->write_handler)) {
+    if (need_write)
 	ev.events |= EPOLLOUT;
-    }
-    if (ev.events) {
+
+    if (ev.events)
 	ev.events |= EPOLLHUP | EPOLLERR;
-    }
+
     /* If the type is 0, force adding the fd to the epoll set */
-    if (!(type)) {
+    if (force)
 	F->epoll_state = 0;
-    }
+
     if (ev.events != F->epoll_state) {
 	// If the struct is already in epoll MOD or DEL, else ADD
 	if (F->epoll_state) {
@@ -318,8 +283,6 @@ commSetSelect(int fd, unsigned int type, PF * handler, void *client_data, time_t
 		epolltype_atoi(epoll_ctl_type), fd, xstrerror());
 	}
     }
-    if (timeout)
-	F->timeout = squid_curtime + timeout;
 }
 
 int
@@ -331,7 +294,6 @@ comm_epoll(int msec)
     int num;
     int fd;
     fde *F;
-    PF *hdl;
     struct epoll_event *cevents;
     double timeout = current_dtime + (msec / 1000.0);
 
@@ -384,44 +346,71 @@ comm_epoll(int msec)
 	    F = &fd_table[fd];
 	    debug(5, 8) ("comm_epoll(): got fd=%d events=%x monitoring=%x F->read_handler=%p F->write_handler=%p\n"
 		,fd, cevents->events, F->epoll_state, F->read_handler, F->write_handler);
-	    if (cevents->events & (EPOLLIN | EPOLLHUP | EPOLLERR)) {
-		if ((hdl = F->read_handler) != NULL) {
+	    if (F->read_handler) {
+		int do_read = 0;
+		switch (F->read_pending) {
+		case COMM_PENDING_NORMAL:
+		case COMM_PENDING_WANTS_READ:
+		    do_read = cevents->events & EPOLLIN;
+		    break;
+		case COMM_PENDING_WANTS_WRITE:
+		    do_read = cevents->events & EPOLLOUT;
+		    break;
+		case COMM_PENDING_NOW:
+		    do_read = 1;
+		    break;
+		}
+		do_read |= cevents->events & (EPOLLHUP | EPOLLERR);
+		if (do_read) {
+		    PF *hdl = F->read_handler;
+		    void *hdl_data = F->read_data;
 		    // If the descriptor is meant to be deferred, don't handle
-		    if (commDeferRead(fd) == 1) {
+		    switch (commDeferRead(fd)) {
+		    case 1:
 			if (!(F->epoll_backoff)) {
 			    debug(5, 1) ("comm_epoll(): WARNING defer handler for fd=%d (desc=%s) does not call commDeferFD() - backing off manually\n", fd, F->desc);
 			    commEpollBackoff(fd);
 			}
-			goto WRITE_EVENT;
-		    }
-		    debug(5, 8) ("comm_epoll(): Calling read handler on fd=%d\n", fd);
-		    F->read_handler = NULL;
-		    hdl(fd, F->read_data);
-		    statCounter.select_fds++;
-		    if ((F->read_handler == NULL) && (F->flags.open)) {
-			commSetSelect(fd, COMM_SELECT_READ, NULL, NULL, 0);
-		    }
-		} else if (cevents->events & EPOLLIN) {
-		    debug(5, 2) ("comm_epoll(): no read handler for fd=%d", fd);
-		    if (F->flags.open) {
-			commSetSelect(fd, COMM_SELECT_READ, NULL, NULL, 0);
+			break;
+		    default:
+			debug(5, 8) ("comm_epoll(): Calling read handler on fd=%d\n", fd);
+			commUpdateReadHandler(fd, NULL, NULL);
+			hdl(fd, hdl_data);
+			statCounter.select_fds++;
 		    }
 		}
 	    }
-	  WRITE_EVENT:
-	    if (cevents->events & (EPOLLOUT | EPOLLHUP | EPOLLERR)) {
-		if ((hdl = F->write_handler) != NULL) {
-		    debug(5, 8) ("comm_epoll(): Calling write handler on fd=%d\n", fd);
-		    F->write_handler = NULL;
-		    hdl(fd, F->write_data);
-		    statCounter.select_fds++;
-		    if ((F->write_handler == NULL) && (F->flags.open)) {
-			commSetSelect(fd, COMM_SELECT_WRITE, NULL, NULL, 0);
-		    }
-		} else if (cevents->events & EPOLLOUT) {
-		    debug(5, 2) ("comm_epoll(): no write handler for fd=%d\n", fd);
-		    if (F->flags.open) {
-			commSetSelect(fd, COMM_SELECT_WRITE, NULL, NULL, 0);
+	    if (F->write_handler) {
+		int do_write = 0;
+		switch (F->write_pending) {
+		case COMM_PENDING_WANTS_READ:
+		    do_write = cevents->events & EPOLLIN;
+		    break;
+		case COMM_PENDING_NORMAL:
+		case COMM_PENDING_WANTS_WRITE:
+		    do_write = cevents->events & EPOLLOUT;
+		    break;
+		case COMM_PENDING_NOW:
+		    do_write = 1;
+		    break;
+		}
+		do_write |= cevents->events & (EPOLLHUP | EPOLLERR);
+		if (do_write) {
+		    PF *hdl = F->write_handler;
+		    void *hdl_data = F->write_data;
+		    // If the descriptor is meant to be deferred, don't handle
+		    switch (commDeferRead(fd)) {
+		    case 1:
+			if (!(F->epoll_backoff)) {
+			    debug(5, 1) ("comm_epoll(): WARNING defer handler for fd=%d (desc=%s) does not call commDeferFD() - backing off manually\n", fd, F->desc);
+			    commEpollBackoff(fd);
+			}
+			break;
+		    default:
+			debug(5, 8) ("comm_epoll(): Calling read handler on fd=%d\n", fd);
+			commUpdateWriteHandler(fd, NULL, NULL);
+			hdl(fd, hdl_data);
+			statCounter.select_fds++;
 		    }
 		}
 	    }

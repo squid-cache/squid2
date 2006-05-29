@@ -72,6 +72,7 @@ static void commConnectCallback(ConnectStateData * cs, int status);
 static int commResetFD(ConnectStateData * cs);
 static int commRetryConnect(ConnectStateData * cs);
 CBDATA_TYPE(ConnectStateData);
+static void commUpdateEvents(int fd, int force);
 
 static MemPool *comm_write_pool = NULL;
 static MemPool *conn_close_pool = NULL;
@@ -375,10 +376,10 @@ commResetFD(ConnectStateData * cs)
 	commSetTcpNoDelay(cs->fd);
 #endif
 
-#if USE_EPOLL
-    // If we are using epoll(), we need to make sure that this fd will be polled
-    commSetSelect(cs->fd, 0, NULL, NULL, 0);
-#endif
+    /* If we are using epoll(), we need to notify the kernel about the new
+     * fd instance
+     */
+    commUpdateEvents(cs->fd, 1);
     if (Config.tcpRcvBufsz > 0)
 	commSetTcpRcvbuf(cs->fd, Config.tcpRcvBufsz);
     return 1;
@@ -778,8 +779,70 @@ commSetDefer(int fd, DEFER * func, void *data)
     F->defer_data = data;
 }
 
-/* Epoll redefines this function in comm_select.c */
-#if !USE_EPOLL
+static void
+commUpdateEvents(int fd, int force)
+{
+    fde *F = &fd_table[fd];
+    int need_read = 0;
+    int need_write = 0;
+
+    if (F->read_handler) {
+	switch (F->read_pending) {
+	case COMM_PENDING_NORMAL:
+	    need_read = 1;
+	    break;
+	case COMM_PENDING_WANTS_WRITE:
+	    need_write = 1;
+	    break;
+	case COMM_PENDING_WANTS_READ:
+	    need_read = 1;
+	    break;
+	case COMM_PENDING_NOW:
+	    need_read = 1;	/* Not really I/O dependent, but this shuld get comm_select to wake up */
+	    need_write = 1;
+	    break;
+	}
+    }
+    if (F->write_handler) {
+	switch (F->write_pending) {
+	case COMM_PENDING_NORMAL:
+	    need_write = 1;
+	    break;
+	case COMM_PENDING_WANTS_WRITE:
+	    need_write = 1;
+	    break;
+	case COMM_PENDING_WANTS_READ:
+	    need_read = 1;
+	    break;
+	case COMM_PENDING_NOW:
+	    need_read = 1;	/* Not really I/O dependent, but this shuld get comm_select to wake up */
+	    need_write = 1;
+	    break;
+	}
+    }
+    commSetEvents(fd, need_read, need_write, force);
+}
+
+void
+commUpdateReadHandler(int fd, PF * handler, void *data)
+{
+    fd_table[fd].read_handler = handler;
+    fd_table[fd].read_data = data;
+    if (!handler)
+	fd_table[fd].read_pending = COMM_PENDING_NORMAL;
+    commUpdateEvents(fd, 0);
+}
+
+void
+commUpdateWriteHandler(int fd, PF * handler, void *data)
+{
+    fd_table[fd].write_handler = handler;
+    fd_table[fd].write_data = data;
+    if (!handler)
+	fd_table[fd].write_pending = COMM_PENDING_NORMAL;
+    commUpdateEvents(fd, 0);
+}
+
 void
 commSetSelect(int fd, unsigned int type, PF * handler, void *client_data, time_t timeout)
 {
@@ -796,7 +859,6 @@ commSetSelect(int fd, unsigned int type, PF * handler, void *client_data, time_t
     if (timeout)
 	F->timeout = squid_curtime + timeout;
 }
-#endif
 
 void
 comm_add_close_handler(int fd, PF * handler, void *data)

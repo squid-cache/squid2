@@ -89,11 +89,10 @@ fd_close(int fd)
     commSetSelect(fd, COMM_SELECT_READ, NULL, NULL, 0);
     commSetSelect(fd, COMM_SELECT_WRITE, NULL, NULL, 0);
 #endif
+    commSetEvents(fd, 0, 0, 0);
     F->flags.open = 0;
     fdUpdateBiggest(fd, 0);
     Number_FD--;
-    commUpdateReadHandler(fd, NULL, NULL);
-    commUpdateWriteHandler(fd, NULL, NULL);
     memset(F, '\0', sizeof(fde));
     F->timeout = 0;
 }

@@ -656,46 +656,8 @@ commIncomingStats(StoreEntry * sentry)
 }
 
 static void
-commUpdateSelectFds(int fd)
+commSetEvents(int fd, int need_read, int need_write)
 {
-    fde *F = &fd_table[fd];
-    int need_read = 0;
-    int need_write = 0;
-
-    if (F->read_handler) {
-	switch (F->read_pending) {
-	case COMM_PENDING_NORMAL:
-	    need_read = 1;
-	    break;
-	case COMM_PENDING_WANTS_WRITE:
-	    need_write = 1;
-	    break;
-	case COMM_PENDING_WANTS_READ:
-	    need_read = 1;
-	    break;
-	case COMM_PENDING_NOW:
-	    need_read = 1;	/* Not really I/O dependent, but this shuld get comm_select to wake up */
-	    need_write = 1;
-	    break;
-	}
-    }
-    if (F->write_handler) {
-	switch (F->write_pending) {
-	case COMM_PENDING_NORMAL:
-	    need_write = 1;
-	    break;
-	case COMM_PENDING_WANTS_WRITE:
-	    need_write = 1;
-	    break;
-	case COMM_PENDING_WANTS_READ:
-	    need_read = 1;
-	    break;
-	case COMM_PENDING_NOW:
-	    need_read = 1;	/* Not really I/O dependent, but this shuld get comm_select to wake up */
-	    need_write = 1;
-	    break;
-	}
-    }
     if (need_read && !FD_ISSET(fd, &global_readfds)) {
 	FD_SET(fd, &global_readfds);
 	nreadfds++;
@@ -710,26 +672,6 @@ commUpdateSelectFds(int fd)
 	FD_CLR(fd, &global_writefds);
 	nwritefds--;
     }
-}
-
-void
-commUpdateReadHandler(int fd, PF * handler, void *data)
-{
-    fd_table[fd].read_handler = handler;
-    fd_table[fd].read_data = data;
-    if (!handler)
-	fd_table[fd].read_pending = COMM_PENDING_NORMAL;
-    commUpdateSelectFds(fd);
-}
-
-void
-commUpdateWriteHandler(int fd, PF * handler, void *data)
-{
-    fd_table[fd].write_handler = handler;
-    fd_table[fd].write_data = data;
-    if (!handler)
-	fd_table[fd].write_pending = COMM_PENDING_NORMAL;
-    commUpdateSelectFds(fd);
 }
 
 static int

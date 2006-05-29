@@ -604,23 +604,9 @@ commIncomingStats(StoreEntry * sentry)
 }
 
 void
-commUpdateReadHandler(int fd, PF * handler, void *data)
+commSetEvents(int fd, int need_read, int need_write)
 {
-    fd_table[fd].read_handler = handler;
-    fd_table[fd].read_data = data;
-    if (!handler)
-	fd_table[fd].read_pending = COMM_PENDING_NORMAL;
 }
-
-void
-commUpdateWriteHandler(int fd, PF * handler, void *data)
-{
-    fd_table[fd].write_handler = handler;
-    fd_table[fd].write_data = data;
-    if (!handler)
-	fd_table[fd].write_pending = COMM_PENDING_NORMAL;
-}
-
 
 static int
 commDeferRead(int fd)
