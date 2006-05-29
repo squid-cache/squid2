@@ -1,3 +1,28 @@
+#ifndef SQUID_MD5_H
+#define SQUID_MD5_H
+
+#if USE_OPENSSL
+
+/*
+ * If Squid is compiled with OpenSSL then we use the MD5 routines
+ * from there via some wrapper macros, and the rest of this file is ignored..
+ */
+
+#if HAVE_OPENSSL_MD5_H
+#include <openssl/md5.h>
+#else
+#error Cannot find OpenSSL headers
+#endif
+
+/* Hack to adopt Squid to the OpenSSL syntax */
+#define MD5_DIGEST_CHARS MD5_DIGEST_LENGTH
+
+#define MD5Init MD5_Init
+#define MD5Update MD5_Update
+#define MD5Final MD5_Final
+
+#else /* USE_OPENSSL */
+
 /*
  * This is the header file for the MD5 message-digest algorithm.
  * The algorithm is due to Ron Rivest.  This code was
@@ -25,9 +50,6 @@
  *
  */
 
-#ifndef SQUID_MD5_H
-#define SQUID_MD5_H
-
 #include "squid_types.h"
 
 typedef struct MD5Context {
@@ -43,4 +65,5 @@ void MD5Transform(uint32_t buf[4], uint32_t const in[16]);
 
 #define MD5_DIGEST_CHARS         16
 
+#endif /* USE_OPENSSL */
 #endif /* SQUID_MD5_H */
