@@ -40,6 +40,8 @@ Changes to squid-2.6 (not yet released)
 	- http_port is now optional, allowing for SSL only operation
 	- Full ETag/Vary support, caching responses which varies with
 	  request details (browser, language etc).
+	- umask now defaults to 027 to protect the content of cache and
+	  log files from local users
 
 Changes to squid-2.5.STABLE14 (20 May 2006)
 	- [Minor] icons not displayed when visible_hostname is a
