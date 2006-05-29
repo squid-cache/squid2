@@ -564,6 +564,11 @@ comm_select_init(void)
     nreadfds = nwritefds = 0;
 }
 
+void
+comm_select_shutdown(void)
+{
+}
+
 /*
  * examine_select - debug routine.
  *

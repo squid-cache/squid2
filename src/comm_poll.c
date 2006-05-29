@@ -578,6 +578,11 @@ comm_select_init(void)
 	commIncomingStats, 0, 1);
 }
 
+void
+comm_select_shutdown(void)
+{
+}
+
 static void
 commIncomingStats(StoreEntry * sentry)
 {

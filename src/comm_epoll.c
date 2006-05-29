@@ -206,6 +206,7 @@ commResumeFD(int fd)
 	F->epoll_state = ev.events;
     }
 }
+
 void
 comm_select_init()
 {
@@ -224,6 +225,15 @@ comm_select_init()
     for (i = 0; i < FD_SETSIZE; i++) {
 	backoff_fds[i] = 0;
     }
+}
+
+void
+comm_select_shutdown()
+{
+    close(kdpfd);
+    fd_close(kdpfd);
+    kdpfd = -1;
+    safe_free(pevents);
 }
 
 void

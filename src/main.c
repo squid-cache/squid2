@@ -1143,6 +1143,7 @@ SquidShutdown(void *unused)
     mimeFreeMemory();
     errorClean();
 #endif
+    comm_select_shutdown();
 #if !XMALLOC_TRACE
     if (opt_no_daemon) {
 	fd_close(0);
