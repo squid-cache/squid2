@@ -1793,7 +1793,7 @@ fi
 
 # Define the identity of the package.
  PACKAGE=squid
- VERSION=2.6.DEVEL-CVS
+ VERSION=2.6.PRE1-CVS
 
 
 cat >>confdefs.h <<_ACEOF
