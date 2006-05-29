@@ -189,6 +189,7 @@ extern void commCloseAllSockets(void);
  * comm_select.c
  */
 extern void comm_select_init(void);
+extern void comm_select_shutdown(void);
 #if USE_EPOLL
 extern int comm_epoll(int);
 #elif USE_POLL

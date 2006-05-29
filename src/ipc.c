@@ -299,9 +299,11 @@ ipcCreate(int type, const char *prog, const char *const args[], const char *name
     close(t1);
     close(t2);
     close(t3);
+#if 0
     /* Make sure all other filedescriptors are closed */
     for (x = 3; x < SQUID_MAXFD; x++)
 	close(x);
+#endif
 #if HAVE_SETSID
     setsid();
 #endif

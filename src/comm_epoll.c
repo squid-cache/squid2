@@ -215,6 +215,8 @@ comm_select_init()
 	fatalf("comm_select_init: xmalloc() failed: %s\n", xstrerror());
     }
     kdpfd = epoll_create(SQUID_MAXFD);
+    fd_open(kdpfd, FD_UNKNOWN, "epoll ctl");
+    commSetCloseOnExec(kdpfd);
 
     if (kdpfd < 0) {
 	fatalf("comm_select_init: epoll_create(): %s\n", xstrerror());
