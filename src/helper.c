@@ -310,6 +310,7 @@ helperStatefulReset(helper_stateful_server * srv)
     if (srv->flags.shutdown) {
 	int wfd = srv->wfd;
 	srv->wfd = -1;
+	shutdown(wfd, 1);
 	comm_close(wfd);
     } else {
 	helperStatefulKickQueue(hlp);
@@ -470,10 +471,8 @@ helperShutdown(helper * hlp)
 	srv->flags.closing = 1;
 	wfd = srv->wfd;
 	srv->wfd = -1;
-	if (wfd == srv->rfd)
-	    shutdown(wfd, 1);
-	else
-	    comm_close(wfd);
+	shutdown(wfd, 1);
+	comm_close(wfd);
     }
 }
 
@@ -512,6 +511,7 @@ helperStatefulShutdown(statefulhelper * hlp)
 	srv->flags.closing = 1;
 	wfd = srv->wfd;
 	srv->wfd = -1;
+	shutdown(wfd, 1);
 	comm_close(wfd);
     }
 }
@@ -731,6 +731,7 @@ helperHandleRead(int fd, void *data)
 	    int wfd = srv->wfd;
 	    srv->flags.closing = 1;
 	    srv->wfd = -1;
+	    shutdown(wfd, 1);
 	    comm_close(wfd);
 	}
     } else {
@@ -883,7 +884,7 @@ GetFirstAvailable(helper * hlp)
 	    continue;
 	if (srv->flags.shutdown)
 	    continue;
-	if (srv->flags.shutdown)
+	if (srv->flags.closing)
 	    continue;
 	if (selected) {
 	    selected = srv;
@@ -953,13 +954,16 @@ helperDispatch_done(int fd, char *buf, size_t size, int status, void *data)
 		    hlp->id_name, srv->index + 1);
 		return;
 	    }
+	    if (srv->stats.pending) {
+		debug(84, 3) ("helperDispatch: %s #%d is BUSY.\n",
+		    hlp->id_name, srv->index + 1);
+		return;
+	    }
 	    srv->flags.closing = 1;
 	    wfd = srv->wfd;
 	    srv->wfd = -1;
-	    if (wfd == srv->rfd)
-		shutdown(wfd, 1);
-	    else
-		comm_close(wfd);
+	    shutdown(wfd, 1);
+	    comm_close(wfd);
 	}
     }
 }
