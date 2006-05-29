@@ -282,20 +282,9 @@ comm_epoll(int msec)
 		if (do_write) {
 		    PF *hdl = F->write_handler;
 		    void *hdl_data = F->write_data;
-		    // If the descriptor is meant to be deferred, don't handle
-		    switch (commDeferRead(fd)) {
-		    case 1:
-			if (!(F->epoll_backoff)) {
-			    debug(5, 1) ("comm_epoll(): WARNING defer handler for fd=%d (desc=%s) does not call commDeferFD() - backing off manually\n", fd, F->desc);
-			    commDeferFD(fd);
-			}
-			break;
-		    default:
-			debug(5, 8) ("comm_epoll(): Calling read handler on fd=%d\n", fd);
-			commUpdateWriteHandler(fd, NULL, NULL);
-			hdl(fd, hdl_data);
-			statCounter.select_fds++;
-		    }
+		    commUpdateWriteHandler(fd, NULL, NULL);
+		    hdl(fd, hdl_data);
+		    statCounter.select_fds++;
 		}
 	    }
 	}
