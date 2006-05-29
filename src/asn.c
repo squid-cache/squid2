@@ -318,7 +318,7 @@ asStateFree(void *data)
 static int
 asnAddNet(char *as_string, int as_number)
 {
-    rtentry *e = xmalloc(sizeof(rtentry));
+    rtentry *e;
     struct squid_radix_node *rn;
     char dbg1[32], dbg2[32];
     intlist **Tail = NULL;
@@ -350,6 +350,7 @@ asnAddNet(char *as_string, int as_number)
     addr = ntohl(addr);
     /*mask = ntohl(mask); */
     debug(53, 3) ("asnAddNet: called for %s/%s\n", dbg1, dbg2);
+    e = xmalloc(sizeof(rtentry));
     memset(e, '\0', sizeof(rtentry));
     store_m_int(addr, e->e_addr);
     store_m_int(mask, e->e_mask);
@@ -376,11 +377,13 @@ asnAddNet(char *as_string, int as_number)
 	rn = squid_rn_match(e->e_addr, AS_tree_head);
 	assert(rn != NULL);
 	e->e_info = asinfo;
-    }
-    if (rn == 0) {
-	xfree(e);
-	debug(53, 3) ("asnAddNet: Could not add entry.\n");
-	return 0;
+	if (rn == 0) {		/* assert might expand to nothing */
+	    xfree(asinfo);
+	    xfree(q);
+	    xfree(e);
+	    debug(53, 3) ("asnAddNet: Could not add entry.\n");
+	    return 0;
+	}
     }
     e->e_info = asinfo;
     return 1;
