@@ -1202,10 +1202,6 @@ struct _ConnStateData {
 	char *buf;
 	size_t offset;
 	size_t size;
-#if USE_EPOLL
-	int clientfd;		/* Record the client's fd if we have too much 
-				 * data waiting to send to the server */
-#endif
     } in;
     struct {
 	squid_off_t size_left;	/* How much body left to process */
