@@ -215,7 +215,7 @@ TYPE: string
 LOC: Config.SSL.ssl_engine
 DEFAULT: none
 DOC_START
-	The openssl engine to use. You will need to set this if you
+	The OpenSSL engine to use. You will need to set this if you
 	would like to use hardware SSL acceleration for example.
 DOC_END
 
@@ -551,7 +551,7 @@ DOC_START
 		     'originserver' causes this parent peer to be contacted as
 		     a origin server. Meant to be used in accelerator setups.
 
-		     use 'userhash' to load-balance amongs a set of parents
+		     use 'userhash' to load-balance amongst a set of parents
 		     based on the client proxy_auth or ident username.
 
 		     use 'sourcehash' to load-balanse amongs a set of parents
@@ -563,7 +563,7 @@ DOC_START
 		     directives.
 
 		     use 'monitorurl=url' to have periodically request a given
-		     URL from the peer, and only concider the peer as alive
+		     URL from the peer, and only consider the peer as alive
 		     if this monitoring is successful (default none)
 
 		     use 'monitorsize=min[-max]' to limit the size range of 
@@ -581,7 +581,7 @@ DOC_START
 		     use 'forceddomain=name' to forcibly set the Host header
 		     of requests forwarded to this peer. Useful in accelerator
 		     setups where the server (peer) expects a certain domain
-		     name and using redirectors to feed this domainname
+		     name and using redirectors to feed this domain name
 		     is not feasible.
 
 		     use 'ssl' to indicate that connections to this peer should
@@ -602,7 +602,7 @@ DOC_START
 			3 = SSL v3 only
 			4 = TLS v1 only
 
-		     use sslcipher=... to specify the list of valid SSL chipers
+		     use sslcipher=... to specify the list of valid SSL ciphers
 		     to use when connecting to this peer
 
 		     use ssloptions=... to specify various SSL engine options:
@@ -633,7 +633,7 @@ DOC_START
 		     peer hostname will be used.
 
 		     use front-end-https to enable the "Front-End-Https: On"
-		     header needed when using Squid as a SSL frontend infront
+		     header needed when using Squid as a SSL frontend in front
 		     of Microsoft OWA. See MS KB document Q307347 for details
 		     on this header. If set to auto then the header will
 		     only be added if the request is forwarded as a https://
@@ -659,7 +659,7 @@ DOC_START
 
 	has the effect such that UDP query packets are sent to
 	'bigserver' only when the requested object exists on a
-	server in the .edu domain.  Prefixing the domainname
+	server in the .edu domain.  Prefixing the domain name
 	with '!' means the cache will be queried for objects
 	NOT in that domain.
 
@@ -731,7 +731,7 @@ DEFAULT: 2000
 TYPE: int
 LOC: Config.Timeout.mcast_icp_query
 DOC_START
-	For Multicast peers, Squid regularly sends out ICP "probes" to
+	For multicast peers, Squid regularly sends out ICP "probes" to
 	count how many other peers are listening on the given multicast
 	address.  This value specifies how long Squid should wait to
 	count all the replies.  The default is 2000 msec, or 2
@@ -915,7 +915,7 @@ DOC_START
         Objects greater than this size will not be attempted to kept in
         the memory cache. This should be set high enough to keep objects
         accessed frequently in memory to improve performance whilst low
-        enough to keep larger objects from hoarding cache_mem .
+        enough to keep larger objects from hoarding cache_mem.
 DOC_END
 
 NAME: ipcache_size
@@ -1084,14 +1084,14 @@ DOC_START
 	higher hit ratio at the expense of an increase in response
 	time.
 
-	The coss store type:
+	The COSS store type:
 
 	block-size=n defines the "block size" for COSS cache_dir's.
 	Squid uses file numbers as block numbers.  Since file numbers
 	are limited to 24 bits, the block size determines the maximum
 	size of the COSS partition.  The default is 512 bytes, which
 	leads to a maximum cache_dir size of 512<<24, or 8 GB.  Note
-	you should not change the coss block size after Squid
+	you should not change the COSS block size after Squid
 	has written some objects to the cache_dir.
 
 	Common options:
@@ -1328,6 +1328,9 @@ IFDEF: USE_REFERER_LOG
 DOC_START
 	Squid will write the Referer field from HTTP requests to the
 	filename specified here.  By default referer_log is disabled.
+	Note that "referer" is actually a misspelling of "referrer"
+	however the misspelt version has been accepted into the HTTP RFCs
+	and we accept both.
 DOC_END
 
 
@@ -1464,7 +1467,7 @@ TYPE: onoff
 DEFAULT: on
 LOC: Config.onoff.allow_underscore
 DOC_START
-	Underscore characers is not strictly allowed in Internet hostnames
+	Underscore characters is not strictly allowed in Internet hostnames
 	but nevertheless used by many sites. Set this to off if you want
 	Squid to be strict about the standard.
 DOC_END
@@ -1643,7 +1646,7 @@ DEFAULT: 0
 LOC: Config.Program.url_rewrite.concurrency
 DOC_START
 	The number of requests each redirector helper can handle in
-	parallell. Defaults to 0 which indicates that the redirector
+	parallel. Defaults to 0 which indicates that the redirector
 	is a old-style singlethreaded redirector.
 DOC_END
 
@@ -1708,7 +1711,7 @@ DEFAULT: 0
 LOC: Config.Program.location_rewrite.concurrency
 DOC_START
 	The number of requests each Location rewriter helper can handle in
-	parallell. Defaults to 0 which indicates that the helper
+	parallel. Defaults to 0 which indicates that the helper
 	is a old-style singlethreaded helper.
 DOC_END
 
@@ -1735,7 +1738,7 @@ DOC_START
 
 	The order in which authentication schemes are presented to the client is
 	dependent on the order the scheme first appears in config file. IE
-	has a bug (it's not rfc 2617 compliant) in that it will use the basic
+	has a bug (it's not RFC 2617 compliant) in that it will use the basic
 	scheme if basic is the first entry presented, even if more secure
 	schemes are presented. For now use the order in the recommended
 	settings section below. If other browsers have difficulties (don't
@@ -1826,7 +1829,7 @@ DOC_START
 	Specify the command for the external authenticator.  Such a program
 	reads a line containing "username":"realm" and replies with the
 	appropriate H(A1) value base64 encoded or ERR if the user (or his H(A1)
-	hash) does not exists.  See rfc 2616 for the definition of H(A1).
+	hash) does not exists.  See RFC 2616 for the definition of H(A1).
 	"ERR" responses may optionally be followed by a error description
 	available as %m in the returned error page.
 
@@ -2376,7 +2379,7 @@ DOC_START
 	This option changes the refresh algorithm to allow concurrent
 	requests while an object is being refreshed to be processed as
 	cache hits if the object expired less than X seconds ago. Default
-	is 0 to disable this feature. This option is mostly interesiting
+	is 0 to disable this feature. This option is mostly interesting
 	in accelerator setups where a few objects is accessed very
 	frequently.
 DOC_END
@@ -2930,7 +2933,7 @@ DOC_START
 	matching line.
 
 	Note: The use of this directive using client dependent ACLs is
-	incompatible with the use of server side persistent connetions. To
+	incompatible with the use of server side persistent connections. To
 	ensure correct results it is best to set server_persisten_connections
 	to off when using this directive in such configurations.
 DOC_END
@@ -2941,7 +2944,7 @@ DEFAULT: none
 LOC: Config.accessList.outgoing_address
 DOC_START
 	Allows you to map requests to different outgoing IP addresses
-	based on the username or sourceaddress of the user making
+	based on the username or source address of the user making
 	the request.
 
 	tcp_outgoing_address ipaddr [[!]aclname] ...
@@ -2961,8 +2964,8 @@ DOC_START
 	matching line.
 
 	Note: The use of this directive using client dependent ACLs is
-	incompatible with the use of server side persistent connetions. To
-	ensure correct results it is best to set server_persisten_connections
+	incompatible with the use of server side persistent connections. To
+	ensure correct results it is best to set server_persistent_connections
 	to off when using this directive in such configurations.
 DOC_END
 
@@ -3563,8 +3566,7 @@ DEFAULT: 13 KB
 LOC: Config.Store.avgObjectSize
 DOC_START
 	Average object size, used to estimate number of objects your
-	cache can hold.  See doc/Release-Notes-1.1.txt.  The default is
-	13 KB.
+	cache can hold.  The default is 13 KB.
 DOC_END
 
 NAME: store_objects_per_bucket
@@ -4004,9 +4006,10 @@ LOC: Config.Wccp.version
 DEFAULT: 4
 IFDEF: USE_WCCP
 DOC_START
-	According to some users, Cisco IOS 11.2 only supports WCCP
-	version 3.  If you're using that version of IOS, change
-	this value to 3.
+	According to some users, Cisco IOS 11.2 and earlier only
+	support WCCP version 3.  If you're using that or an earlier
+	version of IOS, change this value to 3, otherwise do not specify
+	this parameter.
 DOC_END
 
 NAME: wccp2_forwarding_method
@@ -4017,11 +4020,12 @@ IFDEF: USE_WCCPv2
 DOC_START
 	WCCP2 allows the setting of forwarding methods between the 
 	router/switch and the cache.  Valid values are as follows:
-	1 - GRE encapsulation
-	2 - L2 redirect (forward the packet)
 
-	Currently (as of IOS 12.3) cisco routers only support GRE.
-	Cisco switches support the l2 redirect assignment.
+	1 - GRE encapsulation (forward the packet in a GRE/WCCP tunnel)
+	2 - L2 redirect (forward the packet using Layer 2/MAC rewriting)
+
+	Currently (as of IOS 12.4) cisco routers only support GRE.
+	Cisco switches only support the L2 redirect assignment method.
 DOC_END
 
 NAME: wccp2_return_method
@@ -4033,11 +4037,12 @@ DOC_START
 	WCCP2 allows the setting of return methods between the 
 	router/switch and the cache for packets that the cache
 	decides not to handle.  Valid values are as follows:
-	1 - GRE encapsulation
-	2 - L2 redirect (forward the packet)
 
-	Currently (as of IOS 12.3) cisco routers only support GRE.
-	Cisco switches support the l2 redirect assignment.
+	1 - GRE encapsulation (forward the packet in a GRE/WCCP tunnel)
+	2 - L2 redirect (forward the packet using Layer 2/MAC rewriting)
+
+	Currently (as of IOS 12.4) cisco routers only support GRE.
+	Cisco switches only support the L2 redirect assignment.
 
 	If the "ip wccp redirect exclude in" command has been 
 	enabled on the cache interface, then it is still safe for
@@ -4058,11 +4063,11 @@ DOC_START
 	one must define the type of traffic to be redirected; this is done
 	using the wccp2_service_info option.
 
-	The "standard" type does not require a wccp2_service_info option - just
-	the service id will suffice.
+	The "standard" type does not require a wccp2_service_info option,
+	just specifying the service id will suffice.
 
-	MD5 service authentication can be enabled by adding "password=<password>" 
-	to the end of this service declaration.
+	MD5 service authentication can be enabled by adding
+	"password=<password>" to the end of this service declaration.
 
 	Examples:
 
@@ -4102,7 +4107,7 @@ DOC_START
 	    priority=240 ports=80
 
 	Note: the service id must have been defined by a previous
-	'wccp2_service dynamic <id> entry.
+	'wccp2_service dynamic <id>' entry.
 DOC_END
 
 NAME: wccp_address
@@ -4117,7 +4122,7 @@ LOC: Config.Wccp2.address
 DEFAULT: 0.0.0.0
 IFDEF: USE_WCCPv2
 DOC_START
-        Use this option if you require WCCP to use a specific
+	Use this option if you require WCCP to use a specific
 	interface address.
 
         The default behavior is to not bind to any specific address.
@@ -4434,7 +4439,7 @@ LOC: Config.onoff.nonhierarchical_direct
 DEFAULT: on
 DOC_START
 	By default, Squid will send any non-hierarchical requests
-	(matching hierarchy_stoplist or not cachable request type) direct
+	(matching hierarchy_stoplist or not cacheable request type) direct
 	to origin servers.
 
 	If you set this to off, Squid will prefer to send these
@@ -4463,7 +4468,7 @@ DOC_START
 
 	Note: If you want Squid to use parents for all requests see
 	the never_direct directive. prefer_direct only modifies how Squid
-	acts on cachable requests.
+	acts on cacheable requests.
 DOC_END
 
 NAME: strip_query_terms
@@ -4822,8 +4827,9 @@ TYPE: onoff
 LOC: Config.onoff.linux_tproxy
 DEFAULT: off
 DOC_START
-	If you have Linux 2.4 with netfilter and TPROXY support and you
-	have compiled squid with the correct options then you can enable
+	If you have a Linux 2.4 or newer system with Netfilter TPROXY support,
+	and you have compiled squid with the correct options, then you can
+	enable this option to allow squid to spoof the source address of
 	this option to allow squid to spoof the source address of
 	outgoing connections to servers so that they see connections from
 	the original client IP addresses. Enable this only if you know
@@ -4837,19 +4843,23 @@ TYPE: ushort
 LOC: Config.tproxy_port
 DEFAULT: 0
 DOC_START
-	If you have enabled the linux_tproxy option, this will decide when squid
-	will spoof the source IP address.  If this option is set to "0" (default)
-	squid will spoof the source address for every connection.  If this option 
-	is set to any other value, then squid will only spoof the client address
-	if the connection to the proxy server is made on the specified poert.
+	If you have enabled the linux_tproxy option, this will decide when
+	squid will spoof the source IP address.  If this option is set to
+	"0" (default), then squid will spoof the source address for every
+	connection.  If this option is set to any other value, then squid
+	will only spoof the client address if the connection to the proxy
+	server is made on the specified port.
 
-	ie.  If you have an iptables rule as follows:
-	iptables -t tproxy -A PREROUTING -m tcp --dport 80 -j TPROXY --on-port 90
+	If you have an iptables rule as follows:
 
-	Then setting this option to 90 will allow the transparent connections made
-	to squid's port 90 to have the source ip spoofed.  If a client has specified
-	their proxy settings, and are using another port on the squid server (ie 3128)
-	then squid will nt spoof the source address.
+	iptables -t tproxy -A PREROUTING -m tcp --dport 80 \
+	-j TPROXY --on-port 90
+
+	Then setting this option to 90 will allow the transparent
+	connections made to squid's port 90 to have the source IP address
+	spoofed.  If a client has specified their proxy settings and are
+	using another port on the squid server (eg 3128) then squid will
+	not spoof the source address.
 DOC_END
 
 EOF
