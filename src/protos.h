@@ -135,15 +135,10 @@ extern void clientdbDump(StoreEntry *);
 extern void clientdbFreeMemory(void);
 extern int clientdbEstablished(struct in_addr, int);
 
-extern void clientAccessCheck(void *);
-extern void clientAccessCheckDone(int, void *);
-extern int modifiedSince(StoreEntry *, request_t *);
 extern char *clientConstructTraceEcho(clientHttpRequest *);
-extern void clientPurgeRequest(clientHttpRequest *);
 extern int checkNegativeHit(StoreEntry *);
 extern void clientOpenListenSockets(void);
 extern void clientHttpConnectionsClose(void);
-extern StoreEntry *clientCreateStoreEntry(clientHttpRequest *, method_t, request_flags);
 extern int isTcpHit(log_type);
 
 extern int commSetNonBlocking(int fd);

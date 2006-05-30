@@ -148,14 +148,18 @@ static int clientReplyBodyTooLarge(clientHttpRequest *, squid_off_t clen);
 static int clientRequestBodyTooLarge(squid_off_t clen);
 static void clientProcessBody(ConnStateData * conn);
 static void clientEatRequestBody(clientHttpRequest *);
-static void clientAccessCheckDone2(int answer, void *data);
+static void clientAccessCheck(void *data);
+static void clientAccessCheckDone(int answer, void *data);
 static void clientAccessCheck2(void *data);
+static void clientAccessCheckDone2(int answer, void *data);
 static BODY_HANDLER clientReadBody;
 static void clientAbortBody(request_t * req);
 #if USE_SSL
 static void httpsAcceptSSL(ConnStateData * connState, SSL_CTX * sslContext);
 #endif
 static int varyEvaluateMatch(StoreEntry * entry, request_t * request);
+static int modifiedSince(StoreEntry *, request_t *);
+static StoreEntry *clientCreateStoreEntry(clientHttpRequest *, method_t, request_flags);
 
 #if USE_IDENT
 static void
@@ -187,7 +191,7 @@ clientAclChecklistCreate(const acl_access * acl, const clientHttpRequest * http)
     return ch;
 }
 
-void
+static void
 clientAccessCheck(void *data)
 {
     clientHttpRequest *http = data;
@@ -220,7 +224,7 @@ clientOnlyIfCached(clientHttpRequest * http)
 	EBIT_TEST(r->cache_control->mask, CC_ONLY_IF_CACHED);
 }
 
-StoreEntry *
+static StoreEntry *
 clientCreateStoreEntry(clientHttpRequest * h, method_t m, request_flags flags)
 {
     StoreEntry *e;
@@ -241,7 +245,7 @@ clientCreateStoreEntry(clientHttpRequest * h, method_t m, request_flags flags)
     return e;
 }
 
-void
+static void
 clientAccessCheckDone(int answer, void *data)
 {
     clientHttpRequest *http = data;
@@ -867,7 +871,7 @@ clientHandleIMSReply(void *data, char *buf, ssize_t size)
     }
 }
 
-int
+static int
 modifiedSince(StoreEntry * entry, request_t * request)
 {
     squid_off_t object_length;
@@ -901,7 +905,7 @@ modifiedSince(StoreEntry * entry, request_t * request)
     }
 }
 
-void
+static void
 clientPurgeRequest(clientHttpRequest * http)
 {
     StoreEntry *entry;
