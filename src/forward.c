@@ -903,8 +903,8 @@ fwdCheckDeferRead(int fd, void *data)
 	 * few other corner cases.
 	 */
 	if (fd >= 0 && mem->inmem_hi - mem->inmem_lo > SM_PAGE_SIZE + Config.Store.maxInMemObjSize + Config.readAheadGap) {
-#if USE_EPOLL
 	    EBIT_SET(e->flags, ENTRY_DEFER_READ);
+#if USE_EPOLL
 	    mem->serverfd = fd;
 	    commDeferFD(fd);
 #endif
