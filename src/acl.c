@@ -158,6 +158,8 @@ aclStrToType(const char *s)
 	return ACL_BROWSER;
     if (!strcmp(s, "referer_regex"))
 	return ACL_REFERER_REGEX;
+    if (!strcmp(s, "referrer_regex"))
+	return ACL_REFERER_REGEX;
     if (!strcmp(s, "proxy_auth"))
 	return ACL_PROXY_AUTH;
     if (!strcmp(s, "proxy_auth_regex"))

@@ -1320,7 +1320,7 @@ DOC_START
 DOC_END
 
 
-NAME: referer_log
+NAME: referer_log referrer_log
 TYPE: string
 LOC: Config.Log.referer
 DEFAULT: none
