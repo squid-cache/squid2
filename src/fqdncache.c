@@ -190,11 +190,6 @@ fqdncacheAddEntry(fqdncache_entry * f)
     fqdncache_entry *e = (fqdncache_entry *) hash_lookup(fqdn_table, f->hash.key);
     if (NULL != e) {
 	/* avoid collision */
-	if (f->flags.negcached && !e->flags.negcached && e->expires > squid_curtime) {
-	    /* Don't waste good information */
-	    fqdncacheFreeEntry(f);
-	    return;
-	}
 	fqdncacheRelease(e);
     }
     hash_join(fqdn_table, &f->hash);
