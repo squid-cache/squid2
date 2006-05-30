@@ -16,7 +16,50 @@ for Applied Network Research and members of the Web Caching community.
 <sect>Key changes from squid 2.5:
 <p>
 <itemize>
-<item>...
+<item>Major improvements to the way that Squid handles web proxy, accelerated 
+and transparent proxy requests to make it easier to configure transparent and 
+acceleration functionality.  The default behaviour is to function as a standard 
+HTTP proxy on each port that Squid is configured to listen on, but in addition 
+in this release the keywords "accelerated" and "transparent" can be specified 
+after each port to indicate to Squid the functionality that is to be enabled on 
+that port.  This means that the old config directives relating to httpd_accel_* 
+are now deprecated.
+<item>WCCPv2 support multiple cache engines registering with multiple WCCP 
+routers and switches.  WCCPv2 is preferred over WCCPv1 for performance and 
+flexibility reasons if your router or switch is able to support it (all recent 
+versions of IOS do so).  Initially WCCPv2 under Linux is limited to registration 
+with only one router due to kernel limitations in more recent versions, although 
+this will be addressed in a future release of Squid.
+<item>TPROXY totally transparent proxy support under Linux, which to allow Squid 
+to appear totally invisible to both client and server systems when transparently 
+caching requests.  This works by spoofing the source and destination address to 
+both the client and server.
+<item>Support for Etag and Vary HTTP headers.  This further moves Squid towards 
+HTTP/1.1 compliance.  The Vary header field is used for improved caching and 
+delivery of customized content to end clients, and the Etag is used similar to 
+an MD5 checksum between client and server to determine if a web page has changed 
+since it was last retrieved.
+<item>Collapsed forwarding, which gives Squid the ability to intelligently merge 
+client requests for objects into one request to the server.  Of particular 
+benefit in accelerator setups but also provides some benefits to non accelerator 
+setups.
+<item>Support for epoll under Linux, which gives Squid the ability to handle 
+many many more concurrent requests with lower CPU overhead and lower 
+FileDescriptor usage.  This feature is of particular benefit to very busy caches 
+as the poll() and select() routines do not scale anywhere near as well as epoll 
+does under high loads.
+<item>SSL assisted hardware encryption making use of OpenSSL functionality 
+within Squid.
+<item>Logging enhancements to allow even greater customization of the way Squid 
+logs requests in the access-log or to syslog if required
+<item>Authentication enhancements including extra workarounds for NTLM clients 
+and others using Microsoft Integrated Login.
+<item>Additional external_acl parameters to support SSL and even more client 
+side parameters.
+<item>ACL changes in conjunction with SSL changes which have been merged, to 
+allow matching based on SSL certificate parameters.
+<item>Improvements to Cygwin support for users who wish to run Squid in a 
+Microsoft Windows/Cygwin environment.
 </itemize>
 
 <sect>Changes to squid.conf
