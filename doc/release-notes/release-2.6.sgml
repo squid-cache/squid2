@@ -52,14 +52,14 @@ does under high loads.
 within Squid.
 <item>Logging enhancements to allow even greater customization of the way Squid 
 logs requests in the access-log or to syslog if required
-<item>Authentication enhancements including extra workarounds for NTLM clients 
-and others using Microsoft Integrated Login.
+<item>Authentication enhancements including Negotiate/Kerberos support, extra
+workarounds for NTLM clients and others using Microsoft Integrated Login.
 <item>Additional external_acl parameters to support SSL and even more client 
 side parameters.
 <item>ACL changes in conjunction with SSL changes which have been merged, to 
 allow matching based on SSL certificate parameters.
 <item>Improvements to Cygwin support for users who wish to run Squid in a 
-Microsoft Windows/Cygwin environment.
+Microsoft Windows/Cygwin environment as a system service.
 </itemize>
 
 <sect>Changes to squid.conf
@@ -152,6 +152,93 @@ Microsoft Windows/Cygwin environment.
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=355" name="#355"></tag>diskd may appear slow on low loads
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=219" name="#219"></tag>delay_pools stops working on -k reconfigure
 </descrip>
+
+<sect>Windows support:
+<P>This Squid version can run on Windows as a system service using the Cygwin environment.<newline>
+Windows NT4 and following are supported.<newline>
+On Windows 2000/XP/2003 the service is configured to use the Windows Service Recovery option
+restarting automatically after 60 seconds.
+<descrip>
+
+<tag>Usage</tag>
+
+Some new command line options was added for Windows service support:<newline>
+
+The service installation is made with -i command line switch, it's possible to use -f switch at
+the same time for specify a different config-file settings for the Squid Service that is stored
+on Windows Registry.
+
+A new -n switch specify the Windows Service Name, so multiple Squid instance are allowed.
+<em/"Squid"/ is the default when the switch is not used.
+
+So, to install the service, the syntax is: 
+
+<verb>squid -i [-f file] [-n name]</verb>
+
+Service uninstallation is made with -r command line switch plus the appropriate -n switch.
+
+The -k switch family must be used with the appropriate -f and -n switches, so the syntax is: 
+
+<verb>squid -k command [-f file] -n service-name</verb>
+where <em/service-name/ is the name specified with -n options at service install time.
+
+To use Squid original command line, the new -O switch must be used ONCE, the sintax is: 
+
+<verb>squid -O cmdline [-n service-name]</verb>
+If multiple service command line options must be specified, use quote. The -n switch is
+needed only when a non default service name is in use.
+
+Don't use the "Start parameters" in the Windows 2000/XP/2003 Service applet: they are
+specific to Windows services functionality and Squid is not designed for understand they.
+
+Example: 
+
+<verb>squid -O "-D -a 8080" -n squidsvc</verb>
+</descrip>
+
+<descrip>
+<tag>Registry DNS lookup</tag>
+On Windows platforms, if no value is specified in the <em/dns_nameservers/ option on
+squid.conf or in the /etc/resolv.conf file, the list of DNS name servers are
+taken from the Windows registry, both static and dynamic DHCP configurations
+are supported.
+</descrip>
+
+<descrip>
+<tag>Compatibility Notes</tag>
+<itemize>
+<item>It's recommended to use '/' char in Squid paths instead of '\'
+<item>Paths with spaces (like 'C:\Programs Files\Squid) are NOT supported by Squid
+<item>When using ACL like 'acl aclname acltype "file"' the file must be in DOS text
+format (CR+LF) and the full Windows path must be specified, for example:
+
+<verb>acl blocklist url_regex -i "c:/squid/etc/blocked1.txt"</verb>
+
+<item>The WIN32 equivalent of '/dev/null' is 'NUL'
+<item>Squid doesn't know how to run external helpers based on scripts, like .bat, .cmd,
+.vbs, .pl, etc. So in squid.conf the interpreter path must be always specified, for example:
+
+<verb>redirect_program c:/perl/bin/perl.exe c:/squid/libexec/redir.pl
+redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd</verb>
+<item>When Squid runs in command line mode, the launching user account must have administrative privilege on the system
+<item>"Start parameters" in the Windows 2000/XP/2003 Service applet cannot be used
+</itemize>
+</descrip>
+
+<descrip>
+<tag>Known Limitations:</tag>
+<itemize>
+<item>Squid features not operational:<newline>
+<itemize>
+<item>DISKD: still needs to be ported<newline>
+<item>WCCP: cannot work because user space GRE support on Windows is missing<newline>
+<item>Transparent Proxy: missing Windows non commercial interception driver<newline>
+</itemize>
+<item>Some code sections can make blocking calls.
+<item>Some external helpers may not work.
+</itemize>
+</descrip>
+
 
 </article>
 

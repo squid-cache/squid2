@@ -54,14 +54,14 @@ does under high loads.</LI>
 within Squid.</LI>
 <LI>Logging enhancements to allow even greater customization of the way Squid 
 logs requests in the access-log or to syslog if required</LI>
-<LI>Authentication enhancements including extra workarounds for NTLM clients 
-and others using Microsoft Integrated Login.</LI>
+<LI>Authentication enhancements including Negotiate/Kerberos support, extra
+workarounds for NTLM clients and others using Microsoft Integrated Login.</LI>
 <LI>Additional external_acl parameters to support SSL and even more client 
 side parameters.</LI>
 <LI>ACL changes in conjunction with SSL changes which have been merged, to 
 allow matching based on SSL certificate parameters.</LI>
 <LI>Improvements to Cygwin support for users who wish to run Squid in a 
-Microsoft Windows/Cygwin environment.</LI>
+Microsoft Windows/Cygwin environment as a system service.</LI>
 </UL>
 </P>
 
@@ -77,7 +77,7 @@ Microsoft Windows/Cygwin environment.</LI>
 <DT><B>https_port</B><DD><P>Many new options. Reconstructs URLs as https:// by default.</P>
 <DT><B>cache_peer</B><DD><P>Many new options to support origin servers and SSL encryption</P>
 <DT><B>ssl_engine</B><DD><P>New directive for hardware assisted SSL encryption</P>
-<DT><B>sslproxy_*</B><DD><P>New directives defining how to gateway http-&gt;https</P>
+<DT><B>sslproxy_*</B><DD><P>New directives defining how to gateway http->https</P>
 <DT><B>sslpassword_program</B><DD><P>New helper directive to query an external program for SSL key encryption password (if any)</P>
 <DT><B>cache_vary</B><DD><P>New directive to disable caching of Vary:ing responses</P>
 <DT><B>logformat</B><DD><P>New directive for defining custom log formats</P>
@@ -122,7 +122,7 @@ Microsoft Windows/Cygwin environment.</LI>
 <DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=1590">#1590</A></B><DD><P>"ETag Loop" warnings in cache.log</P>
 <DT><B>Bug 
-<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=761">#761</A></B><DD><P>assertion failed: cbdata.c:249: "c-&gt;locks &gt; 0" when using diskd</P>
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=761">#761</A></B><DD><P>assertion failed: cbdata.c:249: "c->locks > 0" when using diskd</P>
 <DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=888">#888</A></B><DD><P>ntlm_user_pool assertion error on shutdown</P>
 <DT><B>Bug 
@@ -180,6 +180,108 @@ in the /usr/include local directory. Don't forget to fix files permission and ow
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=219">#219</A></B><DD><P>delay_pools stops working on -k reconfigure</P>
 </DL>
 </P>
+
+<H2><A NAME="s4">4. Windows support:</A></H2>
+
+<P>This Squid version can run on Windows as a system service using the Cygwin environment.<BR>
+Windows NT4 and following are supported.<BR>
+On Windows 2000/XP/2003 the service is configured to use the Windows Service Recovery option
+restarting automatically after 60 seconds.
+<DL>
+
+<DT><B>Usage</B><DD><P>Some new command line options was added for Windows service support:<BR></P>
+<P>The service installation is made with -i command line switch, it's possible to use -f switch at
+the same time for specify a different config-file settings for the Squid Service that is stored
+on Windows Registry.</P>
+<P>A new -n switch specify the Windows Service Name, so multiple Squid instance are allowed.
+<EM>"Squid"</EM> is the default when the switch is not used.</P>
+<P>So, to install the service, the syntax is: </P>
+<P>
+<PRE>
+squid -i [-f file] [-n name]
+</PRE>
+</P>
+<P>Service uninstallation is made with -r command line switch plus the appropriate -n switch.</P>
+<P>The -k switch family must be used with the appropriate -f and -n switches, so the syntax is: </P>
+<P>
+<PRE>
+squid -k command [-f file] -n service-name
+</PRE>
+
+where <EM>service-name</EM> is the name specified with -n options at service install time.</P>
+<P>To use Squid original command line, the new -O switch must be used ONCE, the sintax is: </P>
+<P>
+<PRE>
+squid -O cmdline [-n service-name]
+</PRE>
+
+If multiple service command line options must be specified, use quote. The -n switch is
+needed only when a non default service name is in use.</P>
+<P>Don't use the "Start parameters" in the Windows 2000/XP/2003 Service applet: they are
+specific to Windows services functionality and Squid is not designed for understand they.</P>
+<P>Example: </P>
+<P>
+<PRE>
+squid -O "-D -a 8080" -n squidsvc
+</PRE>
+</P>
+</DL>
+</P>
+<P>
+<DL>
+<DT><B>Registry DNS lookup</B><DD><P>On Windows platforms, if no value is specified in the <EM>dns_nameservers</EM> option on
+squid.conf or in the /etc/resolv.conf file, the list of DNS name servers are
+taken from the Windows registry, both static and dynamic DHCP configurations
+are supported.</P>
+</DL>
+</P>
+<P>
+<DL>
+<DT><B>Compatibility Notes</B><DD><P>
+<UL>
+<LI>It's recommended to use '/' char in Squid paths instead of '\'</LI>
+<LI>Paths with spaces (like 'C:\Programs Files\Squid) are NOT supported by Squid</LI>
+<LI>When using ACL like 'acl aclname acltype "file"' the file must be in DOS text
+format (CR+LF) and the full Windows path must be specified, for example:
+
+<PRE>
+acl blocklist url_regex -i "c:/squid/etc/blocked1.txt"
+</PRE>
+
+</LI>
+<LI>The WIN32 equivalent of '/dev/null' is 'NUL'</LI>
+<LI>Squid doesn't know how to run external helpers based on scripts, like .bat, .cmd,
+.vbs, .pl, etc. So in squid.conf the interpreter path must be always specified, for example:
+
+<PRE>
+redirect_program c:/perl/bin/perl.exe c:/squid/libexec/redir.pl
+redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd
+</PRE>
+</LI>
+<LI>When Squid runs in command line mode, the launching user account must have administrative privilege on the system</LI>
+<LI>"Start parameters" in the Windows 2000/XP/2003 Service applet cannot be used</LI>
+</UL>
+</P>
+</DL>
+</P>
+<P>
+<DL>
+<DT><B>Known Limitations:</B><DD><P>
+<UL>
+<LI>Squid features not operational:<BR>
+<UL>
+<LI>DISKD: still needs to be ported<BR></LI>
+<LI>WCCP: cannot work because user space GRE support on Windows is missing<BR></LI>
+<LI>Transparent Proxy: missing Windows non commercial interception driver<BR></LI>
+</UL>
+</LI>
+<LI>Some code sections can make blocking calls.</LI>
+<LI>Some external helpers may not work.</LI>
+</UL>
+</P>
+</DL>
+</P>
+
 
 </BODY>
 </HTML>
