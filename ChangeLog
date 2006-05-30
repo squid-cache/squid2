@@ -42,6 +42,8 @@ Changes to squid-2.6 (not yet released)
 	  request details (browser, language etc).
 	- umask now defaults to 027 to protect the content of cache and
 	  log files from local users
+	- HTCP support for access control and the CRL operation for
+	  purgeing of cache content
 
 Changes to squid-2.5.STABLE14 (20 May 2006)
 	- [Minor] icons not displayed when visible_hostname is a

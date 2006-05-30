@@ -695,6 +695,10 @@ struct _SquidConfig {
 	acl_access *reply;
 	acl_address *outgoing_address;
 	acl_tos *outgoing_tos;
+#if USE_HTCP
+	acl_access *htcp;
+	acl_access *htcp_clr;
+#endif
     } accessList;
     acl_deny_info_list *denyInfoList;
     struct _authConfig {
