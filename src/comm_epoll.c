@@ -88,13 +88,15 @@ commResumeFD(int fd)
 {
     fde *F = &fd_table[fd];
 
-    /* If the fd has been modified, do nothing and remove the flag */
-    if (!(F->read_handler) || !(F->epoll_backoff)) {
-	debug(5, 2) ("commResumeFD: fd=%d ignoring read_handler=%p, epoll_backoff=%d\n", fd, F->read_handler, F->epoll_backoff);
-	F->epoll_backoff = 0;
+    if (!F->epoll_backoff)
+	return;
+
+    F->epoll_backoff = 0;
+
+    if (!F->read_handler) {
+	debug(5, 2) ("commResumeFD: fd=%d ignoring read_handler=%p\n", fd, F->read_handler);
 	return;
     }
-    F->epoll_backoff = 0;
     commUpdateEvents(fd, 0);
 }
 
