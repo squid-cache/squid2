@@ -1,4 +1,4 @@
-.TH squid 8 2006-05-29 "squid 2.6.PRE1"
+.TH squid 8 2006-05-29 "@PACKAGE_STRING@"
 .\" Copyright and licensing information
 .\" goes here.
 .SH NAME
