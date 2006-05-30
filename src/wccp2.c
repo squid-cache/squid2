@@ -1349,8 +1349,6 @@ parse_wccp2_service_flags(char *flags)
 	    retflag |= WCCP2_SERVICE_SOURCE_PORT_HASH;
 	} else if (strcmp(flag, "dst_port_hash") == 0) {
 	    retflag |= WCCP2_SERVICE_DST_PORT_HASH;
-	} else if (strcmp(flag, "ports_defined") == 0) {
-	    retflag |= WCCP2_SERVICE_PORTS_DEFINED;
 	} else if (strcmp(flag, "ports_source") == 0) {
 	    retflag |= WCCP2_SERVICE_PORTS_SOURCE;
 	} else if (strcmp(flag, "src_ip_alt_hash") == 0) {
@@ -1435,6 +1433,7 @@ parse_wccp2_service_info(void *v)
 	    flags = parse_wccp2_service_flags(t + 6);
 	} else if (strncmp(t, "ports=", 6) == 0) {
 	    parse_wccp2_service_ports(t + 6, portlist);
+	    flags |= WCCP2_SERVICE_PORTS_DEFINED;
 	} else if (strncmp(t, "protocol=tcp", 12) == 0) {
 	    protocol = IPPROTO_TCP;
 	} else if (strncmp(t, "protocol=udp", 12) == 0) {
@@ -1457,6 +1456,9 @@ parse_wccp2_service_info(void *v)
     }
     if (protocol == -1) {
 	fatalf("parse_wccp2_service_info: service %d: no protocol defined (valid: tcp or udp)!\n", service_id);
+    }
+    if (!(flags & WCCP2_SERVICE_PORTS_DEFINED)) {
+	fatalf("parse_wccp2_service_info: service %d: no ports defined!\n", service_id);
     }
     /* rightio! now we can update */
     wccp2_update_service(srv, WCCP2_SERVICE_DYNAMIC, service_id, priority,

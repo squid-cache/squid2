@@ -4084,22 +4084,21 @@ DOC_START
 
 	The format is:
 
-	wccp2_service_info <id> proto=<protocol> flags=<flag>,<flag>..
+	wccp2_service_info <id> protocol=<protocol> flags=<flag>,<flag>..
 	    priority=<priority> ports=<port>,<port>..
 
 	The relevant WCCPv2 flags:
 	+ src_ip_hash, dst_ip_hash
 	+ source_port_hash, dest_port_hash
-	+ ports_defined, ports_source
 	+ src_ip_alt_hash, dst_ip_alt_hash
 	+ src_port_alt_hash, dst_port_alt_hash
+	+ ports_source
 
-	The port list can be one to eight entries. Specifying no ports is
-	currently valid but may result in a confused router.
+	The port list can be one to eight entries.
 
 	Example:
 
-	wccp2_service_info 80 proto=tcp flags=src_ip_hash,ports_source
+	wccp2_service_info 80 protocol=tcp flags=src_ip_hash,ports_source
 	    priority=240 ports=80
 
 	Note: the service id must have been defined by a previous
