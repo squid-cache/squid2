@@ -35,7 +35,7 @@
 
 #include "squid.h"
 
-/* MS VisualStudio Projects are monolitich, so we need the following
+/* MS VisualStudio Projects are monolithic, so we need the following
  * #ifndef to exclude the internal DNS code from compile process when
  * using External DNS process.
  */
@@ -1025,5 +1025,5 @@ snmp_netIdnsFn(variable_list * Var, snint * ErrP)
     }
     return Answer;
 }
-#endif /*SQUID_SNMP */
+#endif /* SQUID_SNMP */
 #endif /* USE_DNSSERVERS */

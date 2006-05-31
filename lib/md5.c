@@ -26,9 +26,9 @@
  */
 #include "config.h"
 
-/* MS VisualStudio Projects are monolitich, so we need the following
- * #ifndef to exclude the MD5 code from compile process when we are
- * not build SSL support.
+/* MS VisualStudio Projects are monolithic, so we need the following
+ * #if to exclude the MD5 code from compile process when we are
+ * building the SSL support.
  */
 #if !USE_SSL
 #if HAVE_STRING_H
