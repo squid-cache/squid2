@@ -545,6 +545,22 @@ AC_ARG_ENABLE(kill-parent-hack,
   fi
 ])
 
+AC_ARG_ENABLE(forward-log,
+[  --enable-forward-log    Enable experimental forward_log directive],
+[ if test "$enableval" = "yes" ; then
+    echo "forward_log enabled"
+    AC_DEFINE(WIP_FWD_LOG, 1, [Define to enable experimental forward_log directive])
+  fi
+])
+ 
+AC_ARG_ENABLE(multicast-miss,
+[  --enable-multicast-miss Enable experimental multicast notification of cachemisses],
+[ if test "$enableval" = "yes" ; then
+    echo "multicast of cache miss URLs enabled"
+    AC_DEFINE(MULTICAST_MISS_STREAM, 1, [Define to enable experimental multicast of cache miss URLs])
+  fi
+])
+ 
 AM_CONDITIONAL(USE_SNMP, false)
 AC_ARG_ENABLE(snmp,
 [  --enable-snmp           Enable SNMP monitoring],

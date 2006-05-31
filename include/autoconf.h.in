@@ -614,6 +614,9 @@
 /* Enable real Transparent Proxy support for Netfilter TPROXY. */
 #undef LINUX_TPROXY
 
+/* Define to enable experimental multicast of cache miss URLs */
+#undef MULTICAST_MISS_STREAM
+
 /* If we need to declare sys_errlist[] as external */
 #undef NEED_SYS_ERRLIST
 
@@ -810,6 +813,9 @@
 
 /* Version number of package */
 #undef VERSION
+
+/* Define to enable experimental forward_log directive */
+#undef WIP_FWD_LOG
 
 /* Valgrind memory debugger support */
 #undef WITH_VALGRIND

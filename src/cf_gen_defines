@@ -6,6 +6,8 @@ BEGIN {
 	print "struct { const char *name; const char *enable; int defined;} defines[] = {"
 	define["DELAY_POOLS"]="--enable-delay-pools"
 	define["HTTP_VIOLATIONS"]="--enable-http-violations"
+	define["LINUX_TPROXY"]="--enable-linux-tproxy"
+	define["MULTICAST_MISS_STREAM"]="--enable-multicast-miss"
 	define["SQUID_SNMP"]="--enable-snmp"
 	define["USE_CACHE_DIGESTS"]="--enable-cache-digests"
 	define["USE_DNSSERVERS"]="--disable-internal-dns"
@@ -19,6 +21,7 @@ BEGIN {
 	define["USE_USERAGENT_LOG"]="--enable-useragent-log"
 	define["USE_WCCP"]="--enable-wccp"
 	define["USE_WCCPv2"]="--enable-wccpv2"
+	define["WIP_FWD_LOG"]="--enable-forward-log"
 }
 /^IFDEF:/ {
 	if (define[$2] != "")
