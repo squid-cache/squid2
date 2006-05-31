@@ -60,6 +60,13 @@ side parameters.
 allow matching based on SSL certificate parameters.
 <item>Improvements to Cygwin support for users who wish to run Squid in a 
 Microsoft Windows/Cygwin environment as a system service.
+<item>New authentication helpers:
+<itemize>
+<item>Digest LDAP helper
+<item>Native Windows basic, NTLM and negotiate helpers
+<item>External acl helpers for session monitoring and native Windows group
+membership check
+</itemize>
 </itemize>
 
 <sect>Changes to squid.conf

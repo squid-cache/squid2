@@ -62,6 +62,14 @@ side parameters.</LI>
 allow matching based on SSL certificate parameters.</LI>
 <LI>Improvements to Cygwin support for users who wish to run Squid in a 
 Microsoft Windows/Cygwin environment as a system service.</LI>
+<LI>New authentication helpers:
+<UL>
+<LI>Digest LDAP helper</LI>
+<LI>Native Windows basic, NTLM and negotiate helpers</LI>
+<LI>External acl helpers for session monitoring and native Windows group
+membership check</LI>
+</UL>
+</LI>
 </UL>
 </P>
 
@@ -77,7 +85,7 @@ Microsoft Windows/Cygwin environment as a system service.</LI>
 <DT><B>https_port</B><DD><P>Many new options. Reconstructs URLs as https:// by default.</P>
 <DT><B>cache_peer</B><DD><P>Many new options to support origin servers and SSL encryption</P>
 <DT><B>ssl_engine</B><DD><P>New directive for hardware assisted SSL encryption</P>
-<DT><B>sslproxy_*</B><DD><P>New directives defining how to gateway http->https</P>
+<DT><B>sslproxy_*</B><DD><P>New directives defining how to gateway http-&gt;https</P>
 <DT><B>sslpassword_program</B><DD><P>New helper directive to query an external program for SSL key encryption password (if any)</P>
 <DT><B>cache_vary</B><DD><P>New directive to disable caching of Vary:ing responses</P>
 <DT><B>logformat</B><DD><P>New directive for defining custom log formats</P>
@@ -122,7 +130,7 @@ Microsoft Windows/Cygwin environment as a system service.</LI>
 <DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=1590">#1590</A></B><DD><P>"ETag Loop" warnings in cache.log</P>
 <DT><B>Bug 
-<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=761">#761</A></B><DD><P>assertion failed: cbdata.c:249: "c->locks > 0" when using diskd</P>
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=761">#761</A></B><DD><P>assertion failed: cbdata.c:249: "c-&gt;locks &gt; 0" when using diskd</P>
 <DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=888">#888</A></B><DD><P>ntlm_user_pool assertion error on shutdown</P>
 <DT><B>Bug 
