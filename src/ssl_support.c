@@ -35,6 +35,11 @@
 
 #include "squid.h"
 
+/* MS VisualStudio Projects are monolithic, so we need the following
+ * #if to include the code into the compile process only when we are
+ * building the SSL support.
+ */
+#if USE_SSL
 static int
 ssl_ask_password_cb(char *buf, int size, int rwflag, void *userdata)
 {
@@ -1070,3 +1075,4 @@ ssl_verify_domain(const char *host, SSL * ssl)
     }
 }
 #endif
+#endif /* USE_SSL */
