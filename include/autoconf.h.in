@@ -833,7 +833,7 @@
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
 
-/* Define to `int' if <sys/types.h> does not define. */
+/* Have int datatype */
 #undef fd_mask
 
 /* Define to `__inline__' or `__inline' if that's what the C compiler
@@ -851,19 +851,19 @@
 /* Have unsigned __int64 datatype */
 #undef int64_t
 
-/* Define to `unsigned short' if <sys/types.h> does not define. */
+/* Have unsigned short datatype */
 #undef mode_t
 
 /* message type for message queues */
 #undef mtyp_t
 
-/* Define to `int' if <sys/types.h> does not define. */
+/* Have int datatype */
 #undef off_t
 
-/* Define to `int' if <sys/types.h> does not define. */
+/* Have int datatype */
 #undef pid_t
 
-/* Define to `unsigned int' if <sys/types.h> does not define. */
+/* Have unsigned int datatype */
 #undef size_t
 
 /* This makes warnings go away. If you have socklen_t defined in your
@@ -871,7 +871,7 @@
    defined to int. */
 #undef socklen_t
 
-/* Define to `int' if <sys/types.h> does not define. */
+/* Have int datatype */
 #undef ssize_t
 
 /* Have unsigned int datatype */
