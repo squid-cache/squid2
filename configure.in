@@ -1452,6 +1452,11 @@ AC_CHECK_HEADERS( \
 	sys/types.h \
 	stddef.h \
 	limits.h \
+	sys/param.h \
+	sys/socket.h \
+	netinet/in.h \
+	stdio.h \
+	stdlib.h \
 	arpa/inet.h \
 	arpa/nameser.h \
 	assert.h \
@@ -1481,7 +1486,6 @@ AC_CHECK_HEADERS( \
 	net/pfvar.h \
 	netdb.h \
 	netinet/if_ether.h \
-	netinet/in.h \
 	netinet/tcp.h \
 	netinet/ip_compat.h \
 	netinet/ip_fil_compat.h \
@@ -1499,8 +1503,6 @@ AC_CHECK_HEADERS( \
 	sched.h \
 	signal.h \
 	stdarg.h \
-	stdio.h \
-	stdlib.h \
 	string.h \
 	strings.h \
 	sys/bitypes.h \
@@ -1508,11 +1510,9 @@ AC_CHECK_HEADERS( \
 	sys/ioctl.h \
 	sys/mount.h \
 	sys/msg.h \
-	sys/param.h \
 	sys/prctl.h \
 	sys/resource.h \
 	sys/select.h\
-	sys/socket.h \
 	sys/stat.h \
 	sys/statvfs.h \
 	syscall.h \
@@ -1544,6 +1544,33 @@ AC_CHECK_HEADERS( \
 #endif
 #if HAVE_LIMITS_H
 #include <limits.h>
+#endif
+#if HAVE_SYS_PARAM_H
+#include <sys/param.h>
+#endif
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+#if HAVE_STDIO_H
+#include <stdio.h>
+#endif
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+#if HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+#if HAVE_NET_IF_H
+#include <net/if.h>
+#endif
+#if HAVE_NETINET_IF_ETHER_H
+#include <netinet/if_ether.h>
+#endif
+#if HAVE_NETINET_IP_COMPAT_H
+#include <netinet/ip_compat.h>
+#endif
+#if HAVE_NETINET_IP_FIL_H
+#include <netinet/ip_fil.h>
 #endif
 ])
 
@@ -1708,12 +1735,12 @@ elif test "x$ac_cv_sizeof___int64" = "x8"; then
 	AC_CHECK_SYSTYPE(int64_t,unsigned __int64)
 fi
 
-AC_CHECK_TYPE(pid_t, int)
-AC_CHECK_TYPE(size_t, unsigned int)
-AC_CHECK_TYPE(ssize_t, int)
-AC_CHECK_TYPE(off_t, int)
-AC_CHECK_TYPE(mode_t, unsigned short)
-AC_CHECK_TYPE(fd_mask, int)
+AC_CHECK_SYSTYPE(pid_t, int)
+AC_CHECK_SYSTYPE(size_t, unsigned int)
+AC_CHECK_SYSTYPE(ssize_t, int)
+AC_CHECK_SYSTYPE(off_t, int)
+AC_CHECK_SYSTYPE(mode_t, unsigned short)
+AC_CHECK_SYSTYPE(fd_mask, int)
 
 AC_CHECK_SIZEOF_SYSTYPE(off_t, 4)
 AC_CHECK_SIZEOF_SYSTYPE(size_t, 4)
