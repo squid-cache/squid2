@@ -34,10 +34,10 @@
  */
 
 #include "squid.h"
+
 #if LINUX_TPROXY
-#include <linux/capability.h>
-#undef __FD_SETSIZE
-#define __FD_SETSIZE SQUID_MAXFD
+#undef _POSIX_SOURCE
+#include <sys/capability.h>
 #endif
 
 #if HAVE_SYS_PRCTL_H
