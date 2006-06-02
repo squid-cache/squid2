@@ -1448,6 +1448,7 @@ AC_HEADER_DIRENT
 AC_HEADER_STDC
 
 dnl Check for headers. sys/types.h and stddef.h and limits must be first (see below)
+dnl IP-Filter include must be at the end.
 AC_CHECK_HEADERS( \
 	sys/types.h \
 	stddef.h \
@@ -1470,11 +1471,6 @@ AC_CHECK_HEADERS( \
 	getopt.h \
 	gnumalloc.h \
 	grp.h \
-	ip_compat.h \
-	ip_fil_compat.h \
-	ip_fil.h \
-	ip_nat.h \
-	ipl.h \
 	libc.h \
 	linux/netfilter_ipv4.h \
 	linux/netfilter_ipv4/ip_tproxy.h \
@@ -1487,11 +1483,6 @@ AC_CHECK_HEADERS( \
 	netdb.h \
 	netinet/if_ether.h \
 	netinet/tcp.h \
-	netinet/ip_compat.h \
-	netinet/ip_fil_compat.h \
-	netinet/ip_fil.h \
-	netinet/ip_nat.h \
-	netinet/ipl.h \
 	openssl/err.h \
 	openssl/md5.h \
 	openssl/ssl.h \
@@ -1534,7 +1525,17 @@ AC_CHECK_HEADERS( \
 	nss_common.h \
 	nss.h \
 	db.h \
-	db_185.h
+	db_185.h \
+	ip_compat.h \
+	ip_fil_compat.h \
+	ip_fil.h \
+	ip_nat.h \
+	ipl.h \
+	netinet/ip_compat.h \
+	netinet/ip_fil_compat.h \
+	netinet/ip_fil.h \
+	netinet/ip_nat.h \
+	netinet/ipl.h
 ,,,[
 #if HAVE_SYS_TYPES_H
 #include <sys/types.h>
