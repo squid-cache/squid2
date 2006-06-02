@@ -7102,10 +7102,14 @@ cat >>conftest.$ac_ext <<_ACEOF
 #if HAVE_NETINET_IF_ETHER_H
 #include <netinet/if_ether.h>
 #endif
-#if HAVE_NETINET_IP_COMPAT_H
+#if HAVE_IP_COMPAT_H
+#include <ip_compat.h>
+#elif HAVE_NETINET_IP_COMPAT_H
 #include <netinet/ip_compat.h>
 #endif
-#if HAVE_NETINET_IP_FIL_H
+#if HAVE_IP_FIL_H
+#include <ip_fil.h>
+#elif HAVE_NETINET_IP_FIL_H
 #include <netinet/ip_fil.h>
 #endif
 
