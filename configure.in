@@ -1459,8 +1459,7 @@ AC_HEADER_DIRENT
 AC_HEADER_STDC
 
 dnl Check for headers. sys/types.h and stddef.h and limits must be first (see below)
-dnl IP-Filter include must be at the end.
-AC_CHECK_HEADERS( \
+AC_CHECK_HEADERS(
 	sys/types.h \
 	stddef.h \
 	limits.h \
@@ -1514,7 +1513,7 @@ AC_CHECK_HEADERS( \
 	sys/msg.h \
 	sys/prctl.h \
 	sys/resource.h \
-	sys/select.h\
+	sys/select.h \
 	sys/stat.h \
 	sys/statvfs.h \
 	syscall.h \
@@ -1537,6 +1536,41 @@ AC_CHECK_HEADERS( \
 	nss.h \
 	db.h \
 	db_185.h \
+,,,[
+#if HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#if HAVE_STDDEF_H
+#include <stddef.h>
+#endif
+#if HAVE_LIMITS_H
+#include <limits.h>
+#endif
+#if HAVE_SYS_PARAM_H
+#include <sys/param.h>
+#endif
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+#if HAVE_STDIO_H
+#include <stdio.h>
+#endif
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+#if HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+#if HAVE_NET_IF_H
+#include <net/if.h>
+#endif
+#if HAVE_NETINET_IF_ETHER_H
+#include <netinet/if_ether.h>
+#endif
+])
+
+dnl Check for IP-Filter headers. These are a bit nasty..
+AC_CHECK_HEADERS( \
 	ip_compat.h \
 	ip_fil_compat.h \
 	ip_fil.h \
@@ -1546,7 +1580,7 @@ AC_CHECK_HEADERS( \
 	netinet/ip_fil_compat.h \
 	netinet/ip_fil.h \
 	netinet/ip_nat.h \
-	netinet/ipl.h
+	netinet/ipl.h \
 ,,,[
 #if HAVE_SYS_TYPES_H
 #include <sys/types.h>
