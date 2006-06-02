@@ -6992,11 +6992,6 @@ for ac_header in \
 	getopt.h \
 	gnumalloc.h \
 	grp.h \
-	ip_compat.h \
-	ip_fil_compat.h \
-	ip_fil.h \
-	ip_nat.h \
-	ipl.h \
 	libc.h \
 	linux/netfilter_ipv4.h \
 	linux/netfilter_ipv4/ip_tproxy.h \
@@ -7009,11 +7004,6 @@ for ac_header in \
 	netdb.h \
 	netinet/if_ether.h \
 	netinet/tcp.h \
-	netinet/ip_compat.h \
-	netinet/ip_fil_compat.h \
-	netinet/ip_fil.h \
-	netinet/ip_nat.h \
-	netinet/ipl.h \
 	openssl/err.h \
 	openssl/md5.h \
 	openssl/ssl.h \
@@ -7056,7 +7046,17 @@ for ac_header in \
 	nss_common.h \
 	nss.h \
 	db.h \
-	db_185.h
+	db_185.h \
+	ip_compat.h \
+	ip_fil_compat.h \
+	ip_fil.h \
+	ip_nat.h \
+	ipl.h \
+	netinet/ip_compat.h \
+	netinet/ip_fil_compat.h \
+	netinet/ip_fil.h \
+	netinet/ip_nat.h \
+	netinet/ipl.h
 
 do
 as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
