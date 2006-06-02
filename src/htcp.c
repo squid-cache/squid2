@@ -743,7 +743,7 @@ htcpClrStore(const htcpSpecifier * s)
     request_t *request = s->request;
     char *blk_end;
     StoreEntry *e = NULL;
-    int released;
+    int released = 0;
 
     if (request == NULL) {
 	debug(31, 3) ("htcpClrStore: failed to parse URL\n");
