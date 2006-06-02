@@ -717,3 +717,17 @@ comm_quick_poll_required(void)
 {
     MAX_POLL_TIME = 10;
 }
+
+/* Defer reads from this fd */
+void
+commDeferFD(int fd)
+{
+    /* Not implemented */
+}
+
+/* Resume reading from the given fd */
+void
+commResumeFD(int fd)
+{
+    /* Not implemented */
+}

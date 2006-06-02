@@ -139,9 +139,7 @@ sslDeferServerRead(int fd, void *data)
     if (i == INT_MAX)
 	return 0;
     if (i == 0) {
-#if USE_EPOLL
 	commDeferFD(fd);
-#endif
 	return 1;
     }
     return -1;

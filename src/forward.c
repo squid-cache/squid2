@@ -873,12 +873,10 @@ fwdCheckDeferRead(int fd, void *data)
     else {
 	int i = delayMostBytesWanted(mem, INT_MAX);
 	if (0 == i) {
-#if USE_EPOLL
 	    if (fd >= 0) {
 		mem->serverfd = fd;
 		commDeferFD(fd);
 	    }
-#endif
 	    return 1;
 	}
 	/* was: rc = -(rc != INT_MAX); */
@@ -889,9 +887,7 @@ fwdCheckDeferRead(int fd, void *data)
     }
 #endif
     if (EBIT_TEST(e->flags, ENTRY_DEFER_READ)) {
-#if USE_EPOLL
 	commDeferFD(mem->serverfd);
-#endif
 	return 1;
     }
     if (EBIT_TEST(e->flags, ENTRY_FWD_HDR_WAIT))
@@ -903,20 +899,12 @@ fwdCheckDeferRead(int fd, void *data)
 	 * few other corner cases.
 	 */
 	if (fd >= 0 && mem->inmem_hi - mem->inmem_lo > SM_PAGE_SIZE + Config.Store.maxInMemObjSize + Config.readAheadGap) {
-	    EBIT_SET(e->flags, ENTRY_DEFER_READ);
-#if USE_EPOLL
-	    mem->serverfd = fd;
-	    commDeferFD(fd);
-#endif
+	    storeDeferRead(e, fd);
 	    return 1;
 	}
     }
     if (fd >= 0 && mem->inmem_hi - storeLowestMemReaderOffset(e) > Config.readAheadGap) {
-	EBIT_SET(e->flags, ENTRY_DEFER_READ);
-#if USE_EPOLL
-	mem->serverfd = fd;
-	commDeferFD(fd);
-#endif
+	storeDeferRead(e, fd);
 	return 1;
     }
     return rc;
