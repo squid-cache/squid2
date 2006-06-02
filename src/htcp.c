@@ -323,7 +323,7 @@ htcpBuildOpData(char *buf, size_t buflen, htcpStuff * stuff)
 	off = htcpBuildTstOpData(buf + off, buflen, stuff);
 	break;
     case HTCP_CLR:
-	// nothing to be done
+	/* nothing to be done */
 	break;
     default:
 	assert(0);

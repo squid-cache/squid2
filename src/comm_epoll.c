@@ -157,7 +157,7 @@ commSetEvents(int fd, int need_read, int need_write, int force)
 	F->epoll_state = 0;
 
     if (ev.events != F->epoll_state) {
-	// If the struct is already in epoll MOD or DEL, else ADD
+	/* If the struct is already in epoll MOD or DEL, else ADD */
 	if (F->epoll_state) {
 	    epoll_ctl_type = ev.events ? EPOLL_CTL_MOD : EPOLL_CTL_DEL;
 	} else {
@@ -250,7 +250,7 @@ comm_epoll(int msec)
 		if (do_read) {
 		    PF *hdl = F->read_handler;
 		    void *hdl_data = F->read_data;
-		    // If the descriptor is meant to be deferred, don't handle
+		    /* If the descriptor is meant to be deferred, don't handle */
 		    switch (commDeferRead(fd)) {
 		    case 1:
 			if (!(F->epoll_backoff)) {
