@@ -1,0 +1,16 @@
+.deps
+Makefile
+auth_modules.c
+cf.data
+cf_gen
+cf_gen_defines.h
+cf_parser.h
+dnsserver
+globals.c
+pinger
+repl_modules.c
+squid
+squid.conf.default
+store_modules.c
+string_arrays.c
+unlinkd
