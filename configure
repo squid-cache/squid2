@@ -4333,6 +4333,15 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
 	IPF_TRANSPARENT="yes"
+			case "$host" in
+	*-solaris*)
+	    solrev=`uname -r | sh -c 'IFS=. read j n x; echo $n'`
+	    CFLAGS="-DSOLARIS2=$solrev $CFLAGS"
+	    ;;
+	*)
+	    ;;
+	esac
+
   fi
 
 fi;
@@ -15094,15 +15103,6 @@ if test "$IPF_TRANSPARENT" = "no" ; then
     echo "WARNING: Cannot find necessary IP-Filter header files"
     echo "         Transparent Proxy support WILL NOT be enabled"
     sleep 10
-elif test "$IPF_TRANSPARENT" = "yes" ; then
-    case "$host" in
-	*-solaris*)
-	    solrev=`uname -r | sh -c 'IFS=. read j n x; echo $n'`
-	    CFLAGS="-DSOLARIS2=$solrev $CFLAGS"
-	    ;;
-	*)
-	    ;;
-     esac
 fi
 
 if test "$PF_TRANSPARENT" ; then
