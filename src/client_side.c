@@ -4226,7 +4226,7 @@ clientNatLookup(ConnStateData * conn)
 	}
 	return -1;
     } else {
-	int natted = conn->me.sin_addr.s_addr != nt.rdaddr.v4.s_addr;
+	int natted = conn->me.sin_addr.s_addr != nl.rdaddr.v4.s_addr;
 	conn->me.sin_port = nl.rdport;
 	conn->me.sin_addr = nl.rdaddr.v4;
 	if (natted)

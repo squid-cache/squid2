@@ -111,6 +111,9 @@
 #elif defined(__NetBSD__)
 #define _SQUID_NETBSD_
 
+#elif defined(__OpenBSD__)
+#define _SQUID_OPENBSD_
+
 #elif defined(__CYGWIN32__)  || defined(__CYGWIN__)
 #define _SQUID_CYGWIN_
 #define _SQUID_WIN32_
@@ -138,6 +141,13 @@
 #ifndef fd_mask
 #define fd_mask unsigned long
 #endif
+#endif
+
+/* 
+ * Don't allow inclusion of malloc.h on FreeBSD, Next and OpenBSD 
+ */
+#if defined(HAVE_MALLOC_H) && (defined(_SQUID_FREEBSD_) || defined(_SQUID_NEXT_) || defined(_SQUID_OPENBSD_))
+#undef HAVE_MALLOC_H
 #endif
 
 #if !defined(CACHEMGR_HOSTNAME)
