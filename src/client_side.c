@@ -4200,7 +4200,7 @@ clientNatLookup(ConnStateData * conn)
     if (pffd < 0) {
 	pffd = open("/dev/pf", O_RDWR);
 	if (pffd >= 0)
-	    commSetCloseOnExec(natfd);
+	    commSetCloseOnExec(pffd);
     }
     if (pffd < 0) {
 	debug(50, 1) ("parseHttpRequest: PF open failed: %s\n",
