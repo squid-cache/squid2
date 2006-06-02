@@ -4,9 +4,6 @@
 #
 AUTOMAKE_OPTIONS = subdir-objects
 
-DIST_SUBDIRS	= basic digest ntlm negotiate
-SUBDIRS		= @AUTH_MODULES@
-
 EXTRA_LIBRARIES	= libbasic.a libdigest.a libntlm.a libnegotiate.a
 noinst_LIBRARIES	= @AUTH_LIBS@
 

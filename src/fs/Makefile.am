@@ -5,9 +5,6 @@
 
 AUTOMAKE_OPTIONS = subdir-objects
 
-DIST_SUBDIRS	= aufs coss diskd null ufs
-SUBDIRS		= @STORE_MODULE_SUBDIRS@
-
 EXTRA_LIBRARIES = libaufs.a libcoss.a libdiskd.a libnull.a libufs.a
 noinst_LIBRARIES = @STORE_LIBS@
 

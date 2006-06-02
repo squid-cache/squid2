@@ -2872,21 +2872,10 @@ AC_OUTPUT([\
 	src/fs/Makefile \
 	src/repl/Makefile \
 	src/auth/Makefile \
-	src/auth/basic/Makefile \
-	src/auth/digest/Makefile \
-	src/auth/ntlm/Makefile \
-	src/auth/negotiate/Makefile \
 	contrib/Makefile \
 	snmplib/Makefile \
 	icons/Makefile \
 	errors/Makefile \
-	src/fs/aufs/Makefile \
-	src/fs/coss/Makefile \
-	src/fs/diskd/Makefile \
-	src/fs/null/Makefile \
-	src/fs/ufs/Makefile \
-	src/repl/heap/Makefile \
-	src/repl/lru/Makefile \
 	doc/Makefile \
 	helpers/Makefile \
 	helpers/basic_auth/Makefile \

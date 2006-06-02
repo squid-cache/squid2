@@ -75,7 +75,6 @@ am__remove_distdir = \
          && rm -fr $(distdir); }; }
 DIST_ARCHIVES = $(distdir).tar.gz $(distdir).tar.bz2
 GZIP_ENV = --best
-distuninstallcheck_listfiles = find . -type f -print
 distcleancheck_listfiles = find . -type f -print
 ACLOCAL = @ACLOCAL@
 ALLOCA = @ALLOCA@
@@ -257,6 +256,9 @@ EXTRA_DIST = \
 	README \
 	SPONSORS \
 	bootstrap.sh
+
+distuninstallcheck_listfiles = \
+	find . -name squid.conf -prune -o -name cachemgr.conf -prune -type f -print
 
 all: all-recursive
 
