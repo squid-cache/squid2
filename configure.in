@@ -857,6 +857,17 @@ AC_ARG_ENABLE(ipf-transparent,
 	address redirection. This provides "masquerading" support for non
 	Linux system.])
 	IPF_TRANSPARENT="yes"
+	dnl On Solaris Ipfilter includes expect that SOLARIS2 is defined with the
+	dnl Solaris minor version (8, 9, 10, ...)
+	case "$host" in
+	*-solaris*)
+	    solrev=`uname -r | sh -c 'IFS=. read j n x; echo $n'`
+	    CFLAGS="-DSOLARIS2=$solrev $CFLAGS" 
+	    ;;
+	*)
+	    ;;
+	esac
+
   fi
 ])
 
@@ -2323,17 +2334,6 @@ if test "$IPF_TRANSPARENT" = "no" ; then
     echo "WARNING: Cannot find necessary IP-Filter header files"
     echo "         Transparent Proxy support WILL NOT be enabled"
     sleep 10
-elif test "$IPF_TRANSPARENT" = "yes" ; then
-dnl On Solaris Ipfilter includes expect that SOLARIS2 is defined with the
-dnl Solaris minor version (8, 9, 10, ...)
-    case "$host" in
-	*-solaris*)
-	    solrev=`uname -r | sh -c 'IFS=. read j n x; echo $n'`
-	    CFLAGS="-DSOLARIS2=$solrev $CFLAGS" 
-	    ;;
-	*)
-	    ;;
-     esac
 fi
 
 dnl PF support requires a header file.
