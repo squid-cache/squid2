@@ -72,16 +72,12 @@ commDeferFD(int fd)
 {
     fde *F = &fd_table[fd];
 
-    /* die if we have no fd (very unlikely), if the fd has no existing epoll 
-     * state, if we are given a bad fd, or if the fd is not open. */
     assert(fd >= 0);
-    assert(F->epoll_state);
     assert(F->flags.open);
 
-    /* Return if the fd is already backed off */
-    if (F->epoll_backoff) {
+    if (F->epoll_backoff)
 	return;
-    }
+
     F->epoll_backoff = 1;
     commUpdateEvents(fd, 0);
 }
@@ -92,15 +88,13 @@ commResumeFD(int fd)
 {
     fde *F = &fd_table[fd];
 
+    assert(fd >= 0);
+    assert(F->flags.open);
+
     if (!F->epoll_backoff)
 	return;
 
     F->epoll_backoff = 0;
-
-    if (!F->read_handler) {
-	debug(5, 2) ("commResumeFD: fd=%d ignoring read_handler=%p\n", fd, F->read_handler);
-	return;
-    }
     commUpdateEvents(fd, 0);
 }
 
