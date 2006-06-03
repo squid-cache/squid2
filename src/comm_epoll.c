@@ -36,9 +36,11 @@
 
 static int MAX_POLL_TIME = 1000;	/* see also comm_quick_poll_required() */
 
+#define MAX_EVENTS	256	/* max events to process in one go */
+
 /* epoll structs */
 static int kdpfd;
-static struct epoll_event *pevents;
+static struct epoll_event events[MAX_EVENTS];
 static int epoll_fds = 0;
 
 static void checkTimeouts(void);
@@ -105,10 +107,6 @@ commResumeFD(int fd)
 void
 comm_select_init()
 {
-    pevents = (struct epoll_event *) xmalloc(SQUID_MAXFD * sizeof(struct epoll_event));
-    if (!pevents) {
-	fatalf("comm_select_init: xmalloc() failed: %s\n", xstrerror());
-    }
     kdpfd = epoll_create(SQUID_MAXFD);
     fd_open(kdpfd, FD_UNKNOWN, "epoll ctl");
     commSetCloseOnExec(kdpfd);
@@ -124,7 +122,6 @@ comm_select_shutdown()
     close(kdpfd);
     fd_close(kdpfd);
     kdpfd = -1;
-    safe_free(pevents);
 }
 
 void
@@ -297,7 +294,7 @@ comm_select(int msec)
 	checkTimeouts();
     }
     statCounter.syscalls.polls++;
-    num = epoll_wait(kdpfd, pevents, SQUID_MAXFD, msec);
+    num = epoll_wait(kdpfd, events, MAX_EVENTS, msec);
     statCounter.select_loops++;
 
     if (num < 0) {
@@ -311,7 +308,7 @@ comm_select(int msec)
     statHistCount(&statCounter.select_fds_hist, num);
 
     if (num > 0) {
-	for (i = 0, cevents = pevents; i < num; i++, cevents++) {
+	for (i = 0, cevents = events; i < num; i++, cevents++) {
 	    fd = cevents->data.fd;
 	    comm_call_handlers(fd, cevents->events & ~EPOLLOUT, cevents->events & ~EPOLLIN);
 	}
