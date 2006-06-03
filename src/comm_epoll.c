@@ -219,8 +219,18 @@ comm_call_handlers(int fd, int read_event, int write_event)
 		break;
 	    default:
 		debug(5, 8) ("comm_epoll(): Calling read handler on fd=%d\n", fd);
+#if SIMPLE_COMM_HANDLER
 		commUpdateReadHandler(fd, NULL, NULL);
 		hdl(fd, hdl_data);
+#else
+		/* Optimized version to avoid the fd bouncing in/out of the waited set */
+		F->read_handler = NULL;
+		F->read_data = NULL;
+		F->read_pending = COMM_PENDING_NORMAL;
+		hdl(fd, hdl_data);
+		if (F->flags.open && !F->read_handler)
+		    commUpdateEvents(fd, 0);
+#endif
 		statCounter.select_fds++;
 	    }
 	}
@@ -242,8 +252,18 @@ comm_call_handlers(int fd, int read_event, int write_event)
 	if (do_write) {
 	    PF *hdl = F->write_handler;
 	    void *hdl_data = F->write_data;
+#if SIMPLE_COMM_HANDLER
 	    commUpdateWriteHandler(fd, NULL, NULL);
 	    hdl(fd, hdl_data);
+#else
+	    /* Optimized version to avoid the fd bouncing in/out of the waited set */
+	    F->write_handler = NULL;
+	    F->write_data = NULL;
+	    F->write_pending = COMM_PENDING_NORMAL;
+	    hdl(fd, hdl_data);
+	    if (F->flags.open)
+		commUpdateEvents(fd, 0);
+#endif
 	    statCounter.select_fds++;
 	}
     }
@@ -258,6 +278,7 @@ comm_select(int msec)
     int fd;
     struct epoll_event *cevents;
     double timeout;
+    double start = current_dtime;
 
     timeout = current_dtime + (msec / 1000.0);
 
@@ -267,53 +288,41 @@ comm_select(int msec)
 	assert(shutting_down);
 	return COMM_SHUTDOWN;
     }
-    do {
-	double start = current_dtime;
+    /* Check for disk io callbacks */
+    storeDirCallback();
 
-	msec = timeout - current_dtime * 1000;
-	if (msec > MAX_POLL_TIME)
-	    msec = MAX_POLL_TIME;
-	if (msec < 0)
-	    msec = 0;
+    /* Check timeouts once per second */
+    if (last_timeout != squid_curtime) {
+	last_timeout = squid_curtime;
+	checkTimeouts();
+    }
+    statCounter.syscalls.polls++;
+    num = epoll_wait(kdpfd, pevents, SQUID_MAXFD, msec);
+    statCounter.select_loops++;
 
-	/* Check for disk io callbacks */
-	storeDirCallback();
+    if (num < 0) {
+	getCurrentTime();
+	if (ignoreErrno(errno))
+	    return COMM_OK;
 
-	/* Check timeouts once per second */
-	if (last_timeout != squid_curtime) {
-	    last_timeout = squid_curtime;
-	    checkTimeouts();
-	}
-	statCounter.syscalls.polls++;
-	num = epoll_wait(kdpfd, pevents, SQUID_MAXFD, msec);
-	statCounter.select_loops++;
+	debug(5, 1) ("comm_epoll: epoll failure: %s\n", xstrerror());
+	return COMM_ERROR;
+    }
+    statHistCount(&statCounter.select_fds_hist, num);
 
-	if (num < 0) {
-	    if (ignoreErrno(errno))
-		continue;
-	    debug(5, 1) ("comm_epoll: epoll failure: %s\n", xstrerror());
-
-	    return COMM_ERROR;
-	}
-	statHistCount(&statCounter.select_fds_hist, num);
-
-	if (num <= 0)
-	    break;
-
+    if (num > 0) {
 	for (i = 0, cevents = pevents; i < num; i++, cevents++) {
 	    fd = cevents->data.fd;
 	    comm_call_handlers(fd, cevents->events & ~EPOLLOUT, cevents->events & ~EPOLLIN);
 	}
-
 	getCurrentTime();
 	statCounter.select_time += (current_dtime - start);
 	return COMM_OK;
+    } else {
+	getCurrentTime();
+	debug(5, 8) ("comm_epoll: time out: %ld.\n", (long int) squid_curtime);
+	return COMM_TIMEOUT;
     }
-    while (getCurrentTime(), timeout > current_dtime);
-
-    getCurrentTime();
-    debug(5, 8) ("comm_epoll: time out: %ld.\n", (long int) squid_curtime);
-    return COMM_TIMEOUT;
 }
 
 static int
