@@ -39,9 +39,11 @@ static int MAX_POLL_TIME = 1000;	/* see also comm_quick_poll_required() */
 /* epoll structs */
 static int kdpfd;
 static struct epoll_event *pevents;
+static int epoll_fds = 0;
 
 static void checkTimeouts(void);
 static int commDeferRead(int fd);
+
 
 static const char *
 epolltype_atoi(int x)
@@ -171,131 +173,145 @@ commSetEvents(int fd, int need_read, int need_write, int force)
 	    debug(5, 1) ("commSetSelect: epoll_ctl(%s): failed on fd=%d: %s\n",
 		epolltype_atoi(epoll_ctl_type), fd, xstrerror());
 	}
+	switch (epoll_ctl_type) {
+	case EPOLL_CTL_ADD:
+	    epoll_fds++;
+	    break;
+	case EPOLL_CTL_DEL:
+	    epoll_fds--;
+	    break;
+	default:
+	    break;
+	}
+    }
+}
+
+static void
+comm_call_handlers(int fd, int read_event, int write_event)
+{
+    fde *F = &fd_table[fd];
+    debug(5, 8) ("comm_call_handlers(): got fd=%d read_event=%x write_event=%x F->read_handler=%p F->write_handler=%p\n"
+	,fd, read_event, write_event, F->read_handler, F->write_handler);
+    if (F->read_handler) {
+	int do_read = 0;
+	switch (F->read_pending) {
+	case COMM_PENDING_NORMAL:
+	case COMM_PENDING_WANTS_READ:
+	    do_read = read_event;
+	    break;
+	case COMM_PENDING_WANTS_WRITE:
+	    do_read = write_event;
+	    break;
+	case COMM_PENDING_NOW:
+	    do_read = 1;
+	    break;
+	}
+	if (do_read) {
+	    PF *hdl = F->read_handler;
+	    void *hdl_data = F->read_data;
+	    /* If the descriptor is meant to be deferred, don't handle */
+	    switch (commDeferRead(fd)) {
+	    case 1:
+		if (!(F->epoll_backoff)) {
+		    debug(5, 1) ("comm_epoll(): WARNING defer handler for fd=%d (desc=%s) does not call commDeferFD() - backing off manually\n", fd, F->desc);
+		    commDeferFD(fd);
+		}
+		break;
+	    default:
+		debug(5, 8) ("comm_epoll(): Calling read handler on fd=%d\n", fd);
+		commUpdateReadHandler(fd, NULL, NULL);
+		hdl(fd, hdl_data);
+		statCounter.select_fds++;
+	    }
+	}
+    }
+    if (F->write_handler) {
+	int do_write = 0;
+	switch (F->write_pending) {
+	case COMM_PENDING_WANTS_READ:
+	    do_write = read_event;
+	    break;
+	case COMM_PENDING_NORMAL:
+	case COMM_PENDING_WANTS_WRITE:
+	    do_write = write_event;
+	    break;
+	case COMM_PENDING_NOW:
+	    do_write = 1;
+	    break;
+	}
+	if (do_write) {
+	    PF *hdl = F->write_handler;
+	    void *hdl_data = F->write_data;
+	    commUpdateWriteHandler(fd, NULL, NULL);
+	    hdl(fd, hdl_data);
+	    statCounter.select_fds++;
+	}
     }
 }
 
 int
 comm_epoll(int msec)
 {
-    struct timespec ts;
     static time_t last_timeout = 0;
     int i;
     int num;
     int fd;
-    fde *F;
     struct epoll_event *cevents;
-    double timeout = current_dtime + (msec / 1000.0);
+    double timeout;
 
-    if (msec > MAX_POLL_TIME)
-	msec = MAX_POLL_TIME;
+    timeout = current_dtime + (msec / 1000.0);
 
     debug(50, 3) ("comm_epoll: timeout %d\n", msec);
 
+    if (epoll_fds == 0) {
+	assert(shutting_down);
+	return COMM_SHUTDOWN;
+    }
     do {
-	double start;
-	getCurrentTime();
-	start = current_dtime;
-	ts.tv_sec = msec / 1000;
-	ts.tv_nsec = (msec % 1000) * 1000;
+	double start = current_dtime;
 
-	/* Check timeouts once per second */
-	if (last_timeout < squid_curtime) {
-	    last_timeout = squid_curtime;
-	    checkTimeouts();
-	}
+	msec = timeout - current_dtime * 1000;
+	if (msec > MAX_POLL_TIME)
+	    msec = MAX_POLL_TIME;
+	if (msec < 0)
+	    msec = 0;
+
 	/* Check for disk io callbacks */
 	storeDirCallback();
 
-	for (;;) {
-	    statCounter.syscalls.polls++;
-	    num = epoll_wait(kdpfd, pevents, SQUID_MAXFD, msec);
-	    statCounter.select_loops++;
+	/* Check timeouts once per second */
+	if (last_timeout != squid_curtime) {
+	    last_timeout = squid_curtime;
+	    checkTimeouts();
+	}
+	statCounter.syscalls.polls++;
+	num = epoll_wait(kdpfd, pevents, SQUID_MAXFD, msec);
+	statCounter.select_loops++;
 
-	    if (num >= 0)
-		break;
-
+	if (num < 0) {
 	    if (ignoreErrno(errno))
-		break;
-
-	    debug(5, 0) ("comm_epoll: epoll failure: %s\n", xstrerror());
+		continue;
+	    debug(5, 1) ("comm_epoll: epoll failure: %s\n", xstrerror());
 
 	    return COMM_ERROR;
 	}
-
 	statHistCount(&statCounter.select_fds_hist, num);
 
 	if (num <= 0)
-	    continue;
+	    break;
 
 	for (i = 0, cevents = pevents; i < num; i++, cevents++) {
 	    fd = cevents->data.fd;
-	    F = &fd_table[fd];
-	    debug(5, 8) ("comm_epoll(): got fd=%d events=%x monitoring=%x F->read_handler=%p F->write_handler=%p\n"
-		,fd, cevents->events, F->epoll_state, F->read_handler, F->write_handler);
-	    if (F->read_handler) {
-		int do_read = 0;
-		switch (F->read_pending) {
-		case COMM_PENDING_NORMAL:
-		case COMM_PENDING_WANTS_READ:
-		    do_read = cevents->events & EPOLLIN;
-		    break;
-		case COMM_PENDING_WANTS_WRITE:
-		    do_read = cevents->events & EPOLLOUT;
-		    break;
-		case COMM_PENDING_NOW:
-		    do_read = 1;
-		    break;
-		}
-		do_read |= cevents->events & (EPOLLHUP | EPOLLERR);
-		if (do_read) {
-		    PF *hdl = F->read_handler;
-		    void *hdl_data = F->read_data;
-		    /* If the descriptor is meant to be deferred, don't handle */
-		    switch (commDeferRead(fd)) {
-		    case 1:
-			if (!(F->epoll_backoff)) {
-			    debug(5, 1) ("comm_epoll(): WARNING defer handler for fd=%d (desc=%s) does not call commDeferFD() - backing off manually\n", fd, F->desc);
-			    commDeferFD(fd);
-			}
-			break;
-		    default:
-			debug(5, 8) ("comm_epoll(): Calling read handler on fd=%d\n", fd);
-			commUpdateReadHandler(fd, NULL, NULL);
-			hdl(fd, hdl_data);
-			statCounter.select_fds++;
-		    }
-		}
-	    }
-	    if (F->write_handler) {
-		int do_write = 0;
-		switch (F->write_pending) {
-		case COMM_PENDING_WANTS_READ:
-		    do_write = cevents->events & EPOLLIN;
-		    break;
-		case COMM_PENDING_NORMAL:
-		case COMM_PENDING_WANTS_WRITE:
-		    do_write = cevents->events & EPOLLOUT;
-		    break;
-		case COMM_PENDING_NOW:
-		    do_write = 1;
-		    break;
-		}
-		do_write |= cevents->events & (EPOLLHUP | EPOLLERR);
-		if (do_write) {
-		    PF *hdl = F->write_handler;
-		    void *hdl_data = F->write_data;
-		    commUpdateWriteHandler(fd, NULL, NULL);
-		    hdl(fd, hdl_data);
-		    statCounter.select_fds++;
-		}
-	    }
+	    comm_call_handlers(fd, cevents->events & ~EPOLLOUT, cevents->events & ~EPOLLIN);
 	}
+
 	getCurrentTime();
 	statCounter.select_time += (current_dtime - start);
 	return COMM_OK;
     }
-    while (timeout > current_dtime);
+    while (getCurrentTime(), timeout > current_dtime);
 
+    getCurrentTime();
     debug(5, 8) ("comm_epoll: time out: %ld.\n", (long int) squid_curtime);
     return COMM_TIMEOUT;
 }
