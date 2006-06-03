@@ -701,7 +701,7 @@ helperHandleRead(int fd, void *data)
 	*t++ = '\0';
 	if (hlp->concurrency) {
 	    i = strtol(msg, &msg, 10);
-	    while (*msg && isspace(*msg))
+	    while (*msg && isspace((int) *msg))
 		msg++;
 	}
 	r = srv->requests[i];
