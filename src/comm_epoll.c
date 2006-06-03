@@ -250,7 +250,7 @@ comm_call_handlers(int fd, int read_event, int write_event)
 }
 
 int
-comm_epoll(int msec)
+comm_select(int msec)
 {
     static time_t last_timeout = 0;
     int i;

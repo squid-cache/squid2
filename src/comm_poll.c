@@ -280,7 +280,7 @@ comm_poll_http_incoming(void)
 
 /* poll all sockets; call handlers for those that are ready. */
 int
-comm_poll(int msec)
+comm_select(int msec)
 {
     struct pollfd pfds[SQUID_MAXFD];
 #if DELAY_POOLS
