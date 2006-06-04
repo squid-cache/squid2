@@ -343,11 +343,11 @@ clientCheckFollowXForwardedFor(void *data)
     clientHttpRequest *http = data;
 #if FOLLOW_X_FORWARDED_FOR
     if (Config.accessList.followXFF && httpHeaderHas(&http->request->header, HDR_X_FORWARDED_FOR)) {
-	clientFollowXForwardedForStart(data);
+	clientFollowXForwardedForStart(http);
 	return;
     }
 #endif
-    clientAccessCheck(data);
+    clientAccessCheck(http);
 }
 
 static void
