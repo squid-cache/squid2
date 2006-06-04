@@ -655,7 +655,7 @@ wccp2ConnectionOpen(void)
 	Config.Wccp2.address,
 	port,
 	COMM_NONBLOCKING,
-	"WCCP2 Socket");
+	"WCCPv2 Socket");
     if (theWccp2Connection < 0)
 	fatal("Cannot open WCCP Port");
     commSetSelect(theWccp2Connection,
@@ -663,7 +663,7 @@ wccp2ConnectionOpen(void)
 	wccp2HandleUdp,
 	NULL,
 	0);
-    debug(80, 1) ("Accepting WCCP v2 messages on port %d, FD %d.\n",
+    debug(80, 1) ("Accepting WCCPv2 messages on port %d, FD %d.\n",
 	(int) port, theWccp2Connection);
 
     debug(80, 1) ("Initialising all WCCPv2 lists\n");
@@ -805,7 +805,7 @@ wccp2HandleUdp(int sock, void *not_used)
     if (ntohl(wccp2_i_see_you.type) != WCCP2_I_SEE_YOU)
 	return;
 
-    debug(80, 3) ("Incoming WCCP v2 I_SEE_YOU length %d.\n", ntohs(wccp2_i_see_you.length));
+    debug(80, 3) ("Incoming WCCPv2 I_SEE_YOU length %d.\n", ntohs(wccp2_i_see_you.length));
 
     /* Record the total data length */
     data_length = ntohs(wccp2_i_see_you.length);
