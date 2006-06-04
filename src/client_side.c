@@ -3718,9 +3718,9 @@ clientReadRequest(int fd, void *data)
 		safe_free(prefix);
 		break;
 	    }
-	    if (conn->port->urlgroup)
-		request->urlgroup = xstrdup(conn->port->urlgroup);
-	    request->flags.accelerated = http->flags.accel;
+	    safe_free(prefix);
+	    safe_free(http->log_uri);
+	    http->log_uri = xstrdup(urlCanonicalClean(request));
 	    if (!http->flags.internal && internalCheck(strBuf(request->urlpath))) {
 		if (internalHostnameIs(request->host))
 		    http->flags.internal = 1;
@@ -3729,18 +3729,19 @@ clientReadRequest(int fd, void *data)
 		if (http->flags.internal) {
 		    request_t *old_request = requestLink(request);
 		    request = urlParse(method, internalStoreUri("", strBuf(request->urlpath)));
+		    httpHeaderAppend(&request->header, &old_request->header);
 		    requestUnlink(old_request);
 		}
 	    }
+	    if (conn->port->urlgroup)
+		request->urlgroup = xstrdup(conn->port->urlgroup);
+	    request->flags.accelerated = http->flags.accel;
 	    /*
 	     * cache the Content-length value in request_t.
 	     */
 	    request->content_length = httpHeaderGetSize(&request->header,
 		HDR_CONTENT_LENGTH);
 	    request->flags.internal = http->flags.internal;
-	    safe_free(prefix);
-	    safe_free(http->log_uri);
-	    http->log_uri = xstrdup(urlCanonicalClean(request));
 	    request->client_addr = conn->peer.sin_addr;
 	    request->client_port = conn->peer.sin_port;
 	    request->my_addr = conn->me.sin_addr;
