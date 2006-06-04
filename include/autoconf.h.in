@@ -39,6 +39,9 @@
 /* Traffic management via "delay pools". */
 #undef DELAY_POOLS
 
+/* Enable following X-Forwarded-For headers */
+#undef FOLLOW_X_FORWARDED_FOR
+
 /* Enable Forw/Via database */
 #undef FORW_VIA_DB
 
@@ -179,14 +182,8 @@
 /* Define to 1 if you have the <ip_nat.h> header file. */
 #undef HAVE_IP_NAT_H
 
-/* Define to 1 if you have the `44bsd' library (-l44bsd). */
-#undef HAVE_LIB44BSD
-
 /* Define to 1 if you have the `aio' library (-laio). */
 #undef HAVE_LIBAIO
-
-/* Define to 1 if you have the `bind' library (-lbind). */
-#undef HAVE_LIBBIND
 
 /* Define to 1 if you have the `bsd' library (-lbsd). */
 #undef HAVE_LIBBSD
@@ -214,9 +211,6 @@
 
 /* Define to 1 if you have the `pthread' library (-lpthread). */
 #undef HAVE_LIBPTHREAD
-
-/* Define to 1 if you have the `resolv' library (-lresolv). */
-#undef HAVE_LIBRESOLV
 
 /* Define to 1 if you have the `rt' library (-lrt). */
 #undef HAVE_LIBRT
@@ -604,9 +598,6 @@
 
 /* Support large cache files > 2GB */
 #undef LARGE_CACHE_FILES
-
-/* If libresolv.a has been hacked to export _dns_ttl_ */
-#undef LIBRESOLV_DNS_TTL_HACK
 
 /* Enable support for Transparent Proxy on Linux (Netfilter) systems */
 #undef LINUX_NETFILTER
