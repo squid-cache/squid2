@@ -378,6 +378,14 @@ struct rusage {
 #define S_ISDIR(mode) (((mode) & (_S_IFMT)) == (_S_IFDIR))
 #endif
 
+#ifndef PRId64
+#define PRId64	"lld"
+#endif
+
+#ifndef PRIu64
+#define PRIu64	"llu"
+#endif
+
 #ifdef USE_GNUREGEX
 #include "GNUregex.h"
 #elif HAVE_REGEX_H
@@ -522,13 +530,5 @@ struct rusage {
 #define VALGRIND_FREELIKE_BLOCK(a,b)
 #define RUNNING_ON_VALGRIND 0
 #endif /* WITH_VALGRIND */
-
-#ifndef PRId64
-#define PRId64	"lld"
-#endif
-
-#ifndef PRIu64
-#define PRIu64	"llu"
-#endif
 
 #endif /* SQUID_H */
