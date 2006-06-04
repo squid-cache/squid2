@@ -41,7 +41,7 @@ typedef unsigned int swap_status_t;
 typedef signed int sfileno;
 typedef signed int sdirno;
 
-#if SIZEOF_INT64_T > SIZEOF_LONG && defined(INT64_MAX) && HAVE_STRTOLL
+#if SIZEOF_INT64_T > SIZEOF_LONG && HAVE_STRTOLL
 typedef int64_t squid_off_t;
 #define SIZEOF_SQUID_OFF_T SIZEOF_INT64_T
 #define PRINTF_OFF_T PRId64

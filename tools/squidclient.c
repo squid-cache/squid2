@@ -85,7 +85,11 @@
 #define BUFSIZ 8192
 #endif
 
-#if SIZEOF_INT64_T > SIZEOF_LONG && defined(PRId64) && defined(INT64_MAX) && HAVE_STRTOLL
+#ifndef PRId64
+#define PRId64 "lld"
+#endif
+
+#if SIZEOF_INT64_T > SIZEOF_LONG && HAVE_STRTOLL
 typedef int64_t squid_off_t;
 #define SIZEOF_SQUID_OFF_T SIZEOF_INT64_T
 #define PRINTF_OFF_T PRId64
