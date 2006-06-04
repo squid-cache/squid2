@@ -523,4 +523,12 @@ struct rusage {
 #define RUNNING_ON_VALGRIND 0
 #endif /* WITH_VALGRIND */
 
+#ifndef PRId64
+#define PRId64	"lld"
+#endif
+
+#ifndef PRIu64
+#define PRIu64	"llu"
+#endif
+
 #endif /* SQUID_H */

@@ -542,8 +542,14 @@ storeDirGetBlkSize(const char *path, int *blksize)
 #define fsbtoblk(num, fsbs, bs) \
     (((fsbs) != 0 && (fsbs) < (bs)) ? \
             (num) / ((bs) / (fsbs)) : (num) * ((fsbs) / (bs)))
+
+#if HAVE_STATVFS
+int
+storeDirGetUFSStats(const char *path, fsblkcnt_t * totl_kb, fsblkcnt_t * free_kb, fsfilcnt_t * totl_in, fsfilcnt_t * free_in)
+#else
 int
 storeDirGetUFSStats(const char *path, int *totl_kb, int *free_kb, int *totl_in, int *free_in)
+#endif
 {
 #if HAVE_STATVFS
     struct statvfs sfs;
@@ -551,10 +557,10 @@ storeDirGetUFSStats(const char *path, int *totl_kb, int *free_kb, int *totl_in, 
 	debug(50, 1) ("%s: %s\n", path, xstrerror());
 	return 1;
     }
-    *totl_kb = (int) fsbtoblk(sfs.f_blocks, sfs.f_frsize, 1024);
-    *free_kb = (int) fsbtoblk(sfs.f_bfree, sfs.f_frsize, 1024);
-    *totl_in = (int) sfs.f_files;
-    *free_in = (int) sfs.f_ffree;
+    *totl_kb = fsbtoblk(sfs.f_blocks, sfs.f_frsize, 1024);
+    *free_kb = fsbtoblk(sfs.f_bfree, sfs.f_frsize, 1024);
+    *totl_in = sfs.f_files;
+    *free_in = sfs.f_ffree;
 #else
     struct statfs sfs;
     if (statfs(path, &sfs)) {

@@ -1018,7 +1018,13 @@ extern void storeDirCallback(void);
 extern void storeDirLRUDelete(StoreEntry *);
 extern void storeDirLRUAdd(StoreEntry *);
 extern int storeDirGetBlkSize(const char *path, int *blksize);
+
+#ifdef HAVE_STATVFS
+extern int storeDirGetUFSStats(const char *, fsblkcnt_t *, fsblkcnt_t *, fsfilcnt_t *, fsfilcnt_t *);
+#else
 extern int storeDirGetUFSStats(const char *, int *, int *, int *, int *);
+#endif
+
 
 /*
  * store_swapmeta.c

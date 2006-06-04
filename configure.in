@@ -2759,8 +2759,10 @@ AC_TRY_COMPILE([
 ],
 [
 struct statvfs sfs;
-sfs.f_blocks = sfs.f_bfree = sfs.f_frsize = 
-sfs.f_files = sfs.f_ffree = 0;
+fsblkcnt_t blocks;
+fsfilcnt_t files;
+blocks = sfs.f_blocks = sfs.f_bfree = sfs.f_frsize = 0;
+files = sfs.f_files = sfs.f_ffree = 0;
 statvfs("/tmp", &sfs);
 ],
   ac_cv_func_statvfs=yes,

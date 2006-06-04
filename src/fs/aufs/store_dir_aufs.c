@@ -1688,10 +1688,17 @@ void
 storeAufsDirStats(SwapDir * SD, StoreEntry * sentry)
 {
     squidaioinfo_t *aioinfo = SD->fsdata;
+#ifdef HAVE_STATVFS
+    fsblkcnt_t totl_kb;
+    fsblkcnt_t free_kb;
+    fsfilcnt_t totl_in;
+    fsfilcnt_t free_in;
+#else
     int totl_kb = 0;
     int free_kb = 0;
     int totl_in = 0;
     int free_in = 0;
+#endif
     int x;
     storeAppendPrintf(sentry, "First level subdirectories: %d\n", aioinfo->l1);
     storeAppendPrintf(sentry, "Second level subdirectories: %d\n", aioinfo->l2);
@@ -1704,6 +1711,16 @@ storeAufsDirStats(SwapDir * SD, StoreEntry * sentry)
 	percent(aioinfo->map->n_files_in_map, aioinfo->map->max_n_files));
     x = storeDirGetUFSStats(SD->path, &totl_kb, &free_kb, &totl_in, &free_in);
     if (0 == x) {
+#ifdef HAVE_STATVFS
+	storeAppendPrintf(sentry, "Filesystem Space in use: %llu/%llu KB (%.0f%%)\n",
+	    (unsigned long long) (totl_kb - free_kb),
+	    (unsigned long long) totl_kb,
+	    dpercent(totl_kb - free_kb, totl_kb));
+	storeAppendPrintf(sentry, "Filesystem Inodes in use: %llu/%llu (%.0f%%)\n",
+	    (unsigned long long) (totl_in - free_in),
+	    (unsigned long long) totl_in,
+	    dpercent(totl_in - free_in, totl_in));
+#else
 	storeAppendPrintf(sentry, "Filesystem Space in use: %d/%d KB (%d%%)\n",
 	    totl_kb - free_kb,
 	    totl_kb,
@@ -1712,6 +1729,7 @@ storeAufsDirStats(SwapDir * SD, StoreEntry * sentry)
 	    totl_in - free_in,
 	    totl_in,
 	    percent(totl_in - free_in, totl_in));
+#endif
     }
     storeAppendPrintf(sentry, "Flags:");
     if (SD->flags.selected)

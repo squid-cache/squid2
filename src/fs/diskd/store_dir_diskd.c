@@ -1965,10 +1965,17 @@ void
 storeDiskdDirStats(SwapDir * SD, StoreEntry * sentry)
 {
     diskdinfo_t *diskdinfo = SD->fsdata;
+#ifdef HAVE_STATVFS
+    fsblkcnt_t totl_kb = 0;
+    fsblkcnt_t free_kb = 0;
+    fsfilcnt_t totl_in = 0;
+    fsfilcnt_t free_in = 0;
+#else
     int totl_kb = 0;
     int free_kb = 0;
     int totl_in = 0;
     int free_in = 0;
+#endif
     int x;
     storeAppendPrintf(sentry, "First level subdirectories: %d\n", diskdinfo->l1);
     storeAppendPrintf(sentry, "Second level subdirectories: %d\n", diskdinfo->l2);
@@ -1981,6 +1988,16 @@ storeDiskdDirStats(SwapDir * SD, StoreEntry * sentry)
 	percent(diskdinfo->map->n_files_in_map, diskdinfo->map->max_n_files));
     x = storeDirGetUFSStats(SD->path, &totl_kb, &free_kb, &totl_in, &free_in);
     if (0 == x) {
+#ifdef HAVE_STATVFS
+	storeAppendPrintf(sentry, "Filesystem Space in use: %" PRIu64 "/%" PRIu64 " KB (%.0f%%)\n",
+	    (uint64_t) (totl_kb - free_kb),
+	    (uint64_t) totl_kb,
+	    dpercent(totl_kb - free_kb, totl_kb));
+	storeAppendPrintf(sentry, "Filesystem Inodes in use: %" PRIu64 "/%" PRIu64 " (%.0f%%)\n",
+	    (uint64_t) (totl_in - free_in),
+	    (uint64_t) totl_in,
+	    dpercent(totl_in - free_in, totl_in));
+#else
 	storeAppendPrintf(sentry, "Filesystem Space in use: %d/%d KB (%d%%)\n",
 	    totl_kb - free_kb,
 	    totl_kb,
@@ -1989,6 +2006,7 @@ storeDiskdDirStats(SwapDir * SD, StoreEntry * sentry)
 	    totl_in - free_in,
 	    totl_in,
 	    percent(totl_in - free_in, totl_in));
+#endif
     }
     storeAppendPrintf(sentry, "Flags:");
     if (SD->flags.selected)
