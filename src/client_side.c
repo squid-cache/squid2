@@ -128,6 +128,11 @@ static int clientGetsOldEntry(StoreEntry * new, StoreEntry * old, request_t * re
 #if USE_IDENT
 static IDCB clientIdentDone;
 #endif
+#if FOLLOW_X_FORWARDED_FOR
+static void clientFollowXForwardedForStart(void *data);
+static void clientFollowXForwardedForNext(void *data);
+static void clientFollowXForwardedForDone(int answer, void *data);
+#endif /* FOLLOW_X_FORWARDED_FOR */
 static int clientOnlyIfCached(clientHttpRequest * http);
 static STCB clientSendMoreData;
 static STCB clientSendMoreHeaderData;
@@ -189,6 +194,160 @@ clientAclChecklistCreate(const acl_access * acl, const clientHttpRequest * http)
     cbdataLock(ch->conn);
 
     return ch;
+}
+
+#if FOLLOW_X_FORWARDED_FOR
+/*
+ * clientFollowXForwardedForStart() copies the X-Forwarded-For
+ * header into x_forwarded_for_iterator and passes control to
+ * clientFollowXForwardedForNext().
+ *
+ * clientFollowXForwardedForNext() checks the indirect_client_addr
+ * against the followXFF ACL and passes the result to
+ * clientFollowXForwardedForDone().
+ *
+ * clientFollowXForwardedForDone() either grabs the next address
+ * from the tail of x_forwarded_for_iterator and loops back to
+ * clientFollowXForwardedForNext(), or cleans up and passes control to
+ * clientAccessCheck().
+ */
+
+static void
+clientFollowXForwardedForStart(void *data)
+{
+    clientHttpRequest *http = data;
+    request_t *request = http->request;
+    request->x_forwarded_for_iterator = httpHeaderGetList(
+	&request->header, HDR_X_FORWARDED_FOR);
+    debug(33, 5) ("clientFollowXForwardedForStart: indirect_client_addr=%s XFF='%s'\n",
+	inet_ntoa(request->indirect_client_addr),
+	strBuf(request->x_forwarded_for_iterator));
+    clientFollowXForwardedForNext(http);
+}
+
+static void
+clientFollowXForwardedForNext(void *data)
+{
+    clientHttpRequest *http = data;
+    request_t *request = http->request;
+    debug(33, 5) ("clientFollowXForwardedForNext: indirect_client_addr=%s XFF='%s'\n",
+	inet_ntoa(request->indirect_client_addr),
+	strBuf(request->x_forwarded_for_iterator));
+    if (strLen(request->x_forwarded_for_iterator) != 0) {
+	/* check the acl to see whether to believe the X-Forwarded-For header */
+	http->acl_checklist = clientAclChecklistCreate(
+	    Config.accessList.followXFF, http);
+	aclNBCheck(http->acl_checklist, clientFollowXForwardedForDone, http);
+    } else {
+	/* nothing left to follow */
+	debug(33, 5) ("clientFollowXForwardedForNext: nothing more to do\n");
+	clientFollowXForwardedForDone(-1, http);
+    }
+}
+
+static void
+clientFollowXForwardedForDone(int answer, void *data)
+{
+    clientHttpRequest *http = data;
+    request_t *request = http->request;
+    /*
+     * answer should be be ACCESS_ALLOWED or ACCESS_DENIED if we are
+     * called as a result of ACL checks, or -1 if we are called when
+     * there's nothing left to do.
+     */
+    if (answer == ACCESS_ALLOWED) {
+	/*
+	 * The IP address currently in request->indirect_client_addr
+	 * is trusted to use X-Forwarded-For.  Remove the last
+	 * comma-delimited element from x_forwarded_for_iterator and use
+	 * it to to replace indirect_client_addr, then repeat the cycle.
+	 */
+	const char *p;
+	const char *asciiaddr;
+	int l;
+	struct in_addr addr;
+	debug(33, 5) ("clientFollowXForwardedForDone: indirect_client_addr=%s is trusted\n",
+	    inet_ntoa(request->indirect_client_addr));
+	p = strBuf(request->x_forwarded_for_iterator);
+	l = strLen(request->x_forwarded_for_iterator);
+
+	/*
+	 * XXX x_forwarded_for_iterator should really be a list of
+	 * IP addresses, but it's a String instead.  We have to
+	 * walk backwards through the String, biting off the last
+	 * comma-delimited part each time.  As long as the data is in
+	 * a String, we should probably implement and use a variant of
+	 * strListGetItem() that walks backwards instead of forwards
+	 * through a comma-separated list.  But we don't even do that;
+	 * we just do the work in-line here.
+	 */
+	/* skip trailing space and commas */
+	while (l > 0 && (p[l - 1] == ',' || xisspace(p[l - 1])))
+	    l--;
+	strCut(request->x_forwarded_for_iterator, l);
+	/* look for start of last item in list */
+	while (l > 0 && !(p[l - 1] == ',' || xisspace(p[l - 1])))
+	    l--;
+	asciiaddr = p + l;
+	if (inet_aton(asciiaddr, &addr) == 0) {
+	    /* the address is not well formed; do not use it */
+	    debug(33, 3) ("clientFollowXForwardedForDone: malformed address '%s'\n",
+		asciiaddr);
+	    goto done;
+	}
+	debug(33, 3) ("clientFollowXForwardedForDone: changing indirect_client_addr from %s to '%s'\n",
+	    inet_ntoa(request->indirect_client_addr),
+	    asciiaddr);
+	request->indirect_client_addr = addr;
+	strCut(request->x_forwarded_for_iterator, l);
+	if (!Config.onoff.acl_uses_indirect_client) {
+	    /*
+	     * If acl_uses_indirect_client is off, then it's impossible
+	     * to follow more than one level of X-Forwarded-For.
+	     */
+	    goto done;
+	}
+	clientFollowXForwardedForNext(http);
+	return;
+    } else if (answer == ACCESS_DENIED) {
+	debug(33, 5) ("clientFollowXForwardedForDone: indirect_client_addr=%s not trusted\n",
+	    inet_ntoa(request->indirect_client_addr));
+    } else {
+	debug(33, 5) ("clientFollowXForwardedForDone: indirect_client_addr=%s nothing more to do\n",
+	    inet_ntoa(request->indirect_client_addr));
+    }
+  done:
+    /* clean up, and pass control to clientAccessCheck */
+    debug(33, 6) ("clientFollowXForwardedForDone: cleanup\n");
+    if (Config.onoff.log_uses_indirect_client) {
+	/*
+	 * Ensure that the access log shows the indirect client
+	 * instead of the direct client.
+	 */
+	ConnStateData *conn = http->conn;
+	conn->log_addr = request->indirect_client_addr;
+	conn->log_addr.s_addr &= Config.Addrs.client_netmask.s_addr;
+	debug(33, 3) ("clientFollowXForwardedForDone: setting log_addr=%s\n",
+	    inet_ntoa(conn->log_addr));
+    }
+    stringClean(&request->x_forwarded_for_iterator);
+    request->flags.done_follow_x_forwarded_for = 1;
+    http->acl_checklist = NULL;	/* XXX do we need to aclChecklistFree() ? */
+    clientAccessCheck(http);
+}
+#endif /* FOLLOW_X_FORWARDED_FOR */
+
+static void
+clientCheckFollowXForwardedFor(void *data)
+{
+    clientHttpRequest *http = data;
+#if FOLLOW_X_FORWARDED_FOR
+    if (Config.accessList.followXFF && httpHeaderHas(&http->request->header, HDR_X_FORWARDED_FOR)) {
+	clientFollowXForwardedForStart(data);
+	return;
+    }
+#endif
+    clientAccessCheck(data);
 }
 
 static void
@@ -448,6 +607,9 @@ clientRedirectDone(void *data, char *result)
 	httpHeaderAppend(&new_request->header, &old_request->header);
 	new_request->client_addr = old_request->client_addr;
 	new_request->client_port = old_request->client_port;
+#if FOLLOW_X_FORWARDED_FOR
+	new_request->indirect_client_addr = old_request->indirect_client_addr;
+#endif /* FOLLOW_X_FORWARDED_FOR */
 	new_request->my_addr = old_request->my_addr;
 	new_request->my_port = old_request->my_port;
 	new_request->client_port = old_request->client_port;
@@ -2855,7 +3017,7 @@ clientKeepaliveNextRequest(clientHttpRequest * http)
 	 */
 	/* if it was a pipelined CONNECT kick it alive here */
 	if (http->request->method == METHOD_CONNECT)
-	    clientAccessCheck(http);
+	    clientCheckFollowXForwardedFor(http);
     } else {
 	debug(33, 2) ("clientKeepaliveNextRequest: FD %d Sending next\n",
 	    conn->fd);
@@ -3744,6 +3906,9 @@ clientReadRequest(int fd, void *data)
 	    request->flags.internal = http->flags.internal;
 	    request->client_addr = conn->peer.sin_addr;
 	    request->client_port = conn->peer.sin_port;
+#if FOLLOW_X_FORWARDED_FOR
+	    request->indirect_client_addr = request->client_addr;
+#endif /* FOLLOW_X_FORWARDED_FOR */
 	    request->my_addr = conn->me.sin_addr;
 	    request->my_port = ntohs(conn->me.sin_port);
 	    request->client_port = ntohs(conn->peer.sin_port);
@@ -3794,7 +3959,7 @@ clientReadRequest(int fd, void *data)
 		/* Stop reading requests... */
 		commSetSelect(fd, COMM_SELECT_READ, NULL, NULL, 0);
 		if (conn->chr == http)
-		    clientAccessCheck(http);
+		    clientCheckFollowXForwardedFor(http);
 		else {
 		    debug(33, 1) ("WARNING: pipelined CONNECT request seen from %s\n", inet_ntoa(http->conn->peer.sin_addr));
 		    debugObj(33, 1, "Previous request:\n", conn->chr->request, (ObjPackMethod) & httpRequestPackDebug);
@@ -3802,7 +3967,7 @@ clientReadRequest(int fd, void *data)
 		}
 		break;
 	    } else {
-		clientAccessCheck(http);
+		clientCheckFollowXForwardedFor(http);
 	    }
 	} else if (parser_return_code == 0) {
 	    /*

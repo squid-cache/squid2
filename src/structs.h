@@ -668,6 +668,11 @@ struct _SquidConfig {
 	int check_hostnames;
 	int allow_underscore;
 	int cache_vary;
+#if FOLLOW_X_FORWARDED_FOR
+	int acl_uses_indirect_client;
+	int delay_pool_uses_indirect_client;
+	int log_uses_indirect_client;
+#endif
     } onoff;
 #if LINUX_TPROXY
     u_short tproxy_port;
@@ -698,6 +703,9 @@ struct _SquidConfig {
 #if USE_HTCP
 	acl_access *htcp;
 	acl_access *htcp_clr;
+#endif
+#if FOLLOW_X_FORWARDED_FOR
+	acl_access *followXFF;
 #endif
     } accessList;
     acl_deny_info_list *denyInfoList;
@@ -1774,6 +1782,11 @@ struct _request_flags {
     unsigned int reset_tcp:1;
     unsigned int must_keepalive:1;
     unsigned int pinned:1;	/* If set, this request is tightly tied to a client-side connection */
+#if FOLLOW_X_FORWARDED_FOR
+    /* XXX this flag could be eliminated;
+     * see comments in clientAccessCheck */
+    unsigned int done_follow_x_forwarded_for;
+#endif
 };
 
 struct _link_list {
@@ -1822,6 +1835,9 @@ struct _request_t {
     /* these in_addr's could probably be sockaddr_in's */
     in_port_t client_port;
     struct in_addr client_addr;
+#if FOLLOW_X_FORWARDED_FOR
+    struct in_addr indirect_client_addr;	/* after following X-Forwarded-For */
+#endif				/* FOLLOW_X_FORWARDED_FOR */
     struct in_addr my_addr;
     unsigned short my_port;
     HttpHeader header;
@@ -1844,6 +1860,11 @@ struct _request_t {
     String extacl_log;		/* String to be used for access.log purposes */
     const char *extacl_user;	/* User name returned by extacl lookup */
     const char *extacl_passwd;	/* Password returned by extacl lookup */
+#if FOLLOW_X_FORWARDED_FOR
+    /* XXX a list of IP addresses would be a better data structure
+     * than this String */
+    String x_forwarded_for_iterator;
+#endif				/* FOLLOW_X_FORWARDED_FOR */
 };
 
 struct _cachemgr_passwd {
