@@ -975,7 +975,7 @@ dnl   The 'sun' define is needed by ipfilter includes, so we must remove -Usun
 		    echo "Removing -Xa for gcc on $host"
 		    CFLAGS="`echo $CFLAGS | sed -e 's/-Xa//'`"
 		fi
-   	        echo "Removing -Usun for gcc on $host"
+   	        echo "Removing -Usun on $host"
 		CFLAGS="`echo $CFLAGS | sed -e 's/-Usun//'`"
 		;;
 	    *)
