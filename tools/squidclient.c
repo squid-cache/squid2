@@ -89,7 +89,13 @@
 #endif
 
 #ifndef PRId64
+#ifdef _SQUID_MSWIN_		/* Windows native port using MSVCRT */
+#define PRId64 "I64d"
+#elif SIZEOF_INT64_T > SIZEOF_LONG
 #define PRId64 "lld"
+#else
+#define PRId64 "ld"
+#endif
 #endif
 
 #if SIZEOF_INT64_T > SIZEOF_LONG && HAVE_STRTOLL
