@@ -35,6 +35,9 @@
 
 #include "config.h"
 
+#if HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
 #ifdef _SQUID_WIN32_
 #include <io.h>
 #endif
