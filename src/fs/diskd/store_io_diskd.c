@@ -175,6 +175,7 @@ storeDiskdClose(SwapDir * SD, storeIOState * sio)
     diskdstate_t *diskdstate = sio->fsstate;
     debug(79, 3) ("storeDiskdClose: dirno %d, fileno %08X\n", SD->index,
 	sio->swap_filen);
+    diskdstate->flags.close_request = 1;
     x = storeDiskdSend(_MQD_CLOSE,
 	SD,
 	diskdstate->id,
@@ -186,7 +187,6 @@ storeDiskdClose(SwapDir * SD, storeIOState * sio)
 	debug(79, 1) ("storeDiskdSend CLOSE: %s\n", xstrerror());
 	storeDiskdIOCallback(sio, DISK_ERROR);
     }
-    diskdstate->flags.close_request = 1;
     diskd_stats.close.ops++;
 }
 
