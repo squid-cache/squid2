@@ -1606,6 +1606,9 @@ struct _store_client {
     delay_id delay_id;
 #endif
     dlink_node node;
+#if STORE_CLIENT_LIST_DEBUG
+    void *owner;
+#endif
 };
 
 

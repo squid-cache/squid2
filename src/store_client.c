@@ -58,7 +58,7 @@ storeClientListSearch(const MemObject * mem, void *data)
     store_client *sc = NULL;
     for (node = mem->clients.head; node; node = node->next) {
 	sc = node->data;
-	if (sc->callback_data == data)
+	if (sc->owner == data)
 	    return sc;
     }
     return NULL;
@@ -111,20 +111,19 @@ storeClientListAdd(StoreEntry * e, void *data)
     MemObject *mem = e->mem_obj;
     store_client *sc;
     assert(mem);
-#if STORE_CLIENT_LIST_DEBUG
-    if (storeClientListSearch(mem, data) != NULL)
-	assert(1 == 0);		/* XXX die! */
-#endif
     e->refcount++;
     mem->nclients++;
     sc = cbdataAlloc(store_client);
-    cbdataLock(data);		/* locked while we point to it */
-    sc->callback_data = data;
+    sc->callback_data = NULL;
     sc->seen_offset = 0;
     sc->copy_offset = 0;
     sc->flags.disk_io_pending = 0;
     sc->entry = e;
     sc->type = storeClientType(e);
+#if STORE_CLIENT_LIST_DEBUG
+    sc->owner = data;
+    assert(!storeClientListSearch(mem, data));
+#endif
     dlinkAdd(sc, &sc->node, &mem->clients);
 #if DELAY_POOLS
     sc->delay_id = 0;
@@ -136,12 +135,15 @@ static void
 storeClientCallback(store_client * sc, ssize_t sz)
 {
     STCB *callback = sc->callback;
+    void *cbdata = sc->callback_data;
     char *buf = sc->copy_buf;
     assert(sc->callback);
     sc->callback = NULL;
+    sc->callback_data = NULL;
     sc->copy_buf = NULL;
-    if (cbdataValid(sc->callback_data))
-	callback(sc->callback_data, buf, sz);
+    if (cbdataValid(cbdata))
+	callback(cbdata, buf, sz);
+    cbdataUnlock(cbdata);
 }
 
 static void
@@ -182,6 +184,8 @@ storeClientCopy(store_client * sc,
     assert(sc->entry == e);
     sc->seen_offset = seen_offset;
     sc->callback = callback;
+    sc->callback_data = data;
+    cbdataLock(sc->callback_data);
     sc->copy_buf = buf;
     sc->copy_size = size;
     sc->copy_offset = copy_offset;
@@ -530,7 +534,6 @@ storeUnregister(store_client * sc, StoreEntry * e, void *data)
 #if DELAY_POOLS
     delayUnregisterDelayIdPtr(&sc->delay_id);
 #endif
-    cbdataUnlock(sc->callback_data);	/* we're done with it now */
     /*assert(!sc->flags.disk_io_pending); */
     cbdataFree(sc);
     assert(e->lock_count > 0);
@@ -553,8 +556,6 @@ storeLowestMemReaderOffset(const StoreEntry * entry)
     for (node = mem->clients.head; node; node = nx) {
 	sc = node->data;
 	nx = node->next;
-	if (sc->callback_data == NULL)	/* open slot */
-	    continue;
 	if (sc->copy_offset > highest)
 	    highest = sc->copy_offset;
 	if (mem->swapout.sio != NULL && sc->type != STORE_MEM_CLIENT)
@@ -583,8 +584,6 @@ InvokeHandlers(StoreEntry * e)
 	sc = node->data;
 	nx = node->next;
 	debug(20, 3) ("InvokeHandlers: checking client #%d\n", i++);
-	if (sc->callback_data == NULL)
-	    continue;
 	if (sc->callback == NULL)
 	    continue;
 	if (sc->flags.disk_io_pending)
