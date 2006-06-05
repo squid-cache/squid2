@@ -694,6 +694,7 @@ clientHandleETagMiss(clientHttpRequest * http)
     safe_free(request->vary_hdr);
     storeUnregister(http->sc, entry, http);
     storeUnlockObject(entry);
+    http->entry = NULL;
     clientProcessRequest(http);
 }
 
