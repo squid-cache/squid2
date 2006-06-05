@@ -244,7 +244,6 @@ httpReplySetHeaders(HttpReply * reply, http_version_t ver, http_status status, c
     httpStatusLineSet(&reply->sline, ver, status, reason);
     hdr = &reply->header;
     httpHeaderPutStr(hdr, HDR_SERVER, visible_appname_string);
-    httpHeaderPutStr(hdr, HDR_MIME_VERSION, "1.0");
     httpHeaderPutTime(hdr, HDR_DATE, squid_curtime);
     if (ctype) {
 	httpHeaderPutStr(hdr, HDR_CONTENT_TYPE, ctype);
@@ -261,6 +260,7 @@ httpReplySetHeaders(HttpReply * reply, http_version_t ver, http_status status, c
     reply->content_length = clen;
     reply->expires = expires;
     reply->last_modified = lmt;
+    reply->pstate = psParsed;
 }
 
 void
@@ -278,6 +278,7 @@ httpRedirectReply(HttpReply * reply, http_status status, const char *loc)
     httpHeaderPutStr(hdr, HDR_LOCATION, loc);
     reply->date = squid_curtime;
     reply->content_length = 0;
+    reply->pstate = psParsed;
 }
 
 void
