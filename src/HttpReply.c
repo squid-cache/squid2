@@ -116,7 +116,7 @@ httpReplyReset(HttpReply * rep)
 }
 
 /* absorb: copy the contents of a new reply to the old one, destroy new one */
-void
+static void
 httpReplyAbsorb(HttpReply * rep, HttpReply * new_rep)
 {
     assert(rep && new_rep);
@@ -182,16 +182,21 @@ httpReplyPack(const HttpReply * rep)
     return mb;
 }
 
-/* swap: create swap-based packer, pack, destroy packer */
+/* swap: create swap-based packer, pack, destroy packer. Absorbs the reply */
 void
-httpReplySwapOut(const HttpReply * rep, StoreEntry * e)
+httpReplySwapOut(HttpReply * rep, StoreEntry * e)
 {
     Packer p;
     assert(rep && e);
 
+    if (rep != e->mem_obj->reply) {
+	httpReplyAbsorb(e->mem_obj->reply, rep);
+	rep = e->mem_obj->reply;
+    }
     packerToStoreInit(&p, e);
-    httpReplyPackInto(rep, &p);
+    httpReplyPackInto(e->mem_obj->reply, &p);
     packerClean(&p);
+    rep->hdr_sz = e->mem_obj->inmem_hi;
 }
 
 #if UNUSED_CODE

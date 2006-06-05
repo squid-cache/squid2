@@ -3416,7 +3416,6 @@ clientProcessMiss(clientHttpRequest * http)
 	storeReleaseRequest(http->entry);
 	httpRedirectReply(rep, http->redirect.status, http->redirect.location);
 	httpReplySwapOut(rep, http->entry);
-	httpReplyAbsorb(http->entry->mem_obj->reply, rep);
 	storeComplete(http->entry);
 	return;
     }

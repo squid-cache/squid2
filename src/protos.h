@@ -467,16 +467,14 @@ extern HttpReply *httpReplyCreate(void);
 extern void httpReplyDestroy(HttpReply * rep);
 /* reset: clean, then init */
 extern void httpReplyReset(HttpReply * rep);
-/* absorb: copy the contents of a new reply to the old one, destroy new one */
-extern void httpReplyAbsorb(HttpReply * rep, HttpReply * new_rep);
 /* parse returns -1,0,+1 on error,need-more-data,success */
 extern int httpReplyParse(HttpReply * rep, const char *buf, size_t);
 extern void httpReplyPackInto(const HttpReply * rep, Packer * p);
 /* ez-routines */
 /* mem-pack: returns a ready to use mem buffer with a packed reply */
 extern MemBuf httpReplyPack(const HttpReply * rep);
-/* swap: create swap-based packer, pack, destroy packer */
-extern void httpReplySwapOut(const HttpReply * rep, StoreEntry * e);
+/* swap: create swap-based packer, pack, destroy packer and absorbs the reply if not the same as the object reply */
+extern void httpReplySwapOut(HttpReply * rep, StoreEntry * e);
 /* set commonly used info with one call */
 extern void httpReplySetHeaders(HttpReply * rep, http_version_t ver, http_status status,
     const char *reason, const char *ctype, squid_off_t clen, time_t lmt, time_t expires);

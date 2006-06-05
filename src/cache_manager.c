@@ -236,10 +236,8 @@ cachemgrStart(int fd, request_t * request, StoreEntry * entry)
 	 * password depends on action
 	 */
 	httpHeaderPutAuth(&rep->header, "Basic", mgr->action);
-	/* move info to the mem_obj->reply */
-	httpReplyAbsorb(entry->mem_obj->reply, rep);
 	/* store the reply */
-	httpReplySwapOut(entry->mem_obj->reply, entry);
+	httpReplySwapOut(rep, entry);
 	entry->expires = squid_curtime;
 	storeComplete(entry);
 	cachemgrStateFree(mgr);

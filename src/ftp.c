@@ -158,7 +158,7 @@ static void ftpLoginParser(const char *, FtpStateData *, int escaped);
 static wordlist *ftpParseControlReply(char *, size_t, int *, int *);
 static int ftpRestartable(FtpStateData * ftpState);
 static void ftpAppendSuccessHeader(FtpStateData * ftpState);
-static void ftpAuthRequired(HttpReply * reply, request_t * request, const char *realm);
+static HttpReply *ftpAuthRequired(request_t * request, const char *realm);
 static void ftpHackShortcut(FtpStateData * ftpState, FTPSM * nextState);
 static void ftpUnhack(FtpStateData * ftpState);
 static void ftpScheduleReadControlReply(FtpStateData *, int);
@@ -1135,11 +1135,8 @@ ftpStart(FwdState * fwd)
 	    snprintf(realm, 8192, "ftp %s port %d",
 		ftpState->user, request->port);
 	}
-	/* create reply */
-	reply = entry->mem_obj->reply;
-	assert(reply != NULL);
 	/* create appropriate reply */
-	ftpAuthRequired(reply, request, realm);
+	reply = ftpAuthRequired(request, realm);
 	httpReplySwapOut(reply, entry);
 	fwdComplete(ftpState->fwd);
 	comm_close(fd);
@@ -2611,8 +2608,8 @@ ftpAppendSuccessHeader(FtpStateData * ftpState)
     }
 }
 
-static void
-ftpAuthRequired(HttpReply * old_reply, request_t * request, const char *realm)
+static HttpReply *
+ftpAuthRequired(request_t * request, const char *realm)
 {
     ErrorState *err = errorCon(ERR_CACHE_ACCESS_DENIED, HTTP_UNAUTHORIZED);
     HttpReply *rep;
@@ -2621,8 +2618,7 @@ ftpAuthRequired(HttpReply * old_reply, request_t * request, const char *realm)
     errorStateFree(err);
     /* add Authenticate header */
     httpHeaderPutAuth(&rep->header, "Basic", realm);
-    /* move new reply to the old one */
-    httpReplyAbsorb(old_reply, rep);
+    return rep;
 }
 
 char *
