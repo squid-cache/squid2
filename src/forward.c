@@ -118,7 +118,7 @@ fwdStateFree(FwdState * fwdState)
     fwdState->request = NULL;
     if (fwdState->err)
 	errorStateFree(fwdState->err);
-    storeUnregisterAbort(e);
+    storeClientUnregisterAbort(e);
     storeUnlockObject(e);
     fwdState->entry = NULL;
     sfd = fwdState->server_fd;

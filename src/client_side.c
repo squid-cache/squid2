@@ -394,7 +394,7 @@ clientCreateStoreEntry(clientHttpRequest * h, method_t m, request_flags flags)
     if (h->request == NULL)
 	h->request = requestLink(requestCreate(m, PROTO_NONE, null_string));
     e = storeCreateEntry(h->uri, h->log_uri, flags, m);
-    h->sc = storeClientListAdd(e, h);
+    h->sc = storeClientRegister(e, h);
 #if DELAY_POOLS
     if (h->log_type != LOG_TCP_DENIED)
 	delaySetStoreClient(h->sc, delayClient(h));
@@ -692,7 +692,7 @@ clientHandleETagMiss(clientHttpRequest * http)
     safe_free(request->etag);
     safe_free(request->vary_headers);
     safe_free(request->vary_hdr);
-    storeUnregister(http->sc, entry, http);
+    storeClientUnregister(http->sc, entry, http);
     storeUnlockObject(entry);
     http->entry = NULL;
     clientProcessRequest(http);
@@ -764,7 +764,7 @@ clientProcessETag(clientHttpRequest * http)
 	http->log_uri,
 	http->request->flags,
 	http->request->method);
-    http->sc = storeClientListAdd(entry, http);
+    http->sc = storeClientRegister(entry, http);
 #if DELAY_POOLS
     /* delay_id is already set on original store client */
     delaySetStoreClient(http->sc, delayClient(http));
@@ -844,7 +844,7 @@ clientProcessExpired(void *data)
 	}
     }
     /* NOTE, don't call storeLockObject(), storeCreateEntry() does it */
-    http->sc = storeClientListAdd(entry, http);
+    http->sc = storeClientRegister(entry, http);
 #if DELAY_POOLS
     /* delay_id is already set on original store client */
     delaySetStoreClient(http->sc, delayClient(http));
@@ -953,7 +953,7 @@ clientHandleIMSReply(void *data, char *buf, ssize_t size)
 	/* We have an existing entry, but failed to validate it */
 	/* Its okay to send the old one anyway */
 	http->log_type = LOG_TCP_REFRESH_FAIL_HIT;
-	storeUnregister(http->sc, entry, http);
+	storeClientUnregister(http->sc, entry, http);
 	storeUnlockObject(entry);
 	entry = http->entry = http->old_entry;
 	http->sc = http->old_sc;
@@ -964,7 +964,7 @@ clientHandleIMSReply(void *data, char *buf, ssize_t size)
 	    debug(33, 3) ("clientHandleIMSReply: Reply is too large '%s', using old entry\n", url);
 	    /* use old entry, this repeats the code abovez */
 	    http->log_type = LOG_TCP_REFRESH_FAIL_HIT;
-	    storeUnregister(http->sc, entry, http);
+	    storeClientUnregister(http->sc, entry, http);
 	    storeUnlockObject(entry);
 	    entry = http->entry = http->old_entry;
 	    http->sc = http->old_sc;
@@ -995,7 +995,7 @@ clientHandleIMSReply(void *data, char *buf, ssize_t size)
 	 * not the body they refer to.  */
 	httpReplyUpdateOnNotModified(oldentry->mem_obj->reply, mem->reply);
 	storeTimestampsSet(oldentry);
-	storeUnregister(http->sc, entry, http);
+	storeClientUnregister(http->sc, entry, http);
 	http->sc = http->old_sc;
 	storeUnlockObject(entry);
 	entry = http->entry = oldentry;
@@ -1014,7 +1014,7 @@ clientHandleIMSReply(void *data, char *buf, ssize_t size)
 	    storeTimestampsSet(http->old_entry);
 	    http->log_type = LOG_TCP_REFRESH_HIT;
 	}
-	storeUnregister(http->old_sc, http->old_entry, http);
+	storeClientUnregister(http->old_sc, http->old_entry, http);
 	storeUnlockObject(http->old_entry);
 	recopy = 0;
     }
@@ -1110,7 +1110,7 @@ clientPurgeRequest(clientHttpRequest * http)
 	    storeLockObject(http->entry);
 	    storeCreateMemObject(http->entry, http->uri, http->log_uri);
 	    http->entry->mem_obj->method = http->request->method;
-	    http->sc = storeClientListAdd(http->entry, http);
+	    http->sc = storeClientRegister(http->entry, http);
 	    http->log_type = LOG_TCP_HIT;
 	    storeClientCopy(http->sc, http->entry,
 		http->out.offset,
@@ -1343,7 +1343,7 @@ httpRequestFree(void *data)
     }
     if ((e = http->entry)) {
 	http->entry = NULL;
-	storeUnregister(http->sc, e, http);
+	storeClientUnregister(http->sc, e, http);
 	http->sc = NULL;
 	storeUnlockObject(e);
     }
@@ -1351,7 +1351,7 @@ httpRequestFree(void *data)
      * code in clientHandleIMSReply() */
     if ((e = http->old_entry)) {
 	http->old_entry = NULL;
-	storeUnregister(http->old_sc, e, http);
+	storeClientUnregister(http->old_sc, e, http);
 	http->old_sc = NULL;
 	storeUnlockObject(e);
     }
@@ -2031,7 +2031,7 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	http->log_type = LOG_TCP_SWAPFAIL_MISS;
 	if ((e = http->entry)) {
 	    http->entry = NULL;
-	    storeUnregister(http->sc, e, http);
+	    storeClientUnregister(http->sc, e, http);
 	    http->sc = NULL;
 	    storeUnlockObject(e);
 	}
@@ -2084,14 +2084,14 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	    store_client *sc = http->sc;
 	    http->entry = NULL;	/* saved in e */
 	    memFree(buf, MEM_CLIENT_SOCK_BUF);
-	    /* Warning: storeUnregister may abort the object so we must
+	    /* Warning: storeClientUnregister may abort the object so we must
 	     * call storeLocateVary before unregistering, and
 	     * storeLocateVary may complete immediately so we cannot
 	     * rely on the http structure for this...
 	     */
 	    http->sc = NULL;
 	    storeLocateVary(e, e->mem_obj->reply->hdr_sz, r->vary_headers, clientProcessVary, http);
-	    storeUnregister(sc, e, http);
+	    storeClientUnregister(sc, e, http);
 	    storeUnlockObject(e);
 	    /* Note: varyEvalyateMatch updates the request with vary information
 	     * so we only get here once. (it also takes care of cancelling loops)
@@ -2109,7 +2109,7 @@ clientCacheHit(void *data, char *buf, ssize_t size)
     if (r->method == METHOD_PURGE) {
 	memFree(buf, MEM_CLIENT_SOCK_BUF);
 	http->entry = NULL;
-	storeUnregister(http->sc, e, http);
+	storeClientUnregister(http->sc, e, http);
 	http->sc = NULL;
 	storeUnlockObject(e);
 	clientPurgeRequest(http);
@@ -2259,7 +2259,7 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	MemBuf mb = httpPacked304Reply(e->mem_obj->reply);
 	http->log_type = LOG_TCP_IMS_HIT;
 	memFree(buf, MEM_CLIENT_SOCK_BUF);
-	storeUnregister(http->sc, e, http);
+	storeClientUnregister(http->sc, e, http);
 	http->sc = NULL;
 	storeUnlockObject(e);
 	e = clientCreateStoreEntry(http, http->request->method, null_request_flags);
@@ -2615,7 +2615,7 @@ clientSendMoreHeaderData(void *data, char *buf, ssize_t size)
     if (http->log_type != LOG_TCP_DENIED && clientReplyBodyTooLarge(http, rep->content_length)) {
 	ErrorState *err = errorCon(ERR_TOO_BIG, HTTP_FORBIDDEN);
 	err->request = requestLink(http->orig_request);
-	storeUnregister(http->sc, http->entry, http);
+	storeClientUnregister(http->sc, http->entry, http);
 	http->sc = NULL;
 	storeUnlockObject(http->entry);
 	http->log_type = LOG_TCP_DENIED;
@@ -2777,7 +2777,7 @@ clientHttpReplyAccessCheckDone(int answer, void *data)
 	    page_id = ERR_ACCESS_DENIED;
 	err = errorCon(page_id, HTTP_FORBIDDEN);
 	err->request = requestLink(http->orig_request);
-	storeUnregister(http->sc, http->entry, http);
+	storeClientUnregister(http->sc, http->entry, http);
 	http->sc = NULL;
 	storeUnlockObject(http->entry);
 	http->log_type = LOG_TCP_DENIED;
@@ -2801,12 +2801,12 @@ clientCheckErrorMapDone(StoreEntry * e, int body_offset, squid_off_t content_len
     if (e) {
 	clientHttpRequest *http = state->http;
 	/* Get rid of the old request entry */
-	storeUnregister(http->sc, http->entry, http);
+	storeClientUnregister(http->sc, http->entry, http);
 	storeUnlockObject(http->entry);
 	/* Attach ourselves to the new request entry */
 	http->entry = e;
 	storeLockObject(e);
-	http->sc = storeClientListAdd(http->entry, http);
+	http->sc = storeClientRegister(http->entry, http);
 	/* Adjust the header size */
 	state->http->reply->hdr_sz = body_offset;
 	/* Clean up any old body content */
@@ -3144,7 +3144,7 @@ clientProcessOnlyIfCachedMiss(clientHttpRequest * http)
     err->request = requestLink(http->orig_request);
     err->src_addr = http->conn->peer.sin_addr;
     if (http->entry) {
-	storeUnregister(http->sc, http->entry, http);
+	storeClientUnregister(http->sc, http->entry, http);
 	http->sc = NULL;
 	storeUnlockObject(http->entry);
     }
@@ -3338,7 +3338,7 @@ clientProcessRequest(clientHttpRequest * http)
 	}
 	storeCreateMemObject(http->entry, http->uri, http->log_uri);
 	http->entry->mem_obj->method = r->method;
-	http->sc = storeClientListAdd(http->entry, http);
+	http->sc = storeClientRegister(http->entry, http);
 #if DELAY_POOLS
 	delaySetStoreClient(http->sc, delayClient(http));
 #endif
@@ -3380,7 +3380,7 @@ clientProcessMiss(clientHttpRequest * http)
 	/* touch timestamp for refresh_stale_hit */
 	if (http->entry->mem_obj)
 	    http->entry->mem_obj->refresh_timestamp = squid_curtime;
-	storeUnregister(http->sc, http->entry, http);
+	storeClientUnregister(http->sc, http->entry, http);
 	http->sc = NULL;
 	storeUnlockObject(http->entry);
 	http->entry = NULL;

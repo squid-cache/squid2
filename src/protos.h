@@ -906,7 +906,7 @@ extern int expiresMoreThan(time_t, time_t);
 extern int storeEntryValidToSend(StoreEntry *);
 extern void storeTimestampsSet(StoreEntry *);
 extern void storeRegisterAbort(StoreEntry * e, STABH * cb, void *);
-extern void storeUnregisterAbort(StoreEntry * e);
+extern void storeClientUnregisterAbort(StoreEntry * e);
 extern void storeMemObjectDump(MemObject * mem);
 extern void storeEntryDump(const StoreEntry * e, int debug_lvl);
 extern const char *storeUrl(const StoreEntry *);
@@ -1055,13 +1055,10 @@ extern squid_off_t storeSwapOutObjectBytesOnDisk(const MemObject * mem);
 /*
  * store_client.c
  */
-#if STORE_CLIENT_LIST_DEBUG
-extern store_client *storeClientListSearch(const MemObject * mem, void *data);
-#endif
-extern store_client *storeClientListAdd(StoreEntry * e, void *data);
+extern store_client *storeClientRegister(StoreEntry * e, void *data);
 extern void storeClientCopy(store_client *, StoreEntry *, squid_off_t, squid_off_t, size_t, char *, STCB *, void *);
 extern int storeClientCopyPending(store_client *, StoreEntry * e, void *data);
-extern int storeUnregister(store_client * sc, StoreEntry * e, void *data);
+extern int storeClientUnregister(store_client * sc, StoreEntry * e, void *data);
 extern squid_off_t storeLowestMemReaderOffset(const StoreEntry * entry);
 extern void InvokeHandlers(StoreEntry * e);
 extern int storePendingNClients(const StoreEntry * e);

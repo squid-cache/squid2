@@ -89,7 +89,7 @@ CBDATA_TYPE(ErrorMapState);
 static void
 errorMapFetchComplete(ErrorMapState * state)
 {
-    storeUnregister(state->sc, state->e, state);
+    storeClientUnregister(state->sc, state->e, state);
     state->sc = NULL;
     storeUnlockObject(state->e);
     state->e = NULL;
@@ -186,7 +186,7 @@ errorMapStart(const errormap * map, request_t * client_req, HttpReply * reply, c
     state = cbdataAlloc(ErrorMapState);
     state->req = requestLink(req);
     state->e = storeCreateEntry(errorUrl, errorUrl, req->flags, req->method);
-    state->sc = storeClientListAdd(state->e, state);
+    state->sc = storeClientRegister(state->e, state);
     state->callback = callback;
     state->callback_data = callback_data;
     cbdataLock(callback_data);

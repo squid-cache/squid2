@@ -427,7 +427,7 @@ free_AddVaryState(void *data)
     storeUnlockObject(state->e);
     state->e = NULL;
     if (state->sc) {
-	storeUnregister(state->sc, state->oe, state);
+	storeClientUnregister(state->sc, state->oe, state);
 	state->sc = NULL;
     }
     if (state->oe) {
@@ -671,7 +671,7 @@ storeAddVary(const char *url, const char *log_url, const method_t method, const 
 	    storeCreateMemObject(state->oe, state->url, log_url);
 	    state->oe->mem_obj->method = method;
 	}
-	state->sc = storeClientListAdd(state->oe, state);
+	state->sc = storeClientRegister(state->oe, state);
 	state->buf = memAllocBuf(4096, &state->buf_size);
 	debug(11, 3) ("storeAddVary: %p\n", state);
 	storeClientCopy(state->sc, state->oe, 0, 0,
@@ -740,7 +740,7 @@ storeLocateVaryCallback(LocateVaryState * state)
     safe_free(state->vary_data);
     safe_free(state->current.key);
     if (state->sc) {
-	storeUnregister(state->sc, state->e, state);
+	storeClientUnregister(state->sc, state->e, state);
 	state->sc = NULL;
     }
     if (state->e) {
@@ -856,7 +856,7 @@ storeLocateVary(StoreEntry * e, int offset, const char *vary_data, STLVCB * call
     cbdataLock(cbdata);
     state->callback = callback;
     state->buf = memAllocBuf(4096, &state->buf_size);
-    state->sc = storeClientListAdd(state->e, state);
+    state->sc = storeClientRegister(state->e, state);
     state->seen_offset = offset;
     storeClientCopy(state->sc, state->e,
 	state->seen_offset,
@@ -1599,7 +1599,7 @@ storeRegisterAbort(StoreEntry * e, STABH * cb, void *data)
 }
 
 void
-storeUnregisterAbort(StoreEntry * e)
+storeClientUnregisterAbort(StoreEntry * e)
 {
     MemObject *mem = e->mem_obj;
     assert(mem);

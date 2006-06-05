@@ -652,7 +652,7 @@ netdbExchangeDone(void *data)
     debug(38, 3) ("netdbExchangeDone: %s\n", storeUrl(ex->e));
     memFree(ex->buf, MEM_4K_BUF);
     requestUnlink(ex->r);
-    storeUnregister(ex->sc, ex->e, ex);
+    storeClientUnregister(ex->sc, ex->e, ex);
     storeUnlockObject(ex->e);
     cbdataUnlock(ex->p);
     cbdataFree(ex);
@@ -1012,7 +1012,7 @@ netdbExchangeStart(void *data)
     ex->buf_sz = 4096;
     ex->buf = memAllocate(MEM_4K_BUF);
     assert(NULL != ex->e);
-    ex->sc = storeClientListAdd(ex->e, ex);
+    ex->sc = storeClientRegister(ex->e, ex);
     storeClientCopy(ex->sc, ex->e, ex->seen, ex->used, ex->buf_sz,
 	ex->buf, netdbExchangeHandleReply, ex);
     ex->r->flags.loopdetect = 1;	/* cheat! -- force direct */

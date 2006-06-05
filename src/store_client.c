@@ -51,7 +51,7 @@ static int CheckQuickAbort2(StoreEntry * entry);
 static void CheckQuickAbort(StoreEntry * entry);
 
 #if STORE_CLIENT_LIST_DEBUG
-store_client *
+static store_client *
 storeClientListSearch(const MemObject * mem, void *data)
 {
     dlink_node *node;
@@ -106,7 +106,7 @@ storeClientType(StoreEntry * e)
 
 /* add client with fd to client list */
 store_client *
-storeClientListAdd(StoreEntry * e, void *data)
+storeClientRegister(StoreEntry * e, void *owner)
 {
     MemObject *mem = e->mem_obj;
     store_client *sc;
@@ -119,10 +119,11 @@ storeClientListAdd(StoreEntry * e, void *data)
     sc->copy_offset = 0;
     sc->flags.disk_io_pending = 0;
     sc->entry = e;
+    storeLockObject(sc->entry);
     sc->type = storeClientType(e);
 #if STORE_CLIENT_LIST_DEBUG
-    sc->owner = data;
-    assert(!storeClientListSearch(mem, data));
+    assert(!storeClientListSearch(mem, owner));
+    sc->owner = owner;
 #endif
     dlinkAdd(sc, &sc->node, &mem->clients);
 #if DELAY_POOLS
@@ -502,17 +503,16 @@ storeClientCopyPending(store_client * sc, StoreEntry * e, void *data)
  * passed sc. Yet.
  */
 int
-storeUnregister(store_client * sc, StoreEntry * e, void *data)
+storeClientUnregister(store_client * sc, StoreEntry * e, void *owner)
 {
     MemObject *mem = e->mem_obj;
-#if STORE_CLIENT_LIST_DEBUG
-    assert(sc == storeClientListSearch(e->mem_obj, data));
-#endif
-    if (mem == NULL)
-	return 0;
-    debug(20, 3) ("storeUnregister: called for '%s'\n", storeKeyText(e->hash.key));
     if (sc == NULL)
 	return 0;
+    debug(20, 3) ("storeClientUnregister: called for '%s'\n", storeKeyText(e->hash.key));
+#if STORE_CLIENT_LIST_DEBUG
+    assert(sc == storeClientListSearch(e->mem_obj, owner));
+#endif
+    assert(sc->entry == e);
     if (mem->clients.head == NULL)
 	return 0;
     dlinkDelete(&sc->node, &mem->clients);
@@ -527,19 +527,19 @@ storeUnregister(store_client * sc, StoreEntry * e, void *data)
     }
     if (NULL != sc->callback) {
 	/* callback with ssize = -1 to indicate unexpected termination */
-	debug(20, 3) ("storeUnregister: store_client for %s has a callback\n",
+	debug(20, 3) ("storeClientUnregister: store_client for %s has a callback\n",
 	    mem->url);
 	storeClientCallback(sc, -1);
     }
 #if DELAY_POOLS
     delayUnregisterDelayIdPtr(&sc->delay_id);
 #endif
-    /*assert(!sc->flags.disk_io_pending); */
-    cbdataFree(sc);
-    assert(e->lock_count > 0);
     storeSwapOutMaintainMemObject(e);
     if (mem->nclients == 0)
 	CheckQuickAbort(e);
+    storeUnlockObject(sc->entry);
+    sc->entry = NULL;
+    cbdataFree(sc);
     return 1;
 }
 
