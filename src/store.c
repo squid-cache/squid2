@@ -394,10 +394,10 @@ typedef struct {
     char *key;
     char *vary_headers;
     char *etag;
-    int offset;
-    int seen_offset;
+    squid_off_t seen_offset;
     char *buf;
     size_t buf_size;
+    size_t buf_offset;
     int done:1;
     struct {
 	char *key;
@@ -426,6 +426,10 @@ free_AddVaryState(void *data)
     storeTimestampsSet(state->e);
     storeUnlockObject(state->e);
     state->e = NULL;
+    if (state->sc) {
+	storeUnregister(state->sc, state->oe, state);
+	state->sc = NULL;
+    }
     if (state->oe) {
 	storeUnlockObject(state->oe);
 	state->oe = NULL;
@@ -490,19 +494,41 @@ static void
 storeAddVaryReadOld(void *data, char *buf, ssize_t size)
 {
     AddVaryState *state = data;
-    int l = size;
+    size_t l = size + state->buf_offset;
     char *e;
-    char *p = buf;
-    debug(11, 3) ("storeAddVaryReadOld: %p offset=%d seen_offset=%d size=%d\n", data, state->offset, state->seen_offset, (int) size);
+    char *p = state->buf;
+    debug(11, 3) ("storeAddVaryReadOld: %p seen_offset=%" PRINTF_OFF_T " buf_offset=%d size=%d\n", data, state->seen_offset, (int) state->buf_offset, (int) size);
     if (size <= 0) {
-	storeUnregister(state->sc, state->oe, state);
-	state->sc = NULL;
-	cbdataFree(state);
 	debug(11, 2) ("storeAddVaryReadOld: DONE\n");
+	cbdataFree(state);
 	return;
     }
-    state->seen_offset = state->offset + size;
-    while ((e = memchr(p, '\n', l)) != NULL) {
+    if (state->seen_offset != 0) {
+	state->seen_offset = state->seen_offset + size;
+    } else {
+	int hdr_sz;
+	if (!state->oe->mem_obj->reply)
+	    goto invalid_marker_obj;
+	if (!strLen(state->oe->mem_obj->reply->content_type))
+	    goto invalid_marker_obj;
+	if (strCmp(state->oe->mem_obj->reply->content_type, "x-squid-internal/vary") != 0) {
+	  invalid_marker_obj:
+	    debug(11, 2) ("storeAddVaryReadOld: %p (%s) is not a Vary maker object, ignoring\n", data, storeUrl(state->oe));
+	    cbdataFree(state);
+	    return;
+	}
+	hdr_sz = state->e->mem_obj->reply->hdr_sz;
+	state->seen_offset = state->e->mem_obj->reply->hdr_sz;
+	if (l >= state->e->mem_obj->reply->hdr_sz) {
+	    state->seen_offset = l;
+	    l -= hdr_sz;
+	    p += hdr_sz;
+	} else {
+	    l = 0;
+	    state->seen_offset = hdr_sz;
+	}
+    }
+    while (l && (e = memchr(p, '\n', l)) != NULL) {
 	int l2;
 	char *p2;
 	if (strmatchbeg(p, "Key: ", l) == 0) {
@@ -565,8 +591,7 @@ storeAddVaryReadOld(void *data, char *buf, ssize_t size)
 	p = e;
 	if (l == 0)
 	    break;
-	assert(l > 0);
-	assert(p < (buf + size));
+	assert(p <= (buf + size));
     }
     if (p == state->buf && size == state->buf_size) {
 	/* Oops.. the buffer size is not sufficient. Grow */
@@ -576,19 +601,19 @@ storeAddVaryReadOld(void *data, char *buf, ssize_t size)
 	} else {
 	    /* This does not look good. Bail out. This should match the size <= 0 case above */
 	    debug(11, 1) ("storeAddVaryReadOld: Buffer very large and still can't fit the data.. bailing out\n");
-	    storeUnregister(state->sc, state->oe, state);
-	    state->sc = NULL;
 	    cbdataFree(state);
 	    return;
 	}
     }
-    state->offset += p - buf;
-    debug(11, 3) ("storeAddVaryReadOld: %p offset=%d seen_offset=%d\n", data, state->offset, state->seen_offset);
+    state->buf_offset = l;
+    if (l)
+	memmove(state->buf, p, l);
+    debug(11, 3) ("storeAddVaryReadOld: %p seen_offset=%" PRINTF_OFF_T " buf_offset=%d\n", data, state->seen_offset, (int) state->buf_offset);
     storeClientCopy(state->sc, state->oe,
 	state->seen_offset,
-	state->offset,
-	state->buf_size,
-	state->buf,
+	state->seen_offset,
+	state->buf_size - state->buf_offset,
+	state->buf + state->buf_offset,
 	storeAddVaryReadOld,
 	state);
 }
@@ -683,8 +708,9 @@ typedef struct {
     store_client *sc;
     char *buf;
     size_t buf_size;
+    size_t buf_offset;
     char *vary_data;
-    int offset, seen_offset;
+    squid_off_t seen_offset;
     struct {
 	char *key;
 	char *etag;
@@ -734,14 +760,14 @@ storeLocateVaryRead(void *data, char *buf, ssize_t size)
 {
     LocateVaryState *state = data;
     char *e;
-    char *p = buf;
-    int l = size;
-    debug(11, 3) ("storeLocateVaryRead: %s %p offset=%d seen_offset=%d size=%d\n", state->vary_data, data, state->offset, state->seen_offset, (int) size);
+    char *p = state->buf;
+    size_t l = size + state->buf_offset;
+    debug(11, 3) ("storeLocateVaryRead: %s %p seen_offset=%" PRINTF_OFF_T " buf_offset=%d size=%d\n", state->vary_data, data, state->seen_offset, (int) state->buf_offset, (int) size);
     if (size <= 0) {
 	storeLocateVaryCallback(state);
 	return;
     }
-    state->seen_offset = state->offset + size;
+    state->seen_offset = state->seen_offset + size;
     while ((e = memchr(p, '\n', l)) != NULL) {
 	int l2;
 	char *p2;
@@ -788,7 +814,6 @@ storeLocateVaryRead(void *data, char *buf, ssize_t size)
 	assert(l > 0);
 	assert(p < (buf + size));
     }
-    state->offset += p - buf;
     if (p == state->buf && size == state->buf_size) {
 	/* Oops.. the buffer size is not sufficient. Grow */
 	if (state->buf_size < 65536) {
@@ -801,8 +826,17 @@ storeLocateVaryRead(void *data, char *buf, ssize_t size)
 	    return;
 	}
     }
-    debug(11, 3) ("storeLocateVaryRead: %p offset=%d seen_offset=%d\n", data, state->offset, state->seen_offset);
-    storeClientCopy(state->sc, state->e, state->seen_offset, state->offset, state->buf_size, state->buf, storeLocateVaryRead, state);
+    state->buf_offset = l;
+    if (l)
+	memmove(state->buf, p, l);
+    debug(11, 3) ("storeLocateVaryRead: %p seen_offset=%" PRINTF_OFF_T " buf_offset=%d\n", data, state->seen_offset, (int) state->buf_offset);
+    storeClientCopy(state->sc, state->e,
+	state->seen_offset,
+	state->seen_offset,
+	state->buf_size - state->buf_offset,
+	state->buf + state->buf_offset,
+	storeLocateVaryRead,
+	state);
 }
 
 void
@@ -823,8 +857,14 @@ storeLocateVary(StoreEntry * e, int offset, const char *vary_data, STLVCB * call
     state->callback = callback;
     state->buf = memAllocBuf(4096, &state->buf_size);
     state->sc = storeClientListAdd(state->e, state);
-    state->offset = state->seen_offset = offset;
-    storeClientCopy(state->sc, state->e, state->seen_offset, state->offset, state->buf_size, state->buf, storeLocateVaryRead, state);
+    state->seen_offset = offset;
+    storeClientCopy(state->sc, state->e,
+	state->seen_offset,
+	state->seen_offset,
+	state->buf_size,
+	state->buf,
+	storeLocateVaryRead,
+	state);
 }
 
 void
