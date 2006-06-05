@@ -1083,6 +1083,7 @@ extern void fatalf();
 extern void fatal_dump(const char *message);
 extern void sigusr2_handle(int sig);
 extern void sig_child(int sig);
+extern void enableCoredumps(void);
 extern void leave_suid(void);
 extern void enter_suid(void);
 extern void no_suid(void);

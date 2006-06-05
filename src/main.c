@@ -754,6 +754,9 @@ main(int argc, char **argv)
 	if (checkRunningPid())
 	    exit(1);
 
+    /* Make sure the OS allows core dumps if enabled in squid.conf */
+    enableCoredumps();
+
 #if TEST_ACCESS
     comm_init();
     comm_select_init();

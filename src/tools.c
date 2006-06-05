@@ -562,6 +562,33 @@ safeunlink(const char *s, int quiet)
 	debug(50, 1) ("safeunlink: Couldn't delete %s: %s\n", s, xstrerror());
 }
 
+/* Should get called after any operation which may make the OS disable core dumps */
+void
+enableCoredumps(void)
+{
+    if (!Config.coredump_dir)
+	return;
+    if (strcmp(Config.coredump_dir, "none") == 0)
+	return;
+
+#if HAVE_PRCTL && defined(PR_SET_DUMPABLE) && 0
+    /* Set Linux DUMPABLE flag */
+    if (prctl(PR_SET_DUMPABLE, 1, 0, 0, 0) != 0)
+	debug(50, 2) ("prctl: %s\n", xstrerror());
+#endif
+#if HAVE_SETRLIMIT && defined(RLIMIT_CORE)
+    /* Make sure coredumps are not limited */
+    {
+	struct rlimit rlim;
+
+	if (getrlimit(RLIMIT_CORE, &rlim) == 0) {
+	    rlim.rlim_cur = rlim.rlim_max;
+	    setrlimit(RLIMIT_CORE, &rlim);
+	}
+    }
+#endif
+}
+
 /* leave a privilegied section. (Give up any privilegies)
  * Routines that need privilegies can rap themselves in enter_suid()
  * and leave_suid()
@@ -604,11 +631,6 @@ leave_suid(void)
     if (setuid(Config2.effectiveUserID) < 0)
 	debug(50, 0) ("ALERT: setuid: %s\n", xstrerror());
 #endif
-#if HAVE_PRCTL && defined(PR_SET_DUMPABLE)
-    /* Set Linux DUMPABLE flag */
-    if (Config.coredump_dir && prctl(PR_SET_DUMPABLE, 1, 0, 0, 0) != 0)
-	debug(50, 2) ("prctl: %s\n", xstrerror());
-#endif
 #if LINUX_TPROXY
     if (Config.onoff.linux_tproxy) {
 	cap_user_header_t head = (cap_user_header_t) xcalloc(1, sizeof(cap_user_header_t));
@@ -626,6 +648,8 @@ leave_suid(void)
 	xfree(cap);
     }
 #endif
+    /* Changing user ID usually blocks core dumps. Get them back! */
+    enableCoredumps();
 }
 
 /* Enter a privilegied section */
@@ -638,11 +662,7 @@ enter_suid(void)
 #else
     setuid(0);
 #endif
-#if HAVE_PRCTL && defined(PR_SET_DUMPABLE)
-    /* Set Linux DUMPABLE flag */
-    if (Config.coredump_dir && prctl(PR_SET_DUMPABLE, 1, 0, 0, 0) != 0)
-	debug(50, 2) ("prctl: %s\n", xstrerror());
-#endif
+    enableCoredumps();
 }
 
 /* Give up the posibility to gain privilegies.
@@ -663,11 +683,7 @@ no_suid(void)
     if (setuid(uid) < 0)
 	debug(50, 1) ("no_suid: setuid: %s\n", xstrerror());
 #endif
-#if HAVE_PRCTL && defined(PR_SET_DUMPABLE)
-    /* Set Linux DUMPABLE flag */
-    if (Config.coredump_dir && prctl(PR_SET_DUMPABLE, 1, 0, 0, 0) != 0)
-	debug(50, 2) ("prctl: %s\n", xstrerror());
-#endif
+    enableCoredumps();
 }
 
 void
