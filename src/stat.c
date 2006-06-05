@@ -279,8 +279,6 @@ statStoreEntry(MemBuf * mb, StoreEntry * e)
 		storeOffset(mem->swapout.sio));
 	for (i = 0, node = mem->clients.head; node; node = node->next, i++) {
 	    sc = (store_client *) node->data;
-	    if (sc->callback_data == NULL)
-		continue;
 	    memBufPrintf(mb, "\tClient #%d, %p\n", i, sc->callback_data);
 	    memBufPrintf(mb, "\t\tcopy_offset: %" PRINTF_OFF_T "\n",
 		sc->copy_offset);

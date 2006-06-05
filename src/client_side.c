@@ -806,12 +806,6 @@ clientProcessExpired(void *data)
     http->request->flags.refresh = 1;
     http->old_entry = http->entry;
     http->old_sc = http->sc;
-    /*
-     * Assert that 'http' is already a client of old_entry.  If 
-     * it is not, then the beginning of the object data might get
-     * freed from memory before we need to access it.
-     */
-    assert(http->sc->callback_data == http);
     if (http->entry->mem_obj && http->entry->mem_obj->ims_entry) {
 	entry = http->entry->mem_obj->ims_entry;
 	debug(33, 5) ("clientProcessExpired: collapsed request\n");
