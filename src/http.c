@@ -727,12 +727,8 @@ httpReadReply(int fd, void *data)
 		    }
 		}
 		if (keep_alive) {
-		    if (httpState->request->flags.pinned) {
-			client_addr = &httpState->request->client_addr;
-			client_port = httpState->request->client_port;
-		    }
 #if LINUX_TPROXY
-		    else if ((Config.onoff.linux_tproxy) &&
+		    if ((Config.onoff.linux_tproxy) &&
 			((httpState->request->my_port == Config.tproxy_port) || (Config.tproxy_port == 0))) {
 			client_addr = &httpState->request->client_addr;
 		    }

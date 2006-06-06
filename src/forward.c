@@ -156,11 +156,6 @@ fwdCheckRetry(FwdState * fwdState)
 static int
 fwdCheckRetriable(FwdState * fwdState)
 {
-    /* If the conneciton is pinned, we want to allow the re-use of this fd
-     * regardless of method */
-    if (fwdState->request->flags.pinned)
-	return 1;
-
     /* If there is a request body then Squid can only try once
      * even if the method is indempotent
      */
@@ -494,8 +489,6 @@ fwdConnectStart(void *data)
 	ftimeout = 5;
     if (ftimeout < ctimeout)
 	ctimeout = ftimeout;
-    if (fwdState->request->flags.pinned)
-	fd = pconnPop(name, port, domain, &fwdState->request->client_addr, fwdState->request->client_port);
 #if LINUX_TPROXY
     if (fd == -1 && (Config.onoff.linux_tproxy) &&
 	((fwdState->request->my_port == Config.tproxy_port) || (Config.tproxy_port == 0)))
