@@ -2146,6 +2146,9 @@ struct _MemPool {
 #endif
     Stack pstack;		/* stack for free pointers */
     MemPoolMeter meter;
+#if DEBUG_MEMPOOL
+    MemPoolMeter diff_meter;
+#endif
 };
 
 struct _ClientInfo {

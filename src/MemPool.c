@@ -385,8 +385,24 @@ memTotalAllocated(void)
     return TheMeter.alloc.level;
 }
 
-void
-memPoolReport(const MemPool * pool, StoreEntry * e)
+static void
+memPoolDiffReport(const MemPool * pool, StoreEntry * e)
+{
+    assert(pool);
+    MemPoolMeter diff = pool->meter;
+    diff.alloc.level -= pool->diff_meter.alloc.level;
+    diff.inuse.level -= pool->diff_meter.inuse.level;
+    diff.idle.level -= pool->diff_meter.idle.level;
+    if (diff.alloc.level == 0 && diff.inuse.level == 0)
+	return;
+    storeAppendPrintf(e, " \t \t ");
+    memPoolMeterReport(&diff, pool->obj_size,
+	diff.alloc.level, pool->meter.inuse.level, pool->meter.idle.level,
+	e);
+}
+
+static void
+memPoolReport(MemPool * pool, StoreEntry * e, int diff)
 {
     assert(pool);
     storeAppendPrintf(e, "%-20s\t %4d\t ",
@@ -394,6 +410,12 @@ memPoolReport(const MemPool * pool, StoreEntry * e)
     memPoolMeterReport(&pool->meter, pool->obj_size,
 	pool->meter.alloc.level, pool->meter.inuse.level, pool->meter.idle.level,
 	e);
+#if DEBUG_MEMPOOL
+    if (diff)
+	memPoolDiffReport(pool, e);
+    if (diff < 0)
+	pool->diff_meter = pool->meter;
+#endif
 }
 
 void
@@ -404,6 +426,19 @@ memReport(StoreEntry * e)
     int inuse_count = 0;
     int idle_count = 0;
     int i;
+#if DEBUG_MEMPOOL
+    int diff = 0;
+    char *arg = strrchr(e->mem_obj->url, '/');
+    if (arg) {
+	arg++;
+	if (strcmp(arg, "reset") == 0)
+	    diff = -1;
+	else if (strcmp(arg, "diff") == 0)
+	    diff = 1;
+    }
+    storeAppendPrintf(e, "action:mem/diff\tView diff\n");
+    storeAppendPrintf(e, "action:mem/reset\tReset diff\n");
+#endif
     /* caption */
     storeAppendPrintf(e, "Current memory usage:\n");
     /* heading */
@@ -419,9 +454,9 @@ memReport(StoreEntry * e)
 	"\n");
     /* main table */
     for (i = 0; i < Pools.count; i++) {
-	const MemPool *pool = Pools.items[i];
+	MemPool *pool = Pools.items[i];
 	if (memPoolWasUsed(pool)) {
-	    memPoolReport(pool, e);
+	    memPoolReport(pool, e, diff);
 	    alloc_count += pool->meter.alloc.level;
 	    inuse_count += pool->meter.inuse.level;
 	    idle_count += pool->meter.idle.level;
