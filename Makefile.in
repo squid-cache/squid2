@@ -43,8 +43,8 @@ DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(top_srcdir)/configure \
 	$(top_srcdir)/include/autoconf.h.in COPYING ChangeLog INSTALL \
 	cfgaux/compile cfgaux/config.guess cfgaux/config.sub \
-	cfgaux/depcomp cfgaux/install-sh cfgaux/ltmain.sh \
-	cfgaux/missing cfgaux/mkinstalldirs
+	cfgaux/depcomp cfgaux/install-sh cfgaux/missing \
+	cfgaux/mkinstalldirs
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
