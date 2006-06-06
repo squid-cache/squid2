@@ -1271,7 +1271,7 @@ void
 setUmask(mode_t mask)
 {
     static mode_t orig_umask = ~0;
-    if (orig_umask == ~0) {
+    if (orig_umask == (mode_t) ~ 0) {
 	/* Unfortunately, there is no way to get the current
 	 * umask value without setting it.
 	 */
