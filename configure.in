@@ -790,6 +790,25 @@ AC_ARG_WITH(coss-membuf-size,
    fi
 ])
 
+dnl Enable select()
+AC_ARG_ENABLE(select,
+[  --enable-select         Enable select() support.
+  --disable-select        Disable select() support. ],
+
+[
+  case "$enableval" in
+  yes)
+    echo "Forcing select() to be enabled"
+    SELECT_TYPE="select"
+    ac_cv_func_select='yes'
+    ;;
+  no)
+    echo "Forcing select() to be disabled"
+    ac_cv_func_select='no'
+    ;;
+  esac
+])
+
 dnl Enable poll()
 AC_ARG_ENABLE(poll,
 [  --enable-poll           Enable poll() instead of select().  Normally poll
@@ -802,29 +821,12 @@ AC_ARG_ENABLE(poll,
   case "$enableval" in
   yes)
     echo "Forcing poll() to be enabled"
+    SELECT_TYPE="poll"
     ac_cv_func_poll='yes'
     ;;
   no)
     echo "Forcing poll() to be disabled"
     ac_cv_func_poll='no'
-    ;;
-  esac
-])
-
-dnl Enable select()
-AC_ARG_ENABLE(select,
-[  --enable-select         Enable select() support.
-  --disable-select        Disable select() support. ],
-
-[
-  case "$enableval" in
-  yes)
-    echo "Forcing select() to be enabled"
-    ac_cv_func_select='yes'
-    ;;
-  no)
-    echo "Forcing select() to be disabled"
-    ac_cv_func_select='no'
     ;;
   esac
 ])
@@ -839,6 +841,7 @@ AC_ARG_ENABLE(epoll,
   case "$enableval" in
   yes)
     echo "Forcing epoll() to be enabled"
+    SELECT_TYPE="epoll"
     force_epoll='yes'
     ;;
   no)
@@ -2268,24 +2271,38 @@ dnl are actually going to (ab)use
 dnl Actually do the define magic now
 dnl mostly ripped from squid-commloops, thanks to adrian and benno
 
-if test "$ac_cv_func_epoll_ctl" = "yes" ; then
+if test -n "$SELECT_TYPE"; then
+	: # Nothing to do
+elif test "$ac_cv_func_epoll_ctl" = "yes" ; then
         SELECT_TYPE="epoll"
-        AC_DEFINE(USE_EPOLL,1,[Use epoll() for the IO loop])
-        AC_CHECK_LIB(epoll, epoll_create, [EPOLL_LIBS="-lepoll"])
-        AC_SUBST(EPOLL_LIBS)
 elif test "$ac_cv_func_poll" = "yes" ; then
 
         SELECT_TYPE="poll"
-        AC_DEFINE(USE_POLL,1,[Use poll() for the IO loop])
 elif test "$ac_cv_func_select" = "yes" ; then
         SELECT_TYPE="select"
-        AC_DEFINE(USE_SELECT,1,[Use select() for the IO loop])
 else
         echo "Eep!  Can't find poll, epoll, or select!"
         echo "I'll try select and hope for the best."
         SELECT_TYPE="select"
-        AC_DEFINE(USE_SELECT,1)
 fi
+
+case "$SELECT_TYPE" in
+epoll)
+        AC_DEFINE(USE_EPOLL,1,[Use epoll() for the IO loop])
+        AC_CHECK_LIB(epoll, epoll_create, [EPOLL_LIBS="-lepoll"])
+        AC_SUBST(EPOLL_LIBS)
+	;;
+poll)
+        AC_DEFINE(USE_POLL,1,[Use poll() for the IO loop])
+	;;
+select)
+        AC_DEFINE(USE_SELECT,1,[Use select() for the IO loop])
+	;;
+*)
+	echo "ERROR: Unknown select loop type '$SELECT_TYPE'"
+	exit 1
+esac
+
 echo "Using ${SELECT_TYPE} for select loop."
 AM_CONDITIONAL([USE_POLL], [test $SELECT_TYPE = poll])
 AM_CONDITIONAL([USE_EPOLL], [test $SELECT_TYPE = epoll])

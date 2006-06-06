@@ -915,14 +915,14 @@ Optional Features:
   --enable-err-languages=\"lang1 lang2..\"
                           Select languages to be installed. (All will be
                           installed by default)
+  --enable-select         Enable select() support.
+  --disable-select        Disable select() support.
   --enable-poll           Enable poll() instead of select().  Normally poll
                           is preferred over select, but configure knows poll
                           is broken on some platforms.  If you think you are
                           smarter than the configure script, you may enable
                           poll with this option.
   --disable-poll          Disable the use of poll().
-  --enable-select         Enable select() support.
-  --disable-select        Disable select() support.
   --enable-epoll          Enable epoll() instead of poll() or select().
                           epoll() is best where available, but must be
                           explicitly set at the moment.
@@ -4275,23 +4275,6 @@ _ACEOF
 
 fi;
 
-# Check whether --enable-poll or --disable-poll was given.
-if test "${enable_poll+set}" = set; then
-  enableval="$enable_poll"
-
-  case "$enableval" in
-  yes)
-    echo "Forcing poll() to be enabled"
-    ac_cv_func_poll='yes'
-    ;;
-  no)
-    echo "Forcing poll() to be disabled"
-    ac_cv_func_poll='no'
-    ;;
-  esac
-
-fi;
-
 # Check whether --enable-select or --disable-select was given.
 if test "${enable_select+set}" = set; then
   enableval="$enable_select"
@@ -4299,11 +4282,30 @@ if test "${enable_select+set}" = set; then
   case "$enableval" in
   yes)
     echo "Forcing select() to be enabled"
+    SELECT_TYPE="select"
     ac_cv_func_select='yes'
     ;;
   no)
     echo "Forcing select() to be disabled"
     ac_cv_func_select='no'
+    ;;
+  esac
+
+fi;
+
+# Check whether --enable-poll or --disable-poll was given.
+if test "${enable_poll+set}" = set; then
+  enableval="$enable_poll"
+
+  case "$enableval" in
+  yes)
+    echo "Forcing poll() to be enabled"
+    SELECT_TYPE="poll"
+    ac_cv_func_poll='yes'
+    ;;
+  no)
+    echo "Forcing poll() to be disabled"
+    ac_cv_func_poll='no'
     ;;
   esac
 
@@ -4316,6 +4318,7 @@ if test "${enable_epoll+set}" = set; then
   case "$enableval" in
   yes)
     echo "Forcing epoll() to be enabled"
+    SELECT_TYPE="epoll"
     force_epoll='yes'
     ;;
   no)
@@ -14535,8 +14538,23 @@ fi
 
 
 
-if test "$ac_cv_func_epoll_ctl" = "yes" ; then
+if test -n "$SELECT_TYPE"; then
+	: # Nothing to do
+elif test "$ac_cv_func_epoll_ctl" = "yes" ; then
         SELECT_TYPE="epoll"
+elif test "$ac_cv_func_poll" = "yes" ; then
+
+        SELECT_TYPE="poll"
+elif test "$ac_cv_func_select" = "yes" ; then
+        SELECT_TYPE="select"
+else
+        echo "Eep!  Can't find poll, epoll, or select!"
+        echo "I'll try select and hope for the best."
+        SELECT_TYPE="select"
+fi
+
+case "$SELECT_TYPE" in
+epoll)
 
 cat >>confdefs.h <<\_ACEOF
 #define USE_EPOLL 1
@@ -14611,30 +14629,26 @@ if test $ac_cv_lib_epoll_epoll_create = yes; then
 fi
 
 
-elif test "$ac_cv_func_poll" = "yes" ; then
-
-        SELECT_TYPE="poll"
+	;;
+poll)
 
 cat >>confdefs.h <<\_ACEOF
 #define USE_POLL 1
 _ACEOF
 
-elif test "$ac_cv_func_select" = "yes" ; then
-        SELECT_TYPE="select"
+	;;
+select)
 
 cat >>confdefs.h <<\_ACEOF
 #define USE_SELECT 1
 _ACEOF
 
-else
-        echo "Eep!  Can't find poll, epoll, or select!"
-        echo "I'll try select and hope for the best."
-        SELECT_TYPE="select"
-        cat >>confdefs.h <<\_ACEOF
-#define USE_SELECT 1
-_ACEOF
+	;;
+*)
+	echo "ERROR: Unknown select loop type '$SELECT_TYPE'"
+	exit 1
+esac
 
-fi
 echo "Using ${SELECT_TYPE} for select loop."
 
 
