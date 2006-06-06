@@ -112,6 +112,7 @@ EXTRA_squid_SOURCES = \
 	comm_epoll.c \
 	comm_poll.c \
 	comm_select.c \
+	comm_generic.c \
 	win32.c
 
 squid_SOURCES = \

@@ -877,9 +877,9 @@ struct _fde {
     squid_off_t bytes_read;
     squid_off_t bytes_written;
     int uses;			/* ie # req's over persistent conn */
+    int backoff;		/* keep track of whether the fd is backed off */
 #if USE_EPOLL
     unsigned epoll_state;	/* keep track of the epoll state */
-    unsigned epoll_backoff;	/* keep track of whether the fd is backed off */
 #endif
     struct _fde_disk {
 	DWCB *wrt_handle;

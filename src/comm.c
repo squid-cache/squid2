@@ -786,9 +786,7 @@ commUpdateEvents(int fd, int force)
     int need_write = 0;
 
     if (F->read_handler
-#if USE_EPOLL
-	&& !F->epoll_backoff
-#endif
+	&& !F->backoff
 	) {
 	switch (F->read_pending) {
 	case COMM_PENDING_NORMAL:
