@@ -371,9 +371,16 @@ AC_ARG_ENABLE(storeio,
 [ case $enableval in
   yes)
 	for module in $srcdir/src/fs/*; do
-	    if test -f $module/Makefile.in; then
-		STORE_MODULES="$STORE_MODULES `basename $module`"
-	    fi
+	    name="`basename $module`"
+	    case $name in
+	    CVS) # Ignore
+		;;
+	    *)
+		if test -d $module; then
+		    STORE_MODULES="$STORE_MODULES $name"
+		fi
+		;;
+	    esac
 	done
   	;;
   no)
@@ -439,9 +446,16 @@ AC_ARG_ENABLE(removal-policies,
 [ case $enableval in
   yes)
 	for module in $srcdir/src/repl/*; do
-	    if test -f $module/Makefile.in; then
-		REPL_POLICIES="$REPL_POLICIES `basename $module`"
-	    fi
+	    name="`basename $module`"
+	    case $name in
+	    CVS) # Ignore
+		;;
+	    *)
+		if test -d $module; then
+		    REPL_POLICIES="$REPL_POLICIES $name"
+		fi
+		;;
+	    esac
 	done
   	;;
   no)
@@ -1113,11 +1127,18 @@ AC_ARG_ENABLE(auth,
                           module],
 [ case $enableval in
   yes)
-        for module in $srcdir/src/auth/*; do
-            if test -f $module/Makefile.in; then
-                AUTH_MODULES="$AUTH_MODULES `basename $module`"
-            fi
-        done
+	for module in $srcdir/src/auth/*; do
+	    name="`basename $module`"
+	    case $name in
+	    CVS) # Ignore
+		;;
+	    *)
+		if test -d $module; then
+		    AUTH_MODULES="$AUTH_MODULES $name"
+		fi
+		;;
+	    esac
+	done
         ;;
   no)
         ;;
