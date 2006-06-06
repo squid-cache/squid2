@@ -426,8 +426,8 @@ memReport(StoreEntry * e)
     int inuse_count = 0;
     int idle_count = 0;
     int i;
-#if DEBUG_MEMPOOL
     int diff = 0;
+#if DEBUG_MEMPOOL
     char *arg = strrchr(e->mem_obj->url, '/');
     if (arg) {
 	arg++;
