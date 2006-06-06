@@ -81,7 +81,7 @@ storeSwapInFileClosed(void *data, int errflag, storeIOState * sio)
 	sc->callback = NULL;
 	sc->callback_data = NULL;
 	if (cbdataValid(cbdata))
-	    callback(sc->callback_data, sc->copy_buf, errflag);
+	    callback(cbdata, sc->copy_buf, errflag);
 	cbdataUnlock(cbdata);
     }
     statCounter.swap.ins++;
