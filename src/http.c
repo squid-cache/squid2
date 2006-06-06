@@ -54,6 +54,7 @@ static void httpMakePrivate(StoreEntry *);
 static void httpMakePublic(StoreEntry *);
 static int httpCachableReply(HttpStateData *);
 static void httpMaybeRemovePublic(StoreEntry *, http_status);
+static int peer_supports_connection_pinning(HttpStateData * httpState);
 
 static void
 httpStateFree(int fd, void *data)
@@ -447,6 +448,8 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 	ctx_exit(ctx);
 	return;
     }
+    if (!peer_supports_connection_pinning(httpState))
+	httpState->orig_request->flags.no_connection_auth = 1;
     storeTimestampsSet(entry);
     /* Check if object is cacheable or not based on reply code */
     debug(11, 3) ("httpProcessReplyHeader: HTTP CODE: %d\n", reply->sline.status);
@@ -545,6 +548,35 @@ httpPconnTransferDone(HttpStateData * httpState)
     return 1;
 }
 
+/* Small helper function to verify if connection pinning is supported or not
+ */
+static int
+peer_supports_connection_pinning(HttpStateData * httpState)
+{
+    const HttpReply *rep = httpState->entry->mem_obj->reply;
+    const HttpHeader *hdr = &rep->header;
+    const request_t *req = httpState->orig_request;
+    int rc;
+    String header;
+
+    if (!httpState->peer)
+	return 1;
+
+    if (req->pinned_connection)
+	if (req->pinned_connection->pinning.host)
+	    return 1;
+
+    if (!httpHeaderHas(hdr, HDR_PROXY_SUPPORT))
+	return 0;
+
+    header = httpHeaderGetStrOrList(hdr, HDR_PROXY_SUPPORT);
+    /* XXX This ought to be done in a case-insensitive manner */
+    rc = (strStr(header, "Session-Based-Authentication") != NULL);
+    stringClean(&header);
+
+    return rc;
+}
+
 /* This will be called when data is ready to be read from fd.  Read until
  * error or connection closed. */
 /* XXX this function is too long! */
@@ -555,6 +587,7 @@ httpReadReply(int fd, void *data)
     LOCAL_ARRAY(char, buf, SQUID_TCP_SO_RCVBUF);
     StoreEntry *entry = httpState->entry;
     const request_t *request = httpState->request;
+    const request_t *orig_request = httpState->orig_request;
     int len;
     int bin;
     int clen;
@@ -700,7 +733,7 @@ httpReadReply(int fd, void *data)
 		 */
 		if (!httpState->flags.request_sent) {
 		    debug(11, 1) ("httpReadReply: Request not yet fully sent \"%s %s\"\n",
-			RequestMethodStr[httpState->orig_request->method],
+			RequestMethodStr[orig_request->method],
 			storeUrl(entry));
 		    keep_alive = 0;
 		}
@@ -720,7 +753,7 @@ httpReadReply(int fd, void *data)
 		    } else if (len > 0) {
 			debug(11, Config.onoff.relaxed_header_parser <= 0 || keep_alive ? 1 : 2)
 			    ("httpReadReply: Excess data from \"%s %s\"\n",
-			    RequestMethodStr[httpState->orig_request->method],
+			    RequestMethodStr[orig_request->method],
 			    storeUrl(entry));
 			storeAppend(entry, buf, len);
 			keep_alive = 0;
@@ -742,7 +775,12 @@ httpReadReply(int fd, void *data)
 #endif
 		    comm_remove_close_handler(fd, httpStateFree, httpState);
 		    fwdUnregister(fd, httpState->fwd);
-		    if (httpState->peer) {
+		    if (orig_request->pinned_connection) {
+			if (peer_supports_connection_pinning(httpState))
+			    clientPinConnection(orig_request->pinned_connection, orig_request->host, orig_request->port, fd);
+			else
+			    comm_close(fd);
+		    } else if (httpState->peer) {
 			if (httpState->peer->options.originserver)
 			    pconnPush(fd, httpState->peer->name, httpState->peer->http_port, httpState->orig_request->host, client_addr, client_port);
 			else
@@ -772,7 +810,7 @@ httpReadReply(int fd, void *data)
 	    /* Server is nasty on us. Shut down */
 	    debug(11, Config.onoff.relaxed_header_parser <= 0 || entry->mem_obj->reply->keep_alive ? 1 : 2)
 		("httpReadReply: Excess data from \"%s %s\"\n",
-		RequestMethodStr[httpState->orig_request->method],
+		RequestMethodStr[orig_request->method],
 		storeUrl(entry));
 	    fwdComplete(httpState->fwd);
 	    comm_close(fd);
@@ -870,6 +908,8 @@ httpBuildRequestHeader(request_t * request,
     if (NULL == orig_request->range)
 	we_do_ranges = 0;
     else if (!orig_request->flags.cachable)
+	we_do_ranges = 0;
+    else if (orig_request->flags.connection_auth)
 	we_do_ranges = 0;
     else if (httpHdrRangeOffsetLimit(orig_request->range))
 	we_do_ranges = 0;
@@ -1182,7 +1222,9 @@ httpSendRequest(HttpStateData * httpState)
     /*
      * Is keep-alive okay for all request methods?
      */
-    if (!Config.onoff.server_pconns)
+    if (httpState->orig_request->flags.must_keepalive)
+	httpState->flags.keepalive = 1;
+    else if (!Config.onoff.server_pconns)
 	httpState->flags.keepalive = 0;
     else if (p == NULL)
 	httpState->flags.keepalive = 1;

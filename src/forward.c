@@ -150,6 +150,8 @@ fwdCheckRetry(FwdState * fwdState)
 	return 0;
     if (fwdState->request->flags.body_sent)
 	return 0;
+    if (fwdState->request->pinned_connection)
+	return 0;
     return 1;
 }
 
@@ -449,6 +451,24 @@ getOutgoingTOS(request_t * request)
     return aclMapTOS(Config.accessList.outgoing_tos, &ch);
 }
 
+static int
+getPinnedFD(request_t * request)
+{
+    int fd;
+    ConnStateData *conn = request->pinned_connection;
+    if (!conn)
+	return -1;
+
+    fd = clientGetPinnedConnection(conn, request);
+
+    /* No pinned connection. Fall back */
+    if (fd < 0 && !request->flags.connection_auth) {
+	cbdataUnlock(request->pinned_connection);
+	request->pinned_connection = NULL;
+    }
+    return fd;
+}
+
 static void
 fwdConnectStart(void *data)
 {
@@ -489,6 +509,19 @@ fwdConnectStart(void *data)
 	ftimeout = 5;
     if (ftimeout < ctimeout)
 	ctimeout = ftimeout;
+    if (fwdState->request->pinned_connection) {
+	fd = getPinnedFD(fwdState->request);
+	if (fd >= 0) {
+	    fwdState->server_fd = fd;
+	    fwdState->n_tries++;
+	    fwdState->request->flags.auth = 1;
+	    fwdState->request->flags.connection_auth = 1;
+	    fwdState->request->flags.must_keepalive = 1;
+	    comm_add_close_handler(fd, fwdServerClosed, fwdState);
+	    fwdConnectDone(fd, COMM_OK, fwdState);
+	    return;
+	}
+    }
 #if LINUX_TPROXY
     if (fd == -1 && (Config.onoff.linux_tproxy) &&
 	((fwdState->request->my_port == Config.tproxy_port) || (Config.tproxy_port == 0)))

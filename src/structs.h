@@ -1240,6 +1240,12 @@ struct _ConnStateData {
     } defer;
     http_port_list *port;
     int transparent;
+    struct {
+	int fd;			/* pinned server side connection */
+	char *host;		/* host name of pinned connection */
+	int port;		/* port of pinned connection */
+	int pinned;		/* this connection was pinned */
+    } pinning;
 };
 
 struct _ipcache_addrs {
@@ -1783,6 +1789,8 @@ struct _request_flags {
     unsigned int body_sent:1;
     unsigned int reset_tcp:1;
     unsigned int must_keepalive:1;
+    unsigned int connection_auth:1;	/* Request wants connection oriented auth */
+    unsigned int no_connection_auth:1;	/* Connection oriented auth can not be supported */
 };
 
 struct _link_list {
@@ -1861,6 +1869,7 @@ struct _request_t {
      * than this String */
     String x_forwarded_for_iterator;
 #endif				/* FOLLOW_X_FORWARDED_FOR */
+    ConnStateData *pinned_connection;	/* If set then this request is tighly tied to the corresponding client side connetion */
 };
 
 struct _cachemgr_passwd {

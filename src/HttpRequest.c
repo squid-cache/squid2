@@ -80,6 +80,9 @@ requestDestroy(request_t * req)
     }
     assert(req->etags == NULL);
     safe_free(req->etag);
+    if (req->pinned_connection)
+	cbdataUnlock(req->pinned_connection);
+    req->pinned_connection = NULL;
     memFree(req, MEM_REQUEST_T);
 }
 

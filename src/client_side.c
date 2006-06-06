@@ -1391,6 +1391,8 @@ connStateFree(int fd, void *data)
     authenticateOnCloseConnection(connState);
     memFreeBuf(connState->in.size, connState->in.buf);
     pconnHistCount(0, connState->nrequests);
+    if (connState->pinning.fd >= 0)
+	comm_close(connState->pinning.fd);
     cbdataFree(connState);
 #ifdef _SQUID_LINUX_
     /* prevent those nasty RST packets */
@@ -1405,7 +1407,7 @@ static void
 clientInterpretRequestHeaders(clientHttpRequest * http)
 {
     request_t *request = http->request;
-    const HttpHeader *req_hdr = &request->header;
+    HttpHeader *req_hdr = &request->header;
     int no_cache = 0;
     const char *str;
     request->imslen = -1;
@@ -1453,15 +1455,44 @@ clientInterpretRequestHeaders(clientHttpRequest * http)
 #endif
 	    request->flags.nocache = 1;
     }
+    if (Config.onoff.pipeline_prefetch)
+	request->flags.no_connection_auth = 1;
+
     /* ignore range header in non-GETs */
     if (request->method == METHOD_GET) {
 	request->range = httpHeaderGetRange(req_hdr);
 	if (request->range)
 	    request->flags.range = 1;
     }
-    if (httpHeaderHas(req_hdr, HDR_AUTHORIZATION))
+    if (httpHeaderHas(req_hdr, HDR_AUTHORIZATION) || httpHeaderHas(req_hdr, HDR_PROXY_AUTHORIZATION)) {
+	HttpHeaderPos pos = HttpHeaderInitPos;
+	HttpHeaderEntry *e;
 	request->flags.auth = 1;
-    else if (request->login[0] != '\0')
+	while ((e = httpHeaderGetEntry(req_hdr, &pos))) {
+	    if (e->id == HDR_AUTHORIZATION || e->id == HDR_PROXY_AUTHORIZATION) {
+		if (!request->flags.no_connection_auth) {
+		    const char *value = strBuf(e->value);
+		    if (strncasecmp(value, "NTLM ", 5) == 0
+			||
+			strncasecmp(value, "Negotiate ", 10) == 0
+			||
+			strncasecmp(value, "Kerberos ", 9) == 0) {
+			request->flags.connection_auth = 1;
+			request->flags.must_keepalive = 1;
+			/* the pinned connection is set below */
+			break;
+		    }
+		} else {
+		    httpHeaderDelAt(req_hdr, pos);
+		}
+	    }
+	}
+    }
+    if (request->flags.connection_auth || http->conn->pinning.fd != -1) {
+	request->flags.auth = 1;
+	request->pinned_connection = http->conn;
+	cbdataLock(request->pinned_connection);
+    } else if (request->login[0] != '\0')
 	request->flags.auth = 1;
     if (httpHeaderHas(req_hdr, HDR_VIA)) {
 	String s = httpHeaderGetList(req_hdr, HDR_VIA);
@@ -1859,18 +1890,28 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
     }
     /* Filter unproxyable authentication types */
     if (http->log_type != LOG_TCP_DENIED &&
-	(httpHeaderHas(hdr, HDR_WWW_AUTHENTICATE) || httpHeaderHas(hdr, HDR_PROXY_AUTHENTICATE))) {
+	(httpHeaderHas(hdr, HDR_WWW_AUTHENTICATE))) {
 	HttpHeaderPos pos = HttpHeaderInitPos;
 	HttpHeaderEntry *e;
 	while ((e = httpHeaderGetEntry(hdr, &pos))) {
-	    if (e->id == HDR_WWW_AUTHENTICATE || e->id == HDR_PROXY_AUTHENTICATE) {
+	    if (e->id == HDR_WWW_AUTHENTICATE) {
 		const char *value = strBuf(e->value);
 		if ((strncasecmp(value, "NTLM", 4) == 0 &&
 			(value[4] == '\0' || value[4] == ' '))
 		    ||
 		    (strncasecmp(value, "Negotiate", 9) == 0 &&
-			(value[9] == '\0' || value[9] == ' '))) {
-		    httpHeaderDelAt(hdr, pos);
+			(value[9] == '\0' || value[9] == ' '))
+		    ||
+		    (strncasecmp(value, "Kerberos", 8) == 0 &&
+			(value[8] == '\0' || value[8] == ' '))) {
+		    if (request->flags.no_connection_auth) {
+			httpHeaderDelAt(hdr, pos);
+			continue;
+		    } else if (!request->flags.accelerated) {
+			httpHeaderPutStr(hdr, HDR_PROXY_SUPPORT, "Session-Based-Authentication");
+			httpHeaderPutStr(hdr, HDR_CONNECTION, "Proxy-support");
+		    }
+		    break;
 		}
 	    }
 	}
@@ -1901,6 +1942,10 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
     }
     if (!Config.onoff.client_pconns && !request->flags.must_keepalive)
 	request->flags.proxy_keepalive = 0;
+    if (request->flags.connection_auth && !rep->keep_alive) {
+	debug(33, 2) ("clientBuildReplyHeader: Connection oriented auth but server side non-persistent\n");
+	request->flags.proxy_keepalive = 0;
+    }
     /* Append Via */
     {
 	LOCAL_ARRAY(char, bbuf, MAX_URL + 32);
@@ -2978,6 +3023,11 @@ clientKeepaliveNextRequest(clientHttpRequest * http)
     debug(33, 3) ("clientKeepaliveNextRequest: FD %d\n", conn->fd);
     conn->defer.until = 0;	/* Kick it to read a new request */
     httpRequestFree(http);
+    if (conn->pinning.pinned && conn->pinning.fd == -1) {
+	debug(33, 2) ("clientKeepaliveNextRequest: FD %d Connection was pinned but server side gone. Terminating client connection\n", conn->fd);
+	comm_close(conn->fd);
+	return;
+    }
     if ((http = conn->chr) == NULL) {
 	debug(33, 5) ("clientKeepaliveNextRequest: FD %d reading next req\n",
 	    conn->fd);
@@ -4428,6 +4478,7 @@ httpAccept(int sock, void *data)
 	connState->log_addr.s_addr &= Config.Addrs.client_netmask.s_addr;
 	connState->me = me;
 	connState->fd = fd;
+	connState->pinning.fd = -1;
 	connState->in.buf = memAllocBuf(CLIENT_REQ_BUF_SZ, &connState->in.size);
 	if (connState->port->transparent) {
 	    if (clientNatLookup(connState) == 0) {
@@ -4894,4 +4945,52 @@ varyEvaluateMatch(StoreEntry * entry, request_t * request)
 	    return VARY_MATCH;
 	}
     }
+}
+
+/* This is a handler normally called by comm_close() */
+static void
+clientPinnedConnectionClosed(int fd, void *data)
+{
+    ConnStateData *conn = data;
+    conn->pinning.fd = -1;
+    safe_free(conn->pinning.host);
+    /* NOTE: pinning.pinned should be kept. This combined with fd == -1 at the end of a request indicates that the host
+     * connection has gone away */
+}
+
+void
+clientPinConnection(ConnStateData * conn, const char *host, int port, int fd)
+{
+    if (!cbdataValid(conn))
+	comm_close(fd);
+    if (conn->pinning.fd == fd)
+	return;
+    assert(conn->pinning.fd == -1);
+    conn->pinning.fd = fd;
+    safe_free(conn->pinning.host);
+    conn->pinning.host = xstrdup(host);
+    conn->pinning.port = port;
+    conn->pinning.pinned = 1;
+    comm_add_close_handler(fd, clientPinnedConnectionClosed, conn);
+}
+
+int
+clientGetPinnedConnection(ConnStateData * conn, request_t * request)
+{
+    int fd = conn->pinning.fd;
+
+    if (fd < 0)
+	return -1;
+
+    if (request && strcasecmp(conn->pinning.host, request->host) != 0) {
+	comm_close(fd);
+	return -1;
+    }
+    if (request && conn->pinning.port != request->port) {
+	comm_close(fd);
+	return -1;
+    }
+    conn->pinning.fd = -1;
+    comm_remove_close_handler(fd, clientPinnedConnectionClosed, conn);
+    return fd;
 }
