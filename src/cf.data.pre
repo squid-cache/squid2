@@ -432,6 +432,7 @@ DOC_START
 		     allow-miss
 		     max-conn
 		     htcp
+		     htcp-oldsquid
 		     carp-load-factor
 		     originserver
 		     userhash
@@ -542,6 +543,8 @@ DOC_START
 		     use 'htcp' to send HTCP, instead of ICP, queries
 		     to the neighbor.  You probably also want to
 		     set the "icp port" to 4827 instead of 3130.
+
+		     use 'htcp-oldsquid' to send HTCP to old Squid versions
 
 		     use 'carp-load-factor=f' to define a parent
 		     cache as one participating in a CARP array.

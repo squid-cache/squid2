@@ -1395,6 +1395,7 @@ struct _peer {
 	unsigned int closest_only:1;
 #if USE_HTCP
 	unsigned int htcp:1;
+	unsigned int htcp_oldsquid:1;
 #endif
 	unsigned int no_netdb_exchange:1;
 #if DELAY_POOLS
