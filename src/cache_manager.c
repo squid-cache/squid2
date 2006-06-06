@@ -120,7 +120,9 @@ cachemgrParseUrl(const char *url)
     } else if (request[0] == '\0') {
 	xstrncpy(request, "menu", MAX_URL);
 #endif
-    } else if ((a = cachemgrFindAction(request)) == NULL) {
+    }
+    request[strcspn(request, "/")] = '\0';
+    if ((a = cachemgrFindAction(request)) == NULL) {
 	debug(16, 1) ("cachemgrParseUrl: action '%s' not found\n", request);
 	return NULL;
     } else {
