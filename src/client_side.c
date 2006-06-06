@@ -331,7 +331,6 @@ clientFollowXForwardedForDone(int answer, void *data)
 	    inet_ntoa(conn->log_addr));
     }
     stringClean(&request->x_forwarded_for_iterator);
-    request->flags.done_follow_x_forwarded_for = 1;
     http->acl_checklist = NULL;	/* XXX do we need to aclChecklistFree() ? */
     clientAccessCheck(http);
 }
