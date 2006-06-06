@@ -385,6 +385,7 @@ memTotalAllocated(void)
     return TheMeter.alloc.level;
 }
 
+#if DEBUG_MEMPOOL
 static void
 memPoolDiffReport(const MemPool * pool, StoreEntry * e)
 {
@@ -400,6 +401,7 @@ memPoolDiffReport(const MemPool * pool, StoreEntry * e)
 	diff.alloc.level, pool->meter.inuse.level, pool->meter.idle.level,
 	e);
 }
+#endif
 
 static void
 memPoolReport(MemPool * pool, StoreEntry * e, int diff)
