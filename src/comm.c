@@ -785,6 +785,8 @@ commUpdateEvents(int fd)
     int need_read = 0;
     int need_write = 0;
 
+    assert(F->flags.open);
+
     if (F->read_handler
 	&& !F->backoff
 	) {

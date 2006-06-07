@@ -40,6 +40,7 @@
 static int kdpfd;
 static struct epoll_event events[MAX_EVENTS];
 static int epoll_fds = 0;
+static unsigned *epoll_state;	/* keep track of the epoll state */
 
 #include "comm_generic.c"
 
@@ -72,6 +73,7 @@ comm_select_init()
     if (kdpfd < 0) {
 	fatalf("comm_select_init: epoll_create(): %s\n", xstrerror());
     }
+    epoll_state = xcalloc(SQUID_MAXFD, sizeof(*epoll_state));
 }
 
 void
@@ -80,17 +82,16 @@ comm_select_shutdown()
     close(kdpfd);
     fd_close(kdpfd);
     kdpfd = -1;
+    safe_free(epoll_state);
 }
 
 void
 commSetEvents(int fd, int need_read, int need_write)
 {
-    fde *F = &fd_table[fd];
     int epoll_ctl_type = 0;
     struct epoll_event ev;
 
     assert(fd >= 0);
-    assert(F->flags.open);
     debug(5, 8) ("commUpdateEvents(fd=%d)\n", fd);
 
     if (RUNNING_ON_VALGRIND) {
@@ -109,16 +110,18 @@ commSetEvents(int fd, int need_read, int need_write)
     if (ev.events)
 	ev.events |= EPOLLHUP | EPOLLERR;
 
-    if (ev.events != F->epoll_state) {
+    if (ev.events != epoll_state[fd]) {
 	/* If the struct is already in epoll MOD or DEL, else ADD */
-	if (F->epoll_state) {
-	    epoll_ctl_type = ev.events ? EPOLL_CTL_MOD : EPOLL_CTL_DEL;
+	if (!ev.events) {
+	    epoll_ctl_type = EPOLL_CTL_DEL;
+	} else if (epoll_state[fd]) {
+	    epoll_ctl_type = EPOLL_CTL_MOD;
 	} else {
 	    epoll_ctl_type = EPOLL_CTL_ADD;
 	}
 
 	/* Update the state */
-	F->epoll_state = ev.events;
+	epoll_state[fd] = ev.events;
 
 	if (epoll_ctl(kdpfd, epoll_ctl_type, fd, &ev) < 0) {
 	    debug(5, 1) ("commSetSelect: epoll_ctl(%s): failed on fd=%d: %s\n",
