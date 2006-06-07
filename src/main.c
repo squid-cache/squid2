@@ -37,8 +37,6 @@
 #ifdef LINUX_TPROXY
 #include <linux/capability.h>
 #include <sys/prctl.h>
-#undef __FD_SETSIZE
-#define __FD_SETSIZE SQUID_MAXFD
 #endif
 
 #if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
