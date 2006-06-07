@@ -100,7 +100,7 @@ commSetEvents(int fd, int need_read, int need_write)
     ev.events = 0;
     ev.data.fd = fd;
 
-    if (need_read & !F->backoff)
+    if (need_read)
 	ev.events |= EPOLLIN;
 
     if (need_write)
