@@ -806,10 +806,25 @@ TYPE: onoff
 DEFAULT: on
 LOC: Config.onoff.cache_vary
 DOC_START
-	A list of ACL elements which, if matched, cause the replies with
-	varying entities (Vary header) to not be cached.
+	Set to off to disable caching of Vary:in objects.
 DOC_END
 
+NAME: broken_vary_encoding
+TYPE: acl_access
+DEFAULT: none
+LOC: Config.accessList.vary_encoding
+DOC_START
+	Many servers have broken support for on-the-fly Content-Encoding,
+	returning the same ETag on both plain and gzip:ed variants.
+	Vary replies matching this access list will have the cache split
+	on the Accept-Encoding header of the request and not trusting the
+	ETag to be unique.
+
+# Apache mod_gzip and mod_deflate known to be broken so don't trust
+# Apache to signal ETag correctly on such responses
+acl Apache rep_header Server ^Apache
+broken_vary_encoding accept apache
+DOC_END
 
 COMMENT_START
  OPTIONS WHICH AFFECT THE CACHE SIZE

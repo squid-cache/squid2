@@ -1394,7 +1394,7 @@ extern int errorMapStart(const errormap * map, request_t * req, HttpReply * repl
 
 /* ETag support */
 void storeLocateVaryDone(VaryData * data);
-void storeLocateVary(StoreEntry * e, int offset, const char *vary_data, STLVCB * callback, void *cbdata);
-void storeAddVary(const char *url, const char *log_url, const method_t method, const cache_key * key, const char *etag, const char *vary, const char *vary_headers);
+void storeLocateVary(StoreEntry * e, int offset, const char *vary_data, String accept_encoding, STLVCB * callback, void *cbdata);
+void storeAddVary(const char *url, const char *log_url, const method_t method, const cache_key * key, const char *etag, const char *vary, const char *vary_headers, const char *accept_encoding);
 
 #endif /* SQUID_PROTOS_H */

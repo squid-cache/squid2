@@ -366,6 +366,17 @@ httpMakeVaryMark(request_t * request, HttpReply * reply)
 	char *name = xmalloc(ilen + 1);
 	xstrncpy(name, item, ilen + 1);
 	Tolower(name);
+	if (strcmp(name, "accept-encoding") == 0) {
+	    aclCheck_t checklist;
+	    memset(&checklist, 0, sizeof(checklist));
+	    checklist.request = request;
+	    checklist.reply = reply;
+	    if (aclCheckFast(Config.accessList.vary_encoding, &checklist)) {
+		stringClean(&request->vary_encoding);
+		request->vary_encoding = httpHeaderGetStrOrList(&request->header, HDR_ACCEPT_ENCODING);
+		strCat(request->vary_encoding, "");
+	    }
+	}
 	if (strcmp(name, "*") == 0) {
 	    /* Can not handle "Vary: *" efficiently, bail out making the response not cached */
 	    safe_free(name);
@@ -478,6 +489,9 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 	    goto no_cache;
 	}
 	entry->mem_obj->vary_headers = xstrdup(vary);
+	safe_free(entry->mem_obj->vary_encoding);
+	if (strBuf(httpState->orig_request->vary_encoding))
+	    entry->mem_obj->vary_encoding = xstrdup(strBuf(httpState->orig_request->vary_encoding));
     }
     switch (httpCachableReply(httpState)) {
     case 1:

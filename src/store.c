@@ -172,6 +172,7 @@ destroy_MemObject(StoreEntry * e)
     safe_free(mem->url);
     safe_free(mem->log_url);	/* XXX account log_url */
     safe_free(mem->vary_headers);
+    safe_free(mem->vary_encoding);
     memFree(mem, MEM_MEMOBJECT);
 }
 
@@ -393,6 +394,7 @@ typedef struct {
     char *url;
     char *key;
     char *vary_headers;
+    char *accept_encoding;
     char *etag;
     squid_off_t seen_offset;
     char *buf;
@@ -402,6 +404,7 @@ typedef struct {
     struct {
 	char *key;
 	char *etag;
+	char *accept_encoding;
 	int this_key:1;
 	int key_used:1;
 	int ignore:1;
@@ -416,6 +419,8 @@ free_AddVaryState(void *data)
     debug(11, 2) ("free_AddVaryState: %p\n", data);
     if (!state->done && state->key) {
 	storeAppendPrintf(state->e, "Key: %s\n", state->key);
+	if (state->accept_encoding)
+	    storeAppendPrintf(state->e, "Accept-Encoding: %s\n", state->accept_encoding);
 	if (state->etag)
 	    storeAppendPrintf(state->e, "ETag: %s\n", state->etag);
 	storeAppendPrintf(state->e, "VaryData: %s\n", state->vary_headers);
@@ -437,9 +442,11 @@ free_AddVaryState(void *data)
     safe_free(state->url);
     safe_free(state->key);
     safe_free(state->vary_headers);
+    safe_free(state->accept_encoding);
     safe_free(state->etag);
     safe_free(state->current.key);
     safe_free(state->current.etag);
+    safe_free(state->current.accept_encoding);
     if (state->buf) {
 	memFreeBuf(state->buf_size, state->buf);
 	state->buf = NULL;
@@ -474,6 +481,8 @@ storeAddVaryFlush(AddVaryState * state)
 	    storeAppendPrintf(state->e, "Key: %s\n", state->current.key);
 	else
 	    storeAppendPrintf(state->e, "Key: %s\n", state->key);
+	if (state->accept_encoding)
+	    storeAppendPrintf(state->e, "Accept-Encoding: %s\n", state->accept_encoding);
 	if (state->etag)
 	    storeAppendPrintf(state->e, "ETag: %s\n", state->etag);
 	storeAppendPrintf(state->e, "VaryData: %s\n", state->vary_headers);
@@ -482,12 +491,26 @@ storeAddVaryFlush(AddVaryState * state)
     } else if (state->current.key) {
 	storeAppendPrintf(state->e, "Key: %s\n", state->current.key);
 	safe_free(state->current.key);
+	if (state->current.accept_encoding)
+	    storeAppendPrintf(state->e, "Accept-Encoding: %s\n", state->current.accept_encoding);
 	if (state->current.etag) {
 	    storeAppendPrintf(state->e, "ETag: %s\n", state->current.etag);
 	    safe_free(state->current.etag);
 	}
 	state->current.key_used = 1;
     }
+}
+
+static int
+strcmpnull(const char *a, const char *b)
+{
+    if (a && b)
+	return strcmp(a, b);
+    else if (a)
+	return 1;
+    else if (b)
+	return -1;
+    return 0;
 }
 
 static void
@@ -540,14 +563,14 @@ storeAddVaryReadOld(void *data, char *buf, ssize_t size)
 	    }
 	    safe_free(state->current.key);
 	    safe_free(state->current.etag);
+	    safe_free(state->current.accept_encoding);
 	    memset(&state->current, 0, sizeof(state->current));
 	    state->current.key = xmalloc(l2 + 1);
 	    memcpy(state->current.key, p2, l2);
 	    state->current.key[l2] = '\0';
 	    if (state->key) {
-		if (strcmp(state->current.key, state->key) == 0) {
+		if (strcmp(state->current.key, state->key) == 0)
 		    state->current.this_key = 1;
-		}
 	    }
 	    debug(11, 3) ("storeAddVaryReadOld: Key: %s%s\n", state->current.key, state->current.this_key ? " (THIS)" : "");
 	} else if (strmatchbeg(p, "ETag: ", l) == 0) {
@@ -558,8 +581,10 @@ storeAddVaryReadOld(void *data, char *buf, ssize_t size)
 	    state->current.etag = xmalloc(l2 + 1);
 	    memcpy(state->current.etag, p2, l2);
 	    state->current.etag[l2] = '\0';
-	    if (state->etag && strcmp(state->current.etag, state->etag) == 0) {
-		if (!state->key) {
+	    if (state->etag && strcmp(state->current.etag, state->etag)) {
+		if (strcmpnull(state->accept_encoding, state->current.accept_encoding) != 0) {
+		    /* Skip this match. It's not ours */
+		} else if (!state->key) {
 		    state->current.this_key = 1;
 		} else {
 		    const cache_key *oldkey = storeKeyScan(state->current.key);
@@ -585,6 +610,13 @@ storeAddVaryReadOld(void *data, char *buf, ssize_t size)
 		storeAppend(state->e, p, e - p + 1);
 		debug(11, 3) ("storeAddVaryReadOld: %s\n", p);
 	    }
+	} else if (strmatchbeg(p, "Accept-Encoding: ", l) == 0) {
+	    p2 = p + 17;
+	    l2 = e - p2;
+	    safe_free(state->current.accept_encoding);
+	    state->current.accept_encoding = xmalloc(l2 + 1);
+	    memcpy(state->current.accept_encoding, p2, l2);
+	    state->current.accept_encoding[l2] = '\0';
 	}
 	e += 1;
 	l -= e - p;
@@ -624,7 +656,7 @@ storeAddVaryReadOld(void *data, char *buf, ssize_t size)
  * At leas one of key or etag must be specified, preferably both.
  */
 void
-storeAddVary(const char *url, const char *log_url, const method_t method, const cache_key * key, const char *etag, const char *vary, const char *vary_headers)
+storeAddVary(const char *url, const char *log_url, const method_t method, const cache_key * key, const char *etag, const char *vary, const char *vary_headers, const char *accept_encoding)
 {
     AddVaryState *state;
     http_version_t version;
@@ -635,6 +667,8 @@ storeAddVary(const char *url, const char *log_url, const method_t method, const 
     if (key)
 	state->key = xstrdup(storeKeyText(key));
     state->vary_headers = xstrdup(vary_headers);
+    if (accept_encoding)
+	state->accept_encoding = xstrdup(accept_encoding);
     if (etag)
 	state->etag = xstrdup(etag);
     state->oe = storeGetPublic(url, method);
@@ -710,8 +744,10 @@ typedef struct {
     size_t buf_size;
     size_t buf_offset;
     char *vary_data;
+    char *accept_encoding;
     squid_off_t seen_offset;
     struct {
+	int ignore;
 	char *key;
 	char *etag;
     } current;
@@ -738,6 +774,7 @@ storeLocateVaryCallback(LocateVaryState * state)
     }
     state->current.etag = NULL;	/* shared by data->entries[x] */
     safe_free(state->vary_data);
+    safe_free(state->accept_encoding);
     safe_free(state->current.key);
     if (state->sc) {
 	storeClientUnregister(state->sc, state->e, state);
@@ -778,11 +815,15 @@ storeLocateVaryRead(void *data, char *buf, ssize_t size)
 	    safe_free(state->current.key);
 	    state->current.etag = NULL;
 	    safe_free(state->current.etag);
+	    state->current.ignore = 0;
+	    state->data->broken_encoding = 0;
 	    memset(&state->current, 0, sizeof(state->current));
 	    state->current.key = xmalloc(l2 + 1);
 	    memcpy(state->current.key, p2, l2);
 	    state->current.key[l2] = '\0';
 	    debug(11, 3) ("storeLocateVaryRead: Key: %s\n", state->current.key);
+	} else if (state->current.ignore) {
+	    /* Skip this entry */
 	} else if (strmatchbeg(p, "ETag: ", l) == 0) {
 	    /* etag field */
 	    char *etag;
@@ -805,6 +846,15 @@ storeLocateVaryRead(void *data, char *buf, ssize_t size)
 		state->data->etag = state->current.etag;
 		debug(11, 2) ("storeLocateVaryRead: MATCH! %s %s\n", state->current.key, state->current.etag);
 	    }
+	} else if (strmatchbeg(p, "Accept-Encoding: ", l) == 0) {
+	    p2 = p + 17;
+	    l2 = e - p2;
+	    if (!state->accept_encoding)
+		state->current.ignore = 1;
+	    else if (strncmp(state->accept_encoding, p2, l2) == 0 && !state->accept_encoding[l2])
+		state->data->broken_encoding = 1;
+	    else
+		state->current.ignore = 1;
 	}
 	e += 1;
 	l -= e - p;
@@ -840,7 +890,7 @@ storeLocateVaryRead(void *data, char *buf, ssize_t size)
 }
 
 void
-storeLocateVary(StoreEntry * e, int offset, const char *vary_data, STLVCB * callback, void *cbdata)
+storeLocateVary(StoreEntry * e, int offset, const char *vary_data, String accept_encoding, STLVCB * callback, void *cbdata)
 {
     LocateVaryState *state;
     debug(11, 2) ("storeLocateVary: %s\n", vary_data);
@@ -849,7 +899,9 @@ storeLocateVary(StoreEntry * e, int offset, const char *vary_data, STLVCB * call
 	VaryData_pool = memPoolCreate("VaryData", sizeof(VaryData));
     state = cbdataAlloc(LocateVaryState);
     state->vary_data = xstrdup(vary_data);
+    state->accept_encoding = xstrdup(strBuf(accept_encoding));
     state->data = memPoolAlloc(VaryData_pool);
+    stringClean(&accept_encoding);
     state->e = e;
     storeLockObject(state->e);
     state->callback_data = cbdata;
@@ -930,7 +982,7 @@ storeSetPublicKey(StoreEntry * e)
 		strListAdd(&vary, strBuf(varyhdr), ',');
 	    stringClean(&varyhdr);
 #endif
-	    storeAddVary(mem->url, mem->log_url, mem->method, newkey, httpHeaderGetStr(&mem->reply->header, HDR_ETAG), strBuf(vary), mem->vary_headers);
+	    storeAddVary(mem->url, mem->log_url, mem->method, newkey, httpHeaderGetStr(&mem->reply->header, HDR_ETAG), strBuf(vary), mem->vary_headers, mem->vary_encoding);
 	    stringClean(&vary);
 	}
     } else {

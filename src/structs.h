@@ -707,6 +707,7 @@ struct _SquidConfig {
 #if FOLLOW_X_FORWARDED_FOR
 	acl_access *followXFF;
 #endif
+	acl_access *vary_encoding;
     } accessList;
     acl_deny_info_list *denyInfoList;
     struct _authConfig {
@@ -1687,6 +1688,7 @@ struct _MemObject {
 #endif
     const char *vary_hdr;
     const char *vary_headers;
+    const char *vary_encoding;
     StoreEntry *ims_entry;
     time_t refresh_timestamp;
 };
@@ -1853,6 +1855,7 @@ struct _request_t {
     time_t lastmod;		/* Used on refreshes */
     char *vary_hdr;		/* Used when varying entities are detected. Changes how the store key is calculated */
     char *vary_headers;		/* Used when varying entities are detected. Changes how the store key is calculated */
+    String vary_encoding;	/* Used when varying entities are detected. Changes how the store key is calculated. */
     VaryData *vary;
     Array *etags;		/* possible known entity tags (Vary MISS) */
     char *etag;			/* current entity tag, cache validation */
@@ -2452,6 +2455,7 @@ struct _errormap {
 };
 
 struct _VaryData {
+    int broken_encoding:1;
     char *key;
     char *etag;
     Array etags;

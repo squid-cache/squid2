@@ -679,7 +679,11 @@ clientHandleETagMiss(clientHttpRequest * http)
     if (mem->reply) {
 	const char *etag = httpHeaderGetStr(&mem->reply->header, HDR_ETAG);
 	if (etag) {
-	    storeAddVary(mem->url, mem->log_url, mem->method, NULL, httpHeaderGetStr(&mem->reply->header, HDR_ETAG), request->vary_hdr, request->vary_headers);
+	    if (request->vary && request->vary->broken_encoding && strBuf(request->vary_encoding)) {
+		request->vary_encoding = httpHeaderGetStrOrList(&request->header, HDR_CONTENT_ENCODING);
+		strCat(request->vary_encoding, "");
+	    }
+	    storeAddVary(mem->url, mem->log_url, mem->method, NULL, httpHeaderGetStr(&mem->reply->header, HDR_ETAG), request->vary_hdr, request->vary_headers, strBuf(request->vary_encoding));
 	}
     }
     request->done_etag = 1;
@@ -792,7 +796,6 @@ clientProcessExpired(void *data)
     int hit = 0;
     const char *etag;
     debug(33, 3) ("clientProcessExpired: '%s'\n", http->uri);
-    assert(http->entry->lastmod >= 0);
     /*
      * check if we are allowed to contact other servers
      * @?@: Instead of a 504 (Gateway Timeout) reply, we may want to return 
@@ -842,7 +845,12 @@ clientProcessExpired(void *data)
     /* delay_id is already set on original store client */
     delaySetStoreClient(http->sc, delayClient(http));
 #endif
-    http->request->lastmod = http->old_entry->lastmod;
+    if (http->old_entry->lastmod > 0)
+	http->request->lastmod = http->old_entry->lastmod;
+    else if (http->old_entry->mem_obj && http->old_entry->mem_obj->reply)
+	http->request->lastmod = http->old_entry->mem_obj->reply->date;
+    else
+	http->request->lastmod = -1;
     debug(33, 5) ("clientProcessExpired: lastmod %ld\n", (long int) entry->lastmod);
     http->entry = entry;
     http->out.offset = 0;
@@ -2114,7 +2122,7 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	     * rely on the http structure for this...
 	     */
 	    http->sc = NULL;
-	    storeLocateVary(e, e->mem_obj->reply->hdr_sz, r->vary_headers, clientProcessVary, http);
+	    storeLocateVary(e, e->mem_obj->reply->hdr_sz, r->vary_headers, httpHeaderGetStrOrList(&r->header, HDR_ACCEPT_ENCODING), clientProcessVary, http);
 	    storeClientUnregister(sc, e, http);
 	    storeUnlockObject(e);
 	    /* Note: varyEvalyateMatch updates the request with vary information
@@ -2197,6 +2205,7 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	 * both have a stale version of the object.
 	 */
 	r->flags.need_validation = 1;
+#if 0
 	if (e->lastmod < 0) {
 	    /*
 	     * Previous reply didn't have a Last-Modified header,
@@ -2204,7 +2213,9 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	     */
 	    http->log_type = LOG_TCP_MISS;
 	    clientProcessMiss(http);
-	} else if (r->flags.nocache) {
+	} else
+#endif
+	if (r->flags.nocache) {
 	    /*
 	     * This did not match a refresh pattern that overrides no-cache
 	     * we should honour the client no-cache header.

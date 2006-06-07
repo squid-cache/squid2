@@ -139,6 +139,10 @@ storeKeyPublicByRequestMethod(request_t * request, const method_t method)
     if (request->vary_headers) {
 	MD5Update(&M, (unsigned char *) "\0V", 2);
 	MD5Update(&M, (unsigned char *) request->vary_headers, strlen(request->vary_headers));
+	if (strBuf(request->vary_encoding)) {
+	    MD5Update(&M, (unsigned char *) "\0E", 2);
+	    MD5Update(&M, (unsigned char *) strBuf(request->vary_encoding), strLen(request->vary_encoding));
+	}
     }
     if (request->urlgroup) {
 	MD5Update(&M, (unsigned char *) "\0G", 2);
