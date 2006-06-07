@@ -48,7 +48,7 @@ storeAufsOpen(SwapDir * SD, StoreEntry * e, STFNCB * file_callback,
 	return NULL;
 #endif
 #if !ASYNC_OPEN
-    fd = file_open(path, O_RDONLY | O_BINARY);
+    fd = file_open(path, O_RDONLY | O_BINARY | O_NOATIME);
     if (fd < 0) {
 	debug(79, 3) ("storeAufsOpen: got failure (%d)\n", errno);
 	return NULL;
@@ -69,7 +69,7 @@ storeAufsOpen(SwapDir * SD, StoreEntry * e, STFNCB * file_callback,
     Opening_FD++;
     statCounter.syscalls.disk.opens++;
 #if ASYNC_OPEN
-    aioOpen(path, O_RDONLY | O_BINARY, 0644, storeAufsOpenDone, sio);
+    aioOpen(path, O_RDONLY | O_BINARY | O_NOATIME, 0644, storeAufsOpenDone, sio);
 #else
     storeAufsOpenDone(fd, sio, fd, 0);
 #endif

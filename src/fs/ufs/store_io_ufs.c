@@ -57,7 +57,7 @@ storeUfsOpen(SwapDir * SD, StoreEntry * e, STFNCB * file_callback,
     struct stat sb;
     int fd;
     debug(79, 3) ("storeUfsOpen: fileno %08X\n", f);
-    fd = file_open(path, O_RDONLY | O_BINARY);
+    fd = file_open(path, O_RDONLY | O_BINARY | O_NOATIME);
     if (fd < 0) {
 	debug(79, 3) ("storeUfsOpen: got failure (%d)\n", errno);
 	return NULL;

@@ -76,7 +76,7 @@ storeDiskdOpen(SwapDir * SD, StoreEntry * e, STFNCB * file_callback,
 
     sio->swap_filen = f;
     sio->swap_dirn = SD->index;
-    sio->mode = O_RDONLY | O_BINARY;
+    sio->mode = O_RDONLY | O_BINARY | O_NOATIME;
     sio->callback = callback;
     sio->callback_data = callback_data;
     sio->e = e;
