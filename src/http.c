@@ -224,9 +224,21 @@ httpCachableReply(HttpStateData * httpState)
     HttpHeader *hdr = &rep->header;
     const int cc_mask = (rep->cache_control) ? rep->cache_control->mask : 0;
     const char *v;
-    if (EBIT_TEST(cc_mask, CC_PRIVATE))
+#if HTTP_VIOLATIONS
+    const refresh_t *R = NULL;
+    /* This strange looking define first looks up the frefresh pattern
+     * and then checks if the specified flag is set. The main purpose
+     * of this is to simplify the refresh pattern lookup
+     */
+#define REFRESH_OVERRIDE(flag) \
+	((R = (R ? R : refreshLimits(httpState->entry->mem_obj->url))) , \
+	(R && R->flags.flag))
+#else
+#define REFRESH_OVERRIDE(field)	0
+#endif
+    if (EBIT_TEST(cc_mask, CC_PRIVATE) && !REFRESH_OVERRIDE(ignore_private))
 	return 0;
-    if (EBIT_TEST(cc_mask, CC_NO_CACHE))
+    if (EBIT_TEST(cc_mask, CC_NO_CACHE) && !REFRESH_OVERRIDE(ignore_no_cache))
 	return 0;
     if (EBIT_TEST(cc_mask, CC_NO_STORE))
 	return 0;
@@ -236,7 +248,7 @@ httpCachableReply(HttpStateData * httpState)
 	 * only if a Cache-Control: public reply header is present.
 	 * RFC 2068, sec 14.9.4
 	 */
-	if (!EBIT_TEST(cc_mask, CC_PUBLIC))
+	if (!EBIT_TEST(cc_mask, CC_PUBLIC) && !REFRESH_OVERRIDE(ignore_auth))
 	    return 0;
     }
     /* Pragma: no-cache in _replies_ is not documented in HTTP,
@@ -245,7 +257,7 @@ httpCachableReply(HttpStateData * httpState)
 	String s = httpHeaderGetList(hdr, HDR_PRAGMA);
 	const int no_cache = strListIsMember(&s, "no-cache", ',');
 	stringClean(&s);
-	if (no_cache)
+	if (no_cache && !REFRESH_OVERRIDE(ignore_no_cache))
 	    return 0;
     }
     /*

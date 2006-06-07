@@ -2068,6 +2068,12 @@ dump_refreshpattern(StoreEntry * entry, const char *name, refresh_t * head)
 	    storeAppendPrintf(entry, " reload-into-ims");
 	if (head->flags.ignore_reload)
 	    storeAppendPrintf(entry, " ignore-reload");
+	if (head->flags.ignore_no_cache)
+	    storeAppendPrintf(entry, " ignore-no-cache");
+	if (head->flags.ignore_private)
+	    storeAppendPrintf(entry, " ignore-private");
+	if (head->flags.ignore_auth)
+	    storeAppendPrintf(entry, " ignore-auth");
 #endif
 	storeAppendPrintf(entry, "\n");
 	head = head->next;
@@ -2087,6 +2093,9 @@ parse_refreshpattern(refresh_t ** head)
     int override_lastmod = 0;
     int reload_into_ims = 0;
     int ignore_reload = 0;
+    int ignore_no_cache = 0;
+    int ignore_private = 0;
+    int ignore_auth = 0;
 #endif
     int i;
     refresh_t *t;
@@ -2118,6 +2127,12 @@ parse_refreshpattern(refresh_t ** head)
 	    override_expire = 1;
 	else if (!strcmp(token, "override-lastmod"))
 	    override_lastmod = 1;
+	else if (!strcmp(token, "ignore-no-cache"))
+	    ignore_no_cache = 1;
+	else if (!strcmp(token, "ignore-private"))
+	    ignore_private = 1;
+	else if (!strcmp(token, "ignore-auth"))
+	    ignore_auth = 1;
 	else if (!strcmp(token, "reload-into-ims")) {
 	    reload_into_ims = 1;
 	    refresh_nocache_hack = 1;
@@ -2159,6 +2174,12 @@ parse_refreshpattern(refresh_t ** head)
 	t->flags.reload_into_ims = 1;
     if (ignore_reload)
 	t->flags.ignore_reload = 1;
+    if (ignore_no_cache)
+	t->flags.ignore_no_cache = 1;
+    if (ignore_private)
+	t->flags.ignore_private = 1;
+    if (ignore_auth)
+	t->flags.ignore_auth = 1;
 #endif
     t->next = NULL;
     while (*head)

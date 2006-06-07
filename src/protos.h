@@ -782,6 +782,7 @@ extern int refreshCheckHTCP(const StoreEntry *, request_t *);
 extern int refreshCheckDigest(const StoreEntry *, time_t delta);
 extern time_t getMaxAge(const char *url);
 extern void refreshInit(void);
+extern const refresh_t *refreshLimits(const char *url);
 
 extern void serverConnectionsClose(void);
 extern void shut_down(int);

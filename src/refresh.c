@@ -99,14 +99,13 @@ static struct RefreshCounts {
 #define REFRESH_DEFAULT_PCT	0.20
 #define REFRESH_DEFAULT_MAX	(time_t)259200
 
-static const refresh_t *refreshLimits(const char *);
 static const refresh_t *refreshUncompiledPattern(const char *);
 static OBJH refreshStats;
 static int refreshStaleness(const StoreEntry *, time_t, time_t, const refresh_t *, stale_flags *);
 
 static refresh_t DefaultRefresh;
 
-static const refresh_t *
+const refresh_t *
 refreshLimits(const char *url)
 {
     const refresh_t *R;
