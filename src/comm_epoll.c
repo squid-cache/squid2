@@ -83,7 +83,7 @@ comm_select_shutdown()
 }
 
 void
-commSetEvents(int fd, int need_read, int need_write, int force)
+commSetEvents(int fd, int need_read, int need_write)
 {
     fde *F = &fd_table[fd];
     int epoll_ctl_type = 0;
@@ -108,10 +108,6 @@ commSetEvents(int fd, int need_read, int need_write, int force)
 
     if (ev.events)
 	ev.events |= EPOLLHUP | EPOLLERR;
-
-    /* If the type is 0, force adding the fd to the epoll set */
-    if (force)
-	F->epoll_state = 0;
 
     if (ev.events != F->epoll_state) {
 	/* If the struct is already in epoll MOD or DEL, else ADD */

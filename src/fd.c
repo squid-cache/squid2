@@ -84,7 +84,7 @@ fd_close(int fd)
 	assert(F->write_handler == NULL);
     }
     debug(51, 3) ("fd_close FD %d %s\n", fd, F->desc);
-    commSetEvents(fd, 0, 0, 0);
+    commSetEvents(fd, 0, 0);
     F->flags.open = 0;
     fdUpdateBiggest(fd, 0);
     Number_FD--;

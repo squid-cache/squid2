@@ -606,7 +606,7 @@ commIncomingStats(StoreEntry * sentry)
 }
 
 void
-commSetEvents(int fd, int need_read, int need_write, int force)
+commSetEvents(int fd, int need_read, int need_write)
 {
     /* XXX Here we could optimize the poll arrays quite considerably */
 }

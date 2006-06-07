@@ -656,7 +656,7 @@ commIncomingStats(StoreEntry * sentry)
 }
 
 void
-commSetEvents(int fd, int need_read, int need_write, int force)
+commSetEvents(int fd, int need_read, int need_write)
 {
     if (need_read && !FD_ISSET(fd, &global_readfds)) {
 	FD_SET(fd, &global_readfds);

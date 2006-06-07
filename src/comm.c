@@ -341,6 +341,8 @@ commResetFD(ConnectStateData * cs)
 	    fdAdjustReserved();
 	return 0;
     }
+    /* We are about to close the fd (dup2 over it). Unregister from the event loop */
+    commSetEvents(cs->fd, 0, 0);
     if (dup2(fd2, cs->fd) < 0) {
 	debug(5, 0) ("commResetFD: dup2: %s\n", xstrerror());
 	if (ENFILE == errno || EMFILE == errno)
@@ -375,10 +377,8 @@ commResetFD(ConnectStateData * cs)
 	commSetTcpNoDelay(cs->fd);
 #endif
 
-    /* If we are using epoll(), we need to notify the kernel about the new
-     * fd instance
-     */
-    commUpdateEvents(cs->fd, 1);
+    /* Register the new FD with the event loop */
+    commUpdateEvents(cs->fd);
     if (Config.tcpRcvBufsz > 0)
 	commSetTcpRcvbuf(cs->fd, Config.tcpRcvBufsz);
     return 1;
@@ -779,7 +779,7 @@ commSetDefer(int fd, DEFER * func, void *data)
 }
 
 void
-commUpdateEvents(int fd, int force)
+commUpdateEvents(int fd)
 {
     fde *F = &fd_table[fd];
     int need_read = 0;
@@ -821,7 +821,7 @@ commUpdateEvents(int fd, int force)
 	    break;
 	}
     }
-    commSetEvents(fd, need_read, need_write, force);
+    commSetEvents(fd, need_read, need_write);
 }
 
 void
@@ -831,7 +831,7 @@ commUpdateReadHandler(int fd, PF * handler, void *data)
     fd_table[fd].read_data = data;
     if (!handler)
 	fd_table[fd].read_pending = COMM_PENDING_NORMAL;
-    commUpdateEvents(fd, 0);
+    commUpdateEvents(fd);
 }
 
 void
@@ -841,7 +841,7 @@ commUpdateWriteHandler(int fd, PF * handler, void *data)
     fd_table[fd].write_data = data;
     if (!handler)
 	fd_table[fd].write_pending = COMM_PENDING_NORMAL;
-    commUpdateEvents(fd, 0);
+    commUpdateEvents(fd);
 }
 
 void

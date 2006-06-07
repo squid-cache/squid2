@@ -52,7 +52,7 @@ commDeferFD(int fd)
 	return;
 
     F->backoff = 1;
-    commUpdateEvents(fd, 0);
+    commUpdateEvents(fd);
 }
 
 /* Resume reading from the given fd */
@@ -68,7 +68,7 @@ commResumeFD(int fd)
 	return;
 
     F->backoff = 0;
-    commUpdateEvents(fd, 0);
+    commUpdateEvents(fd);
 }
 
 static int
@@ -123,7 +123,7 @@ comm_call_handlers(int fd, int read_event, int write_event)
 		F->read_pending = COMM_PENDING_NORMAL;
 		hdl(fd, hdl_data);
 		if (F->flags.open && !F->read_handler)
-		    commUpdateEvents(fd, 0);
+		    commUpdateEvents(fd);
 #endif
 		statCounter.select_fds++;
 	    }
@@ -156,7 +156,7 @@ comm_call_handlers(int fd, int read_event, int write_event)
 	    F->write_pending = COMM_PENDING_NORMAL;
 	    hdl(fd, hdl_data);
 	    if (F->flags.open)
-		commUpdateEvents(fd, 0);
+		commUpdateEvents(fd);
 #endif
 	    statCounter.select_fds++;
 	}
