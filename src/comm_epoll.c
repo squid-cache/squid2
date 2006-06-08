@@ -79,8 +79,8 @@ comm_select_init()
 void
 comm_select_shutdown()
 {
-    close(kdpfd);
     fd_close(kdpfd);
+    close(kdpfd);
     kdpfd = -1;
     safe_free(epoll_state);
 }
@@ -92,7 +92,7 @@ commSetEvents(int fd, int need_read, int need_write)
     struct epoll_event ev;
 
     assert(fd >= 0);
-    debug(5, 8) ("commUpdateEvents(fd=%d)\n", fd);
+    debug(5, 8) ("commSetEvents(fd=%d)\n", fd);
 
     if (RUNNING_ON_VALGRIND) {
 	/* Keep valgrind happy.. complains about uninitialized bytes otherwise */
@@ -124,7 +124,7 @@ commSetEvents(int fd, int need_read, int need_write)
 	epoll_state[fd] = ev.events;
 
 	if (epoll_ctl(kdpfd, epoll_ctl_type, fd, &ev) < 0) {
-	    debug(5, 1) ("commSetSelect: epoll_ctl(%s): failed on fd=%d: %s\n",
+	    debug(5, 1) ("commSetEvents: epoll_ctl(%s): failed on fd=%d: %s\n",
 		epolltype_atoi(epoll_ctl_type), fd, xstrerror());
 	}
 	switch (epoll_ctl_type) {
