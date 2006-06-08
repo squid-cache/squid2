@@ -78,6 +78,15 @@ storeNullDirInit(SwapDir * sd)
 	NULL, 0.0, 1);
 }
 
+/*
+ * Only "free" the filesystem specific stuff here
+ */
+static void
+storeNullDirFree(SwapDir * s)
+{
+}
+
+
 static void
 storeNullDirRebuildComplete(void *unused)
 {
@@ -121,6 +130,7 @@ storeNullDirParse(SwapDir * sd, int index, char *path)
     sd->path = xstrdup(path);
     sd->statfs = storeNullDirStats;
     sd->init = storeNullDirInit;
+    sd->freefs = storeNullDirFree;
     sd->checkobj = storeNullDirCheckObj;
     sd->checkload = storeNullDirCheckLoadAv;
     sd->log.clean.start = storeNullDirWriteCleanStart;
