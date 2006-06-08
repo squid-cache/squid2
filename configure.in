@@ -1588,6 +1588,7 @@ AC_CHECK_HEADERS(
 	sys/msg.h \
 	sys/prctl.h \
 	sys/resource.h \
+	sys/poll.h \
 	sys/select.h \
 	sys/stat.h \
 	sys/statvfs.h \
