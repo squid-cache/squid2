@@ -46,6 +46,7 @@ Changes to squid-2.6 (not yet released)
 	  purgeing of cache content
 	- Optionally follow X-Forwarded-For headers to determine the original
 	  client IP behind sedond level proxies
+	- FreeBSD kqueue support
 
 Changes to squid-2.5.STABLE14 (20 May 2006)
 	- [Minor] icons not displayed when visible_hostname is a

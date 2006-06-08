@@ -45,11 +45,11 @@ since it was last retrieved.</LI>
 client requests for objects into one request to the server.  Of particular 
 benefit in accelerator setups but also provides some benefits to non accelerator 
 setups.</LI>
-<LI>Support for epoll under Linux, which gives Squid the ability to handle 
-many many more concurrent requests with lower CPU overhead and lower 
-FileDescriptor usage.  This feature is of particular benefit to very busy caches 
+<LI>Support for epoll under Linux and kqueue under FreeBSD, which gives Squid
+the ability to handle many many more concurrent requests with lower CPU
+overhead and.  This feature is of particular benefit to very busy caches 
 as the poll() and select() routines do not scale anywhere near as well as epoll 
-does under high loads.</LI>
+and kqueue does under high loads.</LI>
 <LI>SSL assisted hardware encryption making use of OpenSSL functionality 
 within Squid.</LI>
 <LI>Logging enhancements to allow even greater customization of the way Squid 
