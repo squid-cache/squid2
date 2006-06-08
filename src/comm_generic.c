@@ -107,12 +107,12 @@ comm_call_handlers(int fd, int read_event, int write_event)
 	    switch (commDeferRead(fd)) {
 	    case 1:
 		if (!(F->backoff)) {
-		    debug(5, 1) ("comm_epoll(): WARNING defer handler for fd=%d (desc=%s) does not call commDeferFD() - backing off manually\n", fd, F->desc);
+		    debug(5, 1) ("comm_call_handlers(): WARNING defer handler for fd=%d (desc=%s) does not call commDeferFD() - backing off manually\n", fd, F->desc);
 		    commDeferFD(fd);
 		}
 		break;
 	    default:
-		debug(5, 8) ("comm_epoll(): Calling read handler on fd=%d\n", fd);
+		debug(5, 8) ("comm_call_handlers(): Calling read handler on fd=%d\n", fd);
 #if SIMPLE_COMM_HANDLER
 		commUpdateReadHandler(fd, NULL, NULL);
 		hdl(fd, hdl_data);
