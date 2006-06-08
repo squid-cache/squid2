@@ -262,6 +262,12 @@
 #include <sys/epoll.h>
 #endif
 
+#if USE_KQUEUE
+#if HAVE_SYS_EVENT_H
+#include <sys/event.h>
+#endif
+#endif
+
 #if defined(HAVE_STDARG_H)
 #include <stdarg.h>
 #define HAVE_STDARGS		/* let's hope that works everywhere (mj) */

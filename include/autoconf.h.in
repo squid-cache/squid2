@@ -182,6 +182,9 @@
 /* Define to 1 if you have the <ip_nat.h> header file. */
 #undef HAVE_IP_NAT_H
 
+/* Define to 1 if you have the `kqueue' function. */
+#undef HAVE_KQUEUE
+
 /* Define to 1 if you have the `aio' library (-laio). */
 #undef HAVE_LIBAIO
 
@@ -494,6 +497,9 @@
    */
 #undef HAVE_SYS_DIR_H
 
+/* Define to 1 if you have the <sys/event.h> header file. */
+#undef HAVE_SYS_EVENT_H
+
 /* Define to 1 if you have the <sys/file.h> header file. */
 #undef HAVE_SYS_FILE_H
 
@@ -760,6 +766,9 @@
 
 /* Compile in support for Ident (RFC 931) lookups? Enabled by default. */
 #undef USE_IDENT
+
+/* Use kqueue() for the IO loop */
+#undef USE_KQUEUE
 
 /* Enable code for assiting in finding memory leaks. Hacker stuff only. */
 #undef USE_LEAKFINDER

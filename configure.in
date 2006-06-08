@@ -850,6 +850,25 @@ AC_ARG_ENABLE(epoll,
   esac
 ])
 
+dnl Enable kqueue
+AC_ARG_ENABLE(kqueue,
+[  --enable-kqueue         Enable kqueue support.
+  --disable-kqueue        Disable kqueue support. ],
+
+[
+  case "$enableval" in
+  yes)
+    echo "Forcing kqueue to be enabled"
+    SELECT_TYPE="kqueue"
+    ac_cv_func_kqueue='yes'
+    ;;
+  no)
+    echo "Forcing kqueue to be disabled"
+    ac_cv_func_kqueue='no'
+    ;;
+  esac
+])
+
 dnl Disable HTTP violations
 HTTP_VIOLATIONS=1
 AC_ARG_ENABLE(http-violations,
@@ -1578,6 +1597,7 @@ AC_CHECK_HEADERS(
 	sys/un.h \
 	sys/vfs.h \
 	sys/wait.h \
+	sys/event.h \
 	syslog.h \
 	time.h \
 	unistd.h \
@@ -2192,6 +2212,7 @@ AC_CHECK_FUNCS(\
 	getpass \
 	getrusage \
 	getspnam \
+	kqueue \
 	lrand48 \
 	mallinfo \
 	mallocblksize \
@@ -2277,8 +2298,9 @@ if test -n "$SELECT_TYPE"; then
 	: # Nothing to do
 elif test "$ac_cv_func_epoll_ctl" = "yes" ; then
         SELECT_TYPE="epoll"
+elif test "$ac_cv_func_kqueue" = "yes" ; then
+        SELECT_TYPE="kqueue"
 elif test "$ac_cv_func_poll" = "yes" ; then
-
         SELECT_TYPE="poll"
 elif test "$ac_cv_func_select" = "yes" ; then
         SELECT_TYPE="select"
@@ -2300,6 +2322,9 @@ poll)
 select)
         AC_DEFINE(USE_SELECT,1,[Use select() for the IO loop])
 	;;
+kqueue)
+        AC_DEFINE(USE_KQUEUE,1,[Use kqueue() for the IO loop])
+	;;
 *)
 	echo "ERROR: Unknown select loop type '$SELECT_TYPE'"
 	exit 1
@@ -2309,6 +2334,7 @@ echo "Using ${SELECT_TYPE} for select loop."
 AM_CONDITIONAL([USE_POLL], [test $SELECT_TYPE = poll])
 AM_CONDITIONAL([USE_EPOLL], [test $SELECT_TYPE = epoll])
 AM_CONDITIONAL([USE_SELECT], [test $SELECT_TYPE = select])
+AM_CONDITIONAL([USE_KQUEUE], [test $SELECT_TYPE = kqueue])
 
 dnl Yay!  Another Linux brokenness.  Its not good enough
 dnl to know that setresuid() exists, because RedHat 5.0 declares
