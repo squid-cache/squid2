@@ -34,6 +34,10 @@
 
 #include "squid.h"
 
+#if HAVE_SYS_SELECT_H
+#include <sys/select.h>
+#endif
+
 static int MAX_POLL_TIME = 1000;	/* see also comm_quick_poll_required() */
 
 #ifndef        howmany

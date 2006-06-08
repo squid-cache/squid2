@@ -205,9 +205,6 @@
 #if HAVE_BSTRING_H
 #include <bstring.h>
 #endif
-#if HAVE_SYS_SELECT_H
-#include <sys/select.h>
-#endif
 #if HAVE_GETOPT_H
 #include <getopt.h>
 #endif
@@ -241,31 +238,6 @@
 
 #if HAVE_SYS_MOUNT_H
 #include <sys/mount.h>
-#endif
-
-/*
- * We require poll.h before using poll().  If the symbols used
- * by poll() are defined elsewhere, we will need to make this
- * a more sophisticated test.
- *  -- Oskar Pearson <oskar@is.co.za>
- *  -- Stewart Forster <slf@connect.com.au>
- */
-#if USE_POLL
-#if HAVE_POLL_H
-#include <poll.h>
-#else /* HAVE_POLL_H */
-#undef HAVE_POLL
-#endif /* HAVE_POLL_H */
-#endif /* USE_POLL */
-
-#if USE_EPOLL
-#include <sys/epoll.h>
-#endif
-
-#if USE_KQUEUE
-#if HAVE_SYS_EVENT_H
-#include <sys/event.h>
-#endif
 #endif
 
 #if defined(HAVE_STDARG_H)
