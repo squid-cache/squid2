@@ -2970,13 +2970,6 @@ dnl	fi
 dnl done
 
 
-dnl     src/fs/aufs/Makefile \
-dnl     src/fs/coss/Makefile \
-dnl     src/fs/diskd/Makefile \
-dnl     src/fs/null/Makefile \
-dnl     src/fs/ufs/Makefile \
-dnl     src/repl/heap/Makefile \
-dnl     src/repl/lru/Makefile \
 AC_OUTPUT([\
 	Makefile \
 	lib/Makefile \
