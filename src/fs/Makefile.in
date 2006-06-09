@@ -19,6 +19,7 @@
 #  $Id$
 #
 
+
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
 VPATH = @srcdir@
@@ -41,6 +42,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
+libexec_PROGRAMS = diskd_daemon$(EXEEXT)
 subdir = src/fs
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -78,6 +80,13 @@ libufs_a_LIBADD =
 am_libufs_a_OBJECTS = ufs/store_dir_ufs.$(OBJEXT) \
 	ufs/store_io_ufs.$(OBJEXT)
 libufs_a_OBJECTS = $(am_libufs_a_OBJECTS)
+am__installdirs = "$(DESTDIR)$(libexecdir)"
+libexecPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
+PROGRAMS = $(libexec_PROGRAMS)
+am_diskd_daemon_OBJECTS = diskd/diskd.$(OBJEXT)
+diskd_daemon_OBJECTS = $(am_diskd_daemon_OBJECTS)
+diskd_daemon_LDADD = $(LDADD)
+diskd_daemon_DEPENDENCIES = $(top_builddir)/lib/libmiscutil.a
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/include
 depcomp = $(SHELL) $(top_srcdir)/cfgaux/depcomp
 am__depfiles_maybe = depfiles
@@ -86,9 +95,11 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 SOURCES = $(libaufs_a_SOURCES) $(libcoss_a_SOURCES) \
-	$(libdiskd_a_SOURCES) $(libnull_a_SOURCES) $(libufs_a_SOURCES)
+	$(libdiskd_a_SOURCES) $(libnull_a_SOURCES) $(libufs_a_SOURCES) \
+	$(diskd_daemon_SOURCES)
 DIST_SOURCES = $(libaufs_a_SOURCES) $(libcoss_a_SOURCES) \
-	$(libdiskd_a_SOURCES) $(libnull_a_SOURCES) $(libufs_a_SOURCES)
+	$(libdiskd_a_SOURCES) $(libnull_a_SOURCES) $(libufs_a_SOURCES) \
+	$(diskd_daemon_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -272,6 +283,8 @@ libdiskd_a_SOURCES = diskd/diskd.c diskd/store_dir_diskd.c diskd/store_diskd.h \
 
 libnull_a_SOURCES = null/store_null.c
 libufs_a_SOURCES = ufs/store_dir_ufs.c ufs/store_io_ufs.c ufs/store_ufs.h
+diskd_daemon_SOURCES = diskd/diskd.c
+LDADD = $(top_builddir)/lib/libmiscutil.a @XTRA_LIBS@
 EXTRA_DIST = \
 	coss/coss-notes.txt
 
@@ -390,6 +403,32 @@ libufs.a: $(libufs_a_OBJECTS) $(libufs_a_DEPENDENCIES)
 	-rm -f libufs.a
 	$(libufs_a_AR) libufs.a $(libufs_a_OBJECTS) $(libufs_a_LIBADD)
 	$(RANLIB) libufs.a
+install-libexecPROGRAMS: $(libexec_PROGRAMS)
+	@$(NORMAL_INSTALL)
+	test -z "$(libexecdir)" || $(mkdir_p) "$(DESTDIR)$(libexecdir)"
+	@list='$(libexec_PROGRAMS)'; for p in $$list; do \
+	  p1=`echo $$p|sed 's/$(EXEEXT)$$//'`; \
+	  if test -f $$p \
+	  ; then \
+	    f=`echo "$$p1" | sed 's,^.*/,,;$(transform);s/$$/$(EXEEXT)/'`; \
+	   echo " $(INSTALL_PROGRAM_ENV) $(libexecPROGRAMS_INSTALL) '$$p' '$(DESTDIR)$(libexecdir)/$$f'"; \
+	   $(INSTALL_PROGRAM_ENV) $(libexecPROGRAMS_INSTALL) "$$p" "$(DESTDIR)$(libexecdir)/$$f" || exit 1; \
+	  else :; fi; \
+	done
+
+uninstall-libexecPROGRAMS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(libexec_PROGRAMS)'; for p in $$list; do \
+	  f=`echo "$$p" | sed 's,^.*/,,;s/$(EXEEXT)$$//;$(transform);s/$$/$(EXEEXT)/'`; \
+	  echo " rm -f '$(DESTDIR)$(libexecdir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(libexecdir)/$$f"; \
+	done
+
+clean-libexecPROGRAMS:
+	-test -z "$(libexec_PROGRAMS)" || rm -f $(libexec_PROGRAMS)
+diskd_daemon$(EXEEXT): $(diskd_daemon_OBJECTS) $(diskd_daemon_DEPENDENCIES) 
+	@rm -f diskd_daemon$(EXEEXT)
+	$(LINK) $(diskd_daemon_LDFLAGS) $(diskd_daemon_OBJECTS) $(diskd_daemon_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -519,8 +558,11 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(LIBRARIES)
+all-am: Makefile $(LIBRARIES) $(PROGRAMS)
 installdirs:
+	for dir in "$(DESTDIR)$(libexecdir)"; do \
+	  test -z "$$dir" || $(mkdir_p) "$$dir"; \
+	done
 install: install-am
 install-exec: install-exec-am
 install-data: install-data-am
@@ -557,7 +599,8 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-generic clean-noinstLIBRARIES mostlyclean-am
+clean-am: clean-generic clean-libexecPROGRAMS clean-noinstLIBRARIES \
+	mostlyclean-am
 
 distclean: distclean-am
 	-rm -rf aufs/$(DEPDIR) coss/$(DEPDIR) diskd/$(DEPDIR) null/$(DEPDIR) ufs/$(DEPDIR)
@@ -577,7 +620,7 @@ info-am:
 
 install-data-am:
 
-install-exec-am:
+install-exec-am: install-libexecPROGRAMS
 
 install-info: install-info-am
 
@@ -602,18 +645,19 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-info-am
+uninstall-am: uninstall-info-am uninstall-libexecPROGRAMS
 
 .PHONY: CTAGS GTAGS all all-am check check-am clean clean-generic \
-	clean-noinstLIBRARIES ctags distclean distclean-compile \
-	distclean-generic distclean-tags distdir dvi dvi-am html \
-	html-am info info-am install install-am install-data \
-	install-data-am install-exec install-exec-am install-info \
-	install-info-am install-man install-strip installcheck \
-	installcheck-am installdirs maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-compile \
-	mostlyclean-generic pdf pdf-am ps ps-am tags uninstall \
-	uninstall-am uninstall-info-am
+	clean-libexecPROGRAMS clean-noinstLIBRARIES ctags distclean \
+	distclean-compile distclean-generic distclean-tags distdir dvi \
+	dvi-am html html-am info info-am install install-am \
+	install-data install-data-am install-exec install-exec-am \
+	install-info install-info-am install-libexecPROGRAMS \
+	install-man install-strip installcheck installcheck-am \
+	installdirs maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-compile mostlyclean-generic pdf pdf-am \
+	ps ps-am tags uninstall uninstall-am uninstall-info-am \
+	uninstall-libexecPROGRAMS
 
 
 aufs/all: libaufs.a

@@ -17,6 +17,11 @@ libdiskd_a_SOURCES = diskd/diskd.c diskd/store_dir_diskd.c diskd/store_diskd.h \
 libnull_a_SOURCES = null/store_null.c
 libufs_a_SOURCES = ufs/store_dir_ufs.c ufs/store_io_ufs.c ufs/store_ufs.h
 
+libexec_PROGRAMS = diskd_daemon
+diskd_daemon_SOURCES = diskd/diskd.c
+
+LDADD = $(top_builddir)/lib/libmiscutil.a @XTRA_LIBS@
+
 EXTRA_DIST = \
 	coss/coss-notes.txt
 
