@@ -288,7 +288,7 @@ comm_select(int msec)
 {
     struct pollfd pfds[SQUID_MAXFD];
 #if DELAY_POOLS
-    fd_set slowfds;
+    char slowfds[SQUID_MAXFD];
 #endif
     int fd;
     unsigned int i;
@@ -307,7 +307,7 @@ comm_select(int msec)
 	/* Handle any fs callbacks that need doing */
 	storeDirCallback();
 #if DELAY_POOLS
-	FD_ZERO(&slowfds);
+	memset(slowfds, 0, BiggestFD);
 #endif
 	if (commCheckICPIncoming)
 	    comm_poll_icp_incoming();
@@ -333,7 +333,7 @@ comm_select(int msec)
 		    break;
 #if DELAY_POOLS
 		case -1:
-		    FD_SET(i, &slowfds);
+		    slowfds[i] = 1;
 		    break;
 #endif
 		default:
@@ -462,7 +462,7 @@ comm_select(int msec)
 		if (hdl == NULL)
 		    (void) 0;	/* Nothing to do */
 #if DELAY_POOLS
-		else if (FD_ISSET(fd, &slowfds))
+		else if (slowfds[i])
 		    commAddSlowFd(fd);
 #endif
 		else {
