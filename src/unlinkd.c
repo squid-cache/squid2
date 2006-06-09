@@ -90,19 +90,12 @@ unlinkdUnlink(const char *path)
     }
     /*
      * If the queue length is greater than our limit, then
-     * we pause for up to 100ms, hoping that unlinkd
+     * we pause for up to 10ms, hoping that unlinkd
      * has some feedback for us.  Maybe it just needs a slice
      * of the CPU's time.
      */
-    if (queuelen >= UNLINKD_QUEUE_LIMIT) {
-	struct timeval to;
-	fd_set R;
-	FD_ZERO(&R);
-	FD_SET(unlinkd_rfd, &R);
-	to.tv_sec = 0;
-	to.tv_usec = 100000;
-	select(unlinkd_rfd + 1, &R, NULL, NULL, &to);
-    }
+    if (queuelen >= UNLINKD_QUEUE_LIMIT)
+	xusleep(10000);
     /*
      * If there is at least one outstanding unlink request, then
      * try to read a response.  If there's nothing to read we'll
