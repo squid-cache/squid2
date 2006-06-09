@@ -307,7 +307,7 @@ comm_select(int msec)
 	/* Handle any fs callbacks that need doing */
 	storeDirCallback();
 #if DELAY_POOLS
-	memset(slowfds, 0, BiggestFD);
+	memset(slowfds, 0, Biggest_FD);
 #endif
 	if (commCheckICPIncoming)
 	    comm_poll_icp_incoming();
