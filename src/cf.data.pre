@@ -820,10 +820,12 @@ DOC_START
 	on the Accept-Encoding header of the request and not trusting the
 	ETag to be unique.
 
+NOCOMMENT_START
 # Apache mod_gzip and mod_deflate known to be broken so don't trust
 # Apache to signal ETag correctly on such responses
 acl Apache rep_header Server ^Apache
 broken_vary_encoding accept apache
+NOCOMMENT_END
 DOC_END
 
 COMMENT_START
