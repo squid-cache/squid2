@@ -4217,6 +4217,7 @@ NAME: wccp2_service
 TYPE: wccp2_service
 LOC: Config.Wccp2.info
 DEFAULT: none
+DEFAULT_IF_NONE: standard 0
 IFDEF: USE_WCCPv2
 DOC_START
 	WCCP2 allows for multiple traffic services. There are two
