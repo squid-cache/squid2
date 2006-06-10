@@ -94,11 +94,10 @@ usage(void)
 {
     fprintf(stderr,
 #if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
-	"Usage: %s [-dhirvzCDFRVYX] [-s | -l facility] [-f config-file] [-[au] port] [-k signal] [-n name] [-O CommandLine]\n"
+	"Usage: %s [-hirvzCDFRYX] [-d level] [-s | -l facility] [-f config-file] [-u port] [-k signal] [-n name] [-O command-line]\n"
 #else
-	"Usage: %s [-dhvzCDFNRVYX] [-s | -l facility] [-f config-file] [-[au] port] [-k signal]\n"
+	"Usage: %s [-hvzCDFNRYX] [-d level] [-s | -l facility] [-f config-file] [-u port] [-k signal]\n"
 #endif
-	"       -a port   Specify HTTP port number (default: %d).\n"
 	"       -d level  Write debugging to stderr also.\n"
 	"       -f file   Use given config-file instead of\n"
 	"                 %s\n"
@@ -129,10 +128,9 @@ usage(void)
 #endif
 	"       -R        Do not set REUSEADDR on port.\n"
 	"       -S        Double-check swap during rebuild.\n"
-	"       -V        Virtual host httpd-accelerator.\n"
 	"       -X        Force full debugging.\n"
 	"       -Y        Only return UDP_HIT or UDP_MISS_NOFETCH during fast reload.\n",
-	appname, CACHE_HTTP_PORT, DefaultConfigFile, CACHE_ICP_PORT);
+	appname, DefaultConfigFile, CACHE_ICP_PORT);
     exit(1);
 }
 
