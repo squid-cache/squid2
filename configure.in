@@ -2975,7 +2975,6 @@ AC_OUTPUT([\
 	lib/Makefile \
 	scripts/Makefile \
 	scripts/RunCache \
-	scripts/RunAccel \
 	src/Makefile \
 	src/fs/Makefile \
 	src/repl/Makefile \

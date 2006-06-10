@@ -4,7 +4,7 @@
 #
 
 
-bin_SCRIPTS = RunCache RunAccel
+bin_SCRIPTS = RunCache
 EXTRA_DIST	= AnnounceCache.pl access-log-matrix.pl cache-compare.pl \
 		cachetrace.pl check_cache.pl convert.configure.to.os2 \
 		fileno-to-pathname.pl flag_truncs.pl icp-test.pl \
