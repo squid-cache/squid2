@@ -557,6 +557,11 @@ mainInitialize(void)
 #endif
     debug(1, 1) ("Process ID %d\n", (int) getpid());
     debug(1, 1) ("With %d file descriptors available\n", Squid_MaxFD);
+#ifdef _SQUID_MSWIN_
+    debug(1, 1) ("With %d CRT stdio descriptors available\n", _getmaxstdio());
+    if (WIN32_Socks_initialized)
+	debug(1, 1) ("Windows sockets initialized\n");
+#endif
 
     if (!configured_once)
 	disk_init();		/* disk_init must go before ipcache_init() */

@@ -2307,7 +2307,14 @@ elif test "$ac_cv_func_kqueue" = "yes" ; then
 elif test "$ac_cv_func_poll" = "yes" ; then
         SELECT_TYPE="poll"
 elif test "$ac_cv_func_select" = "yes" ; then
-        SELECT_TYPE="select"
+	case "$host_os" in
+	mingw|mingw32)
+	        SELECT_TYPE="select_win32"
+		;;
+	*)
+	        SELECT_TYPE="select"
+		;;
+	esac
 else
         echo "Eep!  Can't find poll, epoll, or select!"
         echo "I'll try select and hope for the best."
@@ -2326,6 +2333,9 @@ poll)
 select)
         AC_DEFINE(USE_SELECT,1,[Use select() for the IO loop])
 	;;
+select_win32)
+	AC_DEFINE(USE_SELECT_WIN32,1,[Use Winsock select() for the IO loop])
+	;;
 kqueue)
         AC_DEFINE(USE_KQUEUE,1,[Use kqueue() for the IO loop])
 	;;
@@ -2338,6 +2348,7 @@ echo "Using ${SELECT_TYPE} for select loop."
 AM_CONDITIONAL([USE_POLL], [test $SELECT_TYPE = poll])
 AM_CONDITIONAL([USE_EPOLL], [test $SELECT_TYPE = epoll])
 AM_CONDITIONAL([USE_SELECT], [test $SELECT_TYPE = select])
+AM_CONDITIONAL([USE_SELECT_WIN32], [test $SELECT_TYPE = select_win32])
 AM_CONDITIONAL([USE_KQUEUE], [test $SELECT_TYPE = kqueue])
 
 dnl Yay!  Another Linux brokenness.  Its not good enough

@@ -214,7 +214,10 @@ comm_openex(int sock_type,
     if ((flags & COMM_REUSEADDR))
 	commSetReuseAddr(new_socket);
     if (port > (u_short) 0) {
-	commSetNoLinger(new_socket);
+#ifdef _SQUID_MSWIN_
+	if (sock_type != SOCK_DGRAM)
+#endif
+	    commSetNoLinger(new_socket);
 	if (opt_reuseaddr)
 	    commSetReuseAddr(new_socket);
     }
@@ -343,6 +346,11 @@ commResetFD(ConnectStateData * cs)
     }
     /* We are about to close the fd (dup2 over it). Unregister from the event loop */
     commSetEvents(cs->fd, 0, 0);
+#ifdef _SQUID_MSWIN_
+    /* On Windows dup2() can't work correctly on Sockets, the          */
+    /* workaround is to close the destination Socket before call them. */
+    close(cs->fd);
+#endif
     if (dup2(fd2, cs->fd) < 0) {
 	debug(5, 0) ("commResetFD: dup2: %s\n", xstrerror());
 	if (ENFILE == errno || EMFILE == errno)
@@ -931,8 +939,10 @@ commSetTcpRcvbuf(int fd, int size)
 int
 commSetNonBlocking(int fd)
 {
+#ifndef _SQUID_MSWIN_
     int flags;
     int dummy = 0;
+#endif
 #ifdef _SQUID_WIN32_
     int nonblocking = TRUE;
 #ifdef _SQUID_CYGWIN_
@@ -946,6 +956,7 @@ commSetNonBlocking(int fd)
     } else {
 #endif
 #endif
+#ifndef _SQUID_MSWIN_
 	if ((flags = fcntl(fd, F_GETFL, dummy)) < 0) {
 	    debug(50, 0) ("FD %d: fcntl F_GETFL: %s\n", fd, xstrerror());
 	    return COMM_ERROR;
@@ -954,6 +965,7 @@ commSetNonBlocking(int fd)
 	    debug(50, 0) ("commSetNonBlocking: FD %d: %s\n", fd, xstrerror());
 	    return COMM_ERROR;
 	}
+#endif
 #ifdef _SQUID_CYGWIN_
     }
 #endif
@@ -964,6 +976,10 @@ commSetNonBlocking(int fd)
 int
 commUnsetNonBlocking(int fd)
 {
+#ifdef _SQUID_MSWIN_
+    int nonblocking = FALSE;
+    if (ioctlsocket(fd, FIONBIO, (unsigned long *) &nonblocking) < 0) {
+#else
     int flags;
     int dummy = 0;
     if ((flags = fcntl(fd, F_GETFL, dummy)) < 0) {
@@ -971,6 +987,7 @@ commUnsetNonBlocking(int fd)
 	return COMM_ERROR;
     }
     if (fcntl(fd, F_SETFL, flags & (~SQUID_NONBLOCK)) < 0) {
+#endif
 	debug(50, 0) ("commUnsetNonBlocking: FD %d: %s\n", fd, xstrerror());
 	return COMM_ERROR;
     }

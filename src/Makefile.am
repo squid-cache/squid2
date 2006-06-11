@@ -71,6 +71,9 @@ endif
 if USE_SELECT
 COMMLOOP_SOURCE = comm_select.c
 endif
+if USE_SELECT_WIN32
+COMMLOOP_SOURCE = comm_select_win32.c
+endif
 if USE_KQUEUE
 COMMLOOP_SOURCE = comm_kqueue.c
 endif
@@ -115,6 +118,7 @@ EXTRA_squid_SOURCES = \
 	comm_epoll.c \
 	comm_poll.c \
 	comm_select.c \
+	comm_select_win32.c \
 	comm_kqueue.c \
 	comm_generic.c \
 	win32.c
