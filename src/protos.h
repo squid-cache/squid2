@@ -1379,6 +1379,7 @@ const char *externalAclMessage(external_acl_entry * entry);
 extern void parse_wccp2_service(void *v);
 extern void free_wccp2_service(void *v);
 extern void dump_wccp2_service(StoreEntry * e, const char *label, void *v);
+extern int check_null_wccp2_service(void *v);
 
 extern void parse_wccp2_service_info(void *v);
 extern void free_wccp2_service_info(void *v);
