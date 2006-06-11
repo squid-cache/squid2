@@ -22,12 +22,6 @@ typedef struct _cossstripe CossStripe;
 #define COSS_ALLOC_ALLOCATE		1
 #define COSS_ALLOC_REALLOC		2
 
-/*
- * Define this if you would like to use the aufs IO method for
- * disk IO instead of the POSIX AIO method.
- */
-#define	USE_AUFSOPS 1
-
 #if USE_AUFSOPS
 /* XXX a hack; the async ops should be broken out! */
 typedef void AIOCB(int fd, void *cbdata, const char *buf,
@@ -136,7 +130,7 @@ struct _cossinfo {
     dlink_list pending_ops;
     int pending_reloc_count;
     int count;
-#if ! USE_AUFSOPS
+#if !USE_AUFSOPS
     async_queue_t aq;
 #endif
     dlink_node *walk_current;
