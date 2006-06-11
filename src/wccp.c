@@ -79,7 +79,6 @@ struct wccp_assign_bucket_t {
 };
 
 static int theWccpConnection = -1;
-static int theWccpConnection = -1;
 static struct wccp_here_i_am_t wccp_here_i_am;
 static struct wccp_i_see_you_t wccp_i_see_you;
 static int last_change;
