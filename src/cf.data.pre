@@ -4145,6 +4145,13 @@ IFDEF: USE_WCCPv2
 DOC_START
 	Use this option to define your WCCP ``home'' router for
 	Squid.
+
+	wccp_router supports a single WCCP(v1) router
+
+	wccp2_router supports multiple WCCPv2 routers
+
+	only one of the two may be used at the same time and defines
+	which version of WCCP to use.
 DOC_END
 
 NAME: wccp_version
