@@ -4160,10 +4160,16 @@ LOC: Config.Wccp.version
 DEFAULT: 4
 IFDEF: USE_WCCP
 DOC_START
+	This directive is only relevant if you need to set up WCCP(v1)
+	to some very old and end-of-life Cisco routers. In all other
+	setups it must be left unset or at the default setting.
+	It defines an internal version in the WCCP(v1) protocol,
+	with version 4 being the officially documented protocol.
+
 	According to some users, Cisco IOS 11.2 and earlier only
 	support WCCP version 3.  If you're using that or an earlier
-	version of IOS, change this value to 3, otherwise do not specify
-	this parameter.
+	version of IOS, you may need to change this value to 3, otherwise
+	do not specify this parameter.
 DOC_END
 
 NAME: wccp2_forwarding_method
