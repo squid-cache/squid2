@@ -196,7 +196,7 @@ httpReplySwapOut(HttpReply * rep, StoreEntry * e)
     packerToStoreInit(&p, e);
     httpReplyPackInto(e->mem_obj->reply, &p);
     packerClean(&p);
-    rep->hdr_sz = e->mem_obj->inmem_hi;
+    rep->hdr_sz = e->mem_obj->inmem_hi - rep->body.mb.size;
 }
 
 #if UNUSED_CODE
