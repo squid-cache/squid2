@@ -739,6 +739,10 @@
    BSD derviations (e.g. FreeBSD, ?). */
 #undef USE_ARP_ACL
 
+/* Define this if you would like to use the aufs I/O method for disk I/O
+   instead of the POSIX AIO method. */
+#undef USE_AUFSOPS
+
 /* Use Cache Digests for locating objects in neighbor caches. This code is
    still semi-experimental. */
 #undef USE_CACHE_DIGESTS
@@ -790,6 +794,9 @@
 
 /* Use select() for the IO loop */
 #undef USE_SELECT
+
+/* Use Winsock select() for the IO loop */
+#undef USE_SELECT_WIN32
 
 /* Define this to include code for SSL encryption. */
 #undef USE_SSL

@@ -84,24 +84,25 @@ pinger_DEPENDENCIES =
 am__squid_SOURCES_DIST = access_log.c acl.c asn.c authenticate.c \
 	cache_cf.c CacheDigest.c cache_manager.c carp.c cbdata.c \
 	client_db.c client_side.c comm.c comm_epoll.c comm_kqueue.c \
-	comm_poll.c comm_select.c debug.c defines.h delay_pools.c \
-	disk.c dns_internal.c dns.c enums.h errorpage.c event.c \
-	errormap.c external_acl.c fd.c filemap.c forward.c fqdncache.c \
-	ftp.c globals.h gopher.c helper.c htcp.c http.c \
-	HttpStatusLine.c HttpHdrCc.c HttpHdrRange.c HttpHdrContRange.c \
-	HttpHeader.c HttpHeaderTools.c HttpBody.c HttpMsg.c \
-	HttpReply.c HttpRequest.c icmp.c icp_v2.c icp_v3.c ident.c \
-	internal.c ipc.c ipcache.c leakfinder.c locrewrite.c logfile.c \
-	main.c mem.c MemPool.c MemBuf.c mime.c multicast.c neighbors.c \
-	net_db.c Packer.c pconn.c peer_digest.c peer_monitor.c \
-	peer_select.c peer_sourcehash.c peer_userhash.c protos.h \
-	redirect.c referer.c refresh.c send-announce.c snmp_core.c \
-	snmp_agent.c squid.h ssl.c ssl_support.c stat.c StatHist.c \
-	String.c stmem.c store.c store_io.c store_client.c \
+	comm_poll.c comm_select.c comm_select_win32.c debug.c \
+	defines.h delay_pools.c disk.c dns_internal.c dns.c enums.h \
+	errorpage.c event.c errormap.c external_acl.c fd.c filemap.c \
+	forward.c fqdncache.c ftp.c globals.h gopher.c helper.c htcp.c \
+	http.c HttpStatusLine.c HttpHdrCc.c HttpHdrRange.c \
+	HttpHdrContRange.c HttpHeader.c HttpHeaderTools.c HttpBody.c \
+	HttpMsg.c HttpReply.c HttpRequest.c icmp.c icp_v2.c icp_v3.c \
+	ident.c internal.c ipc.c ipcache.c leakfinder.c locrewrite.c \
+	logfile.c main.c mem.c MemPool.c MemBuf.c mime.c multicast.c \
+	neighbors.c net_db.c Packer.c pconn.c peer_digest.c \
+	peer_monitor.c peer_select.c peer_sourcehash.c peer_userhash.c \
+	protos.h redirect.c referer.c refresh.c send-announce.c \
+	snmp_core.c snmp_agent.c squid.h ssl.c ssl_support.c stat.c \
+	StatHist.c String.c stmem.c store.c store_io.c store_client.c \
 	store_digest.c store_dir.c store_key_md5.c store_log.c \
 	store_rebuild.c store_swapin.c store_swapmeta.c \
 	store_swapout.c structs.h tools.c typedefs.h unlinkd.c url.c \
 	urn.c useragent.c wais.c wccp.c wccp2.c whois.c win32.c
+@USE_EPOLL_FALSE@@USE_KQUEUE_FALSE@@USE_POLL_FALSE@@USE_SELECT_FALSE@@USE_SELECT_WIN32_TRUE@am__objects_1 = comm_select_win32.$(OBJEXT)
 @USE_EPOLL_FALSE@@USE_KQUEUE_FALSE@@USE_POLL_FALSE@@USE_SELECT_TRUE@am__objects_1 = comm_select.$(OBJEXT)
 @USE_EPOLL_FALSE@@USE_KQUEUE_FALSE@@USE_POLL_TRUE@am__objects_1 = comm_poll.$(OBJEXT)
 @USE_EPOLL_FALSE@@USE_KQUEUE_TRUE@am__objects_1 =  \
@@ -315,6 +316,8 @@ USE_POLL_FALSE = @USE_POLL_FALSE@
 USE_POLL_TRUE = @USE_POLL_TRUE@
 USE_SELECT_FALSE = @USE_SELECT_FALSE@
 USE_SELECT_TRUE = @USE_SELECT_TRUE@
+USE_SELECT_WIN32_FALSE = @USE_SELECT_WIN32_FALSE@
+USE_SELECT_WIN32_TRUE = @USE_SELECT_WIN32_TRUE@
 USE_SNMP_FALSE = @USE_SNMP_FALSE@
 USE_SNMP_TRUE = @USE_SNMP_TRUE@
 VERSION = @VERSION@
@@ -384,6 +387,7 @@ target_alias = @target_alias@
 @USE_KQUEUE_TRUE@COMMLOOP_SOURCE = comm_kqueue.c
 @USE_POLL_TRUE@COMMLOOP_SOURCE = comm_poll.c
 @USE_SELECT_TRUE@COMMLOOP_SOURCE = comm_select.c
+@USE_SELECT_WIN32_TRUE@COMMLOOP_SOURCE = comm_select_win32.c
 SUBDIRS = fs repl auth
 INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/include -I$(top_srcdir)/include
 cf_gen_SOURCES = cf_gen.c defines.h debug.c
@@ -404,6 +408,7 @@ EXTRA_squid_SOURCES = \
 	comm_epoll.c \
 	comm_poll.c \
 	comm_select.c \
+	comm_select_win32.c \
 	comm_kqueue.c \
 	comm_generic.c \
 	win32.c
@@ -741,6 +746,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/comm_kqueue.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/comm_poll.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/comm_select.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/comm_select_win32.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/debug.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/delay_pools.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/disk.Po@am__quote@
