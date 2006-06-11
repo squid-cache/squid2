@@ -48,7 +48,6 @@ struct _ntlm_request {
 struct _auth_ntlm_config {
     int authenticateChildren;
     int keep_alive;
-    int use_ntlm_negotiate;
     wordlist *authenticate;
 };
 

@@ -140,7 +140,6 @@ authNTLMCfgDump(StoreEntry * entry, const char *name, authScheme * scheme)
     storeAppendPrintf(entry, "\n");
     storeAppendPrintf(entry, "%s %s children %d\n", name, "ntlm", config->authenticateChildren);
     storeAppendPrintf(entry, "%s %s keep_alive %s\n", name, "ntlm", config->keep_alive ? "on" : "off");
-    storeAppendPrintf(entry, "%s %s use_ntlm_negotiate %s\n", name, "ntlm", config->use_ntlm_negotiate ? "on" : "off");
 }
 
 static void
@@ -165,8 +164,6 @@ authNTLMParse(authScheme * scheme, int n_configured, char *param_str)
 	parse_int(&ntlmConfig->authenticateChildren);
     } else if (strcasecmp(param_str, "keep_alive") == 0) {
 	parse_onoff(&ntlmConfig->keep_alive);
-    } else if (strcasecmp(param_str, "use_ntlm_negotiate") == 0) {
-	parse_onoff(&ntlmConfig->use_ntlm_negotiate);
     } else {
 	debug(28, 0) ("unrecognised ntlm auth scheme parameter '%s'\n", param_str);
     }
@@ -519,10 +516,7 @@ authenticateNTLMStart(auth_user_request_t * auth_user_request, RH * handler, voi
     r->auth_user_request = auth_user_request;
     authenticateAuthUserRequestLock(r->auth_user_request);
     if (ntlm_request->auth_state == AUTHENTICATE_STATE_INITIAL) {
-	if (ntlmConfig->use_ntlm_negotiate)
-	    snprintf(buf, 8192, "YR %s\n", sent_string);
-	else
-	    snprintf(buf, 8192, "YR\n");
+	snprintf(buf, 8192, "YR %s\n", sent_string);
     } else {
 	snprintf(buf, 8192, "KK %s\n", sent_string);
     }

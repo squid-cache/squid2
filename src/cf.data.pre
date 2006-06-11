@@ -1936,22 +1936,6 @@ DOC_START
 	authenticator processes.
 	auth_param ntlm children 5
 
-	"use_ntlm_negotiate" on|off
-	Enables support for NTLM NEGOTIATE packet exchanges with the helper.
-	The configured ntlm authenticator must be able to handle NTLM
-	NEGOTIATE packet. See the authenticator programs documentation if
-	unsure. ntlm_auth from Samba-3.0.2 or later supports the use of this
-	option.
-	The NEGOTIATE packet is required to support NTLMv2 and a
-	number of other negotiable NTLMSSP options, and also makes it
-	more likely the negotiation is successful. Enabling this parameter
-	will also solve problems encountered when NT domain policies
-	restrict users to access only certain workstations. When this is off,
-	all users must be allowed to log on the proxy servers too, or they'll
-	get "invalid workstation" errors - and access denied - when trying to
-	use Squid's services.
-	auth_param ntlm use_ntlm_negotiate on
-
 	"keep_alive" on|off
 	This option enables the use of keep-alive on the initial
 	authentication request. It has been reported some versions of MSIE
