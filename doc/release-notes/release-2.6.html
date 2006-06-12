@@ -87,21 +87,26 @@ membership check</LI>
 <DT><B>ssl_engine</B><DD><P>New directive for hardware assisted SSL encryption</P>
 <DT><B>sslproxy_*</B><DD><P>New directives defining how to gateway http-&gt;https</P>
 <DT><B>sslpassword_program</B><DD><P>New helper directive to query an external program for SSL key encryption password (if any)</P>
+<DT><B>no_cache</B><DD><P>Renamed to cache to better reflect the functionaliy. no_cache still accepted.</P>
+<DT><B>cache</B><DD><P>New name for the old no_cache directive.</P>
 <DT><B>cache_vary</B><DD><P>New directive to disable caching of Vary:ing responses</P>
+<DT><B>broken_vary_encoding</B><DD><P>New directive to work around known broken compression modules which hasn't understood the meaning of the ETag HTTP header.</P>
 <DT><B>logformat</B><DD><P>New directive for defining custom log formats</P>
 <DT><B>cache_access_log</B><DD><P>Renamed to access_log</P>
 <DT><B>access_log</B><DD><P>Select what requests to log where any by what format. Support for multiple log files and multiple log formats.</P>
 <DT><B>check_hostnames</B><DD><P>New option to disable the hostname validity/sanity checks usually performed by Squid, replacing the similar build time configure option in 2.5.</P>
 <DT><B>allow_underscore</B><DD><P>New option to allow _ in hostnames, replacing the similar build time configure option in 2.5 and earlier.</P>
-<DT><B>redirect_*</B><DD><P>Renamed to url_rewrite_* to better reflect the functionality of this helper</P>
+<DT><B>dns_defnames</B><DD><P>Allow for domain searches. Now possible even when using the internal DNS client</P>
+<DT><B>redirect_*</B><DD><P>Renamed to url_rewrite_* to better reflect the functionality of this helper (rewriting requested URLs)</P>
 <DT><B>url_rewrite_concurrency</B><DD><P>Activates a new and more efficient helper protocol. Requires changes in the helper.</P>
 <DT><B>location_rewrite_*</B><DD><P>New helper hook for rewriting Location headers</P>
 <DT><B>auth_param basic blankpassword</B><DD><P>New option to allow the use of blank passwords.</P>
 <DT><B>auth_param ntlm max_challenge_reuse / max_challenge_lifetime</B><DD><P>No longer supported</P>
-<DT><B>auth_param ntlm use_ntlm_negotiate</B><DD><P>Now defaults to "on"</P>
+<DT><B>auth_param ntlm use_ntlm_negotiate</B><DD><P>Directive no longer supported. Use of NTLM negotiate packet is always on.</P>
 <DT><B>auth_param ntlm keep_alive</B><DD><P>New option to fine-tune the use of HTTP keep-alive in combination with NTLM</P>
 <DT><B>auth_param negotiate</B><DD><P>New Negotiate authentication scheme, the "next generation" scheme in the family of Microsoft authentication.</P>
 <DT><B>external_acl_type</B><DD><P>Many new format options %SRCPORT, %MYADDR, %MYPORT, %PATH, %USER_CERT, %ACL, %DATA and a few variants. Helper protocol defaults to the simpler "3.0" protocol, and there is support for a highly efficient protocol via the concurrency= option if supported by the helper.</P>
+<DT><B>refresh_pattern</B><DD><P>Several new HTTP override/ignore options</P>
 <DT><B>read_ahead_gap</B><DD><P>New directive to set the response buffer size.</P>
 <DT><B>collapsed_forwarding</B><DD><P>New directive to enable an alternative optimized forwarding path when there is very many concurrent requests for the same URL.</P>
 <DT><B>refresh_stale_hit</B><DD><P>New directive similar to collapsed_forwarding and activates an alternative optimized request processing when there is very many concurrent requests for the same recently expired URL.</P>
@@ -109,14 +114,16 @@ membership check</LI>
 <DT><B>acl user_cert</B><DD><P>New acl class matching the user SSL certificate (https_port)</P>
 <DT><B>acl ca_cert</B><DD><P>New acl class matching the CA of the user SSL certificate (https_port)</P>
 <DT><B>acl ext_user / ext_user_regex</B><DD><P>New acl matching usernames returned by external acl</P>
+<DT><B>follow_x_forwarded_for</B><DD><P>New option to enable parsing of X-Forwarded-For headers allowing access controls to be based on the real client IP even if behind secondary proxies</P>
 <DT><B>http_access2</B><DD><P>New http_access type directive but evaluated after url rewrites</P>
+<DT><B>htcp_access, htcp_clr_access</B><DD><P>Access control on HTCP requests</P>
 <DT><B>log_access</B><DD><P>New directive to limit what gets logged.</P>
 <DT><B>httpd_suppress_version_string</B><DD><P>Enable hiding of the Squid version</P>
+<DT><B>umask</B><DD><P>New directive to specify the minimum umask Squid should run under</P>
 <DT><B>error_map</B><DD><P>New directive to allow dynamic rewrites of error pages</P>
 <DT><B>via</B><DD><P>New directive to disable the use of the Via directive</P>
 <DT><B>wccp2_*</B><DD><P>WCCP2 protocol support</P>
 <DT><B>linux_tproxy, tproxy_port</B><DD><P>Linux TPROXY support for masquerading outgoing connections as the original client</P>
-<DT><B>umask</B><DD><P>New directive enforcing a minimum umask</P>
 </DL>
 </P>
 

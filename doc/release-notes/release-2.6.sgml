@@ -81,21 +81,26 @@ membership check
 <tag>ssl_engine</tag>New directive for hardware assisted SSL encryption
 <tag>sslproxy_*</tag>New directives defining how to gateway http-&gt;https
 <tag>sslpassword_program</tag>New helper directive to query an external program for SSL key encryption password (if any)
+<tag>no_cache</tag>Renamed to cache to better reflect the functionaliy. no_cache still accepted.
+<tag>cache</tag>New name for the old no_cache directive.
 <tag>cache_vary</tag>New directive to disable caching of Vary:ing responses
+<tag>broken_vary_encoding</tag>New directive to work around known broken compression modules which hasn't understood the meaning of the ETag HTTP header.
 <tag>logformat</tag>New directive for defining custom log formats
 <tag>cache_access_log</tag>Renamed to access_log
 <tag>access_log</tag>Select what requests to log where any by what format. Support for multiple log files and multiple log formats.
 <tag>check_hostnames</tag>New option to disable the hostname validity/sanity checks usually performed by Squid, replacing the similar build time configure option in 2.5.
 <tag>allow_underscore</tag>New option to allow _ in hostnames, replacing the similar build time configure option in 2.5 and earlier.
-<tag>redirect_*</tag>Renamed to url_rewrite_* to better reflect the functionality of this helper
+<tag>dns_defnames</tag>Allow for domain searches. Now possible even when using the internal DNS client
+<tag>redirect_*</tag>Renamed to url_rewrite_* to better reflect the functionality of this helper (rewriting requested URLs)
 <tag>url_rewrite_concurrency</tag>Activates a new and more efficient helper protocol. Requires changes in the helper.
 <tag>location_rewrite_*</tag>New helper hook for rewriting Location headers
 <tag>auth_param basic blankpassword</tag>New option to allow the use of blank passwords.
 <tag>auth_param ntlm max_challenge_reuse / max_challenge_lifetime</tag>No longer supported
-<tag>auth_param ntlm use_ntlm_negotiate</tag>Now defaults to "on"
+<tag>auth_param ntlm use_ntlm_negotiate</tag>Directive no longer supported. Use of NTLM negotiate packet is always on.
 <tag>auth_param ntlm keep_alive</tag>New option to fine-tune the use of HTTP keep-alive in combination with NTLM
 <tag>auth_param negotiate</tag>New Negotiate authentication scheme, the "next generation" scheme in the family of Microsoft authentication.
 <tag>external_acl_type</tag>Many new format options %SRCPORT, %MYADDR, %MYPORT, %PATH, %USER_CERT, %ACL, %DATA and a few variants. Helper protocol defaults to the simpler "3.0" protocol, and there is support for a highly efficient protocol via the concurrency= option if supported by the helper.
+<tag>refresh_pattern</tag>Several new HTTP override/ignore options
 <tag>read_ahead_gap</tag>New directive to set the response buffer size.
 <tag>collapsed_forwarding</tag>New directive to enable an alternative optimized forwarding path when there is very many concurrent requests for the same URL.
 <tag>refresh_stale_hit</tag>New directive similar to collapsed_forwarding and activates an alternative optimized request processing when there is very many concurrent requests for the same recently expired URL.
@@ -103,14 +108,16 @@ membership check
 <tag>acl user_cert</tag>New acl class matching the user SSL certificate (https_port)
 <tag>acl ca_cert</tag>New acl class matching the CA of the user SSL certificate (https_port)
 <tag>acl ext_user / ext_user_regex</tag>New acl matching usernames returned by external acl
+<tag>follow_x_forwarded_for</tag>New option to enable parsing of X-Forwarded-For headers allowing access controls to be based on the real client IP even if behind secondary proxies
 <tag>http_access2</tag>New http_access type directive but evaluated after url rewrites
+<tag>htcp_access, htcp_clr_access</tag>Access control on HTCP requests
 <tag>log_access</tag>New directive to limit what gets logged.
 <tag>httpd_suppress_version_string</tag>Enable hiding of the Squid version
+<tag>umask</tag>New directive to specify the minimum umask Squid should run under
 <tag>error_map</tag>New directive to allow dynamic rewrites of error pages
 <tag>via</tag>New directive to disable the use of the Via directive
 <tag>wccp2_*</tag>WCCP2 protocol support
 <tag>linux_tproxy, tproxy_port</tag>Linux TPROXY support for masquerading outgoing connections as the original client
-<tag>umask</tag>New directive enforcing a minimum umask
 </descrip>
 
 <sect>Known issues and limitations
