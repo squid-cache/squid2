@@ -67,6 +67,8 @@ Microsoft Windows/Cygwin environment as a system service.
 <item>External acl helpers for session monitoring and native Windows group
 membership check
 </itemize>
+<item>HTCP significantly cleaned up and added support for the CLR operation to purge contents from the cache
+<item>Support for parsing X-Forwarded-For headers allowing access controls to be based on the real client IP even if behind secondary proxies
 </itemize>
 
 <sect>Changes to squid.conf
