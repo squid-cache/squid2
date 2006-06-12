@@ -794,16 +794,15 @@ AC_ARG_WITH(coss-membuf-size,
 
 dnl COSS I/O method
 AC_ARG_ENABLE(coss-aio-ops,
-[  --enable-coss-aio-ops   Enable COSS I/O with Posix AIO (default is aufs I/O) ],
-[  if test "$enableval" = "yes"; then
+[  --enable-coss-aio-ops   Enable COSS I/O with Posix AIO (default is aufs I/O) ])
+if test "$enable_coss_aio_ops" = "yes"; then
       echo "Using Posix AIO method for COSS disk I/O"
       AC_DEFINE(USE_AUFSOPS, 0, [  Define this if you would like to use the aufs I/O method for
            disk I/O instead of the POSIX AIO method.])
-   else
+else
       AC_DEFINE(USE_AUFSOPS, 1, [  Define this if you would like to use the aufs I/O method for
            disk I/O instead of the POSIX AIO method.])
-   fi
-])
+fi
 
 dnl Enable select()
 AC_ARG_ENABLE(select,
