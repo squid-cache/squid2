@@ -176,7 +176,8 @@ enum {
 static u_num32 msg_id_counter = 0;
 static int htcpInSocket = -1;
 static int htcpOutSocket = -1;
-#define N_QUERIED_KEYS 256
+#define N_QUERIED_KEYS 8192
+static u_num32 queried_id[N_QUERIED_KEYS];
 static cache_key queried_keys[N_QUERIED_KEYS][MD5_DIGEST_CHARS];
 static struct sockaddr_in queried_addr[N_QUERIED_KEYS];
 static MemPool *htcpSpecifierPool = NULL;
@@ -446,7 +447,7 @@ htcpSend(const char *buf, int len, struct sockaddr_in *to)
 	buf,
 	len);
     if (x < 0)
-	debug(31, 0) ("htcpSend: FD %d sendto: %s\n", htcpOutSocket, xstrerror());
+	debug(31, 1) ("htcpSend: FD %d sendto: %s\n", htcpOutSocket, xstrerror());
 }
 
 /*
@@ -696,7 +697,7 @@ htcpTstReply(htcpDataHeader * dhdr, StoreEntry * e, htcpSpecifier * spec, struct
     safe_free(stuff.D.entity_hdrs);
     safe_free(stuff.D.cache_hdrs);
     if (!pktlen) {
-	debug(31, 0) ("htcpTstReply: htcpBuildPacket() failed\n");
+	debug(31, 1) ("htcpTstReply: htcpBuildPacket() failed\n");
 	return;
     }
     htcpSend(pkt, (int) pktlen, from);
@@ -722,7 +723,7 @@ htcpClrReply(htcpDataHeader * dhdr, int purgeSucceeded, struct sockaddr_in *from
     stuff.msg_id = dhdr->msg_id;
     pktlen = htcpBuildPacket(pkt, sizeof(pkt), &stuff);
     if (pktlen == 0) {
-	debug(31, 0) ("htcpClrReply: htcpBuildPacket() failed\n");
+	debug(31, 1) ("htcpClrReply: htcpBuildPacket() failed\n");
 	return;
     }
     htcpSend(pkt, (int) pktlen, from);
@@ -829,9 +830,13 @@ htcpHandleTstResponse(htcpDataHeader * hdr, char *buf, int sz, struct sockaddr_i
     htcpDetail *d = NULL;
     char *t;
 
+    if (queried_id[hdr->msg_id % N_QUERIED_KEYS] != hdr->msg_id) {
+	debug(31, 2) ("htcpHandleTstResponse: No matching query id '%d' (expected %d) from '%s'\n", hdr->msg_id, queried_id[hdr->msg_id % N_QUERIED_KEYS], inet_ntoa(from->sin_addr));
+	return;
+    }
     key = queried_keys[hdr->msg_id % N_QUERIED_KEYS];
     if (!key) {
-	debug(31, 2) ("htcpHandleTstResponse: No matching query id '%d' from '%s'\n", hdr->msg_id, inet_ntoa(from->sin_addr));
+	debug(31, 1) ("htcpHandleTstResponse: No query key for response id '%d' from '%s'\n", hdr->msg_id, inet_ntoa(from->sin_addr));
 	return;
     }
     peer = &queried_addr[hdr->msg_id % N_QUERIED_KEYS];
@@ -864,7 +869,6 @@ htcpHandleTstResponse(htcpDataHeader * hdr, char *buf, int sz, struct sockaddr_i
 	if ((t = d->cache_hdrs))
 	    httpHeaderParse(&htcpReply.hdr, t, t + strlen(t));
     }
-    key = queried_keys[htcpReply.msg_id % N_QUERIED_KEYS];
     debug(31, 3) ("htcpHandleTstResponse: key (%p) %s\n", key, storeKeyText(key));
     neighborsHtcpReply(key, &htcpReply, from);
     httpHeaderClean(&htcpReply.hdr);
@@ -976,7 +980,7 @@ htcpHandleData(char *buf, int sz, struct sockaddr_in *from)
 {
     htcpDataHeader hdr;
     if (sz < sizeof(htcpDataHeader)) {
-	debug(31, 0) ("htcpHandleData: msg size less than htcpDataHeader size\n");
+	debug(31, 1) ("htcpHandleData: msg size less than htcpDataHeader size\n");
 	return;
     }
     if (!old_squid_format) {
@@ -997,7 +1001,7 @@ htcpHandleData(char *buf, int sz, struct sockaddr_in *from)
     debug(31, 3) ("htcpHandleData: sz = %d\n", sz);
     debug(31, 3) ("htcpHandleData: length = %d\n", (int) hdr.length);
     if (hdr.opcode >= HTCP_END) {
-	debug(31, 0) ("htcpHandleData: client %s, opcode %d out of range\n",
+	debug(31, 1) ("htcpHandleData: client %s, opcode %d out of range\n",
 	    inet_ntoa(from->sin_addr),
 	    (int) hdr.opcode);
 	return;
@@ -1009,11 +1013,7 @@ htcpHandleData(char *buf, int sz, struct sockaddr_in *from)
     debug(31, 3) ("htcpHandleData: RR = %d\n", (int) hdr.RR);
     debug(31, 3) ("htcpHandleData: msg_id = %d\n", (int) hdr.msg_id);
     if (sz < hdr.length) {
-	debug(31, 0) ("htcpHandle: sz < hdr.length\n");
-	return;
-    }
-    if (hdr.length + sizeof(htcpDataHeader) > sz) {
-	debug(31, 1) ("htcpHandleData: Invalid HTCP packet from %s\n", inet_ntoa(from->sin_addr));
+	debug(31, 1) ("htcpHandleData: sz < hdr.length\n");
 	return;
     }
     /*
@@ -1051,7 +1051,7 @@ htcpHandle(char *buf, int sz, struct sockaddr_in *from)
 {
     htcpHeader htcpHdr;
     if (sz < sizeof(htcpHeader)) {
-	debug(31, 0) ("htcpHandle: msg size less than htcpHeader size\n");
+	debug(31, 1) ("htcpHandle: msg size less than htcpHeader size\n");
 	return;
     }
     htcpHexdump("htcpHandle", buf, sz);
@@ -1186,10 +1186,11 @@ htcpQuery(StoreEntry * e, request_t * req, peer * p)
     pktlen = htcpBuildPacket(pkt, sizeof(pkt), &stuff);
     memBufClean(&mb);
     if (!pktlen) {
-	debug(31, 0) ("htcpQuery: htcpBuildPacket() failed\n");
+	debug(31, 1) ("htcpQuery: htcpBuildPacket() failed\n");
 	return;
     }
     htcpSend(pkt, (int) pktlen, &p->in_addr);
+    queried_id[stuff.msg_id % N_QUERIED_KEYS] = stuff.msg_id;
     save_key = queried_keys[stuff.msg_id % N_QUERIED_KEYS];
     storeKeyCopy(save_key, e->hash.key);
     queried_addr[stuff.msg_id % N_QUERIED_KEYS] = p->in_addr;
