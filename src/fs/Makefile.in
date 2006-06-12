@@ -42,7 +42,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-libexec_PROGRAMS = diskd_daemon$(EXEEXT)
+libexec_PROGRAMS = $(am__EXEEXT_1)
 subdir = src/fs
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -80,6 +80,7 @@ libufs_a_LIBADD =
 am_libufs_a_OBJECTS = ufs/store_dir_ufs.$(OBJEXT) \
 	ufs/store_io_ufs.$(OBJEXT)
 libufs_a_OBJECTS = $(am_libufs_a_OBJECTS)
+@NEED_DISKD_TRUE@am__EXEEXT_1 = diskd-daemon$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(libexecdir)"
 libexecPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(libexec_PROGRAMS)
@@ -177,6 +178,8 @@ MAKE_LEAKFINDER_FALSE = @MAKE_LEAKFINDER_FALSE@
 MAKE_LEAKFINDER_TRUE = @MAKE_LEAKFINDER_TRUE@
 MKDIR = @MKDIR@
 MV = @MV@
+NEED_DISKD_FALSE = @NEED_DISKD_FALSE@
+NEED_DISKD_TRUE = @NEED_DISKD_TRUE@
 NEED_OWN_MD5_FALSE = @NEED_OWN_MD5_FALSE@
 NEED_OWN_MD5_TRUE = @NEED_OWN_MD5_TRUE@
 NEED_OWN_SNPRINTF_FALSE = @NEED_OWN_SNPRINTF_FALSE@
@@ -209,7 +212,6 @@ SNMPLIB = @SNMPLIB@
 SSLLIB = @SSLLIB@
 STORE_LIBS = @STORE_LIBS@
 STORE_MODULES = @STORE_MODULES@
-STORE_MODULE_SUBDIRS = @STORE_MODULE_SUBDIRS@
 STORE_OBJS = @STORE_OBJS@
 STRIP = @STRIP@
 TRUE = @TRUE@
@@ -285,6 +287,8 @@ libdiskd_a_SOURCES = diskd/diskd.c diskd/store_dir_diskd.c diskd/store_diskd.h \
 
 libnull_a_SOURCES = null/store_null.c
 libufs_a_SOURCES = ufs/store_dir_ufs.c ufs/store_io_ufs.c ufs/store_ufs.h
+@NEED_DISKD_FALSE@DISKD = 
+@NEED_DISKD_TRUE@DISKD = diskd-daemon
 diskd_daemon_SOURCES = diskd/diskd.c
 LDADD = $(top_builddir)/lib/libmiscutil.a @XTRA_LIBS@
 EXTRA_DIST = \
@@ -428,8 +432,8 @@ uninstall-libexecPROGRAMS:
 
 clean-libexecPROGRAMS:
 	-test -z "$(libexec_PROGRAMS)" || rm -f $(libexec_PROGRAMS)
-diskd_daemon$(EXEEXT): $(diskd_daemon_OBJECTS) $(diskd_daemon_DEPENDENCIES) 
-	@rm -f diskd_daemon$(EXEEXT)
+diskd-daemon$(EXEEXT): $(diskd_daemon_OBJECTS) $(diskd_daemon_DEPENDENCIES) 
+	@rm -f diskd-daemon$(EXEEXT)
 	$(LINK) $(diskd_daemon_LDFLAGS) $(diskd_daemon_OBJECTS) $(diskd_daemon_LDADD) $(LIBS)
 
 mostlyclean-compile:
