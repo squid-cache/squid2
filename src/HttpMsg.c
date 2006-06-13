@@ -91,13 +91,15 @@ httpMsgIsolateHeaders(const char **parse_start, const char **blk_start, const ch
 int
 httpMsgIsPersistent(http_version_t http_ver, const HttpHeader * hdr)
 {
+    if (httpHeaderHasConnDir(hdr, "close"))
+	return 0;
 #if WHEN_SQUID_IS_HTTP1_1
     if ((http_ver.major >= 1) && (http_ver.minor >= 1)) {
 	/*
 	 * for modern versions of HTTP: persistent unless there is
 	 * a "Connection: close" header.
 	 */
-	return !httpHeaderHasConnDir(hdr, "close");
+	return 1;
     } else {
 #else
     {
