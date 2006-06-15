@@ -7,6 +7,6 @@
 #
 
 libexec_PROGRAMS	= ncsa_auth
-ncsa_auth_SOURCES	= ncsa_auth.c
-LDADD			= -L$(top_builddir)/lib -lmiscutil $(CRYPTLIB) $(XTRA_LIBS)
+ncsa_auth_SOURCES	= ncsa_auth.c crypt_md5.c crypt_md5.h
+LDADD			= -L$(top_builddir)/lib -lmiscutil $(CRYPTLIB) $(XTRA_LIBS) $(SSLLIB)
 INCLUDES      = -I$(top_srcdir)/include
