@@ -102,12 +102,10 @@ authNTLMDone(void)
 	helperStatefulFree(ntlmauthenticators);
     ntlmauthenticators = NULL;
     if (ntlm_request_pool) {
-	assert(memPoolInUseCount(ntlm_request_pool) == 0);
 	memPoolDestroy(ntlm_request_pool);
 	ntlm_request_pool = NULL;
     }
     if (ntlm_user_pool) {
-	assert(memPoolInUseCount(ntlm_user_pool) == 0);
 	memPoolDestroy(ntlm_user_pool);
 	ntlm_user_pool = NULL;
     }
