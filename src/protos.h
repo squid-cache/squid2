@@ -1126,7 +1126,9 @@ extern int urlCheckRequest(const request_t *);
 extern int urlDefaultPort(protocol_t p);
 extern char *urlCanonicalClean(const request_t *);
 extern char *urlHostname(const char *url);
-extern void urlExtMethodConfigure(void);
+extern void parse_extension_method(const char *(*methods)[]);
+extern void free_extension_method(const char *(*_methods)[]);
+extern void dump_extension_method(StoreEntry * entry, const char *name, const char **methods);
 
 extern void useragentOpenLog(void);
 extern void useragentRotateLog(void);

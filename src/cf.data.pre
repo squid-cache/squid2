@@ -4833,8 +4833,8 @@ DOC_START
 DOC_END
 
 NAME: extension_methods
-TYPE: wordlist
-LOC: Config.ext_methods
+TYPE: extension_method
+LOC: RequestMethodStr
 DEFAULT: none
 DOC_START
 	Squid only knows about standardized HTTP request methods.

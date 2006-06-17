@@ -375,6 +375,8 @@ aclParseMethodList(void *curlist)
     while ((t = strtokFile())) {
 	q = memAllocate(MEM_INTLIST);
 	q->i = (int) urlParseMethod(t);
+	if (q->i == METHOD_NONE)
+	    self_destruct();
 	*(Tail) = q;
 	Tail = &q->next;
     }

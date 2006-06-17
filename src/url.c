@@ -618,6 +618,8 @@ urlExtMethodAdd(const char *mstr)
 	if (0 != strncmp("%EXT", RequestMethodStr[method], 4))
 	    continue;
 	/* Don't free statically allocated "%EXTnn" string */
+	if (0 == strncmp("%EXT_", RequestMethodStr[method], 5))
+	    safe_free(RequestMethodStr[method]);
 	RequestMethodStr[method] = xstrdup(mstr);
 	debug(23, 1) ("Extension method '%s' added, enum=%d\n", mstr, (int) method);
 	return;
@@ -626,14 +628,37 @@ urlExtMethodAdd(const char *mstr)
 }
 
 void
-urlExtMethodConfigure(void)
+parse_extension_method(const char *(*_methods)[])
 {
-    wordlist *w = Config.ext_methods;
-    while (w) {
-	char *s;
-	for (s = w->key; *s; s++)
-	    *s = xtoupper(*s);
-	urlExtMethodAdd(w->key);
-	w = w->next;
+    char *token;
+    char *t = strtok(NULL, "");
+    while ((token = strwordtok(NULL, &t))) {
+	urlExtMethodAdd(token);
+    }
+}
+
+void
+free_extension_method(const char *(*_methods)[])
+{
+    method_t method;
+    char **methods = (char **) _methods;
+    for (method = METHOD_EXT00; method < METHOD_ENUM_END; method++) {
+	if (*methods[method] != '%') {
+	    char buf[32];
+	    snprintf(buf, sizeof(buf), "%%EXT_%02d", method - METHOD_EXT00);
+	    safe_free(methods[method]);
+	    methods[method] = xstrdup(buf);
+	}
+    }
+}
+
+void
+dump_extension_method(StoreEntry * entry, const char *name, const char **methods)
+{
+    method_t method;
+    for (method = METHOD_EXT00; method < METHOD_ENUM_END; method++) {
+	if (*methods[method] != '%') {
+	    storeAppendPrintf(entry, "%s %s\n", name, methods[method]);
+	}
     }
 }
