@@ -520,7 +520,6 @@ configDoConfigure(void)
 		Config.effectiveGroup);
 	Config2.effectiveGroupID = grp->gr_gid;
     }
-    urlExtMethodConfigure();
     if (0 == Config.onoff.client_db) {
 	acl *a;
 	for (a = Config.aclList; a; a = a->next) {
@@ -2715,6 +2714,7 @@ static void
 free_generic_http_port_data(http_port_list * s)
 {
     safe_free(s->name);
+    safe_free(s->protocol);
     safe_free(s->defaultsite);
 }
 
@@ -2799,6 +2799,9 @@ cbdataFree_https_port(void *data)
     free_generic_http_port_data(&s->http);
     safe_free(s->cert);
     safe_free(s->key);
+    if (s->sslContext)
+	SSL_CTX_free(s->sslContext);
+    s->sslContext = NULL;
 }
 
 static void
@@ -2921,6 +2924,11 @@ void
 configFreeMemory(void)
 {
     free_all();
+#if USE_SSL
+    if (Config.ssl_client.sslContext)
+	SSL_CTX_free(Config.ssl_client.sslContext);
+    Config.ssl_client.sslContext = NULL;
+#endif
 }
 
 void
