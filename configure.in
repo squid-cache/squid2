@@ -2328,7 +2328,7 @@ elif test "$ac_cv_func_select" = "yes" ; then
 		;;
 	esac
 else
-        echo "Eep!  Can't find poll, epoll, or select!"
+        echo "Eep!  Can't find poll, epoll, kqueue or select!"
         echo "I'll try select and hope for the best."
         SELECT_TYPE="select"
 fi
@@ -2352,11 +2352,11 @@ kqueue)
         AC_DEFINE(USE_KQUEUE,1,[Use kqueue() for the IO loop])
 	;;
 *)
-	echo "ERROR: Unknown select loop type '$SELECT_TYPE'"
+	echo "ERROR: Unknown IO loop type '$SELECT_TYPE'"
 	exit 1
 esac
 
-echo "Using ${SELECT_TYPE} for select loop."
+echo "Using ${SELECT_TYPE} for the IO loop."
 AM_CONDITIONAL([USE_POLL], [test $SELECT_TYPE = poll])
 AM_CONDITIONAL([USE_EPOLL], [test $SELECT_TYPE = epoll])
 AM_CONDITIONAL([USE_SELECT], [test $SELECT_TYPE = select])
