@@ -1945,3 +1945,12 @@ storeResumeRead(StoreEntry * e)
 	mem->serverfd = 0;
     }
 }
+
+/* Reset defer state when FD goes away under our feets */
+void
+storeResetDefer(StoreEntry * e)
+{
+    EBIT_CLR(e->flags, ENTRY_DEFER_READ);
+    if (e->mem_obj)
+	e->mem_obj->serverfd = 0;
+}

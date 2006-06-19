@@ -940,6 +940,7 @@ extern void storeFsAdd(const char *, STSETUP *);
 extern void storeReplAdd(const char *, REMOVALPOLICYCREATE *);
 void storeDeferRead(StoreEntry *, int fd);
 void storeResumeRead(StoreEntry *);
+void storeResetDefer(StoreEntry *);
 
 /* store_modules.c */
 extern void storeFsSetup(void);

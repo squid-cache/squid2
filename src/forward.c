@@ -189,6 +189,8 @@ fwdServerClosed(int fd, void *data)
     debug(17, 2) ("fwdServerClosed: FD %d %s\n", fd, storeUrl(fwdState->entry));
     assert(fwdState->server_fd == fd);
     fwdState->server_fd = -1;
+    if (EBIT_TEST(fwdState->entry->flags, ENTRY_DEFER_READ))
+	storeResetDefer(fwdState->entry);
     if (fwdCheckRetry(fwdState)) {
 	int originserver = (fwdState->servers->peer == NULL);
 	debug(17, 3) ("fwdServerClosed: re-forwarding (%d tries, %d secs)\n",
@@ -899,10 +901,11 @@ fwdCheckDeferRead(int fd, void *data)
     else {
 	int i = delayMostBytesWanted(mem, INT_MAX);
 	if (0 == i) {
-	    if (fd >= 0) {
-		mem->serverfd = fd;
-		commDeferFD(fd);
-	    }
+	    /* No storeDeferrRead here as it's not store dependent.
+	     * Will get changed the day delay pools interact nicely
+	     * with the store..
+	     */
+	    commDeferFD(fd);
 	    return 1;
 	}
 	/* was: rc = -(rc != INT_MAX); */
@@ -1001,6 +1004,8 @@ fwdComplete(FwdState * fwdState)
     assert(e->mem_obj->chksum == url_checksum(e->mem_obj->url));
 #endif
     fwdLogReplyStatus(fwdState->n_tries, e->mem_obj->reply->sline.status);
+    if (EBIT_TEST(e->flags, ENTRY_DEFER_READ))
+	storeResumeRead(e);
     if (fwdReforward(fwdState)) {
 	debug(17, 3) ("fwdComplete: re-forwarding %d %s\n",
 	    e->mem_obj->reply->sline.status,
