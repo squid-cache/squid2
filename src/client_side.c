@@ -1476,9 +1476,9 @@ clientInterpretRequestHeaders(clientHttpRequest * http)
 	HttpHeaderPos pos = HttpHeaderInitPos;
 	HttpHeaderEntry *e;
 	request->flags.auth = 1;
-	while ((e = httpHeaderGetEntry(req_hdr, &pos))) {
-	    if (e->id == HDR_AUTHORIZATION || e->id == HDR_PROXY_AUTHORIZATION) {
-		if (!request->flags.no_connection_auth) {
+	if (!request->flags.no_connection_auth) {
+	    while ((e = httpHeaderGetEntry(req_hdr, &pos))) {
+		if (e->id == HDR_AUTHORIZATION || e->id == HDR_PROXY_AUTHORIZATION) {
 		    const char *value = strBuf(e->value);
 		    if (strncasecmp(value, "NTLM ", 5) == 0
 			||
@@ -1490,8 +1490,6 @@ clientInterpretRequestHeaders(clientHttpRequest * http)
 			/* the pinned connection is set below */
 			break;
 		    }
-		} else {
-		    httpHeaderDelAt(req_hdr, pos);
 		}
 	    }
 	}
@@ -1915,10 +1913,38 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
 		    if (request->flags.no_connection_auth) {
 			httpHeaderDelAt(hdr, pos);
 			continue;
-		    } else if (!request->flags.accelerated) {
+		    }
+		    request->flags.must_keepalive = 1;
+		    if (!request->flags.accelerated) {
 			httpHeaderPutStr(hdr, HDR_PROXY_SUPPORT, "Session-Based-Authentication");
 			httpHeaderPutStr(hdr, HDR_CONNECTION, "Proxy-support");
 		    }
+		    break;
+		}
+	    }
+	}
+    }
+    /* Filter unproxyable authentication types */
+    if (http->log_type != LOG_TCP_DENIED &&
+	(httpHeaderHas(hdr, HDR_PROXY_AUTHENTICATE))) {
+	HttpHeaderPos pos = HttpHeaderInitPos;
+	HttpHeaderEntry *e;
+	while ((e = httpHeaderGetEntry(hdr, &pos))) {
+	    if (e->id == HDR_PROXY_AUTHENTICATE) {
+		const char *value = strBuf(e->value);
+		if ((strncasecmp(value, "NTLM", 4) == 0 &&
+			(value[4] == '\0' || value[4] == ' '))
+		    ||
+		    (strncasecmp(value, "Negotiate", 9) == 0 &&
+			(value[9] == '\0' || value[9] == ' '))
+		    ||
+		    (strncasecmp(value, "Kerberos", 8) == 0 &&
+			(value[8] == '\0' || value[8] == ' '))) {
+		    if (request->flags.no_connection_auth) {
+			httpHeaderDelAt(hdr, pos);
+			continue;
+		    }
+		    request->flags.must_keepalive = 1;
 		    break;
 		}
 	    }
