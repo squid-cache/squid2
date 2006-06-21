@@ -651,6 +651,9 @@
 /* Print stacktraces on fatal errors */
 #undef PRINT_STACK_TRACE
 
+/* The size of a `char', as computed by sizeof. */
+#undef SIZEOF_CHAR
+
 /* The size of a `int', as computed by sizeof. */
 #undef SIZEOF_INT
 
@@ -687,6 +690,9 @@
 /* Size of SIZEOF_UINT64_T */
 #undef SIZEOF_UINT64_T
 
+/* Size of SIZEOF_UINT8_T */
+#undef SIZEOF_UINT8_T
+
 /* Size of SIZEOF_U_INT16_T */
 #undef SIZEOF_U_INT16_T
 
@@ -695,6 +701,9 @@
 
 /* Size of SIZEOF_U_INT64_T */
 #undef SIZEOF_U_INT64_T
+
+/* Size of SIZEOF_U_INT8_T */
+#undef SIZEOF_U_INT8_T
 
 /* The size of a `void *', as computed by sizeof. */
 #undef SIZEOF_VOID_P
@@ -892,3 +901,6 @@
 
 /* Have unsigned long long datatype */
 #undef u_int64_t
+
+/* Have unsigned char datatype */
+#undef u_int8_t
