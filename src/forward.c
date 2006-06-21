@@ -125,6 +125,8 @@ fwdStateFree(FwdState * fwdState)
     if (sfd > -1) {
 	comm_remove_close_handler(sfd, fwdServerClosed, fwdState);
 	fwdState->server_fd = -1;
+	if (EBIT_TEST(fwdState->entry->flags, ENTRY_DEFER_READ))
+	    storeResetDefer(fwdState->entry);
 	debug(17, 3) ("fwdStateFree: closing FD %d\n", sfd);
 	comm_close(sfd);
     }
@@ -907,7 +909,7 @@ fwdCheckDeferRead(int fd, void *data)
     else {
 	int i = delayMostBytesWanted(mem, INT_MAX);
 	if (0 == i) {
-	    /* No storeDeferrRead here as it's not store dependent.
+	    /* No storeDeferRead here as it's not store dependent.
 	     * Will get changed the day delay pools interact nicely
 	     * with the store..
 	     */
@@ -989,6 +991,9 @@ fwdUnregister(int fd, FwdState * fwdState)
     debug(17, 3) ("fwdUnregister: %s\n", storeUrl(fwdState->entry));
     assert(fd == fwdState->server_fd);
     assert(fd > -1);
+    commSetDefer(fd, NULL, NULL);
+    if (EBIT_TEST(fwdState->entry->flags, ENTRY_DEFER_READ))
+	storeResumeRead(fwdState->entry);
     comm_remove_close_handler(fd, fwdServerClosed, fwdState);
     fwdState->server_fd = -1;
 }
@@ -1010,8 +1015,6 @@ fwdComplete(FwdState * fwdState)
     assert(e->mem_obj->chksum == url_checksum(e->mem_obj->url));
 #endif
     fwdLogReplyStatus(fwdState->n_tries, e->mem_obj->reply->sline.status);
-    if (EBIT_TEST(e->flags, ENTRY_DEFER_READ))
-	storeResumeRead(e);
     if (fwdReforward(fwdState)) {
 	debug(17, 3) ("fwdComplete: re-forwarding %d %s\n",
 	    e->mem_obj->reply->sline.status,
