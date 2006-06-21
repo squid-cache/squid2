@@ -1815,11 +1815,14 @@ fi
 
 dnl Check for typedefs
 AC_CHECK_SIZEOF(void *)
+AC_CHECK_SIZEOF(char)
 AC_CHECK_SIZEOF(short)
 AC_CHECK_SIZEOF(int)
 AC_CHECK_SIZEOF(long)
 AC_CHECK_SIZEOF(long long)
 AC_CHECK_SIZEOF_SYSTYPE(__int64)
+AC_CHECK_SIZEOF_SYSTYPE(uint8_t)
+AC_CHECK_SIZEOF_SYSTYPE(u_int8_t)
 AC_CHECK_SIZEOF_SYSTYPE(int16_t)
 AC_CHECK_SIZEOF_SYSTYPE(uint16_t)
 AC_CHECK_SIZEOF_SYSTYPE(u_int16_t)
@@ -1830,6 +1833,12 @@ AC_CHECK_SIZEOF_SYSTYPE(int64_t)
 AC_CHECK_SIZEOF_SYSTYPE(uint64_t)
 AC_CHECK_SIZEOF_SYSTYPE(u_int64_t)
 
+dnl u_int8_t
+if test "x$ac_cv_sizeof_uint8_t" = "x1"; then
+	AC_CHECK_SYSTYPE(u_int8_t,uint8_t)
+elif test "x$ac_cv_sizeof_char" = "x1"; then
+	AC_CHECK_SYSTYPE(u_int8_t,unsigned char)
+fi
 dnl int16_t
 if test "x$ac_cv_sizeof_short" = "x2"; then
 	AC_CHECK_SYSTYPE(int16_t,short)
