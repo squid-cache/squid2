@@ -221,8 +221,7 @@ DOC_END
 
 NAME: sslproxy_client_certificate
 IFDEF: USE_SSL
-DEFAULT: none
-LOC: Config.ssl_client.cert
+DEFAULT: none LOC: Config.ssl_client.cert
 TYPE: string
 DOC_START
 	Client SSL Certificate to use when proxying https:// URLs
@@ -4988,6 +4987,7 @@ DOC_START
 	If set to "off" then such HTTP errors will cause the request
 	or response to be rejected.
 DOC_END
+
 NAME: linux_tproxy
 IFDEF: LINUX_TPROXY
 COMMENT: on|off
