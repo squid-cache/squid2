@@ -588,6 +588,18 @@ peer_supports_connection_pinning(HttpStateData * httpState)
     if (!httpState->peer)
 	return 1;
 
+    if (!httpState->peer->connection_auth)
+	return 0;
+
+    if (httpState->peer->connection_auth == 1)
+	return 1;
+
+    if (httpState->peer->options.originserver)
+	return 1;
+
+    if (rep->sline.status == HTTP_PROXY_AUTHENTICATION_REQUIRED)
+	return 1;
+
     if (req->pinned_connection)
 	if (req->pinned_connection->pinning.host)
 	    return 1;

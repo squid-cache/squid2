@@ -1475,6 +1475,7 @@ struct _peer {
     SSL_SESSION *sslSession;
 #endif
     int front_end_https;
+    int connection_auth;
 };
 
 struct _net_db_name {

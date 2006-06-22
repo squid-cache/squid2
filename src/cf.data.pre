@@ -451,6 +451,7 @@ DOC_START
 		     sslcipher=...
 		     ssloptions=...
 		     front-end-https[=on|auto]
+		     connection-auth[=on|off|auto]
 
 		     use 'proxy-only' to specify objects fetched
 		     from this cache should not be saved locally.
@@ -641,6 +642,12 @@ DOC_START
 		     on this header. If set to auto then the header will
 		     only be added if the request is forwarded as a https://
 		     URL.
+
+		     use connection-auth=off to tell Squid that this peer does
+		     not support Microsoft connection oriented authentication,
+		     and any such challenges received from there should be
+		     ignored. Default is auto to automatically determine the
+		     status of the peer peer.
 
 	NOTE: non-ICP/HTCP neighbors must be specified as 'parent'.
 DOC_END
