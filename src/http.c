@@ -591,13 +591,13 @@ peer_supports_connection_pinning(HttpStateData * httpState)
     if (!httpState->peer->connection_auth)
 	return 0;
 
+    if (rep->sline.status != HTTP_UNAUTHORIZED)
+	return 1;
+
     if (httpState->peer->connection_auth == 1)
 	return 1;
 
     if (httpState->peer->options.originserver)
-	return 1;
-
-    if (rep->sline.status == HTTP_PROXY_AUTHENTICATION_REQUIRED)
 	return 1;
 
     if (req->pinned_connection)
@@ -813,11 +813,8 @@ httpReadReply(int fd, void *data)
 #endif
 		    comm_remove_close_handler(fd, httpStateFree, httpState);
 		    fwdUnregister(fd, httpState->fwd);
-		    if (orig_request->pinned_connection) {
-			if (peer_supports_connection_pinning(httpState))
-			    clientPinConnection(orig_request->pinned_connection, orig_request->host, orig_request->port, fd);
-			else
-			    comm_close(fd);
+		    if (orig_request->pinned_connection && !orig_request->flags.no_connection_auth) {
+			clientPinConnection(orig_request->pinned_connection, fd, orig_request, httpState->peer);
 		    } else if (httpState->peer) {
 			if (httpState->peer->options.originserver)
 			    pconnPush(fd, httpState->peer->name, httpState->peer->http_port, httpState->orig_request->host, client_addr, client_port);

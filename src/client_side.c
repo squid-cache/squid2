@@ -4990,29 +4990,38 @@ clientPinnedConnectionClosed(int fd, void *data)
 {
     ConnStateData *conn = data;
     conn->pinning.fd = -1;
+    if (conn->pinning.peer) {
+	cbdataUnlock(conn->pinning.peer);
+	conn->pinning.peer = NULL;
+    }
     safe_free(conn->pinning.host);
     /* NOTE: pinning.pinned should be kept. This combined with fd == -1 at the end of a request indicates that the host
      * connection has gone away */
 }
 
 void
-clientPinConnection(ConnStateData * conn, const char *host, int port, int fd)
+clientPinConnection(ConnStateData * conn, int fd, const request_t * request, peer * peer)
 {
+    const char *host = request->host;
+    const int port = request->port;
     if (!cbdataValid(conn))
 	comm_close(fd);
     if (conn->pinning.fd == fd)
 	return;
-    assert(conn->pinning.fd == -1);
+    else if (conn->pinning.fd != -1)
+	comm_close(conn->pinning.fd);
     conn->pinning.fd = fd;
-    safe_free(conn->pinning.host);
     conn->pinning.host = xstrdup(host);
     conn->pinning.port = port;
     conn->pinning.pinned = 1;
+    conn->pinning.peer = peer;
+    if (peer)
+	cbdataLock(conn->pinning.peer);
     comm_add_close_handler(fd, clientPinnedConnectionClosed, conn);
 }
 
 int
-clientGetPinnedConnection(ConnStateData * conn, request_t * request)
+clientGetPinnedInfo(const ConnStateData * conn, const request_t * request, peer ** peer)
 {
     int fd = conn->pinning.fd;
 
@@ -5020,13 +5029,35 @@ clientGetPinnedConnection(ConnStateData * conn, request_t * request)
 	return -1;
 
     if (request && strcasecmp(conn->pinning.host, request->host) != 0) {
+      err:
 	comm_close(fd);
 	return -1;
     }
-    if (request && conn->pinning.port != request->port) {
+    if (request && conn->pinning.port != request->port)
+	goto err;
+    if (conn->pinning.peer && !cbdataValid(conn->pinning.peer))
+	goto err;
+    *peer = conn->pinning.peer;
+    return fd;
+}
+
+int
+clientGetPinnedConnection(ConnStateData * conn, const request_t * request, const peer * peer)
+{
+    int fd = conn->pinning.fd;
+
+    if (fd < 0)
+	return -1;
+
+    if (request && strcasecmp(conn->pinning.host, request->host) != 0) {
+      err:
 	comm_close(fd);
 	return -1;
     }
+    if (peer != conn->pinning.peer)
+	goto err;
+    cbdataUnlock(conn->pinning.peer);
+    conn->pinning.peer = NULL;
     conn->pinning.fd = -1;
     comm_remove_close_handler(fd, clientPinnedConnectionClosed, conn);
     return fd;

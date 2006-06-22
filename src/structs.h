@@ -1242,6 +1242,7 @@ struct _ConnStateData {
 	char *host;		/* host name of pinned connection */
 	int port;		/* port of pinned connection */
 	int pinned;		/* this connection was pinned */
+	peer *peer;		/* peer the connection goes via */
     } pinning;
 };
 

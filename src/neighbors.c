@@ -38,7 +38,6 @@
 /* count mcast group peers every 15 minutes */
 #define MCAST_COUNT_RATE 900
 
-static int peerAllowedToUse(const peer *, request_t *);
 static int peerWouldBePinged(const peer *, request_t *);
 static void neighborRemove(peer *);
 static void neighborAlive(peer *, const MemObject *, const icp_common_t *);
@@ -114,7 +113,7 @@ neighborType(const peer * p, const request_t * request)
  * this function figures out if it is appropriate to fetch REQUEST
  * from PEER.
  */
-static int
+int
 peerAllowedToUse(const peer * p, request_t * request)
 {
     const struct _domain_ping *d = NULL;

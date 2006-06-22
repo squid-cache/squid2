@@ -326,6 +326,7 @@ typedef enum {
     ANY_OLD_PARENT,
     USERHASH_PARENT,
     SOURCEHASH_PARENT,
+    PINNED,
     HIER_MAX
 } hier_code;
 

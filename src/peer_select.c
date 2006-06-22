@@ -61,6 +61,7 @@ const char *hier_strings[] =
     "ANY_PARENT",
     "USERHASH_PARENT",
     "SOURCEHASH_PARENT",
+    "PINNED",
     "INVALID CODE"
 };
 
@@ -87,6 +88,7 @@ static void peerHtcpParentMiss(peer *, htcpReplyData *, ps_state *);
 static void peerHandleHtcpReply(peer *, peer_t, htcpReplyData *, void *);
 #endif
 static int peerCheckNetdbDirect(ps_state * psstate);
+static void peerGetPinned(ps_state * ps);
 static void peerGetSomeNeighbor(ps_state *);
 static void peerGetSomeNeighborReplies(ps_state *);
 static void peerGetSomeDirect(ps_state *);
@@ -274,6 +276,8 @@ peerSelectFoo(ps_state * ps)
 	debug(44, 3) ("peerSelectFoo: direct = %s\n",
 	    DirectStr[ps->direct]);
     }
+    if (entry->ping_status == PING_NONE)
+	peerGetPinned(ps);
     if (entry == NULL) {
 	(void) 0;
     } else if (entry->ping_status == PING_NONE) {
@@ -302,6 +306,29 @@ peerSelectFoo(ps_state * ps)
 	break;
     }
     peerSelectCallback(ps);
+}
+
+/*
+ * peerGetPinned
+ *
+ * Selects a pinned connection
+ */
+static void
+peerGetPinned(ps_state * ps)
+{
+    request_t *request = ps->request;
+    peer *peer;
+    if (!request->pinned_connection)
+	return;
+    if (clientGetPinnedInfo(request->pinned_connection, request, &peer) != -1) {
+	if (peer && peerAllowedToUse(peer, request)) {
+	    peerAddFwdServer(&ps->servers, peer, PINNED);
+	    ps->entry->ping_status = PING_DONE;		/* Skip ICP */
+	} else if (!peer && ps->direct != DIRECT_NO) {
+	    peerAddFwdServer(&ps->servers, NULL, PINNED);
+	    ps->entry->ping_status = PING_DONE;		/* Skip ICP */
+	}
+    }
 }
 
 /*

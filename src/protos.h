@@ -140,8 +140,9 @@ extern int checkNegativeHit(StoreEntry *);
 extern void clientOpenListenSockets(void);
 extern void clientHttpConnectionsClose(void);
 extern int isTcpHit(log_type);
-extern void clientPinConnection(ConnStateData * conn, const char *host, int port, int fd);
-int clientGetPinnedConnection(ConnStateData * conn, request_t * request);
+extern void clientPinConnection(ConnStateData * conn, int fd, const request_t * request, peer * peer);
+extern int clientGetPinnedInfo(const ConnStateData * conn, const request_t * request, peer ** peer);
+extern int clientGetPinnedConnection(ConnStateData * conn, const request_t * request, const peer * peer);
 
 extern int commSetNonBlocking(int fd);
 extern int commUnsetNonBlocking(int fd);
@@ -675,6 +676,7 @@ extern peer *whichPeer(const struct sockaddr_in *from);
 extern void neighborsHtcpReply(const cache_key *, htcpReplyData *, const struct sockaddr_in *);
 #endif
 extern void peerAddFwdServer(FwdServer ** FS, peer * p, hier_code code);
+extern int peerAllowedToUse(const peer *, request_t *);
 
 extern void netdbInit(void);
 extern void netdbHandlePingReply(const struct sockaddr_in *from, int hops, int rtt);
