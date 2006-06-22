@@ -661,7 +661,7 @@ storeCossDirParse(SwapDir * sd, int index, char *path)
     if (size <= 0)
 	fatal("storeCossDirParse: invalid size value");
 
-    cs = xmalloc(sizeof(CossInfo));
+    cs = xcalloc(1, sizeof(CossInfo));
     if (cs == NULL)
 	fatal("storeCossDirParse: couldn't xmalloc() CossInfo!\n");
 
