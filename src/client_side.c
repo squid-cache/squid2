@@ -1463,7 +1463,7 @@ clientInterpretRequestHeaders(clientHttpRequest * http)
 #endif
 	    request->flags.nocache = 1;
     }
-    if (Config.onoff.pipeline_prefetch)
+    if (!Config.onoff.connection_oriented_auth)
 	request->flags.no_connection_auth = 1;
 
     /* ignore range header in non-GETs */
