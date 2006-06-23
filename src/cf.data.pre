@@ -94,6 +94,11 @@ DOC_START
 				url_rewrite_program)
 		protocol=	Protocol to reconstruct accelerated
 				requests with. Defaults to http.
+		no-connection-auth
+				Prevent forwarding of Microsoft
+				connection oriented authentication
+				(NTLM, Negotiate and Kerberos)
+				
 
 	If you run Squid on a dual-homed machine with an internal
 	and an external interface we recommend you to specify the
@@ -4796,16 +4801,6 @@ DOC_START
 	With this directive the use of persistent connections after
 	HTTP errors can be disabled. Useful if you have clients
 	who fail to handle errors on persistent connections proper.
-DOC_END
-
-NAME: connection_oriented_auth_forwarding
-TYPE: onoff
-LOC: Config.onoff.connection_oriented_auth
-DEFAULT: on
-DOC_START
-	By setting this directive to off you disable the support for
-	forwarding of Microsoft connection oriented authentication
-	(NTLM, Negotiate and Kerberos).
 DOC_END
 
 NAME: detect_broken_pconn

@@ -361,10 +361,11 @@ struct _http_port_list {
     char *name;			/* visible name */
     char *defaultsite;		/* default web site */
     char *urlgroup;		/* default urlgroup */
-    unsigned int transparent:1;	/* transparent proxy */
-    unsigned int accel:1;	/* HTTP accelerator */
-    unsigned int vhost:1;	/* uses host header */
-    unsigned int vport:1;	/* virtual port support */
+    unsigned int transparent;	/* transparent proxy */
+    unsigned int accel;		/* HTTP accelerator */
+    unsigned int vhost;		/* uses host header */
+    unsigned int vport;		/* virtual port support */
+    unsigned int no_connection_auth;	/* Don't support connection oriented auth */
 };
 
 #if USE_SSL
@@ -673,7 +674,6 @@ struct _SquidConfig {
 	int delay_pool_uses_indirect_client;
 	int log_uses_indirect_client;
 #endif
-	int connection_oriented_auth;
     } onoff;
 #if LINUX_TPROXY
     u_short tproxy_port;

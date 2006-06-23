@@ -559,10 +559,6 @@ configDoConfigure(void)
 #if USE_SSL
     Config.ssl_client.sslContext = sslCreateClientContext(Config.ssl_client.cert, Config.ssl_client.key, Config.ssl_client.version, Config.ssl_client.cipher, Config.ssl_client.options, Config.ssl_client.flags, Config.ssl_client.cafile, Config.ssl_client.capath, Config.ssl_client.crlfile);
 #endif
-    if (Config.onoff.pipeline_prefetch && Config.onoff.connection_oriented_auth) {
-	debug(22, 0) ("WARNING: forwarding of connection oriented authentication is incompatible with pipeline prefetching. Disabling support for connection oriented auth\n");
-	Config.onoff.connection_oriented_auth = 0;
-    }
 }
 
 /* Parse a time specification from the config file.  Store the
@@ -2716,6 +2712,8 @@ parse_http_port_option(http_port_list * s, char *token)
     } else if (strncmp(token, "vport=", 6) == 0) {
 	s->vport = xatoi(token + 6);
 	s->accel = 1;
+    } else if (strcmp(token, "no-connection-auth")) {
+	s->no_connection_auth = 1;
     } else if (strncmp(token, "urlgroup=", 9) == 0) {
 	s->urlgroup = xstrdup(token + 9);
     } else if (strncmp(token, "protocol=", 9) == 0) {
@@ -2777,6 +2775,8 @@ dump_generic_http_port(StoreEntry * e, const char *n, const http_port_list * s)
 	storeAppendPrintf(e, " vhost");
     if (s->vport)
 	storeAppendPrintf(e, " vport");
+    if (s->no_connection_auth)
+	storeAppendPrintf(e, " no-connection-auth");
 }
 static void
 dump_http_port_list(StoreEntry * e, const char *n, const http_port_list * s)
