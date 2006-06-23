@@ -2712,7 +2712,7 @@ parse_http_port_option(http_port_list * s, char *token)
     } else if (strncmp(token, "vport=", 6) == 0) {
 	s->vport = xatoi(token + 6);
 	s->accel = 1;
-    } else if (strcmp(token, "no-connection-auth")) {
+    } else if (strcmp(token, "no-connection-auth") == 0) {
 	s->no_connection_auth = 1;
     } else if (strncmp(token, "urlgroup=", 9) == 0) {
 	s->urlgroup = xstrdup(token + 9);
