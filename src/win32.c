@@ -75,7 +75,7 @@ static SC_ACTION Squid_SCAction[] =
 {
     {SC_ACTION_RESTART, 60000}};
 static SERVICE_DESCRIPTION Squid_ServiceDescription =
-{SOFTWARENAME " " VERSION " WWW Proxy Server"};
+{SOFTWARENAME " " VERSION " " PACKAGE_NAME};
 static SERVICE_FAILURE_ACTIONS Squid_ServiceFailureActions =
 {INFINITE, NULL, NULL, 1, Squid_SCAction};
 static char REGKEY[256] = "SOFTWARE\\" VENDOR "\\" SOFTWARENAME "\\" WIN32_VERSION "\\";
