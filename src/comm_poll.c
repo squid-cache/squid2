@@ -394,12 +394,12 @@ comm_select(int msec)
 	num = poll(pfds, nfds, msec);
 	statCounter.select_loops++;
 	if (num < 0 && !ignoreErrno(errno)) {
-	    debug(5, 0) ("comm_poll: poll failure: %s\n", xstrerror());
+	    debug(5, 0) ("comm_select: poll failure: %s\n", xstrerror());
 	    assert(errno != EINVAL);
 	    return COMM_ERROR;
 	    /* NOTREACHED */
 	}
-	debug(5, num ? 5 : 8) ("comm_poll: %d+%u FDs ready\n", num, npending);
+	debug(5, num ? 5 : 8) ("comm_select: %d+%u FDs ready\n", num, npending);
 	statHistCount(&statCounter.select_fds_hist, num);
 	/* Check timeout handlers ONCE each second. */
 	if (squid_curtime > last_timeout) {
@@ -458,7 +458,7 @@ comm_select(int msec)
 	    F = &fd_table[fd];
 	    if (revents & (POLLRDNORM | POLLIN | POLLHUP | POLLERR)) {
 		PF *hdl = F->read_handler;
-		debug(5, 6) ("comm_poll: FD %d ready for reading\n", fd);
+		debug(5, 6) ("comm_select: FD %d ready for reading\n", fd);
 		if (hdl == NULL)
 		    (void) 0;	/* Nothing to do */
 #if DELAY_POOLS
@@ -480,7 +480,7 @@ comm_select(int msec)
 	    }
 	    if (revents & (POLLWRNORM | POLLOUT | POLLHUP | POLLERR)) {
 		PF *hdl = F->write_handler;
-		debug(5, 5) ("comm_poll: FD %d ready for writing\n", fd);
+		debug(5, 5) ("comm_select: FD %d ready for writing\n", fd);
 		if (hdl != NULL) {
 		    F->write_handler = NULL;
 		    F->write_pending = COMM_PENDING_NORMAL;
@@ -508,7 +508,7 @@ comm_select(int msec)
 		if (F->close_handler) {
 		    commCallCloseHandlers(fd);
 		} else if (F->timeout_handler) {
-		    debug(5, 0) ("comm_poll: Calling Timeout Handler\n");
+		    debug(5, 0) ("comm_select: Calling Timeout Handler\n");
 		    F->timeout_handler(fd, F->timeout_data);
 		}
 		F->close_handler = NULL;
@@ -549,7 +549,7 @@ comm_select(int msec)
 	return COMM_OK;
     }
     while (timeout > current_dtime);
-    debug(5, 8) ("comm_poll: time out: %ld.\n", (long int) squid_curtime);
+    debug(5, 8) ("comm_select: time out: %ld.\n", (long int) squid_curtime);
     return COMM_TIMEOUT;
 }
 

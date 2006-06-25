@@ -367,7 +367,7 @@ icpHandleUdp(int sock, void *data)
 	    /* or maybe an EHOSTUNREACH "No route to host" message */
 	    if (errno != ECONNREFUSED && errno != EHOSTUNREACH)
 #endif
-		debug(50, 1) ("icpHandleUdp: FD %d recvfrom: %s\n",
+		debug(12, 1) ("icpHandleUdp: FD %d recvfrom: %s\n",
 		    sock, xstrerror());
 	    break;
 	}
@@ -458,7 +458,7 @@ icpConnectionsOpen(void)
     x = getsockname(theOutIcpConnection,
 	(struct sockaddr *) &xaddr, &len);
     if (x < 0)
-	debug(50, 1) ("theOutIcpConnection FD %d: getsockname: %s\n",
+	debug(12, 1) ("theOutIcpConnection FD %d: getsockname: %s\n",
 	    theOutIcpConnection, xstrerror());
     else
 	theOutICPAddr = xaddr.sin_addr;

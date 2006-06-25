@@ -129,7 +129,7 @@ comm_select(int msec)
     timeout.tv_sec = msec / 1000;
     timeout.tv_nsec = (msec % 1000) * 1000000;
 
-    debug(50, 3) ("comm_kqueue: timeout %d\n", msec);
+    debug(5, 3) ("comm_select: timeout %d\n", msec);
 
     /* Check for disk io callbacks */
     storeDirCallback();
@@ -149,7 +149,7 @@ comm_select(int msec)
 	if (ignoreErrno(errno))
 	    return COMM_OK;
 
-	debug(5, 1) ("comm_kqueue: kevent failure: %s\n", xstrerror());
+	debug(5, 1) ("comm_select: kevent failure: %s\n", xstrerror());
 	return COMM_ERROR;
     }
     if (num == 0) {
@@ -162,7 +162,7 @@ comm_select(int msec)
 	int fd = (int) ke[i].ident;
 	if (ke[i].flags & EV_ERROR) {
 	    errno = ke[i].data;
-	    debug(5, 3) ("comm_kqueue: kqueue event error: %s\n",
+	    debug(5, 3) ("comm_select: kqueue event error: %s\n",
 		xstrerror());
 	    continue;		/* XXX! */
 	}
@@ -174,7 +174,7 @@ comm_select(int msec)
 	    comm_call_handlers(fd, 0, 1);
 	    break;
 	default:
-	    debug(5, 1) ("comm_kqueue: unexpected event: %d\n",
+	    debug(5, 1) ("comm_select: unexpected event: %d\n",
 		ke[i].filter);
 	    break;
 	}

@@ -118,7 +118,7 @@ comm_local_port(int fd)
 	return F->local_port;
     addr_len = sizeof(addr);
     if (getsockname(fd, (struct sockaddr *) &addr, &addr_len)) {
-	debug(50, 1) ("comm_local_port: Failed to retrieve TCP/UDP port number for socket: FD %d: %s\n", fd, xstrerror());
+	debug(5, 1) ("comm_local_port: Failed to retrieve TCP/UDP port number for socket: FD %d: %s\n", fd, xstrerror());
 	return 0;
     }
     F->local_port = ntohs(addr.sin_port);
@@ -138,7 +138,7 @@ commBind(int s, struct in_addr in_addr, u_short port)
     statCounter.syscalls.sock.binds++;
     if (bind(s, (struct sockaddr *) &S, sizeof(S)) == 0)
 	return COMM_OK;
-    debug(50, 0) ("commBind: Cannot bind socket FD %d to %s:%d: %s\n",
+    debug(5, 0) ("commBind: Cannot bind socket FD %d to %s:%d: %s\n",
 	s,
 	S.sin_addr.s_addr == INADDR_ANY ? "*" : inet_ntoa(S.sin_addr),
 	(int) port,
@@ -184,11 +184,11 @@ comm_openex(int sock_type,
 	switch (errno) {
 	case ENFILE:
 	case EMFILE:
-	    debug(50, 1) ("comm_open: socket failure: %s\n", xstrerror());
+	    debug(5, 1) ("comm_open: socket failure: %s\n", xstrerror());
 	    fdAdjustReserved();
 	    break;
 	default:
-	    debug(50, 0) ("comm_open: socket failure: %s\n", xstrerror());
+	    debug(5, 0) ("comm_open: socket failure: %s\n", xstrerror());
 	}
 	return -1;
     }
@@ -197,10 +197,10 @@ comm_openex(int sock_type,
 #ifdef IP_TOS
 	tos = TOS;
 	if (setsockopt(new_socket, IPPROTO_IP, IP_TOS, (char *) &tos, sizeof(int)) < 0)
-	        debug(50, 1) ("comm_open: setsockopt(IP_TOS) on FD %d: %s\n",
+	        debug(5, 1) ("comm_open: setsockopt(IP_TOS) on FD %d: %s\n",
 		new_socket, xstrerror());
 #else
-	debug(50, 0) ("comm_open: setsockopt(IP_TOS) not supported on this platform\n");
+	debug(5, 0) ("comm_open: setsockopt(IP_TOS) not supported on this platform\n");
 #endif
     }
     /* update fdstat */
@@ -253,7 +253,7 @@ comm_listen(int sock)
 {
     int x;
     if ((x = listen(sock, Squid_MaxFD >> 2)) < 0) {
-	debug(50, 0) ("comm_listen: listen(%d, %d): %s\n",
+	debug(5, 0) ("comm_listen: listen(%d, %d): %s\n",
 	    Squid_MaxFD >> 2,
 	    sock, xstrerror());
 	return x;
@@ -373,7 +373,7 @@ commResetFD(ConnectStateData * cs)
     if (F->tos) {
 	int tos = F->tos;
 	if (setsockopt(cs->fd, IPPROTO_IP, IP_TOS, (char *) &tos, sizeof(int)) < 0)
-	        debug(50, 1) ("commResetFD: setsockopt(IP_TOS) on FD %d: %s\n", cs->fd, xstrerror());
+	        debug(5, 1) ("commResetFD: setsockopt(IP_TOS) on FD %d: %s\n", cs->fd, xstrerror());
     }
 #endif
     if (F->flags.close_on_exec)
@@ -545,13 +545,13 @@ comm_accept(int fd, struct sockaddr_in *pn, struct sockaddr_in *me)
     statCounter.syscalls.sock.accepts++;
     if ((sock = accept(fd, (struct sockaddr *) &P, &Slen)) < 0) {
 	if (ignoreErrno(errno)) {
-	    debug(50, 5) ("comm_accept: FD %d: %s\n", fd, xstrerror());
+	    debug(5, 5) ("comm_accept: FD %d: %s\n", fd, xstrerror());
 	    return COMM_NOMESSAGE;
 	} else if (ENFILE == errno || EMFILE == errno) {
-	    debug(50, 3) ("comm_accept: FD %d: %s\n", fd, xstrerror());
+	    debug(5, 3) ("comm_accept: FD %d: %s\n", fd, xstrerror());
 	    return COMM_ERROR;
 	} else {
-	    debug(50, 1) ("comm_accept: FD %d: %s\n", fd, xstrerror());
+	    debug(5, 1) ("comm_accept: FD %d: %s\n", fd, xstrerror());
 	    return COMM_ERROR;
 	}
     }
@@ -670,7 +670,7 @@ comm_reset_close(int fd)
     L.l_onoff = 1;
     L.l_linger = 0;
     if (setsockopt(fd, SOL_SOCKET, SO_LINGER, (char *) &L, sizeof(L)) < 0)
-	debug(50, 0) ("commResetTCPClose: FD %d: %s\n", fd, xstrerror());
+	debug(5, 0) ("commResetTCPClose: FD %d: %s\n", fd, xstrerror());
     F->flags.close_request = 1;
     comm_close(fd);
 }
@@ -708,7 +708,7 @@ comm_close_ssl(int fd, void *unused)
 static void
 comm_close_ssl_timeout(int fd, void *unused)
 {
-    debug(50, 1) ("comm_close_ssl: FD %d: timeout\n", fd);
+    debug(5, 1) ("comm_close_ssl: FD %d: timeout\n", fd);
     comm_close_ssl_finish(fd);
 }
 
@@ -768,7 +768,7 @@ comm_udp_sendto(int fd,
 #ifdef _SQUID_LINUX_
 	if (ECONNREFUSED != errno)
 #endif
-	    debug(50, 1) ("comm_udp_sendto: FD %d, %s, port %d: %s\n",
+	    debug(5, 1) ("comm_udp_sendto: FD %d, %s, port %d: %s\n",
 		fd,
 		inet_ntoa(to_addr->sin_addr),
 		(int) htons(to_addr->sin_port),
@@ -916,7 +916,7 @@ commSetNoLinger(int fd)
     L.l_onoff = 0;		/* off */
     L.l_linger = 0;
     if (setsockopt(fd, SOL_SOCKET, SO_LINGER, (char *) &L, sizeof(L)) < 0)
-	debug(50, 0) ("commSetNoLinger: FD %d: %s\n", fd, xstrerror());
+	debug(5, 0) ("commSetNoLinger: FD %d: %s\n", fd, xstrerror());
     fd_table[fd].flags.nolinger = 1;
 }
 
@@ -925,14 +925,14 @@ commSetReuseAddr(int fd)
 {
     int on = 1;
     if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (char *) &on, sizeof(on)) < 0)
-	debug(50, 1) ("commSetReuseAddr: FD %d: %s\n", fd, xstrerror());
+	debug(5, 1) ("commSetReuseAddr: FD %d: %s\n", fd, xstrerror());
 }
 
 static void
 commSetTcpRcvbuf(int fd, int size)
 {
     if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (char *) &size, sizeof(size)) < 0)
-	debug(50, 1) ("commSetTcpRcvbuf: FD %d, SIZE %d: %s\n",
+	debug(5, 1) ("commSetTcpRcvbuf: FD %d, SIZE %d: %s\n",
 	    fd, size, xstrerror());
 }
 
@@ -949,7 +949,7 @@ commSetNonBlocking(int fd)
     if (fd_table[fd].type != FD_PIPE) {
 #endif
 	if (ioctl(fd, FIONBIO, &nonblocking) < 0) {
-	    debug(50, 0) ("commSetNonBlocking: FD %d: %s %u\n", fd, xstrerror(), fd_table[fd].type);
+	    debug(5, 0) ("commSetNonBlocking: FD %d: %s %u\n", fd, xstrerror(), fd_table[fd].type);
 	    return COMM_ERROR;
 	}
 #ifdef _SQUID_CYGWIN_
@@ -958,11 +958,11 @@ commSetNonBlocking(int fd)
 #endif
 #ifndef _SQUID_MSWIN_
 	if ((flags = fcntl(fd, F_GETFL, dummy)) < 0) {
-	    debug(50, 0) ("FD %d: fcntl F_GETFL: %s\n", fd, xstrerror());
+	    debug(5, 0) ("FD %d: fcntl F_GETFL: %s\n", fd, xstrerror());
 	    return COMM_ERROR;
 	}
 	if (fcntl(fd, F_SETFL, flags | SQUID_NONBLOCK) < 0) {
-	    debug(50, 0) ("commSetNonBlocking: FD %d: %s\n", fd, xstrerror());
+	    debug(5, 0) ("commSetNonBlocking: FD %d: %s\n", fd, xstrerror());
 	    return COMM_ERROR;
 	}
 #endif
@@ -983,12 +983,12 @@ commUnsetNonBlocking(int fd)
     int flags;
     int dummy = 0;
     if ((flags = fcntl(fd, F_GETFL, dummy)) < 0) {
-	debug(50, 0) ("FD %d: fcntl F_GETFL: %s\n", fd, xstrerror());
+	debug(5, 0) ("FD %d: fcntl F_GETFL: %s\n", fd, xstrerror());
 	return COMM_ERROR;
     }
     if (fcntl(fd, F_SETFL, flags & (~SQUID_NONBLOCK)) < 0) {
 #endif
-	debug(50, 0) ("commUnsetNonBlocking: FD %d: %s\n", fd, xstrerror());
+	debug(5, 0) ("commUnsetNonBlocking: FD %d: %s\n", fd, xstrerror());
 	return COMM_ERROR;
     }
     fd_table[fd].flags.nonblocking = 0;
@@ -1002,11 +1002,11 @@ commSetCloseOnExec(int fd)
     int flags;
     int dummy = 0;
     if ((flags = fcntl(fd, F_GETFL, dummy)) < 0) {
-	debug(50, 0) ("FD %d: fcntl F_GETFL: %s\n", fd, xstrerror());
+	debug(5, 0) ("FD %d: fcntl F_GETFL: %s\n", fd, xstrerror());
 	return;
     }
     if (fcntl(fd, F_SETFD, flags | FD_CLOEXEC) < 0)
-	debug(50, 0) ("FD %d: set close-on-exec failed: %s\n", fd, xstrerror());
+	debug(5, 0) ("FD %d: set close-on-exec failed: %s\n", fd, xstrerror());
     fd_table[fd].flags.close_on_exec = 1;
 #endif
 }
@@ -1017,7 +1017,7 @@ commSetTcpNoDelay(int fd)
 {
     int on = 1;
     if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (char *) &on, sizeof(on)) < 0)
-	debug(50, 1) ("commSetTcpNoDelay: FD %d: %s\n", fd, xstrerror());
+	debug(5, 1) ("commSetTcpNoDelay: FD %d: %s\n", fd, xstrerror());
     fd_table[fd].flags.nodelay = 1;
 }
 #endif
@@ -1063,11 +1063,11 @@ commHandleWrite(int fd, void *data)
     } else if (len < 0) {
 	/* An error */
 	if (fd_table[fd].flags.socket_eof) {
-	    debug(50, 2) ("commHandleWrite: FD %d: write failure: %s.\n",
+	    debug(5, 2) ("commHandleWrite: FD %d: write failure: %s.\n",
 		fd, xstrerror());
 	    CommWriteStateCallbackAndFree(fd, COMM_ERROR);
 	} else if (ignoreErrno(errno)) {
-	    debug(50, 10) ("commHandleWrite: FD %d: write failure: %s.\n",
+	    debug(5, 10) ("commHandleWrite: FD %d: write failure: %s.\n",
 		fd, xstrerror());
 	    commSetSelect(fd,
 		COMM_SELECT_WRITE,
@@ -1075,7 +1075,7 @@ commHandleWrite(int fd, void *data)
 		state,
 		0);
 	} else {
-	    debug(50, 2) ("commHandleWrite: FD %d: write failure: %s.\n",
+	    debug(5, 2) ("commHandleWrite: FD %d: write failure: %s.\n",
 		fd, xstrerror());
 	    CommWriteStateCallbackAndFree(fd, COMM_ERROR);
 	}

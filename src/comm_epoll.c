@@ -155,7 +155,7 @@ comm_select(int msec)
     if (msec > MAX_POLL_TIME)
 	msec = MAX_POLL_TIME;
 
-    debug(50, 3) ("comm_epoll: timeout %d\n", msec);
+    debug(5, 3) ("comm_select: timeout %d\n", msec);
 
     if (epoll_fds == 0) {
 	assert(shutting_down);
@@ -178,7 +178,7 @@ comm_select(int msec)
 	if (ignoreErrno(errno))
 	    return COMM_OK;
 
-	debug(5, 1) ("comm_epoll: epoll failure: %s\n", xstrerror());
+	debug(5, 1) ("comm_select: epoll failure: %s\n", xstrerror());
 	return COMM_ERROR;
     }
     statHistCount(&statCounter.select_fds_hist, num);
@@ -193,7 +193,7 @@ comm_select(int msec)
 	return COMM_OK;
     } else {
 	getCurrentTime();
-	debug(5, 8) ("comm_epoll: time out: %ld.\n", (long int) squid_curtime);
+	debug(5, 8) ("comm_select: time out: %ld.\n", (long int) squid_curtime);
 	return COMM_TIMEOUT;
     }
 }
