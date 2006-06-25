@@ -652,7 +652,7 @@ DOC_START
 		     not support Microsoft connection oriented authentication,
 		     and any such challenges received from there should be
 		     ignored. Default is auto to automatically determine the
-		     status of the peer peer.
+		    status of the peer.
 
 	NOTE: non-ICP/HTCP neighbors must be specified as 'parent'.
 DOC_END
