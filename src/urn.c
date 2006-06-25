@@ -72,7 +72,7 @@ urnFindMinRtt(url_entry * urls, method_t m, int *rtt_ret)
     assert(urls != NULL);
     for (i = 0; NULL != urls[i].url; i++)
 	urlcnt++;
-    debug(53, 3) ("urnFindMinRtt: Counted %d URLs\n", i);
+    debug(52, 3) ("urnFindMinRtt: Counted %d URLs\n", i);
     if (1 == urlcnt) {
 	debug(52, 3) ("urnFindMinRtt: Only one URL - return it!\n");
 	return urls;
@@ -236,9 +236,9 @@ urnHandleReply(void *data, char *buf, ssize_t size)
     urls = urnParseReply(s, urnState->request->method);
     for (i = 0; NULL != urls[i].url; i++)
 	urlcnt++;
-    debug(53, 3) ("urnFindMinRtt: Counted %d URLs\n", i);
+    debug(52, 3) ("urnHandleReply: Counted %d URLs\n", i);
     if (urls == NULL) {		/* unkown URN error */
-	debug(52, 3) ("urnTranslateDone: unknown URN %s\n", storeUrl(e));
+	debug(52, 3) ("urnHandleReply: unknown URN %s\n", storeUrl(e));
 	err = errorCon(ERR_URN_RESOLVE, HTTP_NOT_FOUND);
 	err->request = requestLink(urnState->request);
 	err->url = xstrdup(storeUrl(e));
@@ -280,7 +280,7 @@ urnHandleReply(void *data, char *buf, ssize_t size)
     httpReplySetHeaders(rep, version, HTTP_MOVED_TEMPORARILY, NULL,
 	"text/html", mb.size, 0, squid_curtime);
     if (urnState->flags.force_menu) {
-	debug(51, 3) ("urnHandleReply: forcing menu\n");
+	debug(52, 3) ("urnHandleReply: forcing menu\n");
     } else if (min_u) {
 	httpHeaderPutStr(&rep->header, HDR_LOCATION, min_u->url);
     }
