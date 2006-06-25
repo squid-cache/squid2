@@ -206,9 +206,9 @@ needed only when a non default service name is in use.
 Don't use the "Start parameters" in the Windows 2000/XP/2003 Service applet: they are
 specific to Windows services functionality and Squid is not designed for understand they.
 
-In the following example the command line of the "squidsvc" Squid service is set to "-D -a 8080": 
+In the following example the command line of the "squidsvc" Squid service is set to "-D -u 3130": 
 
-<verb>squid -O "-D -a 8080" -n squidsvc</verb>
+<verb>squid -O "-D -u 3130" -n squidsvc</verb>
 </descrip>
 
 <descrip>
