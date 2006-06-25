@@ -2,10 +2,10 @@
 <HTML>
 <HEAD>
  <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.21">
- <TITLE>Squid 2.6.PRE2 release notes</TITLE>
+ <TITLE>Squid 2.6.STABLE1 release notes</TITLE>
 </HEAD>
 <BODY>
-<H1>Squid 2.6.PRE2 release notes</H1>
+<H1>Squid 2.6.STABLE1 release notes</H1>
 
 <H2>Squid Developers</H2>$Id$
 <HR>
@@ -87,7 +87,7 @@ membership check</LI>
 <DT><B>https_port</B><DD><P>Many new options. Reconstructs URLs as https:// by default.</P>
 <DT><B>cache_peer</B><DD><P>Many new options to support origin servers and SSL encryption</P>
 <DT><B>ssl_engine</B><DD><P>New directive for hardware assisted SSL encryption</P>
-<DT><B>sslproxy_*</B><DD><P>New directives defining how to gateway http-&gt;https</P>
+<DT><B>sslproxy_*</B><DD><P>New directives defining how to gateway http->https</P>
 <DT><B>sslpassword_program</B><DD><P>New helper directive to query an external program for SSL key encryption password (if any)</P>
 <DT><B>no_cache</B><DD><P>Renamed to cache to better reflect the functionaliy. no_cache still accepted.</P>
 <DT><B>cache</B><DD><P>New name for the old no_cache directive.</P>
@@ -139,9 +139,7 @@ membership check</LI>
 <DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=1590">#1590</A></B><DD><P>"ETag Loop" warnings in cache.log</P>
 <DT><B>Bug 
-<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=761">#761</A></B><DD><P>assertion failed: cbdata.c:249: "c-&gt;locks &gt; 0" when using diskd</P>
-<DT><B>Bug 
-<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=888">#888</A></B><DD><P>ntlm_user_pool assertion error on shutdown</P>
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=761">#761</A></B><DD><P>assertion failed: cbdata.c:249: "c->locks > 0" when using diskd</P>
 <DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=1420">#1420</A></B><DD><P>302 responses with an Expires header is always cached</P>
 <DT><B>Bug 
@@ -201,15 +199,15 @@ in the /usr/include local directory. Don't forget to fix files permission and ow
 <H2><A NAME="s4">4. Windows support:</A></H2>
 
 <P>This Squid version can run on Windows as a system service using the Cygwin environment.<BR>
-Windows NT4 and following are supported.<BR>
+Windows NT 4 and later are supported.<BR>
 On Windows 2000/XP/2003 the service is configured to use the Windows Service Recovery option
 restarting automatically after 60 seconds.
 <DL>
 
-<DT><B>Usage</B><DD><P>Some new command line options was added for Windows service support:<BR></P>
+<DT><B>Usage</B><DD><P>Some new command line options was added for the Windows service support:<BR></P>
 <P>The service installation is made with -i command line switch, it's possible to use -f switch at
-the same time for specify a different config-file settings for the Squid Service that is stored
-on Windows Registry.</P>
+the same time for specify a different config-file settings for the Squid Service that will be
+stored on the Windows Registry.</P>
 <P>A new -n switch specify the Windows Service Name, so multiple Squid instance are allowed.
 <EM>"Squid"</EM> is the default when the switch is not used.</P>
 <P>So, to install the service, the syntax is: </P>
@@ -218,7 +216,7 @@ on Windows Registry.</P>
 squid -i [-f file] [-n name]
 </PRE>
 </P>
-<P>Service uninstallation is made with -r command line switch plus the appropriate -n switch.</P>
+<P>Service uninstallation is made with -r command line switch with the appropriate -n switch.</P>
 <P>The -k switch family must be used with the appropriate -f and -n switches, so the syntax is: </P>
 <P>
 <PRE>
@@ -226,7 +224,7 @@ squid -k command [-f file] -n service-name
 </PRE>
 
 where <EM>service-name</EM> is the name specified with -n options at service install time.</P>
-<P>To use Squid original command line, the new -O switch must be used ONCE, the sintax is: </P>
+<P>To use the Squid original command line, the new -O switch must be used ONCE, the syntax is: </P>
 <P>
 <PRE>
 squid -O cmdline [-n service-name]
@@ -236,7 +234,7 @@ If multiple service command line options must be specified, use quote. The -n sw
 needed only when a non default service name is in use.</P>
 <P>Don't use the "Start parameters" in the Windows 2000/XP/2003 Service applet: they are
 specific to Windows services functionality and Squid is not designed for understand they.</P>
-<P>Example: </P>
+<P>In the following example the command line of the "squidsvc" Squid service is set to "-D -a 8080": </P>
 <P>
 <PRE>
 squid -O "-D -a 8080" -n squidsvc
@@ -266,7 +264,7 @@ acl blocklist url_regex -i "c:/squid/etc/blocked1.txt"
 </PRE>
 
 </LI>
-<LI>The WIN32 equivalent of '/dev/null' is 'NUL'</LI>
+<LI>The Windows equivalent of '/dev/null' is 'NUL'</LI>
 <LI>Squid doesn't know how to run external helpers based on scripts, like .bat, .cmd,
 .vbs, .pl, etc. So in squid.conf the interpreter path must be always specified, for example:
 

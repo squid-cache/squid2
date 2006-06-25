@@ -130,7 +130,6 @@ membership check
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1584" name="#1584"></tag>WCCPv2 unable to register with more than one router on Linux
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1590" name="#1590"></tag>"ETag Loop" warnings in cache.log
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=761" name="#761"></tag>assertion failed: cbdata.c:249: "c-&gt;locks &gt; 0" when using diskd
-<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=888" name="#888"></tag>ntlm_user_pool assertion error on shutdown
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1420" name="#1420"></tag>302 responses with an Expires header is always cached
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1500" name="#1500"></tag>diskd related memory corruption under heavy load
 </descrip>
@@ -171,18 +170,18 @@ membership check
 
 <sect>Windows support:
 <P>This Squid version can run on Windows as a system service using the Cygwin environment.<newline>
-Windows NT4 and following are supported.<newline>
+Windows NT 4 and later are supported.<newline>
 On Windows 2000/XP/2003 the service is configured to use the Windows Service Recovery option
 restarting automatically after 60 seconds.
 <descrip>
 
 <tag>Usage</tag>
 
-Some new command line options was added for Windows service support:<newline>
+Some new command line options was added for the Windows service support:<newline>
 
 The service installation is made with -i command line switch, it's possible to use -f switch at
-the same time for specify a different config-file settings for the Squid Service that is stored
-on Windows Registry.
+the same time for specify a different config-file settings for the Squid Service that will be
+stored on the Windows Registry.
 
 A new -n switch specify the Windows Service Name, so multiple Squid instance are allowed.
 <em/"Squid"/ is the default when the switch is not used.
@@ -191,14 +190,14 @@ So, to install the service, the syntax is:
 
 <verb>squid -i [-f file] [-n name]</verb>
 
-Service uninstallation is made with -r command line switch plus the appropriate -n switch.
+Service uninstallation is made with -r command line switch with the appropriate -n switch.
 
 The -k switch family must be used with the appropriate -f and -n switches, so the syntax is: 
 
 <verb>squid -k command [-f file] -n service-name</verb>
 where <em/service-name/ is the name specified with -n options at service install time.
 
-To use Squid original command line, the new -O switch must be used ONCE, the sintax is: 
+To use the Squid original command line, the new -O switch must be used ONCE, the syntax is: 
 
 <verb>squid -O cmdline [-n service-name]</verb>
 If multiple service command line options must be specified, use quote. The -n switch is
@@ -207,7 +206,7 @@ needed only when a non default service name is in use.
 Don't use the "Start parameters" in the Windows 2000/XP/2003 Service applet: they are
 specific to Windows services functionality and Squid is not designed for understand they.
 
-Example: 
+In the following example the command line of the "squidsvc" Squid service is set to "-D -a 8080": 
 
 <verb>squid -O "-D -a 8080" -n squidsvc</verb>
 </descrip>
@@ -230,7 +229,7 @@ format (CR+LF) and the full Windows path must be specified, for example:
 
 <verb>acl blocklist url_regex -i "c:/squid/etc/blocked1.txt"</verb>
 
-<item>The WIN32 equivalent of '/dev/null' is 'NUL'
+<item>The Windows equivalent of '/dev/null' is 'NUL'
 <item>Squid doesn't know how to run external helpers based on scripts, like .bat, .cmd,
 .vbs, .pl, etc. So in squid.conf the interpreter path must be always specified, for example:
 
