@@ -139,6 +139,7 @@ Error page templates
 
 .SH SEE ALSO
 .BR cachemgr.cgi "(8), "
+.BR ncsa_auth "(8), "
 .BR pam_auth "(8), "
 .BR squid_ldap_auth "(8), "
 .BR squid_ldap_group "(8), "
