@@ -117,14 +117,14 @@ TYPE: https_port_list
 DEFAULT: none
 LOC: Config.Sockaddr.https
 DOC_START
-        Usage:  [ip:]port cert=certificate.pem [key=key.pem] [options...]
+	Usage:  [ip:]port cert=certificate.pem [key=key.pem] [options...]
 
-        The socket address where Squid will listen for HTTPS client
-        requests.
+	The socket address where Squid will listen for HTTPS client
+	requests.
 
-        This is really only useful for situations where you are running
-        squid in accelerator mode and you want to do the SSL work at the
-        accelerator level.
+	This is really only useful for situations where you are running
+	squid in accelerator mode and you want to do the SSL work at the
+	accelerator level.
 
 	You may specify multiple socket addresses on multiple lines,
 	each with their own SSL certificate and/or options.
@@ -176,7 +176,7 @@ DOC_START
 			and CRL lists to use when verifying client certificates
 
 	   crlfile=	File of additional CRL lists to use when verifying
-		       	the client certificate, in addition to CRLs stored in
+			the client certificate, in addition to CRLs stored in
 			the capath. Implies VERIFY_CRL flag below.
 
 	   dhparams=	File containing DH parameters for temporary/ephemeral
@@ -944,10 +944,10 @@ TYPE: b_size_t
 DEFAULT: 8 KB
 LOC: Config.Store.maxInMemObjSize
 DOC_START
-        Objects greater than this size will not be attempted to kept in
-        the memory cache. This should be set high enough to keep objects
-        accessed frequently in memory to improve performance whilst low
-        enough to keep larger objects from hoarding cache_mem.
+	Objects greater than this size will not be attempted to kept in
+	the memory cache. This should be set high enough to keep objects
+	accessed frequently in memory to improve performance whilst low
+	enough to keep larger objects from hoarding cache_mem.
 DOC_END
 
 NAME: ipcache_size
@@ -1555,10 +1555,10 @@ TYPE: onoff
 DEFAULT: off
 LOC: Config.onoff.res_defnames
 DOC_START
-        Normally the RES_DEFNAMES resolver option is disabled
-        (see res_init(3)).  This prevents caches in a hierarchy
+	Normally the RES_DEFNAMES resolver option is disabled
+	(see res_init(3)).  This prevents caches in a hierarchy
 	from interpreting single-component hostnames locally.  To allow
-        Squid to handle single-component names, enable this option.
+	Squid to handle single-component names, enable this option.
 DOC_END
 
 NAME: dns_nameservers
@@ -1587,11 +1587,11 @@ DOC_START
 	default locations:
 	- Un*X & Linux:    /etc/hosts
 	- Windows NT/2000: %SystemRoot%\system32\drivers\etc\hosts
-	                   (%SystemRoot% value install default is c:\winnt)
+			   (%SystemRoot% value install default is c:\winnt)
 	- Windows XP/2003: %SystemRoot%\system32\drivers\etc\hosts
-	                   (%SystemRoot% value install default is c:\windows)
+			   (%SystemRoot% value install default is c:\windows)
 	- Windows 9x/Me:   %windir%\hosts
-	                   (%windir% value is usually c:\windows)
+			   (%windir% value is usually c:\windows)
 	- Cygwin:          /etc/hosts
 
 	The file contains newline-separated definitions, in the
@@ -1871,8 +1871,8 @@ DOC_START
 	If you want to use a digest authenticator, jump over to the
 	helpers/digest_auth/ directory and choose the authenticator to use.
 	It it's directory type
-        	% make
-	        % make install
+		% make
+		% make install
 
 	Then, set this line to something like
 
@@ -1922,7 +1922,7 @@ DOC_START
 	"post_workaround" on|off
 	This is a workaround to certain buggy browsers who sends an incorrect
 	request digest in POST requests when reusing the same nonce as acquired
-       	earlier in response to a GET request.
+	earlier in response to a GET request.
 	auth_param digest post_workaround off
 
 	=== NTLM scheme options follow ===
@@ -2057,19 +2057,19 @@ DOC_START
 	Options:
 
 	  ttl=n		TTL in seconds for cached results (defaults to 3600
-	  		for 1 hour)
+			for 1 hour)
 	  negative_ttl=n
-	  		TTL for cached negative lookups (default same
-	  		as ttl)
+			TTL for cached negative lookups (default same
+			as ttl)
 	  children=n	number of processes spawn to service external acl
 			lookups of this type.
 			Note: see compatibility note below
 	  concurrency=n	concurrency level per process. Use 0 for simple helpers
 			who can only process a single request at a time.
 	  cache=n	result cache size, 0 is unbounded (default)
- 	  grace=	Percentage remaining of TTL where a refresh of a
- 	  		cached entry should be initiated without needing to
- 			wait for a new reply. (default 0 for no grace period)
+	  grace=	Percentage remaining of TTL where a refresh of a
+			cached entry should be initiated without needing to
+			wait for a new reply. (default 0 for no grace period)
 	  protocol=2.5  Compatibility mode for Squid-2.5 external acl helpers
 
 	FORMAT specifications
@@ -2085,19 +2085,19 @@ DOC_START
 	  %MYADDR	Squid interface address
 	  %MYPORT	Squid http_port number
 	  %PATH		Requested URL-path (including query-string if any)
- 	  %USER_CERT	SSL User certificate in PEM format
- 	  %USER_CERTCHAIN SSL User certificate chain in PEM format
- 	  %USER_CERT_xx	SSL User certificate subject attribute xx
- 	  %USER_CA_xx	SSL User certificate issuer attribute xx
+	  %USER_CERT	SSL User certificate in PEM format
+	  %USER_CERTCHAIN SSL User certificate chain in PEM format
+	  %USER_CERT_xx	SSL User certificate subject attribute xx
+	  %USER_CA_xx	SSL User certificate issuer attribute xx
 	  %{Header}	HTTP request header
 	  %{Hdr:member}	HTTP request header list member
 	  %{Hdr:;member}
-	  		HTTP request header list member using ; as
-	  		list separator. ; can be any non-alphanumeric
+			HTTP request header list member using ; as
+			list separator. ; can be any non-alphanumeric
 			character.
 	 %ACL		The ACL name
 	 %DATA		The ACL arguments. If not used then any arguments
-	 		is automatically added at the end
+			is automatically added at the end
 
 	In addition, any string specified in the referencing acl will
 	also be included in the helper request line, after the specified
@@ -2117,7 +2117,7 @@ DOC_START
 	  user=		The users name (login also understood)
 	  password=	The users password (for PROXYPASS login= cache_peer)
 	  message=	Error message or similar used as %o in error messages
-	  		(error also understood)
+			(error also understood)
 	  log=		String to be logged in access.log. Available as
 			%ea in logformat specifications
 
@@ -2234,18 +2234,18 @@ DOC_START
 		this feature could make you liable for problems which
 		it causes.
 
- 		ignore-no-cache ignores any ``Pragma: no-cache'' and
+		ignore-no-cache ignores any ``Pragma: no-cache'' and
 		``Cache-control: no-cache'' headers received from a server.
 		The HTTP RFC never allows the use of this (Pragma) header 
 		from a server, only a client, though plenty of servers 
 		send it anyway.
 		
- 		ignore-private ignores any ``Cache-control: private'' 
- 		headers received from a server. Doing this VIOLATES 
+		ignore-private ignores any ``Cache-control: private'' 
+		headers received from a server. Doing this VIOLATES 
 		the HTTP standard. Enabling this feature could make you 
 		liable for problems which it causes.
 		
- 		ignore-auth caches responses to requests with authorization,
+		ignore-auth caches responses to requests with authorization,
 		irrespective of ``Cache-control'' headers received from 
 		a server. Doing this VIOLATES the HTTP standard. Enabling
 		this feature could make you liable for problems which
@@ -2629,9 +2629,9 @@ DOC_START
 	acl aclname method   GET POST ...
 	acl aclname browser  [-i] regexp ...
 	  # pattern match on User-Agent header (see also req_header below)
-        acl aclname referer_regex  [-i] regexp ...
-          # pattern match on Referer header
-          # Referer is highly unreliable, so use with care
+	acl aclname referer_regex  [-i] regexp ...
+	  # pattern match on Referer header
+	  # Referer is highly unreliable, so use with care
 	acl aclname ident    username ...
 	acl aclname ident_regex [-i] pattern ...
 	  # string match on ident output.
@@ -2914,16 +2914,16 @@ LOC: Config.accessList.reply
 DEFAULT: none
 DEFAULT_IF_NONE: allow all
 DOC_START
-        Allow replies to client requests. This is complementary to http_access.
+	Allow replies to client requests. This is complementary to http_access.
 
-        http_reply_access allow|deny [!] aclname ...
+	http_reply_access allow|deny [!] aclname ...
 
-        NOTE: if there are no access lines present, the default is to allow
+	NOTE: if there are no access lines present, the default is to allow
 	all replies
 
-        If none of the access lines cause a match the opposite of the
-        last line will apply. Thus it is good practice to end the rules
-        with an "allow all" or "deny all" entry.
+	If none of the access lines cause a match the opposite of the
+	last line will apply. Thus it is good practice to end the rules
+	with an "allow all" or "deny all" entry.
 
 NOCOMMENT_START
 #Recommended minimum configuration:
@@ -3148,7 +3148,7 @@ DEFAULT: none
 DEFAULT_IF_NONE: 0 allow all
 LOC: Config.ReplyBodySize
 DOC_START
-        This option specifies the maximum size of a reply body in bytes.
+	This option specifies the maximum size of a reply body in bytes.
 	It can be used to prevent users from downloading very large files,
 	such as MP3's and movies. When the reply headers are received,
 	the reply_body_max_size lines are processed, and the first line with
@@ -3176,7 +3176,7 @@ LOC: Config.accessList.log
 DEFAULT: none
 COMMENT: allow|deny acl acl...
 DOC_START
-        This options allows you to control which requests gets logged
+	This options allows you to control which requests gets logged
 	to access.log (see access_log directive). Requests denied for
 	logging will also not be accounted for in performance counters.
 DOC_END
@@ -4298,7 +4298,7 @@ DOC_START
 	Use this option if you require WCCP to use a specific
 	interface address.
 
-        The default behavior is to not bind to any specific address.
+	The default behavior is to not bind to any specific address.
 DOC_END
 
 
@@ -4364,11 +4364,11 @@ DOC_START
 	This is used to determine which delay pool a request falls into.
 
 	delay_access is sorted per pool and the matching starts with pool 1,
-       	then pool 2, ..., and finally pool N. The first delay pool where the
-       	request is allowed is selected for the request. If it does not allow
+	then pool 2, ..., and finally pool N. The first delay pool where the
+	request is allowed is selected for the request. If it does not allow
 	the request to any pool then the request is not delayed (default).
 
-      	For example, if you want some_big_clients in delay
+	For example, if you want some_big_clients in delay
 	pool 1 and lotsa_little_clients in delay pool 2:
 
 Example:
