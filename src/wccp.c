@@ -212,7 +212,7 @@ wccpHandleUdp(int sock, void *not_used)
 	return;
     if (ntohl(wccp_i_see_you.type) != WCCP_I_SEE_YOU)
 	return;
-    if (ntohl(wccp_i_see_you.number) > WCCP_ACTIVE_CACHES || ntohl(wccp_i_see_you.number) < 0) {
+    if (ntohl(wccp_i_see_you.number) > WCCP_ACTIVE_CACHES) {
 	debug(80, 1) ("Ignoring WCCP_I_SEE_YOU from %s with number of caches set to %d\n",
 	    inet_ntoa(from.sin_addr), (int) ntohl(wccp_i_see_you.number));
 	return;

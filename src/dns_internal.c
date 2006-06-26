@@ -93,7 +93,7 @@ struct _idns_query {
     char buf[RESOLV_BUFSZ];
     char name[NS_MAXDNAME + 1];
     char orig[NS_MAXDNAME + 1];
-    size_t sz;
+    ssize_t sz;
     unsigned short id;
     int nsends;
     struct timeval start_t;

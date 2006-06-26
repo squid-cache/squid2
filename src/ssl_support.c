@@ -803,7 +803,7 @@ ssl_write_method(fd, buf, len)
 }
 
 int
-ssl_shutdown_method(fd)
+ssl_shutdown_method(int fd)
 {
     SSL *ssl = fd_table[fd].ssl;
     int ret;

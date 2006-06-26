@@ -2435,7 +2435,7 @@ clientPackRange(clientHttpRequest * http,
     /*
      * paranoid check
      */
-    assert(*size >= 0 && i->debt_size >= 0);
+    assert(i->debt_size >= 0);
 }
 
 /* returns true if there is still data available to pack more ranges
@@ -2462,7 +2462,7 @@ clientPackMoreRanges(clientHttpRequest * http, const char *buf, size_t size, Mem
     HttpHdrRangeIter *i = &http->range_iter;
     /* offset in range specs does not count the prefix of an http msg */
     squid_off_t body_off = http->out.offset - i->prefix_size;
-    assert(size >= 0);
+
     /* check: reply was parsed and range iterator was initialized */
     assert(i->prefix_size > 0);
     /* filter out data according to range specs */
@@ -3889,8 +3889,8 @@ clientReadRequest(int fd, void *data)
 	    safe_free(prefix);
 	if (http) {
 	    assert(http->req_sz > 0);
+	    assert(conn->in.offset >= http->req_sz);
 	    conn->in.offset -= http->req_sz;
-	    assert(conn->in.offset >= 0);
 	    debug(33, 5) ("conn->in.offset = %d\n", (int) conn->in.offset);
 	    /*
 	     * If we read past the end of this request, move the remaining

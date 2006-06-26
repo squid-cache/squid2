@@ -145,7 +145,6 @@ memShrink(size_t new_limit)
 {
     size_t start_limit = TheMeter.idle.level;
     int i;
-    assert(start_limit >= 0 && new_limit >= 0);
     debug(63, 1) ("memShrink: started with %ld KB goal: %ld KB\n",
 	(long int) toKB(TheMeter.idle.level), (long int) toKB(new_limit));
     /* first phase: cut proportionally to the pool idle size */
@@ -337,7 +336,6 @@ static void
 memPoolShrink(MemPool * pool, size_t new_limit)
 {
     assert(pool);
-    assert(new_limit >= 0);
     while (pool->meter.idle.level > new_limit && pool->pstack.count > 0) {
 	memMeterDec(pool->meter.alloc);
 	memMeterDec(pool->meter.idle);

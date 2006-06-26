@@ -623,14 +623,14 @@ const char *
 xstrerror(void)
 {
     static char xstrerror_buf[BUFSIZ];
-    static char strerror_buf[BUFSIZ];
+    const char *errmsg;
 
-    snprintf(strerror_buf, BUFSIZ, "%s", strerror(errno));
+    errmsg = strerror(errno);
    
-    if (strerror_buf) 
-	snprintf(xstrerror_buf, BUFSIZ, "(%d) %s", errno, strerror_buf);
-    else
-        snprintf(xstrerror_buf, BUFSIZ, "(%d) Unknown", errno); 
+    if (!errmsg || !*errmsg)
+	errmsg = "Unknown error";
+
+    snprintf(xstrerror_buf, BUFSIZ, "(%d) %s", errno, errmsg);
     return xstrerror_buf;
 }
 
