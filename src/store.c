@@ -121,6 +121,7 @@ new_MemObject(const char *url, const char *log_url)
 #endif
     mem->log_url = xstrdup(log_url);
     mem->object_sz = -1;
+    mem->serverfd = -1;
     /* XXX account log_url */
     debug(20, 3) ("new_MemObject: returning %p\n", mem);
     return mem;
@@ -1940,9 +1941,9 @@ storeResumeRead(StoreEntry * e)
 {
     MemObject *mem = e->mem_obj;
     EBIT_CLR(e->flags, ENTRY_DEFER_READ);
-    if (mem->serverfd != 0) {
+    if (mem->serverfd != -1) {
 	commResumeFD(mem->serverfd);
-	mem->serverfd = 0;
+	mem->serverfd = -1;
     }
 }
 
@@ -1952,5 +1953,5 @@ storeResetDefer(StoreEntry * e)
 {
     EBIT_CLR(e->flags, ENTRY_DEFER_READ);
     if (e->mem_obj)
-	e->mem_obj->serverfd = 0;
+	e->mem_obj->serverfd = -1;
 }
