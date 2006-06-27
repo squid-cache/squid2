@@ -4694,6 +4694,7 @@ httpsAccept(int sock, void *data)
 	connState->log_addr.s_addr &= Config.Addrs.client_netmask.s_addr;
 	connState->me = me;
 	connState->fd = fd;
+	connState->pinning.fd = -1;
 	connState->in.buf = memAllocBuf(CLIENT_REQ_BUF_SZ, &connState->in.size);
 	/* transparent on SSL does not really make sense, but what the heck */
 	if (connState->port->transparent)
