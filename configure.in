@@ -2252,10 +2252,12 @@ AC_CHECK_FUNCS(epoll_ctl)
 LIBS="$SAVED_LIBS"
 
 dnl Verify that epoll really works
-if test ac_cv_func_epoll_ctl = yes; then
+if test $ac_cv_func_epoll_ctl = yes; then
   AC_CACHE_CHECK(if epoll works, ac_cv_epoll_works,
     AC_TRY_RUN([
 #include <sys/epoll.h>
+#include <stdlib.h>
+#include <stdio.h>
 int main(int argc, char **argv)
 {
     int fd = epoll_create(256);
@@ -2265,7 +2267,7 @@ int main(int argc, char **argv)
     }
     exit(0);
 }
-    ], [ac_cv_epoll_works=yes; ac_cv_func_epol_ctl=no], [ac_cv_epoll_works=no]))
+    ], [ac_cv_epoll_works=yes], [ac_cv_epoll_works=no]))
   if test ac_cv_epoll_works = no && test ac_force_epoll = yes; then
 	echo "Error - no epoll found";
 	echo "Try running 'sh ./scripts/get_epoll-lib.sh'";
@@ -2282,7 +2284,7 @@ dnl mostly ripped from squid-commloops, thanks to adrian and benno
 
 if test -n "$SELECT_TYPE"; then
 	: # Nothing to do
-elif test "$ac_cv_func_epoll_ctl" = "yes" ; then
+elif test "$ac_cv_epoll_works" = "yes" ; then
         SELECT_TYPE="epoll"
 elif test "$ac_cv_func_kqueue" = "yes" ; then
         SELECT_TYPE="kqueue"
