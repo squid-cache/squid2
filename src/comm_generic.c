@@ -62,8 +62,12 @@ commResumeFD(int fd)
     fde *F = &fd_table[fd];
 
     assert(fd >= 0);
-    assert(F->flags.open);
 
+    if (!F->flags.open) {
+	debug(5, 1) ("commResumeFD: fd %d is closed. Ignoring\n", fd);
+	F->backoff = 0;
+	return;
+    }
     if (!F->backoff)
 	return;
 
