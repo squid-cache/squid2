@@ -19,7 +19,7 @@ PRESET_LDFLAGS="$LDFLAGS"
 
 dnl Set default LDFLAGS
 if test -z "$LDFLAGS"; then
-        LDFLAGS="-g"
+	LDFLAGS="-g"
 fi
 
 dnl Check for GNU cc
@@ -51,7 +51,7 @@ dnl this should be expanded to a list of platform sensible support requirements.
 dnl (adding an option like --enable-cygwin-support doesn't make sense :]) - R Collins 2001
 case "$host_os" in
 mingw|mingw32|cygwin|cygwin32)
-        AM_CONDITIONAL(ENABLE_WIN32SPECIFIC, true)
+	AM_CONDITIONAL(ENABLE_WIN32SPECIFIC, true)
 	;;
 *)
 	AM_CONDITIONAL(ENABLE_WIN32SPECIFIC, false)
@@ -85,21 +85,21 @@ esac
 dnl Set Default CFLAGS
 if test -z "$PRESET_CFLAGS"; then
     if test "$GCC" = "yes"; then
-        case "$host" in
+	case "$host" in
 	*-sun-sunos*)
-    	    # sunos has too many warnings for this to be useful
+	    # sunos has too many warnings for this to be useful
 	    # motorola too
-    	    ;;
+	    ;;
 	*m88k*-openbsd*)
 	    ;;
 	*m88k*)
 	    # Motorola cc/ld does not like -02 but is ok on -O
 	    CFLAGS=`echo $CFLAGS | sed -e 's/-O[0-9]/-O/'`
 	    ;;
-        *)
-    	    CFLAGS="-Wall $CFLAGS"
-    	    ;;
-        esac
+	*)
+	    CFLAGS="-Wall $CFLAGS"
+	    ;;
+	esac
     else
 	case "$host" in
 	*mips-sgi-irix6.*)
@@ -123,19 +123,19 @@ fi
 dnl Set LDFLAGS
 if test -z "$PRESET_LDFLAGS"; then
     if test "$GCC" = "yes"; then
-        case "$host" in
+	case "$host" in
 	*mips-sgi-irix6.*)
 	    # Silence Linker warnings 84, 85 and 134
-    	    LDFLAGS="-Wl,-woff,85 -Wl,-woff,84 -Wl,-woff,134 $LDFLAGS"
-    	    ;;
-        *)
-    	    # nothing
+	    LDFLAGS="-Wl,-woff,85 -Wl,-woff,84 -Wl,-woff,134 $LDFLAGS"
 	    ;;
-        esac
+	*)
+	    # nothing
+	    ;;
+	esac
     else
 	case "$host" in
-        *)
-    	    # nothing
+	*)
+	    # nothing
 	    ;;
 	esac
     fi
@@ -224,10 +224,10 @@ AC_SUBST(LIB_MALLOC)
 
 AC_ARG_ENABLE(gnuregex,
 [  --enable-gnuregex       Compile GNUregex.  Unless you have reason to use this
-                            option, you should not enable it.  This library file
-                            is usually only required on Windows and very old
-                            Unix boxes which do not have their own regex library
-                            built in.],
+			  option, you should not enable it.  This library file
+			  is usually only required on Windows and very old
+			  Unix boxes which do not have their own regex library
+			  built in.],
 [USE_GNUREGEX=$enableval])
 
 dnl This is a developer only option.. developers know how to set defines
@@ -261,9 +261,9 @@ AC_ARG_WITH(valgrind-debug,
 	;;
   no)
 	valgrind=
-  	;;
+	;;
   *)
-  	CPPFLAGS="$CPPFLAGS -I${enableval}/include"
+	CPPFLAGS="$CPPFLAGS -I${enableval}/include"
 	valgrind=1
 	;;
   esac
@@ -283,7 +283,7 @@ fi
 
 AC_ARG_ENABLE(xmalloc-statistics,
 [  --enable-xmalloc-statistics
-                          Show malloc statistics in status page],
+			  Show malloc statistics in status page],
 [ if test "$enableval" = "yes" ; then
     echo "Malloc statistics enabled"
     AC_DEFINE(XMALLOC_STATISTICS, 1, [Define to have malloc statistics])
@@ -304,10 +304,10 @@ fi
 
 AC_ARG_ENABLE(async-io,
 [  --enable-async-io[=N_THREADS]
-                          Shorthand for
-                          --with-aufs-threads=N_THREADS
-                          --with-pthreads
-                          --enable-storeio=ufs,aufs],
+			  Shorthand for
+			  --with-aufs-threads=N_THREADS
+			  --with-pthreads
+			  --enable-storeio=ufs,aufs],
 [ case $enableval in
   yes)
 	with_pthreads="yes"
@@ -316,7 +316,7 @@ AC_ARG_ENABLE(async-io,
   no)
     ;;
   *)
-  	aufs_io_threads=$enableval
+	aufs_io_threads=$enableval
 	with_pthreads="yes"
 	STORE_MODULES="ufs aufs"
     ;;
@@ -325,8 +325,8 @@ AC_ARG_ENABLE(async-io,
 
 AC_ARG_WITH(aufs-threads,
 [  --with-aufs-threads=N_THREADS
-                          Tune the number of worker threads for the aufs object
-                          store.],
+			  Tune the number of worker threads for the aufs object
+			  store.],
 [ case $withval in
   [[0-9]]*)
     aufs_io_threads=$withval
@@ -362,11 +362,11 @@ fi
 
 AC_ARG_ENABLE(storeio,
 [  --enable-storeio=\"list of modules\"
-                          Build support for the list of store I/O modules.
-                          The default is only to build the "ufs" module.
-                          See src/fs for a list of available modules, or
-                          Programmers Guide section <not yet written>
-                          for details on how to build your custom store module],
+			  Build support for the list of store I/O modules.
+			  The default is only to build the "ufs" module.
+			  See src/fs for a list of available modules, or
+			  Programmers Guide section <not yet written>
+			  for details on how to build your custom store module],
 [ case $enableval in
   yes)
 	for module in $srcdir/src/fs/*; do
@@ -381,9 +381,9 @@ AC_ARG_ENABLE(storeio,
 		;;
 	    esac
 	done
-  	;;
+	;;
   no)
-  	;;
+	;;
   *)	STORE_MODULES="`echo $enableval| sed -e 's/,/ /g;s/  */ /g'`"
 	;;
   esac
@@ -425,7 +425,7 @@ AM_CONDITIONAL([NEED_DISKD], [test "$NEED_DISKD" = 1])
 dnl --enable-heap-replacement compatibility option
 AC_ARG_ENABLE(heap-replacement,
 [  --enable-heap-replacement
-                          Backwards compatibility option. Please use the
+			  Backwards compatibility option. Please use the
 			  new --enable-removal-policies directive instead.],
 [ if test "$enableval" = "yes" ; then
     echo "--enable-heap-replacement is obsolete. please use the new"
@@ -437,10 +437,10 @@ AC_ARG_ENABLE(heap-replacement,
 
 AC_ARG_ENABLE(removal-policies,
 [  --enable-removal-policies=\"list of policies\"
-                          Build support for the list of removal policies.
-                          The default is only to build the "lru" module.
-                          See src/repl for a list of available modules, or
-                          Programmers Guide section 9.9 for details on how
+			  Build support for the list of removal policies.
+			  The default is only to build the "lru" module.
+			  See src/repl for a list of available modules, or
+			  Programmers Guide section 9.9 for details on how
 			  to build your custom policy],
 [ case $enableval in
   yes)
@@ -456,9 +456,9 @@ AC_ARG_ENABLE(removal-policies,
 		;;
 	    esac
 	done
-  	;;
+	;;
   no)
-  	;;
+	;;
   *)	REPL_POLICIES="`echo $enableval| sed -e 's/,/ /g;s/  */ /g'`"
 	;;
   esac
@@ -556,7 +556,7 @@ fi
 
 AC_ARG_ENABLE(kill-parent-hack,
 [  --enable-kill-parent-hack
-                          Kill parent on shutdown],
+			  Kill parent on shutdown],
 [ if test "$enableval" = "yes" ; then
     echo "Kill parent on shutdown"
     AC_DEFINE(KILL_PARENT_OPT, 1, [A dangerous feature which causes Squid to kill its parent process
@@ -597,7 +597,7 @@ AC_SUBST(makesnmplib)
 
 AC_ARG_ENABLE(cachemgr-hostname,
 [  --enable-cachemgr-hostname[=hostname]
-                          Make cachemgr.cgi default to this host],
+			  Make cachemgr.cgi default to this host],
 [  case $enableval in
    yes)
        AC_DEFINE(CACHEMGR_HOSTNAME, [getfullhostname()], [If you are upset that the cachemgr.cgi form comes up with the hostname
@@ -627,10 +627,10 @@ AC_ARG_ENABLE(arp-acl,
 	*-freebsd*)
 	    ;;
 	*-cygwin*)
-        LIBS="$LIBS -liphlpapi"
+	LIBS="$LIBS -liphlpapi"
 	    ;;
 	*-mingw*)
-        LIBS="$LIBS -liphlpapi"
+	LIBS="$LIBS -liphlpapi"
 	    ;;
 	*)
 	    echo "WARNING: ARP ACL support probably won't work on $host."
@@ -666,10 +666,10 @@ AC_ARG_ENABLE(ssl,
     AM_CONDITIONAL(ENABLE_SSL, true)
     case "$host_os" in
     mingw|mingw32)
-        SSLLIB='-lssl -lcrypto -lgdi32'
-        ;;
+	SSLLIB='-lssl -lcrypto -lgdi32'
+	;;
     *)
-        SSLLIB='-lssl -lcrypto'
+	SSLLIB='-lssl -lcrypto'
 	;;
     esac
     USE_OPENSSL=1
@@ -680,7 +680,7 @@ AM_CONDITIONAL(NEED_OWN_MD5, true)
 
 AC_ARG_WITH(openssl,
 [  --with-openssl[=prefix]
-                          Compile with the OpenSSL libraries. The path to
+			  Compile with the OpenSSL libraries. The path to
 			  the OpenSSL development libraries and headers
 			  installation can be specified if outside of the
 			  system standard directories],
@@ -728,7 +728,7 @@ AC_ARG_ENABLE(forw-via-db,
 
 AC_ARG_ENABLE(cache-digests,
 [  --enable-cache-digests  Use Cache Digests
-                          see http://www.squid-cache.org/FAQ/FAQ-16.html],
+			  see http://www.squid-cache.org/FAQ/FAQ-16.html],
 [ if test "$enableval" = "yes" ; then
     echo "USE_CACHE_DIGESTS enabled"
     AC_DEFINE(USE_CACHE_DIGESTS, 1, [Use Cache Digests for locating objects in neighbor caches.  This
@@ -738,7 +738,7 @@ AC_ARG_ENABLE(cache-digests,
 
 AC_ARG_ENABLE(auth-on-acceleration,
 [  --enable-auth-on-acceleration
-                          Enable authentication in accelerators],
+			  Enable authentication in accelerators],
 [ if test "$enableval" = "yes" ; then
     echo "AUTH_ON_ACCELERATION enabled"
     AC_DEFINE(AUTH_ON_ACCELERATION, 1, [Enable authentication support in accelerators])
@@ -748,8 +748,8 @@ AC_ARG_ENABLE(auth-on-acceleration,
 dnl Select Default Error language
 AC_ARG_ENABLE(default-err-language,
 [  --enable-default-err-language=lang
-                          Select default language for Error pages (see
-                          errors directory) ],
+			  Select default language for Error pages (see
+			  errors directory) ],
 [
     if test -d $srcdir/errors/$enableval; then
 	ERR_DEFAULT_LANGUAGE=$enableval
@@ -763,11 +763,11 @@ AC_SUBST(ERR_DEFAULT_LANGUAGE)
 dnl Select languages to be installed
 AC_ARG_ENABLE(err-languages,
 [  --enable-err-languages=\"lang1 lang2..\"
-                          Select languages to be installed. (All will be
-                          installed by default) ],
+			  Select languages to be installed. (All will be
+			  installed by default) ],
 [
     for l in $enableval; do
-        if test -d $srcdir/errors/$l; then :; else
+	if test -d $srcdir/errors/$l; then :; else
 	    echo "ERROR! Unknown language $$l, see errors/"
 	    exit 1
 	fi
@@ -776,8 +776,8 @@ AC_ARG_ENABLE(err-languages,
 ],[
     ERR_LANGUAGES=
     for l in $srcdir/errors/*; do
-        if test -f $l/ERR_ACCESS_DENIED; then
-            ERR_LANGUAGES="$ERR_LANGUAGES `basename $l`"
+	if test -f $l/ERR_ACCESS_DENIED; then
+	    ERR_LANGUAGES="$ERR_LANGUAGES `basename $l`"
 	fi
     done
 ])
@@ -798,10 +798,10 @@ AC_ARG_ENABLE(coss-aio-ops,
 if test "$enable_coss_aio_ops" = "yes"; then
       echo "Using Posix AIO method for COSS disk I/O"
       AC_DEFINE(USE_AUFSOPS, 0, [  Define this if you would like to use the aufs I/O method for
-           disk I/O instead of the POSIX AIO method.])
+	   disk I/O instead of the POSIX AIO method.])
 else
       AC_DEFINE(USE_AUFSOPS, 1, [  Define this if you would like to use the aufs I/O method for
-           disk I/O instead of the POSIX AIO method.])
+	   disk I/O instead of the POSIX AIO method.])
 fi
 
 dnl Enable select()
@@ -826,10 +826,10 @@ AC_ARG_ENABLE(select,
 dnl Enable poll()
 AC_ARG_ENABLE(poll,
 [  --enable-poll           Enable poll() instead of select().  Normally poll
-                          is preferred over select, but configure knows poll
-                          is broken on some platforms.  If you think you are
-                          smarter than the configure script, you may enable
-                          poll with this option.
+			  is preferred over select, but configure knows poll
+			  is broken on some platforms.  If you think you are
+			  smarter than the configure script, you may enable
+			  poll with this option.
   --disable-poll          Disable the use of poll().],
 [ 
   case "$enableval" in
@@ -848,9 +848,9 @@ AC_ARG_ENABLE(poll,
 dnl Enable epoll()
 AC_ARG_ENABLE(epoll,
 [  --enable-epoll          Enable epoll() instead of poll() or select().  
-                          epoll() is best where available, but must be 
-                          explicitly set at the moment.
-  --disable-epoll          Disable the use of epoll().],
+			  epoll() is best where available, but must be 
+			  explicitly set at the moment.
+  --disable-epoll         Disable the use of epoll().],
 [ 
   case "$enableval" in
   yes)
@@ -888,8 +888,8 @@ dnl Disable HTTP violations
 HTTP_VIOLATIONS=1
 AC_ARG_ENABLE(http-violations,
 [  --disable-http-violations
-                          This allows you to remove code which is known to
-                          violate the HTTP protocol specification.],
+			  This allows you to remove code which is known to
+			  violate the HTTP protocol specification.],
 [ if test "$enableval" = "no" ; then
     echo "Disabling HTTP Violations"
     HTTP_VIOLATIONS=0
@@ -902,8 +902,8 @@ fi
 dnl Enable IP-Filter Transparent Proxy
 AC_ARG_ENABLE(ipf-transparent,
 [  --enable-ipf-transparent
-                          Enable Transparent Proxy support for systems
-                          using IP-Filter network address redirection.],
+			  Enable Transparent Proxy support for systems
+			  using IP-Filter network address redirection.],
 [ if test "$enableval" = "yes" ; then
 	echo "IP-Filter Transparent Proxy enabled"
 	AC_DEFINE(IPF_TRANSPARENT, 1, [Enable support for Transparent Proxy on systems using IP-Filter
@@ -927,8 +927,8 @@ AC_ARG_ENABLE(ipf-transparent,
 dnl Enable PF Transparent Proxy
 AC_ARG_ENABLE(pf-transparent,
 [  --enable-pf-transparent
-                          Enable Transparent Proxy support for systems
-                          using PF network address redirection.],
+			  Enable Transparent Proxy support for systems
+			  using PF network address redirection.],
 [ if test "$enableval" = "yes" ; then
 	echo "PF Transparent Proxy enabled"
 	AC_DEFINE(PF_TRANSPARENT, 1, [Enable support for Transparent Proxy on systems using PF address
@@ -940,10 +940,10 @@ AC_ARG_ENABLE(pf-transparent,
 dnl Enable Linux Netfilter Transparent Proxy
 AC_ARG_ENABLE(linux-netfilter,
 [  --enable-linux-netfilter
-                          Enable Transparent Proxy support for Linux (Netfilter) systems.],
+			  Enable Transparent Proxy support for Linux 2.4 and later],
 [ if test "$enableval" = "yes" ; then
 	echo "Linux-Netfilter Transparent Proxy enabled"
-	AC_DEFINE(LINUX_NETFILTER, 1, [Enable support for Transparent Proxy on Linux (Netfilter) systems])
+	AC_DEFINE(LINUX_NETFILTER, 1, [Enable support for Transparent Proxy on Linux 2.4 and later])
 	LINUX_NETFILTER="yes"
   fi
 ])
@@ -961,8 +961,8 @@ AC_ARG_WITH(large-files,
 
 AC_ARG_ENABLE(large-cache-files,
 [  --enable-large-cache-files
-                          Enable support for large cache files (>2GB).
-                          WARNING: on-disk cache format is changed by this option],
+			  Enable support for large cache files (>2GB).
+			  WARNING: on-disk cache format is changed by this option],
 [ if test "$enableval" = "yes" ; then
 	echo "Large cache file support enabled"
 	AC_DEFINE(LARGE_CACHE_FILES, 1, [Support large cache files > 2GB])
@@ -973,16 +973,16 @@ dnl	needlargefiles=1
 dnl UNIX Build environment
 AC_ARG_WITH(build-environment,
 [  --with-build-environment=model
-                          The build environment to use. Normally one of
-                          POSIX_V6_ILP32_OFF32   32 bits
-                          POSIX_V6_ILP32_OFFBIG  32 bits with large file support
-                          POSIX_V6_LP64_OFF64    64 bits
-                          POSIX_V6_LPBIG_OFFBIG  large pointers and files
-                          XBS5_ILP32_OFF32       32 bits (legacy)
-                          XBS5_ILP32_OFFBIG      32 bits with large file support (legacy)
-                          XBS5_LP64_OFF64        64 bits (legacy)
-                          XBS5_LPBIG_OFFBIG      large pointers and files (legacy)
-                          default                The default for your OS],
+			  The build environment to use. Normally one of
+			  POSIX_V6_ILP32_OFF32   32 bits
+			  POSIX_V6_ILP32_OFFBIG  32 bits with large file support
+			  POSIX_V6_LP64_OFF64    64 bits
+			  POSIX_V6_LPBIG_OFFBIG  large pointers and files
+			  XBS5_ILP32_OFF32       32 bits (legacy)
+			  XBS5_ILP32_OFFBIG      32 bits with large file support (legacy)
+			  XBS5_LP64_OFF64        64 bits (legacy)
+			  XBS5_LPBIG_OFFBIG      large pointers and files (legacy)
+			  default                The default for your OS],
 [ case "$withval" in
   yes|no)
 	echo "--with-build-environment expects a build environment string as used by getconf"
@@ -1024,11 +1024,11 @@ dnl On Solaris getconf returns for CFLAGS -Xa and -Usun options, but:
 dnl   -Xa is supported only by Sun cc, so we need to remove it when using gcc
 dnl   The 'sun' define is needed by ipfilter includes, so we must remove -Usun
 	    *-solaris*)
-    		if test "$GCC" = "yes"; then
+		if test "$GCC" = "yes"; then
 		    echo "Removing -Xa for gcc on $host"
 		    CFLAGS="`echo $CFLAGS | sed -e 's/-Xa//'`"
 		fi
-   	        echo "Removing -Usun on $host"
+		echo "Removing -Usun on $host"
 		CFLAGS="`echo $CFLAGS | sed -e 's/-Usun//'`"
 		;;
 dnl		
@@ -1039,7 +1039,7 @@ dnl remove "-n32" from LDFLAGS
 dnl On Irix 6.x 64 bit we must replace "-64" with "-mabi=64" in CFLAGS and remove
 dnl "-64" from LDFLAGS
 	    *-sgi-irix6.*)
-    		if test "$GCC" = "yes"; then
+		if test "$GCC" = "yes"; then
 		    CFLAGS="`echo $CFLAGS | sed -e 's/-n32/-mabi=n32/'`"
 		    LDFLAGS="`echo $LDFLAGS | sed -e 's/-n32//'`"
 		    CFLAGS="`echo $CFLAGS | sed -e 's/-64/-mabi=64/'`"
@@ -1047,14 +1047,14 @@ dnl "-64" from LDFLAGS
 		fi
 		;;
 	    *)
-	        ;;
+		;;
 	esac
 fi
 
 dnl Enable Linux transparent proxy support
 AC_ARG_ENABLE(linux-tproxy,
 [  --enable-linux-tproxy
-                          Enable real Transparent Proxy support for Netfilter TPROXY.],
+			  Enable real Transparent Proxy support for Netfilter TPROXY.],
 [ if test "$enableval" = "yes" ; then
 	echo "Linux Netfilter/TPROXY enabled"
 	AC_DEFINE(LINUX_TPROXY, 1, [Enable real Transparent Proxy support for Netfilter TPROXY.])
@@ -1066,8 +1066,8 @@ AM_CONDITIONAL(MAKE_LEAKFINDER, false)
 dnl Enable Leak Finding Functions
 AC_ARG_ENABLE(leakfinder,
 [  --enable-leakfinder
-                          Enable Leak Finding code.  Enabling this alone
-                          does nothing; you also have to modify the source
+			  Enable Leak Finding code.  Enabling this alone
+			  does nothing; you also have to modify the source
 			  code to use the leak finding functions.  Probably
 			  Useful for hackers only.],
 [ if test "$enableval" = "yes" ; then
@@ -1081,8 +1081,8 @@ AC_ARG_ENABLE(leakfinder,
 USE_IDENT=1
 AC_ARG_ENABLE(ident-lookups,
 [  --disable-ident-lookups
-                          This allows you to remove code that performs
-                          Ident (RFC 931) lookups.],
+			  This allows you to remove code that performs
+			  Ident (RFC 931) lookups.],
 [ if test "$enableval" = "no" ; then
     echo "Disabling Ident Lookups"
     USE_IDENT=0
@@ -1096,8 +1096,8 @@ AM_CONDITIONAL(USE_DNSSERVER, false)
 use_dnsserver=
 AC_ARG_ENABLE(internal-dns,
 [  --disable-internal-dns  This prevents Squid from directly sending and
-                          receiving DNS messages, and instead enables the
-                          old external 'dnsserver' processes.],
+			  receiving DNS messages, and instead enables the
+			  old external 'dnsserver' processes.],
 [ if test "$enableval" = "no" ; then
     echo "Disabling Internal DNS queries"
     use_dnsserver="yes"
@@ -1111,10 +1111,10 @@ fi
 
 AC_ARG_ENABLE(truncate,
 [  --enable-truncate       This uses truncate() instead of unlink() when
-                          removing cache files.  Truncate gives a little
-                          performance improvement, but may cause problems
-                          when used with async I/O.  Truncate uses more
-                          filesystem inodes than unlink..],
+			  removing cache files.  Truncate gives a little
+			  performance improvement, but may cause problems
+			  when used with async I/O.  Truncate uses more
+			  filesystem inodes than unlink..],
 [ if test "$enableval" = "yes" ; then
     echo "Enabling truncate instead of unlink"
     AC_DEFINE(USE_TRUNCATE, 1, [Do we want to use truncate(2) or unlink(2)?])
@@ -1124,13 +1124,13 @@ AC_ARG_ENABLE(truncate,
 dnl Select Default hosts file location
 AC_ARG_ENABLE(default-hostsfile,
 [  --enable-default-hostsfile=path
-                          Select default location for hosts file.
-                          See hosts_file directive in squid.conf for details],
+			  Select default location for hosts file.
+			  See hosts_file directive in squid.conf for details],
 [
     if test "$enableval" != "none" ; then
-    	if test -f $enableval; then
+	if test -f $enableval; then
 	    OPT_DEFAULT_HOSTS=$enableval
-    	else
+	else
 	    echo "Warning Unable to find $enableval"
 	    sleep 5
 	fi
@@ -1145,7 +1145,7 @@ AC_SUBST(OPT_DEFAULT_HOSTS)
 dnl Enable WIN32 Service compile mode
 AC_ARG_ENABLE(win32-service,
 [  --enable-win32-service  Compile Squid as a WIN32 Service
-                          Works only on Windows NT and Windows 2000 Platforms.],
+			  Works only on Windows NT and Windows 2000 Platforms.],
 [ if test "$enableval" = "yes" ; then
     echo "Enabling WIN32 run service mode"
     AC_DEFINE(USE_WIN32_SERVICE,1,[Define Windows NT & Windows 2000 run service mode])
@@ -1155,12 +1155,12 @@ AC_ARG_ENABLE(win32-service,
 dnl Select auth schemes modules to build
 AC_ARG_ENABLE(auth,
 [  --enable-auth=\"list of auth scheme modules\"
-                          Build support for the list of authentication schemes.
-                          The default is to build support for the Basic scheme.
-                          See src/auth for a list of available modules, or
-                          Programmers Guide section authentication schemes
-                          for details on how to build your custom auth scheme
-                          module],
+			  Build support for the list of authentication schemes.
+			  The default is to build support for the Basic scheme.
+			  See src/auth for a list of available modules, or
+			  Programmers Guide section authentication schemes
+			  for details on how to build your custom auth scheme
+			  module],
 [ case $enableval in
   yes)
 	for module in $srcdir/src/auth/*; do
@@ -1175,11 +1175,11 @@ AC_ARG_ENABLE(auth,
 		;;
 	    esac
 	done
-        ;;
+	;;
   no)
-        ;;
+	;;
   *)    AUTH_MODULES="`echo $enableval| sed -e 's/,/ /g;s/  */ /g'`"
-        ;;
+	;;
   esac
 ],
 [ if test -z "$AUTH_MODULES"; then
@@ -1199,10 +1199,10 @@ AC_SUBST(AUTH_LIBS)
 
 AC_ARG_ENABLE(basic-auth-helpers,
 [  --enable-basic-auth-helpers=\"list of helpers\"
-                          This option selects which basic scheme proxy_auth
-                          helpers to build and install as part of the normal 
-                          build process. For a list of available
-                          helpers see the helpers/basic_auth directory.],
+			  This option selects which basic scheme proxy_auth
+			  helpers to build and install as part of the normal 
+			  build process. For a list of available
+			  helpers see the helpers/basic_auth directory.],
 [ case "$enableval" in
   yes) 
     echo "ERROR: --enable-basic-auth-helpers requires an argument"
@@ -1233,10 +1233,10 @@ dnl Select ntlm auth helpers to build
 NTLM_AUTH_HELPERS=
 AC_ARG_ENABLE(ntlm-auth-helpers,
 [  --enable-ntlm-auth-helpers=\"list of helpers\"
-                          This option selects which proxy_auth ntlm helpers
-                          to build and install as part of the normal build 
-                          process. For a list of available helpers see
-                          the helpers/ntlm_auth directory.],
+			  This option selects which proxy_auth ntlm helpers
+			  to build and install as part of the normal build 
+			  process. For a list of available helpers see
+			  the helpers/ntlm_auth directory.],
 [ case "$enableval" in
   yes) 
     echo "ERROR: --enable-ntlm-auth-helpers requires an argument"
@@ -1265,10 +1265,10 @@ dnl Select digest auth scheme helpers to build
 DIGEST_AUTH_HELPERS=
 AC_ARG_ENABLE(digest-auth-helpers,
 [  --enable-digest-auth-helpers=\"list of helpers\"
-                          This option selects which digest scheme authentication
-                          helpers to build and install as part of the normal build
-                          process. For a list of available helpers see the
-                          helpers/digest_auth directory.],
+			  This option selects which digest scheme proxy_auth
+			  helpers to build and install as part of the normal
+			  build process. For a list of available helpers see the
+			  helpers/digest_auth directory.],
 [ case "$enableval" in
   yes)
     echo "ERROR: --enable-digest-auth-helpers requires an argument"
@@ -1297,10 +1297,10 @@ dnl Select negotiate auth scheme helpers to build
 NEGOTIATE_AUTH_HELPERS=
 AC_ARG_ENABLE(negotiate-auth-helpers,
 [  --enable-negotiate-auth-helpers=\"list of helpers\"
-                          This option selects which negotiate scheme authentication
-                          helpers to build and install as part of the normal build
-                          process. For a list of available helpers see the
-                          helpers/negotiate_auth directory.],
+			  This option selects which negotiate scheme authentication
+			  helpers to build and install as part of the normal build
+			  process. For a list of available helpers see the
+			  helpers/negotiate_auth directory.],
 [ case "$enableval" in
   yes)
     echo "ERROR: --enable-negotiate-auth-helpers requires an argument"
@@ -1328,8 +1328,8 @@ AC_SUBST(NEGOTIATE_AUTH_HELPERS)
 dnl Enable "NTLM fail open"
 AC_ARG_ENABLE(ntlm-fail-open,
 [  --enable-ntlm-fail-open Enable NTLM fail open, where a helper that fails one of the
-                          Authentication steps can allow squid to still authenticate
-                          the user.],
+			  Authentication steps can allow squid to still authenticate
+			  the user.],
 [ if test "$enableval" = "yes" ; then
     AC_DEFINE(NTLM_FAIL_OPEN, 1, [Define if NTLM is allowed to fail gracefully when a helper has problems])
   fi
@@ -1339,10 +1339,10 @@ dnl Select external_acl helpers to build
 EXTERNAL_ACL_HELPERS=
 AC_ARG_ENABLE(external-acl-helpers,
 [  --enable-external-acl-helpers=\"list of helpers\"
-                          This option selects which external_acl helpers to
-                          build and install as part of the normal build
-                          process. For a list of available helpers see the
-                          helpers/external_acl directory.],
+			  This option selects which external_acl helpers to
+			  build and install as part of the normal build
+			  process. For a list of available helpers see the
+			  helpers/external_acl directory.],
 [ case "$enableval" in
   yes)
     echo "ERROR: --enable-external-acl-helpers requires an argument"
@@ -1424,11 +1424,11 @@ AC_ARG_ENABLE(stacktraces,
 dnl Enable X-Accelerator-Vary for Vary support within an accelerator setup
 AC_ARG_ENABLE(x_accelerator_vary,
 [  --enable-x-accelerator-vary
-                          Enable support for the X-Accelerator-Vary
-                          HTTP header. Can be used to indicate
-                          variance within an accelerator setup.
-                          Typically used together with other code
-                          that adds custom HTTP headers to the requests.],
+			  Enable support for the X-Accelerator-Vary
+			  HTTP header. Can be used to indicate
+			  variance within an accelerator setup.
+			  Typically used together with other code
+			  that adds custom HTTP headers to the requests.],
 [ if test "$enableval" = "yes" ; then
     echo "Enabling support for X-Accelerator-Vary"
     AC_DEFINE(X_ACCELERATOR_VARY, 1, [Enable support for the X-Accelerator-Vary HTTP header])
@@ -1437,10 +1437,10 @@ AC_ARG_ENABLE(x_accelerator_vary,
 
 AC_ARG_ENABLE(follow-x-forwarded-for,
 [  --enable-follow-x-forwarded-for
-                          Enable support for following the X-Forwarded-For
-                          HTTP header to try to find the IP address of the
-                          original or indirect client when a request has
-                          been forwarded through other proxies.],
+			  Enable support for following the X-Forwarded-For
+			  HTTP header to try to find the IP address of the
+			  original or indirect client when a request has
+			  been forwarded through other proxies.],
 [ if test "$enableval" = "yes" ; then
     echo "follow X-Forwarded-For enabled"
     AC_DEFINE(FOLLOW_X_FORWARDED_FOR, 1, [Enable following X-Forwarded-For headers])
@@ -1934,7 +1934,7 @@ AC_CACHE_CHECK([for unix domain sockets],squid_cv_unixsocket, [
   struct sockaddr_un sunaddr; 
   sunaddr.sun_family = AF_UNIX;
 ],
-        squid_cv_unixsocket=yes,squid_cv_unixsocket=no)])
+	squid_cv_unixsocket=yes,squid_cv_unixsocket=no)])
 if test x"$squid_cv_unixsocket" = x"yes"; then
    AC_DEFINE(HAVE_UNIXSOCKET, 1, [Do we have unix sockets? (required for the winbind ntlm helper])
 fi
@@ -1994,18 +1994,18 @@ if test "$with_pthreads" = "yes"; then
     CFLAGS="$CFLAGS -D_REENTRANT"
     case "$host" in
     i386-unknown-freebsd*)
-        if test "$GCC" = "yes" ; then
-            if test -z "$PRESET_LDFLAGS"; then
-                LDFLAGS="$LDFLAGS -pthread"
-            fi
-        fi
+	if test "$GCC" = "yes" ; then
+	    if test -z "$PRESET_LDFLAGS"; then
+		LDFLAGS="$LDFLAGS -pthread"
+	    fi
+	fi
     ;;
     *-solaris2.*)
-        if test "$GCC" = "yes" ; then
+	if test "$GCC" = "yes" ; then
 	    CFLAGS="$CFLAGS -pthreads"
 	else
 	    CFLAGS="$CFLAGS -mt"
-        fi
+	fi
     ;;
     esac
     AC_CHECK_LIB(pthread, main)
@@ -2079,16 +2079,16 @@ dnl System-specific library modifications
 dnl
 case "$host" in
 	i386-*-solaris2.*)
-    		if test "$GCC" = "yes"; then
+		if test "$GCC" = "yes"; then
 			echo "Removing -O for gcc on $host"
 			CFLAGS="`echo $CFLAGS | sed -e 's/-O[[0-9]]*//'`"
 		fi
 		;;
 	*-sgi-irix*)
-        	echo "Removing -lsocket for IRIX..."
-        	LIBS=`echo $LIBS | sed -e s/-lsocket//`
-        	echo "Removing -lnsl for IRIX..."
-        	LIBS=`echo $LIBS | sed -e s/-lnsl//`
+		echo "Removing -lsocket for IRIX..."
+		LIBS=`echo $LIBS | sed -e s/-lsocket//`
+		echo "Removing -lnsl for IRIX..."
+		LIBS=`echo $LIBS | sed -e s/-lnsl//`
 		ac_cv_lib_nsl_main=no
 		echo "Removing -lbsd for IRIX..."
 		LIBS=`echo $LIBS | sed -e s/-lbsd//`
@@ -2285,43 +2285,43 @@ dnl mostly ripped from squid-commloops, thanks to adrian and benno
 if test -n "$SELECT_TYPE"; then
 	: # Nothing to do
 elif test "$ac_cv_epoll_works" = "yes" ; then
-        SELECT_TYPE="epoll"
+	SELECT_TYPE="epoll"
 elif test "$ac_cv_func_kqueue" = "yes" ; then
-        SELECT_TYPE="kqueue"
+	SELECT_TYPE="kqueue"
 elif test "$ac_cv_func_poll" = "yes" ; then
-        SELECT_TYPE="poll"
+	SELECT_TYPE="poll"
 elif test "$ac_cv_func_select" = "yes" ; then
 	case "$host_os" in
 	mingw|mingw32)
-	        SELECT_TYPE="select_win32"
+		SELECT_TYPE="select_win32"
 		;;
 	*)
-	        SELECT_TYPE="select"
+		SELECT_TYPE="select"
 		;;
 	esac
 else
-        echo "Eep!  Can't find poll, epoll, kqueue or select!"
-        echo "I'll try select and hope for the best."
-        SELECT_TYPE="select"
+	echo "Eep!  Can't find poll, epoll, kqueue or select!"
+	echo "I'll try select and hope for the best."
+	SELECT_TYPE="select"
 fi
 
 case "$SELECT_TYPE" in
 epoll)
-        AC_DEFINE(USE_EPOLL,1,[Use epoll() for the IO loop])
-        AC_CHECK_LIB(epoll, epoll_create, [EPOLL_LIBS="-lepoll"])
-        AC_SUBST(EPOLL_LIBS)
+	AC_DEFINE(USE_EPOLL,1,[Use epoll() for the IO loop])
+	AC_CHECK_LIB(epoll, epoll_create, [EPOLL_LIBS="-lepoll"])
+	AC_SUBST(EPOLL_LIBS)
 	;;
 poll)
-        AC_DEFINE(USE_POLL,1,[Use poll() for the IO loop])
+	AC_DEFINE(USE_POLL,1,[Use poll() for the IO loop])
 	;;
 select)
-        AC_DEFINE(USE_SELECT,1,[Use select() for the IO loop])
+	AC_DEFINE(USE_SELECT,1,[Use select() for the IO loop])
 	;;
 select_win32)
 	AC_DEFINE(USE_SELECT_WIN32,1,[Use Winsock select() for the IO loop])
 	;;
 kqueue)
-        AC_DEFINE(USE_KQUEUE,1,[Use kqueue() for the IO loop])
+	AC_DEFINE(USE_KQUEUE,1,[Use kqueue() for the IO loop])
 	;;
 *)
 	echo "ERROR: Unknown IO loop type '$SELECT_TYPE'"
@@ -2374,16 +2374,16 @@ AC_CACHE_CHECK(if va_copy is implemented, ac_cv_func_va_copy,
   AC_TRY_RUN([
       #include <stdarg.h>
       void f (int i, ...) {
-         va_list args1, args2;
-         va_start (args1, i);
-         va_copy (args2, args1);
-         if (va_arg (args2, int) != 42 || va_arg (args1, int) != 42)
-            exit (1);
-         va_end (args1); va_end (args2);
+	 va_list args1, args2;
+	 va_start (args1, i);
+	 va_copy (args2, args1);
+	 if (va_arg (args2, int) != 42 || va_arg (args1, int) != 42)
+	    exit (1);
+	 va_end (args1); va_end (args2);
       }
       int main() {
-         f (0, 42);
-         return 0;
+	 f (0, 42);
+	 return 0;
       }
       ],ac_cv_func_va_copy="yes",ac_cv_func_va_copy="no")
 )
@@ -2398,16 +2398,16 @@ AC_CACHE_CHECK(if __va_copy is implemented, ac_cv_func___va_copy,
   AC_TRY_RUN([
       #include <stdarg.h>
       void f (int i, ...) {
-         va_list args1, args2;
-         va_start (args1, i);
-         __va_copy (args2, args1);
-         if (va_arg (args2, int) != 42 || va_arg (args1, int) != 42)
-            exit (1);
-         va_end (args1); va_end (args2);
+	 va_list args1, args2;
+	 va_start (args1, i);
+	 __va_copy (args2, args1);
+	 if (va_arg (args2, int) != 42 || va_arg (args1, int) != 42)
+	    exit (1);
+	 va_end (args1); va_end (args2);
       }
       int main() {
-         f (0, 42);
-         return 0;
+	 f (0, 42);
+	 return 0;
       }
       ],ac_cv_func___va_copy="yes",ac_cv_func___va_copy="no")
 )
@@ -2421,28 +2421,28 @@ if test "$IPF_TRANSPARENT" ; then
     AC_MSG_CHECKING(if IP-Filter header files are installed)
     # hold on to your hats...
     if test "$ac_cv_header_ip_compat_h" = "yes" ||
-        test "$ac_cv_header_ip_fil_compat_h" = "yes" ||
-        test "$ac_cv_header_netinet_ip_compat_h" = "yes" ||
-        test "$ac_cv_header_netinet_ip_fil_compat_h" = "yes" ; then
-        have_ipfilter_compat_header="yes"
+	test "$ac_cv_header_ip_fil_compat_h" = "yes" ||
+	test "$ac_cv_header_netinet_ip_compat_h" = "yes" ||
+	test "$ac_cv_header_netinet_ip_fil_compat_h" = "yes" ; then
+	have_ipfilter_compat_header="yes"
      fi
      if test "x$have_ipfilter_compat_header" = "xyes" &&
        test "$ac_cv_header_ip_fil_h" = "yes" &&
        test "$ac_cv_header_ip_nat_h" = "yes" ; then
-        IPF_TRANSPARENT="yes"
-        AC_DEFINE(IPF_TRANSPARENT, 1, [Enable support for Transparent Proxy on systems using IP-Filter
+	IPF_TRANSPARENT="yes"
+	AC_DEFINE(IPF_TRANSPARENT, 1, [Enable support for Transparent Proxy on systems using IP-Filter
 	address redirection. This provides "masquerading" support for non
 	Linux system.])
     elif test "$have_ipfilter_compat_header" = "yes" &&
-         test "$ac_cv_header_netinet_ip_fil_h" = "yes" &&
-         test "$ac_cv_header_netinet_ip_nat_h" = "yes" ; then
-        IPF_TRANSPARENT="yes"
-        AC_DEFINE(IPF_TRANSPARENT, 1, [Enable support for Transparent Proxy on systems using IP-Filter
+	 test "$ac_cv_header_netinet_ip_fil_h" = "yes" &&
+	 test "$ac_cv_header_netinet_ip_nat_h" = "yes" ; then
+	IPF_TRANSPARENT="yes"
+	AC_DEFINE(IPF_TRANSPARENT, 1, [Enable support for Transparent Proxy on systems using IP-Filter
 	address redirection. This provides "masquerading" support for non
 	Linux system.])
     else
-        IPF_TRANSPARENT="no"
-        AC_DEFINE(IPF_TRANSPARENT, 0, [Enable support for Transparent Proxy on systems using IP-Filter
+	IPF_TRANSPARENT="no"
+	AC_DEFINE(IPF_TRANSPARENT, 0, [Enable support for Transparent Proxy on systems using IP-Filter
 	address redirection. This provides "masquerading" support for non
 	Linux system.])
     fi
@@ -2459,12 +2459,12 @@ if test "$PF_TRANSPARENT" ; then
     AC_MSG_CHECKING(if PF header file is installed)
     # hold on to your hats...
     if test "$ac_cv_header_net_pfvar_h" = "yes"; then
-        PF_TRANSPARENT="yes"
-        AC_DEFINE(PF_TRANSPARENT, 1, [Enable support for Transparent Proxy on systems using PF address
+	PF_TRANSPARENT="yes"
+	AC_DEFINE(PF_TRANSPARENT, 1, [Enable support for Transparent Proxy on systems using PF address
 	redirection. This provides "masquerading" support for OpenBSD.])
     else
-        PF_TRANSPARENT="no"
-        AC_DEFINE(PF_TRANSPARENT, 0, [Enable support for Transparent Proxy on systems using PF address
+	PF_TRANSPARENT="no"
+	AC_DEFINE(PF_TRANSPARENT, 0, [Enable support for Transparent Proxy on systems using PF address
 	redirection. This provides "masquerading" support for OpenBSD.])
     fi
     AC_MSG_RESULT($PF_TRANSPARENT)
@@ -2481,11 +2481,11 @@ if test "$LINUX_NETFILTER" ; then
     AC_MSG_CHECKING(if Linux 2.4 or newer kernel header files are installed)
     # hold on to your hats...
     if test "$ac_cv_header_linux_netfilter_ipv4_h" = "yes"; then
-        LINUX_NETFILTER="yes"
-        AC_DEFINE(LINUX_NETFILTER, 1, [Enable support for Transparent Proxy on Linux (Netfilter) systems])
+	LINUX_NETFILTER="yes"
+	AC_DEFINE(LINUX_NETFILTER, 1, [Enable support for Transparent Proxy on Linux (Netfilter) systems])
     else
-        LINUX_NETFILTER="no"
-        AC_DEFINE(LINUX_NETFILTER, 0, [Enable support for Transparent Proxy on Linux (Netfilter) systems])
+	LINUX_NETFILTER="no"
+	AC_DEFINE(LINUX_NETFILTER, 0, [Enable support for Transparent Proxy on Linux (Netfilter) systems])
     fi
     AC_MSG_RESULT($LINUX_NETFILTER)
 fi 
@@ -2501,11 +2501,11 @@ if test "$LINUX_TPROXY" ; then
     AC_MSG_CHECKING(if TPROXY header files are installed)
     # hold on to your hats...
     if test "$ac_cv_header_linux_netfilter_ipv4_ip_tproxy_h" = "yes"; then
-        LINUX_TPROXY="yes"
-        AC_DEFINE(LINUX_TPROXY, 1, [Enable real Transparent Proxy support for Netfilter TPROXY.])
+	LINUX_TPROXY="yes"
+	AC_DEFINE(LINUX_TPROXY, 1, [Enable real Transparent Proxy support for Netfilter TPROXY.])
     else
-        LINUX_TPROXY="no"
-        AC_DEFINE(LINUX_TPROXY, 0, [Enable real Transparent Proxy support for Netfilter TPROXY.])
+	LINUX_TPROXY="no"
+	AC_DEFINE(LINUX_TPROXY, 0, [Enable real Transparent Proxy support for Netfilter TPROXY.])
     fi
     AC_MSG_RESULT($LINUX_TPROXY)
 fi
@@ -2585,9 +2585,9 @@ AC_DEFINE_UNQUOTED(DEFAULT_FD_SETSIZE, $DEFAULT_FD_SETSIZE, [Default FD_SETSIZE 
 
 AC_ARG_WITH(maxfd,
 [  --with-maxfd=N          Override maximum number of filedescriptors. Useful
-                          if you build as another user who is not privileged
-                          to use the number of filedescriptors you want the
-                          resulting binary to support],
+			  if you build as another user who is not privileged
+			  to use the number of filedescriptors you want the
+			  resulting binary to support],
 [ case $withval in
   [[0-9]]*)
     SQUID_MAXFD=$withval
@@ -2631,37 +2631,37 @@ main() {
     struct rlimit rl;
 #if defined(RLIMIT_NOFILE)
     if (getrlimit(RLIMIT_NOFILE, &rl) < 0) {
-        perror("getrlimit: RLIMIT_NOFILE");
+	perror("getrlimit: RLIMIT_NOFILE");
     } else {
-        rl.rlim_cur = rl.rlim_max;      /* set it to the max */
-        if (setrlimit(RLIMIT_NOFILE, &rl) < 0) {
-            perror("setrlimit: RLIMIT_NOFILE");
-        }
+	rl.rlim_cur = rl.rlim_max;      /* set it to the max */
+	if (setrlimit(RLIMIT_NOFILE, &rl) < 0) {
+	    perror("setrlimit: RLIMIT_NOFILE");
+	}
     }
 #elif defined(RLIMIT_OFILE)
     if (getrlimit(RLIMIT_OFILE, &rl) < 0) {
-        perror("getrlimit: RLIMIT_OFILE");
+	perror("getrlimit: RLIMIT_OFILE");
     } else {
-        rl.rlim_cur = rl.rlim_max;      /* set it to the max */
-        if (setrlimit(RLIMIT_OFILE, &rl) < 0) {
-            perror("setrlimit: RLIMIT_OFILE");
-        }
+	rl.rlim_cur = rl.rlim_max;      /* set it to the max */
+	if (setrlimit(RLIMIT_OFILE, &rl) < 0) {
+	    perror("setrlimit: RLIMIT_OFILE");
+	}
     }
 #endif /* RLIMIT_NOFILE */
 #endif /* HAVE_SETRLIMIT */
 	/* by starting at 2^14, we will never get higher
 	than 2^15 for SQUID_MAXFD */
-        i = j = 1<<14;
-        while (j) {
-                j >>= 1;
-                if (dup2(0, i) < 0) { 
-                        i -= j;
-                } else {
-                        close(i);
-                        i += j;
-                }
-        }
-        i++;
+	i = j = 1<<14;
+	while (j) {
+		j >>= 1;
+		if (dup2(0, i) < 0) { 
+			i -= j;
+		} else {
+			close(i);
+			i += j;
+		}
+	}
+	i++;
 #endif /* IF !DEF CYGWIN */
 	fp = fopen("conftestval", "w");
 	fprintf (fp, "%d\n", i & ~0x3F);
@@ -2694,12 +2694,12 @@ AC_TRY_RUN([
 main ()
 {
 	FILE *fp;
-        int fd,val=0,len=sizeof(int);
+	int fd,val=0,len=sizeof(int);
 	if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) exit(1);
-        if (getsockopt(fd, SOL_SOCKET, SO_SNDBUF, &val, &len) < 0) exit(1);
+	if (getsockopt(fd, SOL_SOCKET, SO_SNDBUF, &val, &len) < 0) exit(1);
 	if (val<=0) exit(1);
-        fp = fopen("conftestval", "w");
-        fprintf (fp, "%d\n", val);
+	fp = fopen("conftestval", "w");
+	fprintf (fp, "%d\n", val);
 	exit(0);
 }
 ],
@@ -2720,9 +2720,9 @@ AC_TRY_RUN([
 main ()
 {
 	FILE *fp;
-        int fd,val=0,len=sizeof(int);
+	int fd,val=0,len=sizeof(int);
 	if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) exit(1);
-        if (getsockopt(fd, SOL_SOCKET, SO_RCVBUF, &val, &len) < 0) exit(1);
+	if (getsockopt(fd, SOL_SOCKET, SO_RCVBUF, &val, &len) < 0) exit(1);
 	if (val <= 0) exit(1);
 	fp = fopen("conftestval", "w"); 
 	fprintf (fp, "%d\n", val);
@@ -2746,9 +2746,9 @@ AC_TRY_RUN([
 main ()
 {
 	FILE *fp;
-        int fd,val=0,len=sizeof(int);
+	int fd,val=0,len=sizeof(int);
 	if ((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) exit(1);
-        if (getsockopt(fd, SOL_SOCKET, SO_SNDBUF, &val, &len) < 0) exit(1);
+	if (getsockopt(fd, SOL_SOCKET, SO_SNDBUF, &val, &len) < 0) exit(1);
 	if (val <= 0) exit(1);
 	fp = fopen("conftestval", "w"); 
 	fprintf (fp, "%d\n", val);
@@ -2776,9 +2776,9 @@ AC_TRY_RUN([
 main ()
 {
 	FILE *fp;
-        int fd,val=0,len=sizeof(int);
+	int fd,val=0,len=sizeof(int);
 	if ((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) exit(1);
-        if (getsockopt(fd, SOL_SOCKET, SO_RCVBUF, &val, &len) < 0) exit(1);
+	if (getsockopt(fd, SOL_SOCKET, SO_RCVBUF, &val, &len) < 0) exit(1);
 	if (val <= 0) exit(1);
 	fp = fopen("conftestval", "w"); 
 	fprintf (fp, "%d\n", val);
