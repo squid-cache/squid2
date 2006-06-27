@@ -152,8 +152,6 @@ fwdCheckRetry(FwdState * fwdState)
 	return 0;
     if (fwdState->request->flags.body_sent)
 	return 0;
-    if (fwdState->request->pinned_connection)
-	return 0;
     return 1;
 }
 
