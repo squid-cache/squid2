@@ -54,12 +54,10 @@ void
 comm_select_init()
 {
     kq = kqueue();
+    if (kq < 0)
+	fatalf("comm_select_init: kqueue(): %s\n", xstrerror());
     fd_open(kq, FD_UNKNOWN, "kqueue ctl");
     commSetCloseOnExec(kq);
-
-    if (kq < 0) {
-	fatalf("comm_select_init: kqueue(): %s\n", xstrerror());
-    }
     kqmax = getdtablesize();
     kqlst = xmalloc(sizeof(*kqlst) * kqmax);
     kqueue_state = xcalloc(Squid_MaxFD, sizeof(*kqueue_state));

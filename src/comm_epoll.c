@@ -69,12 +69,11 @@ void
 comm_select_init()
 {
     kdpfd = epoll_create(Squid_MaxFD);
+    if (kdpfd < 0)
+	fatalf("comm_select_init: epoll_create(): %s\n", xstrerror());
     fd_open(kdpfd, FD_UNKNOWN, "epoll ctl");
     commSetCloseOnExec(kdpfd);
 
-    if (kdpfd < 0) {
-	fatalf("comm_select_init: epoll_create(): %s\n", xstrerror());
-    }
     epoll_state = xcalloc(Squid_MaxFD, sizeof(*epoll_state));
 }
 
