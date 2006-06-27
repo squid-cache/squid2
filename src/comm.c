@@ -796,7 +796,7 @@ commUpdateEvents(int fd)
     assert(F->flags.open);
 
     if (F->read_handler
-	&& !F->backoff
+	&& !F->flags.backoff
 	) {
 	switch (F->read_pending) {
 	case COMM_PENDING_NORMAL:

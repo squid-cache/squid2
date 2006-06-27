@@ -48,10 +48,10 @@ commDeferFD(int fd)
     assert(fd >= 0);
     assert(F->flags.open);
 
-    if (F->backoff)
+    if (F->flags.backoff)
 	return;
 
-    F->backoff = 1;
+    F->flags.backoff = 1;
     commUpdateEvents(fd);
 }
 
@@ -65,13 +65,13 @@ commResumeFD(int fd)
 
     if (!F->flags.open) {
 	debug(5, 1) ("commResumeFD: fd %d is closed. Ignoring\n", fd);
-	F->backoff = 0;
+	F->flags.backoff = 0;
 	return;
     }
-    if (!F->backoff)
+    if (!F->flags.backoff)
 	return;
 
-    F->backoff = 0;
+    F->flags.backoff = 0;
     commUpdateEvents(fd);
 }
 
@@ -110,7 +110,7 @@ comm_call_handlers(int fd, int read_event, int write_event)
 	    /* If the descriptor is meant to be deferred, don't handle */
 	    switch (commDeferRead(fd)) {
 	    case 1:
-		if (!(F->backoff)) {
+		if (!(F->flags.backoff)) {
 		    debug(5, 1) ("comm_call_handlers(): WARNING defer handler for fd=%d (desc=%s) does not call commDeferFD() - backing off manually\n", fd, F->desc);
 		    commDeferFD(fd);
 		}
@@ -177,7 +177,7 @@ checkTimeouts(void)
 	F = &fd_table[fd];
 	if (!F->flags.open)
 	    continue;
-	if (F->backoff)
+	if (F->flags.backoff)
 	    commResumeFD(fd);
 	if (F->timeout == 0)
 	    continue;
