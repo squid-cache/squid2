@@ -944,7 +944,7 @@ httpBuildRequestHeader(request_t * request,
 	we_do_ranges = 0;
     else if (!orig_request->flags.cachable)
 	we_do_ranges = 0;
-    else if (orig_request->flags.connection_auth)
+    else if (orig_request->flags.auth)
 	we_do_ranges = 0;
     else if (httpHdrRangeOffsetLimit(orig_request->range))
 	we_do_ranges = 0;
