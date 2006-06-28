@@ -194,7 +194,7 @@ cacheDigestStats(const CacheDigest * cd, CacheDigestStats * stats)
     assert(stats);
     memset(stats, 0, sizeof(*stats));
     while (pos-- > 0) {
-	const int is_on = 0 != CBIT_TEST(cd->mask, pos);
+	const int is_on = CBIT_TEST(cd->mask, pos);
 	if (is_on)
 	    on_count++;
 	if (is_on != cur_seq_type || !pos) {

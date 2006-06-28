@@ -242,7 +242,7 @@ httpCachableReply(HttpStateData * httpState)
 	return 0;
     if (EBIT_TEST(cc_mask, CC_NO_STORE))
 	return 0;
-    if (httpState->request->flags.auth) {
+    if (httpState->request->flags.auth_sent) {
 	/*
 	 * Responses to requests with authorization may be cached
 	 * only if a Cache-Control: public reply header is present.
@@ -581,7 +581,7 @@ peer_supports_connection_pinning(HttpStateData * httpState)
 {
     const HttpReply *rep = httpState->entry->mem_obj->reply;
     const HttpHeader *hdr = &rep->header;
-    const request_t *req = httpState->orig_request;
+    const request_t *req = httpState->request;
     int rc;
     String header;
 
@@ -600,9 +600,8 @@ peer_supports_connection_pinning(HttpStateData * httpState)
     if (httpState->peer->options.originserver)
 	return 1;
 
-    if (req->pinned_connection)
-	if (req->pinned_connection->pinning.host)
-	    return 1;
+    if (req->flags.pinned)
+	return 1;
 
     if (!httpHeaderHas(hdr, HDR_PROXY_SUPPORT))
 	return 0;
@@ -798,6 +797,7 @@ httpReadReply(int fd, void *data)
 		    }
 		}
 		if (keep_alive) {
+		    int pinned = 0;
 #if LINUX_TPROXY
 		    if ((Config.onoff.linux_tproxy) &&
 			((httpState->request->my_port == Config.tproxy_port) || (Config.tproxy_port == 0))) {
@@ -813,8 +813,13 @@ httpReadReply(int fd, void *data)
 #endif
 		    comm_remove_close_handler(fd, httpStateFree, httpState);
 		    fwdUnregister(fd, httpState->fwd);
-		    if (orig_request->pinned_connection && !orig_request->flags.no_connection_auth) {
-			clientPinConnection(orig_request->pinned_connection, fd, orig_request, httpState->peer);
+		    if (request->flags.pinned) {
+			pinned = 1;
+		    } else if (request->flags.connection_auth && request->flags.auth_sent) {
+			pinned = 1;
+		    }
+		    if (orig_request->pinned_connection && pinned) {
+			clientPinConnection(orig_request->pinned_connection, fd, orig_request, httpState->peer, request->flags.connection_auth);
 		    } else if (httpState->peer) {
 			if (httpState->peer->options.originserver)
 			    pconnPush(fd, httpState->peer->name, httpState->peer->http_port, httpState->orig_request->host, client_addr, client_port);
@@ -969,6 +974,8 @@ httpBuildRequestHeader(request_t * request,
 	     */
 	    if (flags.proxying && orig_request->peer_login && strcmp(orig_request->peer_login, "PASS") == 0) {
 		httpHeaderAddEntry(hdr_out, httpHeaderEntryClone(e));
+		if (request->flags.connection_proxy_auth)
+		    request->flags.pinned = 1;
 	    }
 	    break;
 	case HDR_AUTHORIZATION:
@@ -976,12 +983,16 @@ httpBuildRequestHeader(request_t * request,
 	     */
 	    if (!flags.originpeer) {
 		httpHeaderAddEntry(hdr_out, httpHeaderEntryClone(e));
+		if (orig_request->flags.connection_auth)
+		    orig_request->flags.pinned = 1;
 	    } else {
 		/* In accelerators, only forward authentication if enabled
 		 * (see also below for proxy->server authentication)
 		 */
 		if (orig_request->peer_login && (strcmp(orig_request->peer_login, "PASS") == 0 || strcmp(orig_request->peer_login, "PROXYPASS") == 0)) {
 		    httpHeaderAddEntry(hdr_out, httpHeaderEntryClone(e));
+		    if (orig_request->flags.connection_auth)
+			orig_request->flags.pinned = 1;
 		}
 	    }
 	    break;
@@ -1135,6 +1146,8 @@ httpBuildRequestHeader(request_t * request,
 	    const char *auth = httpHeaderGetStr(hdr_in, HDR_PROXY_AUTHORIZATION);
 	    if (auth && strncasecmp(auth, "basic ", 6) == 0) {
 		httpHeaderPutStr(hdr_out, HDR_AUTHORIZATION, auth);
+		if (orig_request->flags.connection_auth)
+		    orig_request->flags.pinned = 1;
 	    } else if (orig_request->extacl_user && orig_request->extacl_passwd) {
 		char loginbuf[256];
 		snprintf(loginbuf, sizeof(loginbuf), "%s:%s", orig_request->extacl_user, orig_request->extacl_passwd);
@@ -1179,7 +1192,7 @@ httpBuildRequestHeader(request_t * request,
 	httpHdrCcDestroy(cc);
     }
     /* maybe append Connection: keep-alive */
-    if (flags.keepalive) {
+    if (flags.keepalive || request->flags.pinned) {
 	if (flags.proxying) {
 	    httpHeaderPutStr(hdr_out, HDR_PROXY_CONNECTION, "keep-alive");
 	} else {
@@ -1214,6 +1227,10 @@ httpBuildRequestPrefix(request_t * request,
 	HttpHeader hdr;
 	Packer p;
 	httpBuildRequestHeader(request, orig_request, entry, &hdr, flags);
+	if (request->flags.pinned && request->flags.connection_auth)
+	    request->flags.auth_sent = 1;
+	else
+	    request->flags.auth_sent = httpHeaderHas(&hdr, HDR_AUTHORIZATION);
 	packerToMemInit(&p, mb);
 	httpHeaderPackInto(&hdr, &p);
 	httpHeaderClean(&hdr);
@@ -1257,9 +1274,7 @@ httpSendRequest(HttpStateData * httpState)
     /*
      * Is keep-alive okay for all request methods?
      */
-    if (httpState->orig_request->flags.must_keepalive)
-	httpState->flags.keepalive = 1;
-    else if (!Config.onoff.server_pconns)
+    if (!Config.onoff.server_pconns)
 	httpState->flags.keepalive = 0;
     else if (p == NULL)
 	httpState->flags.keepalive = 1;
@@ -1279,6 +1294,8 @@ httpSendRequest(HttpStateData * httpState)
 	entry,
 	&mb,
 	httpState->flags);
+    if (req->flags.pinned)
+	httpState->flags.keepalive = 1;
     debug(11, 6) ("httpSendRequest: FD %d:\n%s\n", fd, mb.buf);
     comm_write_mbuf(fd, mb, sendHeaderDone, httpState);
 }

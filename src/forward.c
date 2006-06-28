@@ -363,7 +363,7 @@ fwdConnectDone(int server_fd, int status, void *data)
 	debug(17, 3) ("fwdConnectDone: FD %d: '%s'\n", server_fd, storeUrl(fwdState->entry));
 	fd_note(server_fd, storeUrl(fwdState->entry));
 	fd_table[server_fd].uses++;
-	if (fs->peer)
+	if (fd_table[server_fd].uses == 1 && fs->peer)
 	    peerConnectSucceded(fs->peer);
 #if USE_SSL
 	if ((fs->peer && fs->peer->use_ssl) ||
@@ -493,8 +493,10 @@ fwdConnectStart(void *data)
 	ftimeout = 5;
     if (ftimeout < ctimeout)
 	ctimeout = ftimeout;
+    fwdState->request->flags.pinned = 0;
     if (fs->code == PINNED) {
-	fd = clientGetPinnedConnection(fwdState->request->pinned_connection, fwdState->request, fs->peer);
+	int auth;
+	fd = clientGetPinnedConnection(fwdState->request->pinned_connection, fwdState->request, fs->peer, &auth);
 	if (fd >= 0) {
 #if 0
 	    if (!fs->peer)
@@ -502,9 +504,9 @@ fwdConnectStart(void *data)
 #endif
 	    fwdState->server_fd = fd;
 	    fwdState->n_tries++;
-	    fwdState->request->flags.auth = 1;
-	    fwdState->request->flags.connection_auth = 1;
-	    fwdState->request->flags.must_keepalive = 1;
+	    fwdState->request->flags.pinned = 1;
+	    if (auth)
+		fwdState->request->flags.auth = 1;
 	    comm_add_close_handler(fd, fwdServerClosed, fwdState);
 	    fwdConnectDone(fd, COMM_OK, fwdState);
 	    return;
@@ -538,7 +540,7 @@ fwdConnectStart(void *data)
 		hierarchyNote(&fwdState->request->hier, fs->code, fd_table[fd].ipaddr);
 	    else
 		hierarchyNote(&fwdState->request->hier, fs->code, name);
-	    fwdDispatch(fwdState);
+	    fwdConnectDone(fd, COMM_OK, fwdState);
 	    return;
 	} else {
 	    /* Discard the persistent connection to not cause

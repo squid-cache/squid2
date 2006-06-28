@@ -1474,34 +1474,56 @@ clientInterpretRequestHeaders(clientHttpRequest * http)
 	if (request->range)
 	    request->flags.range = 1;
     }
-    if (httpHeaderHas(req_hdr, HDR_AUTHORIZATION) || httpHeaderHas(req_hdr, HDR_PROXY_AUTHORIZATION)) {
+    if (httpHeaderHas(req_hdr, HDR_AUTHORIZATION))
+	request->flags.auth = 1;
+    else if (request->login[0] != '\0')
+	request->flags.auth = 1;
+    if (request->flags.no_connection_auth) {
+	/* nothing special to do here.. */
+    } else if (http->conn->pinning.fd != -1) {
+	if (http->conn->pinning.auth) {
+	    request->flags.connection_auth = 1;
+	    request->flags.auth = 1;
+	} else {
+	    request->flags.connection_proxy_auth = 1;
+	}
+	request->pinned_connection = http->conn;
+	cbdataLock(request->pinned_connection);
+    }
+    /* check if connection auth is used, and flag as candidate for pinning
+     * in such case.
+     * Note: we may need to set flags.connection_auth even if the connection
+     * is already pinned if it was pinned earlier due to proxy auth
+     */
+    if (request->flags.connection_auth) {
+	/* already taken care of above */
+    } else if (httpHeaderHas(req_hdr, HDR_AUTHORIZATION) || httpHeaderHas(req_hdr, HDR_PROXY_AUTHORIZATION)) {
 	HttpHeaderPos pos = HttpHeaderInitPos;
 	HttpHeaderEntry *e;
-	request->flags.auth = 1;
-	if (!request->flags.no_connection_auth) {
-	    while ((e = httpHeaderGetEntry(req_hdr, &pos))) {
-		if (e->id == HDR_AUTHORIZATION || e->id == HDR_PROXY_AUTHORIZATION) {
-		    const char *value = strBuf(e->value);
-		    if (strncasecmp(value, "NTLM ", 5) == 0
-			||
-			strncasecmp(value, "Negotiate ", 10) == 0
-			||
-			strncasecmp(value, "Kerberos ", 9) == 0) {
+	int may_pin = 0;
+	while ((e = httpHeaderGetEntry(req_hdr, &pos))) {
+	    if (e->id == HDR_AUTHORIZATION || e->id == HDR_PROXY_AUTHORIZATION) {
+		const char *value = strBuf(e->value);
+		if (strncasecmp(value, "NTLM ", 5) == 0
+		    ||
+		    strncasecmp(value, "Negotiate ", 10) == 0
+		    ||
+		    strncasecmp(value, "Kerberos ", 9) == 0) {
+		    if (e->id == HDR_AUTHORIZATION) {
 			request->flags.connection_auth = 1;
-			request->flags.must_keepalive = 1;
-			/* the pinned connection is set below */
-			break;
+			may_pin = 1;
+		    } else {
+			request->flags.connection_proxy_auth = 1;
+			may_pin = 1;
 		    }
 		}
 	    }
 	}
+	if (may_pin && !request->pinned_connection) {
+	    request->pinned_connection = http->conn;
+	    cbdataLock(request->pinned_connection);
+	}
     }
-    if (request->flags.connection_auth || http->conn->pinning.fd != -1) {
-	request->flags.auth = 1;
-	request->pinned_connection = http->conn;
-	cbdataLock(request->pinned_connection);
-    } else if (request->login[0] != '\0')
-	request->flags.auth = 1;
     if (httpHeaderHas(req_hdr, HDR_VIA)) {
 	String s = httpHeaderGetList(req_hdr, HDR_VIA);
 	/*
@@ -5003,8 +5025,10 @@ clientPinnedConnectionClosed(int fd, void *data)
 }
 
 void
-clientPinConnection(ConnStateData * conn, int fd, const request_t * request, peer * peer)
+clientPinConnection(ConnStateData * conn, int fd, const request_t * request, peer * peer, int auth)
 {
+    fde *f;
+    LOCAL_ARRAY(char, desc, FD_DESC_SZ);
     const char *host = request->host;
     const int port = request->port;
     if (!cbdataValid(conn))
@@ -5020,6 +5044,11 @@ clientPinConnection(ConnStateData * conn, int fd, const request_t * request, pee
     conn->pinning.peer = peer;
     if (peer)
 	cbdataLock(conn->pinning.peer);
+    conn->pinning.auth = auth;
+    f = &fd_table[conn->fd];
+    snprintf(desc, FD_DESC_SZ, "%s pinned connection for %s:%d (%d)",
+	(auth || !peer) ? host : peer->name, f->ipaddr, (int) f->remote_port, conn->fd);
+    fd_note(fd, desc);
     comm_add_close_handler(fd, clientPinnedConnectionClosed, conn);
 }
 
@@ -5031,7 +5060,7 @@ clientGetPinnedInfo(const ConnStateData * conn, const request_t * request, peer 
     if (fd < 0)
 	return -1;
 
-    if (request && strcasecmp(conn->pinning.host, request->host) != 0) {
+    if (conn->pinning.auth && request && strcasecmp(conn->pinning.host, request->host) != 0) {
       err:
 	comm_close(fd);
 	return -1;
@@ -5045,18 +5074,19 @@ clientGetPinnedInfo(const ConnStateData * conn, const request_t * request, peer 
 }
 
 int
-clientGetPinnedConnection(ConnStateData * conn, const request_t * request, const peer * peer)
+clientGetPinnedConnection(ConnStateData * conn, const request_t * request, const peer * peer, int *auth)
 {
     int fd = conn->pinning.fd;
 
     if (fd < 0)
 	return -1;
 
-    if (request && strcasecmp(conn->pinning.host, request->host) != 0) {
+    if (conn->pinning.auth && request && strcasecmp(conn->pinning.host, request->host) != 0) {
       err:
 	comm_close(fd);
 	return -1;
     }
+    *auth = conn->pinning.auth;
     if (peer != conn->pinning.peer)
 	goto err;
     cbdataUnlock(conn->pinning.peer);
