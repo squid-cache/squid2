@@ -481,7 +481,7 @@ static void
 setEffectiveUser(void)
 {
 #if LINUX_TPROXY
-    if (Config.onoff.linux_tproxy) {
+    if (need_linux_tproxy) {
 	if (prctl(PR_SET_KEEPCAPS, 1, 0, 0, 0)) {
 	    debug(0, 1) ("Error - tproxy support requires capability setting which has failed.  Continuing without tproxy support\n");
 	}

@@ -632,7 +632,7 @@ leave_suid(void)
 	debug(50, 0) ("ALERT: setuid: %s\n", xstrerror());
 #endif
 #if LINUX_TPROXY
-    if (Config.onoff.linux_tproxy) {
+    if (need_linux_tproxy) {
 	cap_user_header_t head = (cap_user_header_t) xcalloc(1, sizeof(cap_user_header_t));
 	cap_user_data_t cap = (cap_user_data_t) xcalloc(1, sizeof(cap_user_data_t));
 

@@ -3983,6 +3983,9 @@ clientReadRequest(int fd, void *data)
 	    }
 	    if (conn->port->urlgroup)
 		request->urlgroup = xstrdup(conn->port->urlgroup);
+#if LINUX_TPROXY
+	    request->flags.tproxy = conn->port->tproxy;
+#endif
 	    request->flags.accelerated = http->flags.accel;
 	    /*
 	     * cache the Content-length value in request_t.

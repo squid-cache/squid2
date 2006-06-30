@@ -2718,6 +2718,11 @@ parse_http_port_option(http_port_list * s, char *token)
 	s->urlgroup = xstrdup(token + 9);
     } else if (strncmp(token, "protocol=", 9) == 0) {
 	s->protocol = xstrdup(token + 9);
+#if LINUX_TPROXY
+    } else if (strcmp(token, "tproxy") == 0) {
+	s->tproxy = 1;
+	need_linux_tproxy = 1;
+#endif
     } else {
 	self_destruct();
     }

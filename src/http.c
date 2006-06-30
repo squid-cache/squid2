@@ -799,8 +799,7 @@ httpReadReply(int fd, void *data)
 		if (keep_alive) {
 		    int pinned = 0;
 #if LINUX_TPROXY
-		    if ((Config.onoff.linux_tproxy) &&
-			((httpState->request->my_port == Config.tproxy_port) || (Config.tproxy_port == 0))) {
+		    if (orig_request->flags.tproxy) {
 			client_addr = &httpState->request->client_addr;
 		    }
 #endif

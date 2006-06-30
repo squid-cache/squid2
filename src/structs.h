@@ -366,6 +366,9 @@ struct _http_port_list {
     unsigned int vhost;		/* uses host header */
     unsigned int vport;		/* virtual port support */
     unsigned int no_connection_auth;	/* Don't support connection oriented auth */
+#if LINUX_TPROXY
+    unsigned int tproxy;
+#endif
 };
 
 #if USE_SSL
@@ -663,9 +666,6 @@ struct _SquidConfig {
 	int global_internal_static;
 	int httpd_suppress_version_string;
 	int via;
-#if LINUX_NETFILTER
-	int linux_tproxy;
-#endif
 	int check_hostnames;
 	int allow_underscore;
 	int cache_vary;
@@ -675,9 +675,6 @@ struct _SquidConfig {
 	int log_uses_indirect_client;
 #endif
     } onoff;
-#if LINUX_TPROXY
-    u_short tproxy_port;
-#endif
     acl *aclList;
     struct {
 	acl_access *http;
@@ -1797,6 +1794,9 @@ struct _request_flags {
     unsigned int no_connection_auth:1;	/* Connection oriented auth can not be supported */
     unsigned int pinned:1;	/* Request seont on a pinned connection */
     unsigned int auth_sent:1;	/* Authentication forwarded */
+#if LINUX_TPROXY
+    unsigned int tproxy:1;
+#endif
 };
 
 struct _link_list {
