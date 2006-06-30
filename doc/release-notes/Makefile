@@ -17,10 +17,10 @@ $(DOC).ps: $(DOC).sgml
 #
 
 $(DOC).txt: $(DOC).sgml
-	linuxdoc -B txt --filter $(DOC)
+	linuxdoc -B txt -T 2 --filter $(DOC)
 
 $(DOC).html: $(DOC).sgml
-	linuxdoc -B html --split=0 $(DOC)
+	linuxdoc -B html -T 2 --split=0 $(DOC)
 
 $(DOC).man: $(DOC).sgml
 	linuxdoc -B txt -m $(DOC)

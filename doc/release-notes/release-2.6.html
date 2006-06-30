@@ -10,11 +10,29 @@
 <H2>Squid Developers</H2>$Id$
 <HR>
 <EM>This document contains the release notes for version 2.6 of Squid.
-Squid is a WWW Cache application developed by the Web Caching community.
-Squid was initially developed by the National Laboratory
-for Applied Network Research and members of the Web Caching community.</EM>
+Squid is a WWW Cache application developed by the Web Caching community.</EM>
 <HR>
-<H2><A NAME="s1">1. Key changes from squid 2.5:</A></H2>
+<P>
+<H2><A NAME="toc1">1.</A> <A HREF="release-2.6.html#s1">Key changes from squid 2.5</A></H2>
+
+<P>
+<H2><A NAME="toc2">2.</A> <A HREF="release-2.6.html#s2">Changes to squid.conf</A></H2>
+
+<P>
+<H2><A NAME="toc3">3.</A> <A HREF="release-2.6.html#s3">Known issues</A></H2>
+
+<P>
+<H2><A NAME="toc4">4.</A> <A HREF="release-2.6.html#s4">Known limitations</A></H2>
+
+<P>
+<H2><A NAME="toc5">5.</A> <A HREF="release-2.6.html#s5">Other issues</A></H2>
+
+<P>
+<H2><A NAME="toc6">6.</A> <A HREF="release-2.6.html#s6">Windows support</A></H2>
+
+
+<HR>
+<H2><A NAME="s1">1.</A> <A HREF="#toc1">Key changes from squid 2.5</A></H2>
 
 <P>
 <UL>
@@ -75,7 +93,7 @@ membership check</LI>
 </UL>
 </P>
 
-<H2><A NAME="s2">2. Changes to squid.conf</A></H2>
+<H2><A NAME="s2">2.</A> <A HREF="#toc2">Changes to squid.conf</A></H2>
 
 <P>
 <DL>
@@ -87,12 +105,12 @@ membership check</LI>
 <DT><B>https_port</B><DD><P>Many new options. Reconstructs URLs as https:// by default.</P>
 <DT><B>cache_peer</B><DD><P>Many new options to support origin servers and SSL encryption</P>
 <DT><B>ssl_engine</B><DD><P>New directive for hardware assisted SSL encryption</P>
-<DT><B>sslproxy_*</B><DD><P>New directives defining how to gateway http->https</P>
+<DT><B>sslproxy_*</B><DD><P>New directives defining how to gateway http-&gt;https</P>
 <DT><B>sslpassword_program</B><DD><P>New helper directive to query an external program for SSL key encryption password (if any)</P>
 <DT><B>no_cache</B><DD><P>Renamed to cache to better reflect the functionaliy. no_cache still accepted.</P>
 <DT><B>cache</B><DD><P>New name for the old no_cache directive.</P>
 <DT><B>cache_vary</B><DD><P>New directive to disable caching of Vary:ing responses</P>
-<DT><B>broken_vary_encoding</B><DD><P>New directive to work around known broken compression modules which hasn't understood the meaning of the ETag HTTP header.</P>
+<DT><B>broken_vary_encoding</B><DD><P>New directive to work around known broken compression modules which hasn't understood the meaning of the ETag HTTP header in relation to Accept-Encoding.</P>
 <DT><B>logformat</B><DD><P>New directive for defining custom log formats</P>
 <DT><B>cache_access_log</B><DD><P>Renamed to access_log</P>
 <DT><B>access_log</B><DD><P>Select what requests to log where any by what format. Support for multiple log files and multiple log formats.</P>
@@ -125,27 +143,56 @@ membership check</LI>
 <DT><B>error_map</B><DD><P>New directive to allow dynamic rewrites of error pages</P>
 <DT><B>via</B><DD><P>New directive to disable the use of the Via directive</P>
 <DT><B>wccp2_*</B><DD><P>WCCP2 protocol support</P>
-<DT><B>linux_tproxy, tproxy_port</B><DD><P>Linux TPROXY support for masquerading outgoing connections as the original client</P>
 </DL>
 </P>
 
-<H2><A NAME="s3">3. Known issues and limitations</A></H2>
+<H2><A NAME="s3">3.</A> <A HREF="#toc3">Known issues</A></H2>
 
 <P>There is a few known issues in this version of Squid which we hope to correct in a later release</P>
 <P>
 <DL>
 <DT><B>Bug 
-<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=1584">#1584</A></B><DD><P>WCCPv2 unable to register with more than one router on Linux</P>
-<DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=1590">#1590</A></B><DD><P>"ETag Loop" warnings in cache.log</P>
 <DT><B>Bug 
-<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=761">#761</A></B><DD><P>assertion failed: cbdata.c:249: "c->locks > 0" when using diskd</P>
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=761">#761</A></B><DD><P>assertion failed: cbdata.c:249: "c-&gt;locks &gt; 0" when using diskd</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=1640">#1640</A></B><DD><P>unstable if mixing coss cache_dir type with other cache_dir types (ufs/aufs/diskd).</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=1602">#1602</A></B><DD><P>Need to implement TCP fallback on truncated (large) DNS responses</P>
+</DL>
+</P>
+
+<H2><A NAME="s4">4.</A> <A HREF="#toc4">Known limitations</A></H2>
+
+<P>In addition there is a set of limitations in this version of Squid which we hope to correct later</P>
+<P>
+<DL>
 <DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=1420">#1420</A></B><DD><P>302 responses with an Expires header is always cached</P>
 <DT><B>Bug 
-<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=1500">#1500</A></B><DD><P>diskd related memory corruption under heavy load</P>
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=1584">#1584</A></B><DD><P>WCCPv2 unable to register with more than one router on Linux</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=1059">#1059</A></B><DD><P>mime.conf and referenced icons must be within chroot</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=692">#692</A></B><DD><P>tcp_outgoing_address using an ident ACL does not work</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=581">#581</A></B><DD><P>acl max_user_ip and multiple authentication schemes</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=528">#528</A></B><DD><P>miss_access fails on "slow" acl types such as dst.</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=513">#513</A></B><DD><P>squid -F is starting server sockets to early</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=457">#457</A></B><DD><P>does not handle swap.state corruption properly</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=410">#410</A></B><DD><P>unstable if runs out of disk space</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=355">#355</A></B><DD><P>diskd may appear slow on low loads</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=219">#219</A></B><DD><P>delay_pools stops working on -k reconfigure</P>
 </DL>
 </P>
+
+<H2><A NAME="s5">5.</A> <A HREF="#toc5">Other issues</A></H2>
 
 <P>Ipfilter 4.x compile problem on HP Tru64
 <UL>
@@ -172,31 +219,7 @@ in the /usr/include local directory. Don't forget to fix files permission and ow
 </P>
 
 
-<P>In addition there is a set of limitations in this version of Squid which we hope to correct later</P>
-<P>
-<DL>
-<DT><B>Bug 
-<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=1059">#1059</A></B><DD><P>mime.conf and referenced icons must be within chroot</P>
-<DT><B>Bug 
-<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=692">#692</A></B><DD><P>tcp_outgoing_address using an ident ACL does not work</P>
-<DT><B>Bug 
-<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=581">#581</A></B><DD><P>acl max_user_ip and multiple authentication schemes</P>
-<DT><B>Bug 
-<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=528">#528</A></B><DD><P>miss_access fails on "slow" acl types such as dst.</P>
-<DT><B>Bug 
-<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=513">#513</A></B><DD><P>squid -F is starting server sockets to early</P>
-<DT><B>Bug 
-<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=457">#457</A></B><DD><P>does not handle swap.state corruption properly</P>
-<DT><B>Bug 
-<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=410">#410</A></B><DD><P>unstable if runs out of disk space</P>
-<DT><B>Bug 
-<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=355">#355</A></B><DD><P>diskd may appear slow on low loads</P>
-<DT><B>Bug 
-<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=219">#219</A></B><DD><P>delay_pools stops working on -k reconfigure</P>
-</DL>
-</P>
-
-<H2><A NAME="s4">4. Windows support:</A></H2>
+<H2><A NAME="s6">6.</A> <A HREF="#toc6">Windows support</A></H2>
 
 <P>This Squid version can run on Windows as a system service using the Cygwin environment.<BR>
 Windows NT 4 and later are supported.<BR>
