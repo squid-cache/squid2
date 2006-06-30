@@ -679,10 +679,6 @@ clientHandleETagMiss(clientHttpRequest * http)
     if (mem->reply) {
 	const char *etag = httpHeaderGetStr(&mem->reply->header, HDR_ETAG);
 	if (etag) {
-	    if (request->vary && request->vary->broken_encoding && strBuf(request->vary_encoding)) {
-		request->vary_encoding = httpHeaderGetStrOrList(&request->header, HDR_CONTENT_ENCODING);
-		strCat(request->vary_encoding, "");
-	    }
 	    storeAddVary(mem->url, mem->log_url, mem->method, NULL, httpHeaderGetStr(&mem->reply->header, HDR_ETAG), request->vary_hdr, request->vary_headers, strBuf(request->vary_encoding));
 	}
     }
@@ -2172,7 +2168,7 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	     * rely on the http structure for this...
 	     */
 	    http->sc = NULL;
-	    storeLocateVary(e, e->mem_obj->reply->hdr_sz, r->vary_headers, httpHeaderGetStrOrList(&r->header, HDR_ACCEPT_ENCODING), clientProcessVary, http);
+	    storeLocateVary(e, e->mem_obj->reply->hdr_sz, r->vary_headers, r->vary_encoding, clientProcessVary, http);
 	    storeClientUnregister(sc, e, http);
 	    storeUnlockObject(e);
 	    /* Note: varyEvalyateMatch updates the request with vary information

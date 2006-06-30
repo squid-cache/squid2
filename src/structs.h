@@ -2458,7 +2458,6 @@ struct _errormap {
 };
 
 struct _VaryData {
-    int broken_encoding:1;
     char *key;
     char *etag;
     Array etags;

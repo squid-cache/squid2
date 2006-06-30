@@ -514,6 +514,18 @@ strcmpnull(const char *a, const char *b)
     return 0;
 }
 
+static int
+strncmpnull(const char *a, const char *b, size_t n)
+{
+    if (a && b)
+	return strncmp(a, b, n);
+    else if (a)
+	return 1;
+    else if (b)
+	return -1;
+    return 0;
+}
+
 static void
 storeAddVaryReadOld(void *data, char *buf, ssize_t size)
 {
@@ -582,20 +594,22 @@ storeAddVaryReadOld(void *data, char *buf, ssize_t size)
 	    state->current.etag = xmalloc(l2 + 1);
 	    memcpy(state->current.etag, p2, l2);
 	    state->current.etag[l2] = '\0';
-	    if (state->etag && strcmp(state->current.etag, state->etag)) {
-		if (strcmpnull(state->accept_encoding, state->current.accept_encoding) != 0) {
+	    if (state->etag && strcmp(state->current.etag, state->etag) == 0) {
+		if (state->accept_encoding && strcmpnull(state->accept_encoding, state->current.accept_encoding) != 0) {
 		    /* Skip this match. It's not ours */
 		} else if (!state->key) {
 		    state->current.this_key = 1;
-		} else {
+		} else if (!state->current.this_key) {
 		    const cache_key *oldkey = storeKeyScan(state->current.key);
-		    if (strmatch(p2, state->key, l) != 0) {
-			StoreEntry *old_e = storeGet(oldkey);
-			if (old_e)
-			    storeRelease(old_e);
+		    StoreEntry *old_e = storeGet(oldkey);
+		    if (old_e)
+			storeRelease(old_e);
+		    if (!state->done) {
 			safe_free(state->current.key);
 			state->current.key = xstrdup(state->key);
 			state->current.this_key = 1;
+		    } else {
+			state->current.ignore = 1;
 		    }
 		}
 	    } else if (state->current.this_key) {
@@ -749,6 +763,7 @@ typedef struct {
     squid_off_t seen_offset;
     struct {
 	int ignore;
+	int encoding_ok;
 	char *key;
 	char *etag;
     } current;
@@ -814,11 +829,9 @@ storeLocateVaryRead(void *data, char *buf, ssize_t size)
 	    p2 = p + 5;
 	    l2 = e - p2;
 	    safe_free(state->current.key);
-	    state->current.etag = NULL;
-	    safe_free(state->current.etag);
+	    state->current.etag = NULL;		/* saved in data.etags[] */
 	    state->current.ignore = 0;
-	    state->data->broken_encoding = 0;
-	    memset(&state->current, 0, sizeof(state->current));
+	    state->current.encoding_ok = !state->accept_encoding;
 	    state->current.key = xmalloc(l2 + 1);
 	    memcpy(state->current.key, p2, l2);
 	    state->current.key[l2] = '\0';
@@ -828,14 +841,18 @@ storeLocateVaryRead(void *data, char *buf, ssize_t size)
 	} else if (strmatchbeg(p, "ETag: ", l) == 0) {
 	    /* etag field */
 	    char *etag;
-	    p2 = p + 6;
-	    l2 = e - p2;
-	    etag = xmalloc(l2 + 1);
-	    memcpy(etag, p2, l2);
-	    etag[l2] = '\0';
-	    state->current.etag = etag;
-	    arrayAppend(&state->data->etags, etag);
-	    debug(11, 3) ("storeLocateVaryRead: ETag: %s\n", etag);
+	    if (state->current.encoding_ok) {
+		p2 = p + 6;
+		l2 = e - p2;
+		etag = xmalloc(l2 + 1);
+		memcpy(etag, p2, l2);
+		etag[l2] = '\0';
+		state->current.etag = etag;
+		arrayAppend(&state->data->etags, etag);
+		debug(11, 3) ("storeLocateVaryRead: ETag: %s\n", etag);
+	    } else {
+		state->current.ignore = 1;
+	    }
 	} else if (strmatchbeg(p, "VaryData: ", l) == 0) {
 	    /* vary field */
 	    p2 = p + 10;
@@ -850,12 +867,9 @@ storeLocateVaryRead(void *data, char *buf, ssize_t size)
 	} else if (strmatchbeg(p, "Accept-Encoding: ", l) == 0) {
 	    p2 = p + 17;
 	    l2 = e - p2;
-	    if (!state->accept_encoding)
-		state->current.ignore = 1;
-	    else if (strncmp(state->accept_encoding, p2, l2) == 0 && !state->accept_encoding[l2])
-		state->data->broken_encoding = 1;
-	    else
-		state->current.ignore = 1;
+	    if (strncmpnull(state->accept_encoding, p2, l2) == 0 && state->accept_encoding[l2] == '\0') {
+		state->current.encoding_ok = 1;
+	    }
 	}
 	e += 1;
 	l -= e - p;
