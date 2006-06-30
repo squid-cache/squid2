@@ -865,7 +865,10 @@ storeLocateVaryRead(void *data, char *buf, ssize_t size)
 	assert(l > 0);
 	assert(p < (buf + size));
     }
-    if (p == state->buf && size == state->buf_size) {
+    state->buf_offset = l;
+    if (l)
+	memmove(state->buf, p, l);
+    if (state->buf_offset == state->buf_size) {
 	/* Oops.. the buffer size is not sufficient. Grow */
 	if (state->buf_size < 65536) {
 	    debug(11, 2) ("storeLocateVaryRead: Increasing entry buffer size to %d\n", (int) state->buf_size * 2);
@@ -877,9 +880,6 @@ storeLocateVaryRead(void *data, char *buf, ssize_t size)
 	    return;
 	}
     }
-    state->buf_offset = l;
-    if (l)
-	memmove(state->buf, p, l);
     debug(11, 3) ("storeLocateVaryRead: %p seen_offset=%" PRINTF_OFF_T " buf_offset=%d\n", data, state->seen_offset, (int) state->buf_offset);
     storeClientCopy(state->sc, state->e,
 	state->seen_offset,
@@ -912,6 +912,13 @@ storeLocateVary(StoreEntry * e, int offset, const char *vary_data, String accept
     state->buf = memAllocBuf(4096, &state->buf_size);
     state->sc = storeClientRegister(state->e, state);
     state->seen_offset = offset;
+    if (strCmp(e->mem_obj->reply->content_type, "x-squid-internal/vary") != 0) {
+	/* This is not our Vary marker object. Bail out. */
+	debug(33, 1) ("storeLocateVary: Not our vary marker object, %s = '%s', '%s'/'%s'\n",
+	    storeKeyText(e->hash.key), e->mem_obj->url, vary_data, strBuf(accept_encoding) ? strBuf(accept_encoding) : "-");
+	storeLocateVaryCallback(state);
+	return;
+    }
     storeClientCopy(state->sc, state->e,
 	state->seen_offset,
 	state->seen_offset,
