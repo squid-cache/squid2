@@ -612,7 +612,7 @@ DOC_START
 			4 = TLS v1 only
 
 		     use sslcipher=... to specify the list of valid SSL ciphers
-		     to use when connecting to this peer
+		     to use when connecting to this peer.
 
 		     use ssloptions=... to specify various SSL engine options:
 			NO_SSLv2  Disallow the use of SSLv2
@@ -621,11 +621,16 @@ DOC_START
 		     See src/ssl_support.c or the OpenSSL documentation for
 		     a more complete list.
 
-		     use cafile=... to specify a file containing additional
-		     CA certificates to use when verifying the peer certificate
+		     use sslcafile=... to specify a file containing
+		     additional CA certificates to use when verifying the
+		     peer certificate.
 
-		     use capath=... to specify a directory containing additional
-		     CA certificates to use when verifying the peer certificate
+		     use sslcapath=... to specify a directory containing
+		     additional CA certificates to use when verifying the
+		     peer certificate.
+
+		     use sslcrlfile=... to specify a certificate revocation
+		     list file to use when verifying the peer certificate.
 
 		     use sslflags=... to specify various flags modifying the
 		     SSL implementation:
@@ -636,7 +641,7 @@ DOC_START
 				Don't use the default CA list built in
 				to OpenSSL.
 
-		     use sslname= to specify the peer name as advertised
+		     use ssldomain= to specify the peer name as advertised
 		     in it's certificate. Used for verifying the correctness
 		     of the received peer certificate. If not specified the
 		     peer hostname will be used.
@@ -652,7 +657,7 @@ DOC_START
 		     not support Microsoft connection oriented authentication,
 		     and any such challenges received from there should be
 		     ignored. Default is auto to automatically determine the
-		    status of the peer.
+		     status of the peer.
 
 	NOTE: non-ICP/HTCP neighbors must be specified as 'parent'.
 DOC_END
