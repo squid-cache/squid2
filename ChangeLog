@@ -1,4 +1,4 @@
-Changes to squid-2.6 (Planned release 1 Jul 2006)
+Changes to squid-2.6 (1 Jul 2006)
 	
 	- New --enable-default-hostsfile configure option
 	- Added username info to active_requests cachemgr stats
