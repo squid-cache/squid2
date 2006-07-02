@@ -1063,6 +1063,9 @@ wccp2HereIam(void *voidnotused)
 	    }
 	    debug(80, 3) ("Sending HereIam packet size %d\n", (int) service_list_ptr->wccp_packet_size);
 	    /* Send the packet */
+
+	    statCounter.syscalls.sock.sendtos++;
+
 	    sendto(theWccp2Connection,
 		&service_list_ptr->wccp_packet,
 		service_list_ptr->wccp_packet_size,
