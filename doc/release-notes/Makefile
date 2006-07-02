@@ -21,6 +21,7 @@ $(DOC).txt: $(DOC).sgml
 
 $(DOC).html: $(DOC).sgml
 	linuxdoc -B html -T 2 --split=0 $(DOC)
+	perl -i -p -e "s%$(DOC).html%%" $(DOC).html
 
 $(DOC).man: $(DOC).sgml
 	linuxdoc -B txt -m $(DOC)
