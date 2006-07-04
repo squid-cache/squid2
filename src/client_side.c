@@ -3681,8 +3681,10 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 #endif
 
     /* handle "accelerated" objects (and internal) */
-    if (method == METHOD_CONNECT);	/* Nothing to do */
-    else if (*url == '/')
+    if (method == METHOD_CONNECT) {
+	if (http_ver.major < 1)
+	    goto invalid_request;
+    } else if (*url == '/')
   accel:{
 	int vhost = conn->port->vhost || conn->port->transparent;
 	int vport = conn->port->vport || conn->transparent;
