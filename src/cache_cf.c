@@ -2482,8 +2482,7 @@ free_removalpolicy(RemovalPolicySettings ** settings)
 	return;
     free_string(&(*settings)->type);
     free_wordlist(&(*settings)->args);
-    xfree(*settings);
-    *settings = NULL;
+    safe_free(*settings);
 }
 
 static void

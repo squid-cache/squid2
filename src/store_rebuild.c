@@ -145,8 +145,7 @@ storeRebuildComplete(struct _store_rebuild_data *dc)
 	(double) counts.objcount / (dt > 0.0 ? dt : 1.0));
     debug(20, 1) ("Beginning Validation Procedure\n");
     eventAdd("storeCleanup", storeCleanup, NULL, 0.0, 1);
-    xfree(RebuildProgress);
-    RebuildProgress = NULL;
+    safe_free(RebuildProgress);
 }
 
 /*

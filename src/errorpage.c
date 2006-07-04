@@ -192,8 +192,7 @@ errorTryLoadText(const char *page_name, const char *dir)
     if (FD_READ_METHOD(fd, text, (int) sb.st_size) != sb.st_size) {
 	debug(4, 0) ("errorTryLoadText: failed to fully read: '%s': %s\n",
 	    path, xstrerror());
-	xfree(text);
-	text = NULL;
+	safe_free(text);
     }
     file_close(fd);
     if (text && strstr(text, "%s") == NULL)
