@@ -3482,7 +3482,7 @@ clientProcessMiss(clientHttpRequest * http)
     /*
      * Deny loops when running in accelerator/transproxy mode.
      */
-    if (http->flags.accel && r->flags.loopdetect) {
+    if (r->flags.loopdetect && (http->flags.accel || http->flags.transparent)) {
 	http->al.http.code = HTTP_FORBIDDEN;
 	err = errorCon(ERR_ACCESS_DENIED, HTTP_FORBIDDEN);
 	err->request = requestLink(http->orig_request);
@@ -3684,15 +3684,19 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
     if (method == METHOD_CONNECT) {
 	if (http_ver.major < 1)
 	    goto invalid_request;
+	if (conn->port->accel)
+	    goto invalid_request;
     } else if (*url == '/')
   accel:{
 	int vhost = conn->port->vhost || conn->port->transparent;
-	int vport = conn->port->vport || conn->transparent;
+	int vport = conn->port->vport;
+	int accel = conn->port->accel;
+	if (!vport && conn->transparent)
+	    vport = ntohs(conn->me.sin_port);
 	if (Config.onoff.global_internal_static && conn->port->accel && internalCheck(url)) {
 	    /* prepend our name & port */
 	    http->uri = xstrdup(internalStoreUri("", url));
 	    http->flags.internal = 1;
-	    http->flags.accel = 1;
 	    debug(33, 5) ("INTERNAL REWRITE: '%s'\n", http->uri);
 	} else if (vhost && (t = mime_get_header(req_hdr, "Host"))) {
 	    url_sz = strlen(url) + 32 + Config.appendDomainLen +
@@ -3724,14 +3728,14 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 	    /* prepend our name & port */
 	    http->uri = xstrdup(internalStoreUri("", url));
 	    http->flags.internal = 1;
-	    http->flags.accel = 1;
 	    debug(33, 5) ("INTERNAL REWRITE: '%s'\n", http->uri);
 	} else {
 	    goto invalid_request;
 	}
-	http->flags.accel = 1;
-    } else if (conn->transparent) {
-	http->flags.accel = 1;
+	if (accel)
+	    http->flags.accel = 1;
+	else if (conn->port->transparent)
+	    http->flags.transparent = 1;
     } else if (conn->port->accel) {
 	http->flags.accel = 1;
 	if (!conn->port->vhost) {
@@ -3743,9 +3747,6 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 		url = (char *) "/";
 	    goto accel;
 	}
-    } else {
-	/* Proxy request */
-	http->flags.accel = 0;
     }
     if (!http->uri) {
 	/* No special rewrites have been applied above, use the
@@ -3753,7 +3754,6 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 	url_sz = strlen(url) + Config.appendDomainLen + 5;
 	http->uri = xcalloc(url_sz, 1);
 	strcpy(http->uri, url);
-	http->flags.accel = 0;
     }
     if (!stringHasCntl(http->uri))
 	http->log_uri = xstrndup(http->uri, MAX_URL);
@@ -3989,6 +3989,7 @@ clientReadRequest(int fd, void *data)
 	    request->flags.tproxy = conn->port->tproxy;
 #endif
 	    request->flags.accelerated = http->flags.accel;
+	    request->flags.transparent = http->flags.transparent;
 	    /*
 	     * cache the Content-length value in request_t.
 	     */

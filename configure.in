@@ -736,15 +736,6 @@ AC_ARG_ENABLE(cache-digests,
   fi
 ])
 
-AC_ARG_ENABLE(auth-on-acceleration,
-[  --enable-auth-on-acceleration
-			  Enable authentication in accelerators],
-[ if test "$enableval" = "yes" ; then
-    echo "AUTH_ON_ACCELERATION enabled"
-    AC_DEFINE(AUTH_ON_ACCELERATION, 1, [Enable authentication support in accelerators])
-  fi
-])
-
 dnl Select Default Error language
 AC_ARG_ENABLE(default-err-language,
 [  --enable-default-err-language=lang

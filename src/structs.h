@@ -346,6 +346,7 @@ struct _relist {
 
 struct _acl_request_type {
     unsigned int accelerated:1;
+    unsigned int transparent:1;
     unsigned int internal:1;
 };
 
@@ -1190,6 +1191,7 @@ struct _clientHttpRequest {
     AccessLogEntry al;
     struct {
 	unsigned int accel:1;
+	unsigned int transparent:1;
 	unsigned int internal:1;
 	unsigned int done_copying:1;
 	unsigned int purging:1;
@@ -1785,6 +1787,7 @@ struct _request_flags {
     unsigned int nocache_hack:1;	/* for changing/ignoring no-cache requests */
 #endif
     unsigned int accelerated:1;
+    unsigned int transparent:1;
     unsigned int internal:1;
     unsigned int body_sent:1;
     unsigned int reset_tcp:1;
