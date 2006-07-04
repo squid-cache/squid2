@@ -887,7 +887,6 @@ sslGetUserAttribute(SSL * ssl, const char *attribute_name)
     ret = ssl_get_attribute(name, attribute_name);
 
     X509_free(cert);
-    CRYPTO_free(name);
 
     return ret;
 }
@@ -911,7 +910,6 @@ sslGetCAAttribute(SSL * ssl, const char *attribute_name)
     ret = ssl_get_attribute(name, attribute_name);
 
     X509_free(cert);
-    CRYPTO_free(name);
 
     return ret;
 }
@@ -943,7 +941,7 @@ sslGetUserEmail(SSL * ssl)
 const char *
 sslGetUserEmail(SSL * ssl)
 {
-    return sslGetUserAttribute(ssl, "Email");
+    return sslGetUserAttribute(ssl, "emailAddress");
 }
 
 const char *
