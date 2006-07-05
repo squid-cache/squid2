@@ -38,6 +38,10 @@
  * Version 1.21
  * 23-04-2005 Guido Serassio
  *              Added -D option for specify default user's domain.
+ * Version 1.20.1
+ * 15-08-2004 Guido Serassio
+ *              Helper protocol changed to use URL escaped strings in Squid-3.0
+ *              (Original work of Henrik Nordstrom)
  * Version 1.20
  * 13-06-2004 Guido Serassio
  *              Added support for running on a Domain Controller.
@@ -100,51 +104,6 @@ char *DefaultDomain = NULL;
 const char NTV_VALID_DOMAIN_SEPARATOR[] = "\\/";
 
 #include "win32_check_group.h"
-
-char *
-strwordtok(char *buf, char **t)
-{
-    unsigned char *word = NULL;
-    unsigned char *p = (unsigned char *) buf;
-    unsigned char *d;
-    unsigned char ch;
-    int quoted = 0;
-    if (!p)
-	p = (unsigned char *) *t;
-    if (!p)
-	goto error;
-    while (*p && isspace(*p))
-	p++;
-    if (!*p)
-	goto error;
-    word = d = p;
-    while ((ch = *p)) {
-	switch (ch) {
-	case '\\':
-	    p++;
-	    *d++ = ch = *p;
-	    if (ch)
-		p++;
-	    break;
-	case '"':
-	    quoted = !quoted;
-	    p++;
-	    break;
-	default:
-	    if (!quoted && isspace(*p)) {
-		p++;
-		goto done;
-	    }
-	    *d++ = *p++;
-	    break;
-	}
-    }
-  done:
-    *d++ = '\0';
-  error:
-    *t = (char *) p;
-    return (char *) word;
-}
 
 
 char *
@@ -555,7 +514,7 @@ process_options(int argc, char *argv[])
 int
 main(int argc, char *argv[])
 {
-    char *p, *t;
+    char *p;
     char buf[BUFSIZE];
     char *username;
     char *group;
@@ -619,15 +578,19 @@ main(int argc, char *argv[])
 	    fprintf(stderr, "Invalid Request\n");
 	    goto error;
 	}
-	username = strwordtok(buf, &t);
-	for (n = 0; (group = strwordtok(NULL, &t)) != NULL; n++)
+	username = strtok(buf, " ");
+	for (n = 0; (group = strtok(NULL, " ")) != NULL; n++) {
+	    rfc1738_unescape(group);
 	    groups[n] = group;
+	}
 	groups[n] = NULL;
 
 	if (NULL == username) {
 	    fprintf(stderr, "Invalid Request\n");
 	    goto error;
 	}
+	rfc1738_unescape(username);
+
 	if ((use_global ? Valid_Global_Groups(username, groups) : Valid_Local_Groups(username, groups))) {
 	    printf("OK\n");
 	} else {
