@@ -176,6 +176,14 @@ storeCossUnlink(SwapDir * SD, StoreEntry * e)
     storeCossRemove(SD, e);
 }
 
+void
+storeCossRecycle(SwapDir * SD, StoreEntry * e)
+{
+    debug(79, 3) ("storeCossRecycle: %s: offset %d\n", SD->path, e->swap_filen);
+    storeCossUnlink(SD, e);
+}
+
+
 
 storeIOState *
 storeCossCreate(SwapDir * SD, StoreEntry * e, STFNCB * file_callback, STIOCB * callback, void *callback_data)

@@ -111,6 +111,7 @@ extern STOBJCLOSE storeDiskdClose;
 extern STOBJREAD storeDiskdRead;
 extern STOBJWRITE storeDiskdWrite;
 extern STOBJUNLINK storeDiskdUnlink;
+extern STOBJRECYCLE storeDiskdRecycle;
 
 #define SHMBUF_BLKSZ SM_PAGE_SIZE
 

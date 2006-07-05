@@ -47,5 +47,6 @@ extern STOBJCLOSE storeUfsClose;
 extern STOBJREAD storeUfsRead;
 extern STOBJWRITE storeUfsWrite;
 extern STOBJUNLINK storeUfsUnlink;
+extern STOBJRECYCLE storeUfsRecycle;
 
 #endif

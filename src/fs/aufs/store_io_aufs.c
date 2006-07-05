@@ -246,6 +246,23 @@ storeAufsUnlink(SwapDir * SD, StoreEntry * e)
     statCounter.syscalls.disk.unlinks++;
 }
 
+void
+storeAufsRecycle(SwapDir * SD, StoreEntry * e)
+{
+    debug(79, 3) ("storeAufsUnlink: fileno %08X\n", e->swap_filen);
+
+    /* Release the object without releasing the underlying physical object */
+    storeExpireNow(e);
+    storeReleaseRequest(e);
+    if (e->swap_filen > -1) {
+	storeAufsDirReplRemove(e);
+	storeAufsDirMapBitReset(SD, e->swap_filen);
+	e->swap_filen = -1;
+	e->swap_dirn = -1;
+    }
+    storeRelease(e);
+}
+
 /*  === STATIC =========================================================== */
 
 static int

@@ -189,6 +189,7 @@ extern STOBJCLOSE storeCossClose;
 extern STOBJREAD storeCossRead;
 extern STOBJWRITE storeCossWrite;
 extern STOBJUNLINK storeCossUnlink;
+extern STOBJRECYCLE storeCossRecycle;
 extern STSYNC storeCossSync;
 
 extern void storeCossAdd(SwapDir * sd, StoreEntry * e, int curstripe);

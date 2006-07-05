@@ -595,15 +595,7 @@ storeAufsDirRebuildFromSwapLog(void *data)
 		 * because adding to store_swap_size happens in
 		 * the cleanup procedure.
 		 */
-		storeExpireNow(e);
-		storeReleaseRequest(e);
-		if (e->swap_filen > -1) {
-		    storeAufsDirReplRemove(e);
-		    storeAufsDirMapBitReset(SD, e->swap_filen);
-		    e->swap_filen = -1;
-		    e->swap_dirn = -1;
-		}
-		storeRelease(e);
+		storeRecycle(e);
 		rb->counts.objcount--;
 		rb->counts.cancelcount++;
 	    }
@@ -683,16 +675,7 @@ storeAufsDirRebuildFromSwapLog(void *data)
 	} else if (e) {
 	    /* key already exists, this swapfile not being used */
 	    /* junk old, load new */
-	    storeExpireNow(e);
-	    storeReleaseRequest(e);
-	    if (e->swap_filen > -1) {
-		storeAufsDirReplRemove(e);
-		/* Make sure we don't actually unlink the file */
-		storeAufsDirMapBitReset(SD, e->swap_filen);
-		e->swap_filen = -1;
-		e->swap_dirn = -1;
-	    }
-	    storeRelease(e);
+	    storeRecycle(e);
 	    rb->counts.dupcount++;
 	} else {
 	    /* URL doesnt exist, swapfile not in use */
@@ -763,15 +746,7 @@ storeAufsDirRebuildFromSwapLogOld(void *data)
 		 * because adding to store_swap_size happens in
 		 * the cleanup procedure.
 		 */
-		storeExpireNow(e);
-		storeReleaseRequest(e);
-		if (e->swap_filen > -1) {
-		    storeAufsDirReplRemove(e);
-		    storeAufsDirMapBitReset(SD, e->swap_filen);
-		    e->swap_filen = -1;
-		    e->swap_dirn = -1;
-		}
-		storeRelease(e);
+		storeRecycle(e);
 		rb->counts.objcount--;
 		rb->counts.cancelcount++;
 	    }
@@ -851,16 +826,7 @@ storeAufsDirRebuildFromSwapLogOld(void *data)
 	} else if (e) {
 	    /* key already exists, this swapfile not being used */
 	    /* junk old, load new */
-	    storeExpireNow(e);
-	    storeReleaseRequest(e);
-	    if (e->swap_filen > -1) {
-		storeAufsDirReplRemove(e);
-		/* Make sure we don't actually unlink the file */
-		storeAufsDirMapBitReset(SD, e->swap_filen);
-		e->swap_filen = -1;
-		e->swap_dirn = -1;
-	    }
-	    storeRelease(e);
+	    storeRecycle(e);
 	    rb->counts.dupcount++;
 	} else {
 	    /* URL doesnt exist, swapfile not in use */
@@ -1921,6 +1887,7 @@ storeAufsDirParse(SwapDir * sd, int index, char *path)
     sd->obj.read = storeAufsRead;
     sd->obj.write = storeAufsWrite;
     sd->obj.unlink = storeAufsUnlink;
+    sd->obj.recycle = storeAufsRecycle;
     sd->log.open = storeAufsDirOpenSwapLog;
     sd->log.close = storeAufsDirCloseSwapLog;
     sd->log.write = storeAufsDirSwapLog;

@@ -605,15 +605,11 @@ storeUfsDirRebuildFromSwapLog(void *data)
 		 * because adding to store_swap_size happens in
 		 * the cleanup procedure.
 		 */
-		storeExpireNow(e);
-		storeReleaseRequest(e);
-		if (e->swap_filen > -1) {
-		    storeUfsDirReplRemove(e);
-		    storeUfsDirMapBitReset(SD, e->swap_filen);
-		    e->swap_filen = -1;
-		    e->swap_dirn = -1;
-		}
-		storeRelease(e);
+		storeRecycle(e);
+		/*
+		 * XXX considering we might've canceled an object from another store;
+		 * XXX what should happen with these stats?
+		 */
 		rb->counts.objcount--;
 		rb->counts.cancelcount++;
 	    }
@@ -693,16 +689,7 @@ storeUfsDirRebuildFromSwapLog(void *data)
 	} else if (e) {
 	    /* key already exists, this swapfile not being used */
 	    /* junk old, load new */
-	    storeExpireNow(e);
-	    storeReleaseRequest(e);
-	    if (e->swap_filen > -1) {
-		storeUfsDirReplRemove(e);
-		/* Make sure we don't actually unlink the file */
-		storeUfsDirMapBitReset(SD, e->swap_filen);
-		e->swap_filen = -1;
-		e->swap_dirn = -1;
-	    }
-	    storeRelease(e);
+	    storeRecycle(e);
 	    rb->counts.dupcount++;
 	} else {
 	    /* URL doesnt exist, swapfile not in use */
@@ -773,15 +760,8 @@ storeUfsDirRebuildFromSwapLogOld(void *data)
 		 * because adding to store_swap_size happens in
 		 * the cleanup procedure.
 		 */
-		storeExpireNow(e);
-		storeReleaseRequest(e);
-		if (e->swap_filen > -1) {
-		    storeUfsDirReplRemove(e);
-		    storeUfsDirMapBitReset(SD, e->swap_filen);
-		    e->swap_filen = -1;
-		    e->swap_dirn = -1;
-		}
-		storeRelease(e);
+		storeRecycle(e);
+		/* XXX are these counters valid since e could be from another swapfs? */
 		rb->counts.objcount--;
 		rb->counts.cancelcount++;
 	    }
@@ -861,16 +841,7 @@ storeUfsDirRebuildFromSwapLogOld(void *data)
 	} else if (e) {
 	    /* key already exists, this swapfile not being used */
 	    /* junk old, load new */
-	    storeExpireNow(e);
-	    storeReleaseRequest(e);
-	    if (e->swap_filen > -1) {
-		storeUfsDirReplRemove(e);
-		/* Make sure we don't actually unlink the file */
-		storeUfsDirMapBitReset(SD, e->swap_filen);
-		e->swap_filen = -1;
-		e->swap_dirn = -1;
-	    }
-	    storeRelease(e);
+	    storeRecycle(e);
 	    rb->counts.dupcount++;
 	} else {
 	    /* URL doesnt exist, swapfile not in use */
@@ -1952,6 +1923,7 @@ storeUfsDirParse(SwapDir * sd, int index, char *path)
     sd->obj.read = storeUfsRead;
     sd->obj.write = storeUfsWrite;
     sd->obj.unlink = storeUfsUnlink;
+    sd->obj.recycle = storeUfsRecycle;
     sd->log.open = storeUfsDirOpenSwapLog;
     sd->log.close = storeUfsDirCloseSwapLog;
     sd->log.write = storeUfsDirSwapLog;

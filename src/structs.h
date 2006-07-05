@@ -1750,6 +1750,7 @@ struct _SwapDir {
 	STOBJREAD *read;
 	STOBJWRITE *write;
 	STOBJUNLINK *unlink;
+	STOBJRECYCLE *recycle;
     } obj;
     struct {
 	STLOGOPEN *open;

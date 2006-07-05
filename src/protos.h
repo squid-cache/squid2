@@ -957,6 +957,7 @@ extern void storeClose(storeIOState *);
 extern void storeRead(storeIOState *, char *, size_t, squid_off_t, STRCB *, void *);
 extern void storeWrite(storeIOState *, char *, size_t, FREE *);
 extern void storeUnlink(StoreEntry *);
+extern void storeRecycle(StoreEntry *);
 extern squid_off_t storeOffset(storeIOState *);
 
 /*

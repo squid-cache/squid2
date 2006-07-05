@@ -119,6 +119,13 @@ storeUnlink(StoreEntry * e)
     SD->obj.unlink(SD, e);
 }
 
+void
+storeRecycle(StoreEntry * e)
+{
+    SwapDir *SD = INDEXSD(e->swap_dirn);
+    SD->obj.recycle(SD, e);
+}
+
 squid_off_t
 storeOffset(storeIOState * sio)
 {

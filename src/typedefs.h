@@ -310,6 +310,7 @@ typedef void STOBJCLOSE(SwapDir *, storeIOState *);
 typedef void STOBJREAD(SwapDir *, storeIOState *, char *, size_t, squid_off_t, STRCB *, void *);
 typedef void STOBJWRITE(SwapDir *, storeIOState *, char *, size_t, squid_off_t, FREE *);
 typedef void STOBJUNLINK(SwapDir *, StoreEntry *);
+typedef void STOBJRECYCLE(SwapDir *, StoreEntry *);
 
 typedef void STLOGOPEN(SwapDir *);
 typedef void STLOGCLOSE(SwapDir *);

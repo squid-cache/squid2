@@ -79,5 +79,6 @@ extern STOBJCLOSE storeAufsClose;
 extern STOBJREAD storeAufsRead;
 extern STOBJWRITE storeAufsWrite;
 extern STOBJUNLINK storeAufsUnlink;
+extern STOBJRECYCLE storeAufsRecycle;
 
 #endif
