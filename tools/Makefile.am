@@ -17,12 +17,14 @@ check_PROGRAMS=
 SUBDIRS		= 
 
 bin_PROGRAMS = \
-	squidclient
+	squidclient \
+	cossdump
 
 libexec_PROGRAMS = \
 	cachemgr$(CGIEXT)
 
 squidclient_SOURCES = squidclient.c
+cossdump_SOURCES = cossdump.c
 cachemgr__CGIEXT__SOURCES = cachemgr.c
 cachemgr__CGIEXT__CFLAGS = -DDEFAULT_CACHEMGR_CONFIG=\"$(DEFAULT_CACHEMGR_CONFIG)\" $(AM_CFLAGS)
 

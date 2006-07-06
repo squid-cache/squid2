@@ -45,7 +45,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 check_PROGRAMS =
-bin_PROGRAMS = squidclient$(EXEEXT)
+bin_PROGRAMS = squidclient$(EXEEXT) cossdump$(EXEEXT)
 libexec_PROGRAMS = cachemgr$(CGIEXT)$(EXEEXT)
 subdir = tools
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
@@ -66,6 +66,10 @@ cachemgr__CGIEXT__OBJECTS = $(am_cachemgr__CGIEXT__OBJECTS)
 cachemgr__CGIEXT__LDADD = $(LDADD)
 am__DEPENDENCIES_1 =
 cachemgr__CGIEXT__DEPENDENCIES = $(am__DEPENDENCIES_1)
+am_cossdump_OBJECTS = cossdump.$(OBJEXT)
+cossdump_OBJECTS = $(am_cossdump_OBJECTS)
+cossdump_LDADD = $(LDADD)
+cossdump_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am_squidclient_OBJECTS = squidclient.$(OBJEXT)
 squidclient_OBJECTS = $(am_squidclient_OBJECTS)
 squidclient_LDADD = $(LDADD)
@@ -77,8 +81,10 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(cachemgr__CGIEXT__SOURCES) $(squidclient_SOURCES)
-DIST_SOURCES = $(cachemgr__CGIEXT__SOURCES) $(squidclient_SOURCES)
+SOURCES = $(cachemgr__CGIEXT__SOURCES) $(cossdump_SOURCES) \
+	$(squidclient_SOURCES)
+DIST_SOURCES = $(cachemgr__CGIEXT__SOURCES) $(cossdump_SOURCES) \
+	$(squidclient_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 	html-recursive info-recursive install-data-recursive \
 	install-exec-recursive install-info-recursive \
@@ -263,6 +269,7 @@ INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/include -I$(top_srcdir)/include -I$
 TESTS = $(check_PROGRAMS)
 SUBDIRS = 
 squidclient_SOURCES = squidclient.c
+cossdump_SOURCES = cossdump.c
 cachemgr__CGIEXT__SOURCES = cachemgr.c
 cachemgr__CGIEXT__CFLAGS = -DDEFAULT_CACHEMGR_CONFIG=\"$(DEFAULT_CACHEMGR_CONFIG)\" $(AM_CFLAGS)
 LDADD = -L../lib -lmiscutil $(XTRA_LIBS)
@@ -362,6 +369,9 @@ clean-libexecPROGRAMS:
 cachemgr$(CGIEXT)$(EXEEXT): $(cachemgr__CGIEXT__OBJECTS) $(cachemgr__CGIEXT__DEPENDENCIES) 
 	@rm -f cachemgr$(CGIEXT)$(EXEEXT)
 	$(LINK) $(cachemgr__CGIEXT__LDFLAGS) $(cachemgr__CGIEXT__OBJECTS) $(cachemgr__CGIEXT__LDADD) $(LIBS)
+cossdump$(EXEEXT): $(cossdump_OBJECTS) $(cossdump_DEPENDENCIES) 
+	@rm -f cossdump$(EXEEXT)
+	$(LINK) $(cossdump_LDFLAGS) $(cossdump_OBJECTS) $(cossdump_LDADD) $(LIBS)
 squidclient$(EXEEXT): $(squidclient_OBJECTS) $(squidclient_DEPENDENCIES) 
 	@rm -f squidclient$(EXEEXT)
 	$(LINK) $(squidclient_LDFLAGS) $(squidclient_OBJECTS) $(squidclient_LDADD) $(LIBS)
@@ -373,6 +383,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cachemgr__CGIEXT_-cachemgr.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cossdump.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/squidclient.Po@am__quote@
 
 .c.o:
