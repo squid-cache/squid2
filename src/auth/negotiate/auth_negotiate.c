@@ -166,7 +166,7 @@ authNegotiateParse(authScheme * scheme, int n_configured, char *param_str)
     } else if (strcasecmp(param_str, "keep_alive") == 0) {
 	parse_onoff(&negotiateConfig->keep_alive);
     } else {
-	debug(28, 0) ("unrecognised negotiate auth scheme parameter '%s'\n", param_str);
+	debug(29, 0) ("unrecognised negotiate auth scheme parameter '%s'\n", param_str);
     }
 }
 
@@ -212,7 +212,7 @@ authNegotiateInit(authScheme * scheme)
 	 * test, but that can wait for the modular parser to be integrated.
 	 */
 	if (negotiateConfig->authenticate && Config.onoff.pipeline_prefetch != 0) {
-	    debug(28, 1) ("pipeline prefetching incompatile with Negotiate authentication. Disabling pipeline_prefetch\n");
+	    debug(29, 1) ("pipeline prefetching incompatile with Negotiate authentication. Disabling pipeline_prefetch\n");
 	    Config.onoff.pipeline_prefetch = 0;
 	}
 	if (!negotiate_user_pool)

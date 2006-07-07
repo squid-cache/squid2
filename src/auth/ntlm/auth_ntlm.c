@@ -163,7 +163,7 @@ authNTLMParse(authScheme * scheme, int n_configured, char *param_str)
     } else if (strcasecmp(param_str, "keep_alive") == 0) {
 	parse_onoff(&ntlmConfig->keep_alive);
     } else {
-	debug(28, 0) ("unrecognised ntlm auth scheme parameter '%s'\n", param_str);
+	debug(29, 0) ("unrecognised ntlm auth scheme parameter '%s'\n", param_str);
     }
 }
 
@@ -207,7 +207,7 @@ authNTLMInit(authScheme * scheme)
 	 * state will be preserved.
 	 */
 	if (ntlmConfig->authenticate && Config.onoff.pipeline_prefetch != 0) {
-	    debug(28, 1) ("pipeline prefetching incompatile with NTLM authentication. Disabling pipeline_prefetch\n");
+	    debug(29, 1) ("pipeline prefetching incompatile with NTLM authentication. Disabling pipeline_prefetch\n");
 	    Config.onoff.pipeline_prefetch = 0;
 	}
 	if (!ntlm_user_pool)

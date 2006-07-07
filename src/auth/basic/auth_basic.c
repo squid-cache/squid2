@@ -352,7 +352,7 @@ authBasicParse(authScheme * scheme, int n_configured, char *param_str)
     } else if (strcasecmp(param_str, "blankpassword") == 0) {
 	parse_onoff(&basicConfig->blankpassword);
     } else {
-	debug(28, 0) ("unrecognised basic auth scheme parameter '%s'\n", param_str);
+	debug(29, 0) ("unrecognised basic auth scheme parameter '%s'\n", param_str);
     }
 }
 

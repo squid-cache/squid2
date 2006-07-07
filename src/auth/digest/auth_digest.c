@@ -1012,7 +1012,7 @@ authDigestParse(authScheme * scheme, int n_configured, char *param_str)
     } else if (strcasecmp(param_str, "post_workaround") == 0) {
 	parse_onoff(&digestConfig->PostWorkaround);
     } else {
-	debug(28, 0) ("unrecognised digest auth scheme parameter '%s'\n", param_str);
+	debug(29, 0) ("unrecognised digest auth scheme parameter '%s'\n", param_str);
     }
 }
 
