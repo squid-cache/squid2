@@ -553,9 +553,9 @@ storeAddVaryReadOld(void *data, char *buf, ssize_t size)
 	    cbdataFree(state);
 	    return;
 	}
-	hdr_sz = state->e->mem_obj->reply->hdr_sz;
-	state->seen_offset = state->e->mem_obj->reply->hdr_sz;
-	if (l >= state->e->mem_obj->reply->hdr_sz) {
+	hdr_sz = state->oe->mem_obj->reply->hdr_sz;
+	state->seen_offset = hdr_sz;
+	if (l >= hdr_sz) {
 	    state->seen_offset = l;
 	    l -= hdr_sz;
 	    p += hdr_sz;
@@ -586,6 +586,8 @@ storeAddVaryReadOld(void *data, char *buf, ssize_t size)
 		    state->current.this_key = 1;
 	    }
 	    debug(11, 3) ("storeAddVaryReadOld: Key: %s%s\n", state->current.key, state->current.this_key ? " (THIS)" : "");
+	} else if (!state->current.key) {
+	    debug(11, 1) ("storeAddVaryReadOld: Unexpected data '%s'\n", p);
 	} else if (strmatchbeg(p, "ETag: ", l) == 0) {
 	    /* etag field */
 	    p2 = p + 6;
@@ -838,6 +840,8 @@ storeLocateVaryRead(void *data, char *buf, ssize_t size)
 	    debug(11, 3) ("storeLocateVaryRead: Key: %s\n", state->current.key);
 	} else if (state->current.ignore) {
 	    /* Skip this entry */
+	} else if (!state->current.key) {
+	    debug(11, 1) ("storeLocateVaryRead: Unexpected data '%s'", p);
 	} else if (strmatchbeg(p, "ETag: ", l) == 0) {
 	    /* etag field */
 	    char *etag;
