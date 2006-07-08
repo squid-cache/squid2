@@ -457,7 +457,7 @@ authenticateAuthenticate(auth_user_request_t ** auth_user_request, http_hdr_type
 	/* no header or authentication failed/got corrupted - restart */
 	if (conn)
 	    conn->auth_type = AUTH_UNKNOWN;
-	debug(28, 4) ("authenticateAuthenticate: broken auth or no proxy_auth header. Requesting auth header.\n");
+	debug(29, 4) ("authenticateAuthenticate: broken auth or no proxy_auth header. Requesting auth header.\n");
 	/* something wrong with the AUTH credentials. Force a new attempt */
 	if (conn && conn->auth_user_request) {
 	    authenticateAuthUserRequestUnlock(conn->auth_user_request);
@@ -479,7 +479,7 @@ authenticateAuthenticate(auth_user_request_t ** auth_user_request, http_hdr_type
     if (proxy_auth && conn && conn->auth_user_request &&
 	authenticateUserAuthenticated(conn->auth_user_request) &&
 	strcmp(proxy_auth, authscheme_list[conn->auth_user_request->auth_user->auth_module - 1].authConnLastHeader(conn->auth_user_request))) {
-	debug(28, 2) ("authenticateAuthenticate: DUPLICATE AUTH - authentication header on already authenticated connection!. AU %p, Current user '%s' proxy_auth %s\n", conn->auth_user_request, authenticateUserRequestUsername(conn->auth_user_request), proxy_auth);
+	debug(29, 2) ("authenticateAuthenticate: DUPLICATE AUTH - authentication header on already authenticated connection!. AU %p, Current user '%s' proxy_auth %s\n", conn->auth_user_request, authenticateUserRequestUsername(conn->auth_user_request), proxy_auth);
 	/* remove this request struct - the link is already authed and it can't be to 
 	 * reauth.
 	 */
@@ -498,14 +498,14 @@ authenticateAuthenticate(auth_user_request_t ** auth_user_request, http_hdr_type
 #endif
     /* we have a proxy auth header and as far as we know this connection has
      * not had bungled connection oriented authentication happen on it. */
-    debug(28, 9) ("authenticateAuthenticate: header %s.\n", proxy_auth ? proxy_auth : NULL);
+    debug(29, 9) ("authenticateAuthenticate: header %s.\n", proxy_auth ? proxy_auth : NULL);
     if (*auth_user_request == NULL) {
-	debug(28, 9) ("authenticateAuthenticate: This is a new checklist test on FD:%d\n",
+	debug(29, 9) ("authenticateAuthenticate: This is a new checklist test on FD:%d\n",
 	    conn ? conn->fd : -1);
 	if (proxy_auth && !request->auth_user_request && conn && conn->auth_user_request) {
 	    int id = authenticateAuthSchemeId(proxy_auth) + 1;
 	    if (!conn->auth_user_request->auth_user || conn->auth_user_request->auth_user->auth_module != id) {
-		debug(28, 1) ("authenticateAuthenticate: Unexpected change of authentication scheme from '%s' to '%s' (client %s)\n",
+		debug(29, 1) ("authenticateAuthenticate: Unexpected change of authentication scheme from '%s' to '%s' (client %s)\n",
 		    authscheme_list[conn->auth_user_request->auth_user->auth_module - 1].typestr, proxy_auth, inet_ntoa(src_addr));
 		authenticateAuthUserRequestUnlock(conn->auth_user_request);
 		conn->auth_user_request = NULL;
@@ -515,7 +515,7 @@ authenticateAuthenticate(auth_user_request_t ** auth_user_request, http_hdr_type
 	if ((!request->auth_user_request)
 	    && (!conn || conn->auth_type == AUTH_UNKNOWN)) {
 	    /* beginning of a new request check */
-	    debug(28, 4) ("authenticateAuthenticate: no connection authentication type\n");
+	    debug(29, 4) ("authenticateAuthenticate: no connection authentication type\n");
 	    if (!authenticateValidateUser(*auth_user_request =
 		    authenticateGetAuthUser(proxy_auth))) {
 		/* the decode might have left a username for logging, or a message to
@@ -543,7 +543,7 @@ authenticateAuthenticate(auth_user_request_t ** auth_user_request, http_hdr_type
 		authenticateAuthUserRequestLock(*auth_user_request);
 	    } else {
 		/* failed connection based authentication */
-		debug(28, 4) ("authenticateAuthenticate: Auth user request %p conn-auth user request %p conn type %d authentication failed.\n",
+		debug(29, 4) ("authenticateAuthenticate: Auth user request %p conn-auth user request %p conn type %d authentication failed.\n",
 		    *auth_user_request, conn->auth_user_request, conn->auth_type);
 		authenticateAuthUserRequestUnlock(*auth_user_request);
 		*auth_user_request = NULL;
