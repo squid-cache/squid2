@@ -29,7 +29,17 @@ struct _tlv {
 #define xmalloc(a) malloc(a)
 #define xfree(a) free(a)
 
-#define squid_off_t off_t
+#if SIZEOF_INT64_T > SIZEOF_LONG && HAVE_STRTOLL
+typedef int64_t squid_off_t;
+#define SIZEOF_SQUID_OFF_T SIZEOF_INT64_T
+#define PRINTF_OFF_T PRId64
+#define strto_off_t (int64_t)strtoll
+#else
+typedef long squid_off_t;
+#define SIZEOF_SQUID_OFF_T SIZEOF_LONG
+#define PRINTF_OFF_T "ld"
+#define strto_off_t strtol
+#endif
 
 static tlv **
 storeSwapTLVAdd(int type, const void *ptr, size_t len, tlv ** tail)
@@ -43,7 +53,8 @@ storeSwapTLVAdd(int type, const void *ptr, size_t len, tlv ** tail)
     return &t->next;		/* return new tail pointer */
 }
 
-void
+#if UNUSED_CODE
+static void
 storeSwapTLVFree(tlv * n)
 {
     tlv *t;
@@ -53,8 +64,10 @@ storeSwapTLVFree(tlv * n)
 	memFree(t, MEM_TLV);
     }
 }
+#endif
 
-char *
+#if UNUSED_CODE
+static char *
 storeSwapMetaPack(tlv * tlv_list, int *length)
 {
     int buflen = 0;
@@ -83,8 +96,9 @@ storeSwapMetaPack(tlv * tlv_list, int *length)
     *length = buflen;
     return buf;
 }
+#endif
 
-tlv *
+static tlv *
 storeSwapMetaUnpack(const char *buf, int *hdr_len)
 {
     tlv *TLV;			/* we'll return this */
@@ -136,11 +150,10 @@ storeSwapMetaUnpack(const char *buf, int *hdr_len)
 #define	BLOCKSIZE 1024
 #define BLKBITS 10
 
-void
+static void
 parse_stripe(int stripeid, char *buf, int len)
 {
 	int j = 0;
-	int o = 0;
 	int bl = 0;
 	tlv *t, *tlv_list;
 	int64_t *l;
@@ -158,11 +171,12 @@ parse_stripe(int stripeid, char *buf, int len)
 		for (t = tlv_list; t; t = t->next) {
 			switch(t->type) {
 				case STORE_META_URL:
-					printf("    URL: %s\n", t->value);
+					/* XXX Is this OK? Is the URL guaranteed to be \0 terminated? */
+					printf("    URL: %s\n", (char *)t->value);
 					break;
 				case STORE_META_OBJSIZE:
 					l = t->value;
-					printf("Size: %lld (len %d)\n", *l, t->length);
+					printf("Size: %" PRINTF_OFF_T " (len %d)\n", *l, t->length);
 					break;
 			}
 		}
@@ -200,4 +214,5 @@ main(int argc, char *argv[])
 		parse_stripe(i, buf, len);
 		i++;
 	}
+	return 0;
 }
