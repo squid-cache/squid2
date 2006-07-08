@@ -1447,6 +1447,7 @@ statClientRequests(StoreEntry * s)
     StoreEntry *e;
     int fd;
     for (i = ClientActiveRequests.head; i; i = i->next) {
+	const char *p = NULL;
 	http = i->data;
 	assert(http);
 	conn = http->conn;
@@ -1482,16 +1483,20 @@ statClientRequests(StoreEntry * s)
 	    (long int) http->start.tv_sec,
 	    (int) http->start.tv_usec,
 	    tvSubDsec(http->start, current_time));
-	if (http->request->auth_user_request) {
-	    const char *p = NULL;
-
+	if (http->request->auth_user_request)
 	    p = authenticateUserRequestUsername(http->request->auth_user_request);
-
-	    if (!p)
-		p = "-";
-
-	    storeAppendPrintf(s, "username %s\n", p);
+	else if (http->request->extacl_user) {
+	    p = http->request->extacl_user;
 	}
+	if (!p && conn->rfc931[0])
+	    p = conn->rfc931;
+#if USE_SSL
+	if (!p)
+	    p = sslGetUserEmail(fd_table[conn->fd].ssl);
+#endif
+	if (!p)
+	    p = dash_str;
+	storeAppendPrintf(s, "username %s\n", p);
 #if DELAY_POOLS
 	storeAppendPrintf(s, "delay_pool %d\n", delayClient(http) >> 16);
 #endif
