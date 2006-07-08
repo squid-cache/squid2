@@ -313,13 +313,12 @@ authBasicCfgDump(StoreEntry * entry, const char *name, authScheme * scheme)
 	storeAppendPrintf(entry, " %s", list->key);
 	list = list->next;
     }
-    storeAppendPrintf(entry, "\n%s %s realm %s\n%s %s children %d\n%s %s credentialsttl %d seconds\n%s %s casesensitive %s\n%s %s blankpassword %s\n",
-	name, "basic", config->basicAuthRealm,
-	name, "basic", config->authenticateChildren,
-	name, "basic", (int) config->credentialsTTL,
-	name, "basic", config->casesensitive ? "on" : "off",
-	name, "basic", config->blankpassword ? "on" : "off");
-
+    storeAppendPrintf(entry, "\n%s %s realm %s\n", name, "basic", config->basicAuthRealm);
+    storeAppendPrintf(entry, "%s %s children %d\n", name, "basic", config->authenticateChildren);
+    storeAppendPrintf(entry, "%s %s concurrency %d\n", name, "basic", config->authenticateConcurrency);
+    storeAppendPrintf(entry, "%s %s credentialsttl %d seconds\n", name, "basic", (int) config->credentialsTTL);
+    storeAppendPrintf(entry, "%s %s casesensitive %s\n", name, "basic", config->casesensitive ? "on" : "off");
+    storeAppendPrintf(entry, "%s %s blankpassword %s\n", name, "basic", config->blankpassword ? "on" : "off");
 }
 
 static void
@@ -343,6 +342,8 @@ authBasicParse(authScheme * scheme, int n_configured, char *param_str)
 	requirePathnameExists("authparam basic program", basicConfig->authenticate->key);
     } else if (strcasecmp(param_str, "children") == 0) {
 	parse_int(&basicConfig->authenticateChildren);
+    } else if (strcasecmp(param_str, "concurrency") == 0) {
+	parse_int(&basicConfig->authenticateConcurrency);
     } else if (strcasecmp(param_str, "realm") == 0) {
 	parse_eol(&basicConfig->basicAuthRealm);
     } else if (strcasecmp(param_str, "credentialsttl") == 0) {
@@ -564,6 +565,7 @@ authBasicInit(authScheme * scheme)
 	    basicauthenticators = helperCreate("basicauthenticator");
 	basicauthenticators->cmdline = basicConfig->authenticate;
 	basicauthenticators->n_to_start = basicConfig->authenticateChildren;
+	basicauthenticators->concurrency = basicConfig->authenticateConcurrency;
 	basicauthenticators->ipc_type = IPC_STREAM;
 	helperOpenServers(basicauthenticators);
 	if (!init) {

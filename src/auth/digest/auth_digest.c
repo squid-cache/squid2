@@ -592,12 +592,12 @@ authDigestCfgDump(StoreEntry * entry, const char *name, authScheme * scheme)
 	storeAppendPrintf(entry, " %s", list->key);
 	list = list->next;
     }
-    storeAppendPrintf(entry, "\n%s %s realm %s\n%s %s children %d\n%s %s nonce_max_count %d\n%s %s nonce_max_duration %d seconds\n%s %s nonce_garbage_interval %d seconds\n",
-	name, "digest", config->digestAuthRealm,
-	name, "digest", config->authenticateChildren,
-	name, "digest", config->noncemaxuses,
-	name, "digest", (int) config->noncemaxduration,
-	name, "digest", (int) config->nonceGCInterval);
+    storeAppendPrintf(entry, "\n%s %s realm %s\n", name, "digest", config->digestAuthRealm);
+    storeAppendPrintf(entry, "%s %s children %d\n", name, "digest", config->authenticateChildren);
+    storeAppendPrintf(entry, "%s %s concurrency %d\n", name, "digest", config->authenticateConcurrency);
+    storeAppendPrintf(entry, "%s %s nonce_max_count %d\n", name, "digest", config->noncemaxuses);
+    storeAppendPrintf(entry, "%s %s nonce_max_duration %d seconds\n", name, "digest", (int) config->noncemaxduration);
+    storeAppendPrintf(entry, "%s %s nonce_garbage_interval %d seconds\n", name, "digest", (int) config->nonceGCInterval);
 }
 
 void
@@ -938,6 +938,7 @@ authDigestInit(authScheme * scheme)
 	    digestauthenticators = helperCreate("digestauthenticator");
 	digestauthenticators->cmdline = digestConfig->authenticate;
 	digestauthenticators->n_to_start = digestConfig->authenticateChildren;
+	digestauthenticators->concurrency = digestConfig->authenticateConcurrency;
 	digestauthenticators->ipc_type = IPC_STREAM;
 	helperOpenServers(digestauthenticators);
 	if (!init) {
@@ -997,6 +998,8 @@ authDigestParse(authScheme * scheme, int n_configured, char *param_str)
 	requirePathnameExists("authparam digest program", digestConfig->authenticate->key);
     } else if (strcasecmp(param_str, "children") == 0) {
 	parse_int(&digestConfig->authenticateChildren);
+    } else if (strcasecmp(param_str, "concurrency") == 0) {
+	parse_int(&digestConfig->authenticateConcurrency);
     } else if (strcasecmp(param_str, "realm") == 0) {
 	parse_eol(&digestConfig->digestAuthRealm);
     } else if (strcasecmp(param_str, "nonce_garbage_interval") == 0) {

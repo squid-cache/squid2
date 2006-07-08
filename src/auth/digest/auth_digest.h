@@ -77,6 +77,7 @@ struct _digest_nonce_h {
 /* configuration runtime data */
 struct _auth_digest_config {
     int authenticateChildren;
+    int authenticateConcurrency;
     char *digestAuthRealm;
     wordlist *authenticate;
     time_t nonceGCInterval;

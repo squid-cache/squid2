@@ -1833,6 +1833,13 @@ DOC_START
 	authenticator processes.
 	auth_param basic children 5
 
+	"concurrency" numberofconcurrentrequests
+	The number of concurrent requests/channels the helper supports.
+	Changes the protocol used to include a channel number first on
+	the request/response line, allowing multiple requests to be sent
+	to the same helper in parallell without wating for the response.
+	Must not be set unless it's known the helper supports this.
+
 	"realm" realmstring
 	Specifies the realm name which is to be reported to the client for
 	the basic proxy authentication scheme (part of the text the user
@@ -1893,6 +1900,13 @@ DOC_START
 	done via a (slow) network you are likely to need lots of
 	authenticator processes.
 	auth_param digest children 5
+
+	"concurrency" numberofconcurrentrequests
+	The number of concurrent requests/channels the helper supports.
+	Changes the protocol used to include a channel number first on
+	the request/response line, allowing multiple requests to be sent
+	to the same helper in parallell without wating for the response.
+	Must not be set unless it's known the helper supports this.
 
 	"realm" realmstring
 	Specifies the realm name which is to be reported to the client for the
