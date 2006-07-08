@@ -110,13 +110,20 @@ redirectStart(clientHttpRequest * http, RH * handler, void *data)
     r = cbdataAlloc(redirectStateData);
     r->orig_url = xstrdup(http->uri);
     r->client_addr = conn->log_addr;
+    r->client_ident = NULL;
     if (http->request->auth_user_request)
 	r->client_ident = authenticateUserRequestUsername(http->request->auth_user_request);
-    else if (conn->rfc931[0]) {
-	r->client_ident = conn->rfc931;
-    } else {
-	r->client_ident = dash_str;
+    else if (http->request->extacl_user) {
+	r->client_ident = http->request->extacl_user;
     }
+    if (!r->client_ident && conn->rfc931[0])
+	r->client_ident = conn->rfc931;
+#if USE_SSL
+    if (!r->client_ident)
+	r->client_ident = sslGetUserEmail(fd_table[conn->fd].ssl);
+#endif
+    if (!r->client_ident)
+	r->client_ident = dash_str;
     r->method_s = RequestMethodStr[http->request->method];
     r->handler = handler;
     r->data = data;
