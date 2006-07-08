@@ -30,6 +30,9 @@ Squid is a WWW Cache application developed by the Web Caching community.</EM>
 <P>
 <H2><A NAME="toc6">6.</A> <A HREF="#s6">Windows support</A></H2>
 
+<P>
+<H2><A NAME="toc7">7.</A> <A HREF="#s7">Key changes squid-2.6.STABLE1 to 2.6.STABLE2:</A></H2>
+
 
 <HR>
 <H2><A NAME="s1">1.</A> <A HREF="#toc1">Key changes from squid 2.5</A></H2>
@@ -121,6 +124,7 @@ membership check</LI>
 <DT><B>url_rewrite_concurrency</B><DD><P>Activates a new and more efficient helper protocol. Requires changes in the helper.</P>
 <DT><B>location_rewrite_*</B><DD><P>New helper hook for rewriting Location headers</P>
 <DT><B>auth_param basic blankpassword</B><DD><P>New option to allow the use of blank passwords.</P>
+<DT><B>auth_param basic/digest concurrency</B><DD><P>New option enabling a multiplexed helper protocol allowing the same helper to process multiple concurrent requests in an efficient manner. Requires support from the helper. (2.6.STABLE2 and later)</P>
 <DT><B>auth_param ntlm max_challenge_reuse / max_challenge_lifetime</B><DD><P>No longer supported</P>
 <DT><B>auth_param ntlm use_ntlm_negotiate</B><DD><P>Directive no longer supported. Use of NTLM negotiate packet is always on.</P>
 <DT><B>auth_param ntlm keep_alive</B><DD><P>New option to fine-tune the use of HTTP keep-alive in combination with NTLM</P>
@@ -319,6 +323,23 @@ redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd
 </P>
 </DL>
 </P>
+
+
+<H2><A NAME="s7">7.</A> <A HREF="#toc7">Key changes squid-2.6.STABLE1 to 2.6.STABLE2:</A></H2>
+
+<P>
+<UL>
+<LI>Bug #1650: transparent interception "Unable to forward this request at this time"</LI>
+<LI>Bug #1658: Memory corruption when using client-side SSL certificates</LI>
+<LI>COSS fixes</LI>
+<LI>Added the missing concurrency parameter to basic/digest auth schemes</LI>
+<LI>Bug #1669: SEGV in storeAddVaryReadOld</LI>
+<LI>a number of other minor and cosmetic bugfixes. See the list of 
+<A HREF="http://www.squid-cache.org/Versions/v2/2.6/changesets/">squid-2.6 changes</A> and the 
+<A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
+</UL>
+</P>
+
 
 
 </BODY>

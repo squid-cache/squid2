@@ -95,6 +95,7 @@ membership check
 <tag>url_rewrite_concurrency</tag>Activates a new and more efficient helper protocol. Requires changes in the helper.
 <tag>location_rewrite_*</tag>New helper hook for rewriting Location headers
 <tag>auth_param basic blankpassword</tag>New option to allow the use of blank passwords.
+<tag>auth_param basic/digest concurrency</tag>New option enabling a multiplexed helper protocol allowing the same helper to process multiple concurrent requests in an efficient manner. Requires support from the helper. (2.6.STABLE2 and later)
 <tag>auth_param ntlm max_challenge_reuse / max_challenge_lifetime</tag>No longer supported
 <tag>auth_param ntlm use_ntlm_negotiate</tag>Directive no longer supported. Use of NTLM negotiate packet is always on.
 <tag>auth_param ntlm keep_alive</tag>New option to fine-tune the use of HTTP keep-alive in combination with NTLM
@@ -255,6 +256,23 @@ redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd</verb>
 <item>Some external helpers may not work.
 </itemize>
 </descrip>
+
+
+<sect>Key changes squid-2.6.STABLE1 to 2.6.STABLE2:
+
+<p>
+<itemize>
+        <item>Bug #1650: transparent interception "Unable to forward this request at this time"
+	<item>Bug #1658: Memory corruption when using client-side SSL certificates
+	<item>COSS fixes
+	<item>Added the missing concurrency parameter to basic/digest auth schemes
+	<item>Bug #1669: SEGV in storeAddVaryReadOld
+	<item>a number of other minor and cosmetic bugfixes. See the list of <url
+		url="http://www.squid-cache.org/Versions/v2/2.6/changesets/"
+			name="squid-2.6 changes"> and the <url url="ChangeLog"
+				name="ChangeLog"> file for details.
+</itemize>
+
 
 
 </article>
