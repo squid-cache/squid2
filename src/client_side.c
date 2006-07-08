@@ -749,7 +749,7 @@ clientHandleETagReply(void *data, char *buf, ssize_t size)
 	return;
     }
     /* Send the new object to the client */
-    clientSendMoreData(data, buf, size);
+    clientSendMoreHeaderData(data, buf, size);
     return;
 }
 
