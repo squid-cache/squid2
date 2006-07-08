@@ -124,30 +124,30 @@ membership check
 
 <P>There is a few known issues in this version of Squid which we hope to correct in a later release
 
-<descrip>
-<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1590" name="#1590"></tag>"ETag Loop" warnings in cache.log
-<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=761" name="#761"></tag>assertion failed: cbdata.c:249: "c-&gt;locks &gt; 0" when using diskd
-<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1640" name="#1640"></tag>unstable if mixing coss cache_dir type with other cache_dir types (ufs/aufs/diskd).
-<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1602" name="#1602"></tag>Need to implement TCP fallback on truncated (large) DNS responses
-</descrip>
+<itemize>
+<item>Bug #1590: "ETag Loop" warnings in cache.log
+<item>Bug #761: assertion failed: cbdata.c:249: "c-&gt;locks &gt; 0" when using diskd
+<item>Bug #1640: unstable if mixing coss cache_dir type with other cache_dir types (ufs/aufs/diskd).
+<item>Bug #1602: Need to implement TCP fallback on truncated (large) DNS responses
+</itemize>
 
 <sect>Known limitations
 
 <P>In addition there is a set of limitations in this version of Squid which we hope to correct later
 
-<descrip>
-<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1420" name="#1420"></tag>302 responses with an Expires header is always cached
-<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1584" name="#1584"></tag>WCCPv2 unable to register with more than one router on Linux
-<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1059" name="#1059"></tag>mime.conf and referenced icons must be within chroot
-<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=692" name="#692"></tag>tcp_outgoing_address using an ident ACL does not work
-<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=581" name="#581"></tag>acl max_user_ip and multiple authentication schemes
-<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=528" name="#528"></tag>miss_access fails on "slow" acl types such as dst.
-<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=513" name="#513"></tag>squid -F is starting server sockets to early
-<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=457" name="#457"></tag>does not handle swap.state corruption properly
-<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=410" name="#410"></tag>unstable if runs out of disk space
-<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=355" name="#355"></tag>diskd may appear slow on low loads
-<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=219" name="#219"></tag>delay_pools stops working on -k reconfigure
-</descrip>
+<itemize>
+<item>Bug #1420: 302 responses with an Expires header is always cached
+<item>Bug #1584: WCCPv2 unable to register with more than one router on Linux
+<item>Bug #1059: mime.conf and referenced icons must be within chroot
+<item>Bug #692: tcp_outgoing_address using an ident ACL does not work
+<item>Bug #581: acl max_user_ip and multiple authentication schemes
+<item>Bug #528: miss_access fails on "slow" acl types such as dst.
+<item>Bug #513: squid -F is starting server sockets to early
+<item>Bug #457: does not handle swap.state corruption properly
+<item>Bug #410: unstable if runs out of disk space
+<item>Bug #355: diskd may appear slow on low loads
+<item>Bug #219: delay_pools stops working on -k reconfigure
+</itemize>
 
 <sect>Other issues
 
@@ -258,7 +258,7 @@ redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd</verb>
 </descrip>
 
 
-<sect>Key changes squid-2.6.STABLE1 to 2.6.STABLE2:
+<sect>Key changes squid-2.6.STABLE1 to 2.6.STABLE2
 
 <p>
 <itemize>
