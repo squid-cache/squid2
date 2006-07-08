@@ -1,4 +1,5 @@
 .deps
 Makefile
 cachemgr.cgi
+cossdump
 squidclient
