@@ -586,8 +586,10 @@ storeAddVaryReadOld(void *data, char *buf, ssize_t size)
 		    state->current.this_key = 1;
 	    }
 	    debug(11, 3) ("storeAddVaryReadOld: Key: %s%s\n", state->current.key, state->current.this_key ? " (THIS)" : "");
+#if 0				/* This condition is not correct here.. current.key is always null */
 	} else if (!state->current.key) {
 	    debug(11, 1) ("storeAddVaryReadOld: Unexpected data '%s'\n", p);
+#endif
 	} else if (strmatchbeg(p, "ETag: ", l) == 0) {
 	    /* etag field */
 	    p2 = p + 6;
@@ -602,6 +604,7 @@ storeAddVaryReadOld(void *data, char *buf, ssize_t size)
 		} else if (!state->key) {
 		    state->current.this_key = 1;
 		} else if (!state->current.this_key) {
+		    /* XXX This could use a bit of protection from corrupted entries where Key had not been seen before ETag.. */
 		    const cache_key *oldkey = storeKeyScan(state->current.key);
 		    StoreEntry *old_e = storeGet(oldkey);
 		    if (old_e)
