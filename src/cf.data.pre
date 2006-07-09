@@ -2015,7 +2015,6 @@ NOCOMMENT_START
 #auth_param negotiate keep_alive on
 #auth_param ntlm program <uncomment and complete this line to activate>
 #auth_param ntlm children 5
-#auth_param ntlm use_ntlm_negotiate on
 #auth_param ntlm keep_alive on
 #auth_param digest program <uncomment and complete this line>
 #auth_param digest children 5
