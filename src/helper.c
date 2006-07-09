@@ -255,7 +255,7 @@ helperStatefulSubmit(statefulhelper * hlp, const char *buf, HLPSCB * callback, v
     if (!srv)
 	srv = helperStatefulGetServer(hlp);
     if (srv) {
-	debug(84, 5) ("helperStatefulSubmit: sever %p, buf '%s'.\n", srv, buf ? buf : "NULL");
+	debug(84, 5) ("helperStatefulSubmit: server %p, buf '%s'.\n", srv, buf ? buf : "NULL");
 	assert(!srv->request);
 	assert(!srv->flags.busy);
 	helperStatefulDispatch(srv, r);
