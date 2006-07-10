@@ -209,6 +209,10 @@ storeCossRemove(SwapDir * sd, StoreEntry * e)
     debug(1, 1) ("storeCossRemove: %x: %d/%d\n", e, (int) e->swap_dirn, (e) e->swap_filen);
 #endif
     CossIndexNode *coss_node = e->repl.data;
+    /* Do what the LRU and HEAP repl policies do.. */
+    if (e->repl.data == NULL) {
+	return;
+    }
     assert(sd->index == e->swap_dirn);
     assert(e->swap_filen >= 0);
     e->repl.data = NULL;

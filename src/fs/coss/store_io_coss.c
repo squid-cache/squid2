@@ -711,7 +711,7 @@ storeCossCreateMemBuf(SwapDir * SD, int stripe, sfileno curfn, int *collision)
 	if (curfn > -1 && curfn == e->swap_filen)
 	    *collision = 1;	/* Mark an object alloc collision */
 	assert((o >= newmb->diskstart) && (o < newmb->diskend));
-	debug(79, 5) ("check: %s: stripe %d, releasing %p\n", SD->path, stripe, e);
+	debug(79, 3) ("COSS: %s: stripe %d, releasing filen %d (offset %d)\n", SD->path, stripe, e->swap_filen, o);
 	storeRelease(e);
 	numreleased++;
 	m = n;
@@ -956,6 +956,7 @@ storeCossCreateReadOp(CossInfo * cs, storeIOState * sio)
     /* Fill in details */
     op->type = COSS_OP_READ;
     op->sio = sio;
+    cbdataLock(op->sio);
     op->requestlen = cstate->requestlen;
     op->requestoffset = cstate->requestoffset;
     op->reqdiskoffset = cstate->reqdiskoffset;
@@ -970,8 +971,8 @@ void
 storeCossCompleteReadOp(CossInfo * cs, CossReadOp * op, int error)
 {
     storeIOState *sio = op->sio;
-    STRCB *callback = sio->read.callback;
-    void *callback_data = sio->read.callback_data;
+    STRCB *callback = NULL;
+    void *callback_data = NULL;
     CossState *cstate = sio->fsstate;
     ssize_t rlen = -1;
     char *p;
@@ -979,13 +980,15 @@ storeCossCompleteReadOp(CossInfo * cs, CossReadOp * op, int error)
 
     debug(79, 3) ("storeCossCompleteReadOp: op %p, op dependencies satisfied, completing\n", op);
 
-    assert(callback);
-    assert(callback_data);
     assert(storeCossGetPendingReloc(cs, sio->swap_filen) == NULL);
     /* and make sure we aren't on a pending op list! */
     assert(op->pr == NULL);
     /* Is the callback still valid? If so; copy the data and callback */
-    if (cbdataValid(callback_data) && cbdataValid(sio)) {
+    if (cbdataValid(sio) && cbdataValid(sio->read.callback_data)) {
+	callback = sio->read.callback;
+	callback_data = sio->read.callback_data;
+	assert(callback);
+	assert(callback_data);
 	sio->read.callback = NULL;
 	sio->read.callback_data = NULL;
 	if (error == 0) {
@@ -1001,6 +1004,8 @@ storeCossCompleteReadOp(CossInfo * cs, CossReadOp * op, int error)
 	}
 	callback(callback_data, cstate->requestbuf, rlen);
     }
+    cbdataUnlock(sio);		/* sio could have been freed here */
+    op->sio = NULL;
     /* Remove from the operation list */
     dlinkDelete(&op->node, &cs->pending_ops);
 
