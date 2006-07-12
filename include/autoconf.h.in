@@ -663,6 +663,9 @@
 /* Size of SIZEOF_INT64_T */
 #undef SIZEOF_INT64_T
 
+/* Size of SIZEOF_INT8_T */
+#undef SIZEOF_INT8_T
+
 /* The size of a `long', as computed by sizeof. */
 #undef SIZEOF_LONG
 
@@ -864,8 +867,11 @@
 /* Have long datatype */
 #undef int32_t
 
-/* Have unsigned __int64 datatype */
+/* Have __int64 datatype */
 #undef int64_t
+
+/* Have char datatype */
+#undef int8_t
 
 /* Have unsigned short datatype */
 #undef mode_t
@@ -896,8 +902,20 @@
 /* Have unsigned long datatype */
 #undef u_int32_t
 
-/* Have unsigned long long datatype */
+/* Have unsigned __int64 datatype */
 #undef u_int64_t
 
 /* Have unsigned char datatype */
 #undef u_int8_t
+
+/* Have unsigned int datatype */
+#undef uint16_t
+
+/* Have unsigned long datatype */
+#undef uint32_t
+
+/* Have unsigned __int64 datatype */
+#undef uint64_t
+
+/* Have unsigned char datatype */
+#undef uint8_t
