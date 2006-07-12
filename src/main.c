@@ -35,7 +35,7 @@
 
 #include "squid.h"
 #ifdef LINUX_TPROXY
-#include <linux/capability.h>
+#include <sys/capability.h>
 #include <sys/prctl.h>
 #endif
 
