@@ -1772,7 +1772,7 @@ AC_CHECK_SIZEOF(short)
 AC_CHECK_SIZEOF(int)
 AC_CHECK_SIZEOF(long)
 AC_CHECK_SIZEOF(long long)
-AC_CHECK_SIZEOF_SYSTYPE(__int64)
+AC_CHECK_SIZEOF_SYSTYPE(int8_t)
 AC_CHECK_SIZEOF_SYSTYPE(uint8_t)
 AC_CHECK_SIZEOF_SYSTYPE(u_int8_t)
 AC_CHECK_SIZEOF_SYSTYPE(int16_t)
@@ -1784,12 +1784,23 @@ AC_CHECK_SIZEOF_SYSTYPE(u_int32_t)
 AC_CHECK_SIZEOF_SYSTYPE(int64_t)
 AC_CHECK_SIZEOF_SYSTYPE(uint64_t)
 AC_CHECK_SIZEOF_SYSTYPE(u_int64_t)
+AC_CHECK_SIZEOF_SYSTYPE(__int64)
 
+dnl int8_t
+if test "x$ac_cv_sizeof_char" = "x1"; then
+	AC_CHECK_SYSTYPE(int8_t,char)
+fi
 dnl u_int8_t
 if test "x$ac_cv_sizeof_uint8_t" = "x1"; then
 	AC_CHECK_SYSTYPE(u_int8_t,uint8_t)
 elif test "x$ac_cv_sizeof_char" = "x1"; then
 	AC_CHECK_SYSTYPE(u_int8_t,unsigned char)
+fi
+dnl uint8_t
+if test "x$ac_cv_sizeof_u_int8_t" = "x1"; then
+	AC_CHECK_SYSTYPE(uint8_t,u_int8_t)
+elif test "x$ac_cv_sizeof_char" = "x1"; then
+	AC_CHECK_SYSTYPE(uint8_t,unsigned char)
 fi
 dnl int16_t
 if test "x$ac_cv_sizeof_short" = "x2"; then
@@ -1797,13 +1808,21 @@ if test "x$ac_cv_sizeof_short" = "x2"; then
 elif test "x$ac_cv_sizeof_int" = "x2"; then
 	AC_CHECK_SYSTYPE(int16_t,int)
 fi
-dnl u_int16t_t
+dnl u_int16_t
 if test "x$ac_cv_sizeof_uint16_t" = "x2"; then
 	AC_CHECK_SYSTYPE(u_int16_t,uint16_t)
 elif test "x$ac_cv_sizeof_short" = "x2"; then
 	AC_CHECK_SYSTYPE(u_int16_t,unsigned short)
 elif test "x$ac_cv_sizeof_int" = "x2"; then
 	AC_CHECK_SYSTYPE(u_int16_t,unsigned int)
+fi
+dnl uint16_t
+if test "x$ac_cv_sizeof_u_int16_t" = "x2"; then
+	AC_CHECK_SYSTYPE(uint16_t,u_int16_t)
+elif test "x$ac_cv_sizeof_short" = "x2"; then
+	AC_CHECK_SYSTYPE(uint16_t,unsigned short)
+elif test "x$ac_cv_sizeof_int" = "x2"; then
+	AC_CHECK_SYSTYPE(uint16_t,unsigned int)
 fi
 dnl int32_t
 if test "x$ac_cv_sizeof_int" = "x4"; then
@@ -1818,6 +1837,14 @@ elif test "x$ac_cv_sizeof_int" = "x4"; then
 	AC_CHECK_SYSTYPE(u_int32_t,unsigned int)
 elif test "x$ac_cv_sizeof_long" = "x4"; then
 	AC_CHECK_SYSTYPE(u_int32_t,unsigned long)
+fi
+dnl uint32_t
+if test "x$ac_cv_sizeof_u_int32_t" = "x4"; then
+	AC_CHECK_SYSTYPE(uint32_t,u_int32_t)
+elif test "x$ac_cv_sizeof_int" = "x4"; then
+	AC_CHECK_SYSTYPE(uint32_t,unsigned int)
+elif test "x$ac_cv_sizeof_long" = "x4"; then
+	AC_CHECK_SYSTYPE(uint32_t,unsigned long)
 fi
 dnl int64_t
 if test "x$ac_cv_sizeof_long" = "x8"; then
@@ -1835,7 +1862,17 @@ elif test "x$ac_cv_sizeof_long" = "x8"; then
 elif test "x$ac_cv_sizeof_long_long" = "x8"; then
 	AC_CHECK_SYSTYPE(u_int64_t,unsigned long long)
 elif test "x$ac_cv_sizeof___int64" = "x8"; then
-	AC_CHECK_SYSTYPE(int64_t,unsigned __int64)
+	AC_CHECK_SYSTYPE(u_int64_t,unsigned __int64)
+fi
+dnl uint64_t
+if test "x$ac_cv_sizeof_u_int64_t" = "x8"; then
+	AC_CHECK_SYSTYPE(uint64_t,u_int64_t)
+elif test "x$ac_cv_sizeof_long" = "x8"; then
+	AC_CHECK_SYSTYPE(uint64_t,unsigned long)
+elif test "x$ac_cv_sizeof_long_long" = "x8"; then
+	AC_CHECK_SYSTYPE(uint64_t,unsigned long long)
+elif test "x$ac_cv_sizeof___int64" = "x8"; then
+	AC_CHECK_SYSTYPE(uint64_t,unsigned __int64)
 fi
 
 AC_CHECK_SYSTYPE(pid_t, int)
