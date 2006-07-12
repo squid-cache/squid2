@@ -1935,7 +1935,7 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
 			continue;
 		    }
 		    request->flags.must_keepalive = 1;
-		    if (!request->flags.accelerated) {
+		    if (!request->flags.accelerated && !request->flags.transparent) {
 			httpHeaderPutStr(hdr, HDR_PROXY_SUPPORT, "Session-Based-Authentication");
 			httpHeaderPutStr(hdr, HDR_CONNECTION, "Proxy-support");
 		    }
