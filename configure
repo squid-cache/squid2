@@ -5597,7 +5597,7 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
     if test "$GCC" = "yes"; then
-	LDFLAGS="$CFLAGS -rdynamic"
+	LDFLAGS="$LDFLAGS -rdynamic"
     fi
   fi
 
