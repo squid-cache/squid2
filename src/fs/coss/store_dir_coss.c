@@ -989,9 +989,9 @@ storeDirCoss_ReadStripe(RebuildState * rb)
     }
 #if USE_AUFSOPS
     /* XXX this should be a prime candidate to use a modified aioRead which doesn't malloc a damned buffer */
-    aioRead(cs->fd, cs->rebuild.curstripe * COSS_MEMBUF_SZ, COSS_MEMBUF_SZ, storeDirCoss_ReadStripeComplete, rb);
+    aioRead(cs->fd, (off_t) cs->rebuild.curstripe * COSS_MEMBUF_SZ, COSS_MEMBUF_SZ, storeDirCoss_ReadStripeComplete, rb);
 #else
-    a_file_read(&cs->aq, cs->fd, cs->rebuild.buf, COSS_MEMBUF_SZ, cs->rebuild.curstripe * COSS_MEMBUF_SZ, storeDirCoss_ReadStripeComplete, rb);
+    a_file_read(&cs->aq, cs->fd, cs->rebuild.buf, COSS_MEMBUF_SZ, (off_t) cs->rebuild.curstripe * COSS_MEMBUF_SZ, storeDirCoss_ReadStripeComplete, rb);
 #endif
 }
 
