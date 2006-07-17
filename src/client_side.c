@@ -3699,11 +3699,23 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 	    http->flags.internal = 1;
 	    debug(33, 5) ("INTERNAL REWRITE: '%s'\n", http->uri);
 	} else if (vhost && (t = mime_get_header(req_hdr, "Host"))) {
+	    char *portstr = strchr(t, ':');
+	    int port = 0;
+	    if (portstr) {
+		*portstr++ = '\0';
+		port = atoi(portstr);
+	    }
+	    if (vport && !port)
+		port = vport;
 	    url_sz = strlen(url) + 32 + Config.appendDomainLen +
 		strlen(t);
 	    http->uri = xcalloc(url_sz, 1);
-	    snprintf(http->uri, url_sz, "%s://%s%s",
-		conn->port->protocol, t, url);
+	    if (vport)
+		snprintf(http->uri, url_sz, "%s://%s:%d%s",
+		    conn->port->protocol, t, port, url);
+	    else
+		snprintf(http->uri, url_sz, "%s://%s%s",
+		    conn->port->protocol, t, url);
 	    debug(33, 5) ("VHOST REWRITE: '%s'\n", http->uri);
 	} else if (conn->port->defaultsite) {
 	    url_sz = strlen(url) + 32 + Config.appendDomainLen +
