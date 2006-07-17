@@ -711,7 +711,7 @@ storeCossCreateMemBuf(SwapDir * SD, int stripe, sfileno curfn, int *collision)
 	if (curfn > -1 && curfn == e->swap_filen)
 	    *collision = 1;	/* Mark an object alloc collision */
 	assert((o >= newmb->diskstart) && (o < newmb->diskend));
-	debug(79, 3) ("COSS: %s: stripe %d, releasing filen %d (offset %d)\n", SD->path, stripe, e->swap_filen, o);
+	debug(79, 3) ("COSS: %s: stripe %d, releasing filen %d (offset %" PRINTF_OFF_T ")\n", SD->path, stripe, e->swap_filen, (squid_off_t) o);
 	storeRelease(e);
 	numreleased++;
 	m = n;
