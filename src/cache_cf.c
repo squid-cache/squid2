@@ -124,6 +124,9 @@ static void free_https_port_list(https_port_list **);
 static int check_null_https_port_list(const https_port_list *);
 #endif
 #endif /* USE_SSL */
+static void parse_programline(wordlist **);
+static void free_programline(wordlist **);
+static void dump_programline(StoreEntry *, const char *, const wordlist *);
 
 void
 self_destruct(void)
@@ -2404,7 +2407,7 @@ parse_ushort(u_short * var)
 }
 
 static void
-dump_wordlist(StoreEntry * entry, const char *name, wordlist * list)
+dump_wordlist(StoreEntry * entry, const char *name, const wordlist * list)
 {
     while (list != NULL) {
 	storeAppendPrintf(entry, "%s %s\n", name, list->key);
@@ -3168,4 +3171,24 @@ free_access_log(customlog ** definitions)
 	safe_free(log->filename);
 	xfree(log);
     }
+}
+
+static void
+parse_programline(wordlist ** line)
+{
+    if (*line)
+	self_destruct();
+    parse_wordlist(line);
+}
+
+static void
+free_programline(wordlist ** line)
+{
+    free_wordlist(line);
+}
+
+static void
+dump_programline(StoreEntry * entry, const char *name, const wordlist * line)
+{
+    dump_wordlist(entry, name, line);
 }

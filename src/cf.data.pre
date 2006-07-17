@@ -1643,7 +1643,7 @@ DOC_END
 
 
 NAME: url_rewrite_program redirect_program
-TYPE: wordlist
+TYPE: programline
 LOC: Config.Program.url_rewrite.command
 DEFAULT: none
 DOC_START
@@ -1713,7 +1713,7 @@ DOC_START
 DOC_END
 
 NAME: location_rewrite_program
-TYPE: wordlist
+TYPE: programline
 LOC: Config.Program.location_rewrite.command
 DEFAULT: none
 DOC_START
