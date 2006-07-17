@@ -62,6 +62,7 @@ requestDestroy(request_t * req)
     safe_free(req->canonical);
     safe_free(req->vary_hdr);
     safe_free(req->vary_headers);
+    stringClean(&req->vary_encoding);
     safe_free(req->urlgroup);
     safe_free(req->extacl_user);
     safe_free(req->extacl_passwd);

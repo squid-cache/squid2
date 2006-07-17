@@ -928,7 +928,6 @@ storeLocateVary(StoreEntry * e, int offset, const char *vary_data, String accept
     if (strBuf(accept_encoding))
 	state->accept_encoding = xstrdup(strBuf(accept_encoding));
     state->data = memPoolAlloc(VaryData_pool);
-    stringClean(&accept_encoding);
     state->e = e;
     storeLockObject(state->e);
     state->callback_data = cbdata;
