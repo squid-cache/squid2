@@ -571,7 +571,7 @@ enableCoredumps(void)
     if (strcmp(Config.coredump_dir, "none") == 0)
 	return;
 
-#if HAVE_PRCTL && defined(PR_SET_DUMPABLE) && 0
+#if HAVE_PRCTL && defined(PR_SET_DUMPABLE)
     /* Set Linux DUMPABLE flag */
     if (prctl(PR_SET_DUMPABLE, 1, 0, 0, 0) != 0)
 	debug(50, 2) ("prctl: %s\n", xstrerror());
@@ -674,7 +674,7 @@ no_suid(void)
     uid_t uid;
     leave_suid();
     uid = geteuid();
-    debug(21, 3) ("leave_suid: PID %d giving up root priveleges forever\n", (int) getpid());
+    debug(21, 3) ("no_suid: PID %d giving up root priveleges forever\n", (int) getpid());
 #if HAVE_SETRESUID
     if (setresuid(uid, uid, uid) < 0)
 	debug(50, 1) ("no_suid: setresuid: %s\n", xstrerror());
