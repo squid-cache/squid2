@@ -1188,6 +1188,7 @@ void strwordquote(MemBuf * mb, const char *str);
 
 void setUmask(mode_t mask);
 int xusleep(unsigned int usec);
+void keepCapabilities(void);
 
 #if USE_HTCP
 extern void htcpInit(void);

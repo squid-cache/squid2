@@ -37,6 +37,10 @@
 
 #if LINUX_TPROXY
 #undef _POSIX_SOURCE
+/* Ugly glue to get around linux header madness colliding with glibc */
+#define _LINUX_TYPES_H
+#define _LINUX_FS_H
+typedef uint32_t __u32;
 #include <sys/capability.h>
 #endif
 
@@ -1291,4 +1295,16 @@ xusleep(unsigned int usec)
     sl.tv_sec = usec / 1000000;
     sl.tv_usec = usec % 1000000;
     return select(0, NULL, NULL, NULL, &sl);
+}
+
+void
+keepCapabilities(void)
+{
+#if LINUX_TPROXY
+    if (need_linux_tproxy) {
+	if (prctl(PR_SET_KEEPCAPS, 1, 0, 0, 0)) {
+	    debug(1, 1) ("Error - tproxy support requires capability setting which has failed.  Continuing without tproxy support\n");
+	}
+    }
+#endif
 }
