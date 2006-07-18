@@ -1,4 +1,41 @@
-Changes to squid-2.6 (1 Jul 2006)
+Changes to squid-2.6.STABLE2 (not yet released)
+
+	- WCCP2 doesn't update statCounter.syscalls.sock.sendtos counter.
+	- Releasenotes Table of contents should use relative links without
+	  filename.
+	- Reject HTTP/0.9 formatted CONNECT requests. 
+	- Cosmetic cleanup to use safe_free instead of xfree + manual
+	  assign to NULL
+	- Bug #1650: transparent interception "Unable to forward this
+	  request at this time"
+	- Bug #1658: Memory corruption when using client-side SSL certificates
+	- Add storeRecycle; a storeIO method to delete a StoreEntry w/out
+	  deleting the underlying object.
+	- Many COSS fixes and new coss data dumper utility for diagnostics
+	- Bug #1669: SEGV in storeAddVaryReadOld
+	- Many fixes in debug sections and spelling of debug messages
+	- Don't keep client connection persistent if there was a mismatch in the
+	  response size.
+	- Move eventCleanup debug messages to debug level 2 (was 0)
+	- Add the missing concurrency parameters to basic and digest auth
+	  schemes
+	- Bug #1670: assertion failure: i->prefix_size > 0 in client_side.c:2509
+	- Log SSL user id in the custom log User name format (%un)
+	- Bug #1653: Username info not logged into Cachemgr active_requests statistics
+	- Added to the redirectors interface the support for SSL client certificate
+	- squid.conf.default cleanup to remove references to old options
+	- Fix many filedescriptors in combination with TPROXY
+	- Fix connection pinning in transparently intercepted connections
+	- Bug #1679: LDFLAGS not honored in some programs.
+	- Minor cleanup of port numbers in transparent interception or vhost + vport
+	- Bug #1671: transparent interception fails with FreeBSD ipfw or Linux-2.2 ipchains
+	- Bug #1660: Accept-Encoding related memory corruption
+	- Bug #1651: Odd results if url_rewriter defined multiple times
+	- Bug #1655: Squid does not produce coredumps under linux when started as root
+	- Bug #1673: cache digests not served to other caches
+	- Cleanup of Linux capability code used by tproxy
+	- Bug #1684: xstrdup: tried to dup a NULL pointer!
+Changes to squid-2.6.STABLE1 (1 Jul 2006)
 	
 	- New --enable-default-hostsfile configure option
 	- Added username info to active_requests cachemgr stats

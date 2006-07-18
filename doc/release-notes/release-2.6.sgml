@@ -264,9 +264,14 @@ redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd</verb>
 <itemize>
         <item>Bug #1650: transparent interception "Unable to forward this request at this time"
 	<item>Bug #1658: Memory corruption when using client-side SSL certificates
-	<item>COSS fixes
+	<item>Multiple fixes to the expreimental COSS cache_dir type
 	<item>Added the missing concurrency parameter to basic/digest auth schemes
 	<item>Bug #1669: SEGV in storeAddVaryReadOld
+	<item>Bug #1670: assertion failure: i-&gt;prefix_size &gt; 0 in client_side.c:2509
+	<item>Bug #1671: transparent interception fails with FreeBSD ipfw or Linux-2.2 ipchains
+	<item>Bug #1660: Accept-Encoding related memory corruption
+	<item>Bug #1673: cache digests not served to other caches
+	<item>Bug #1684: xstrdup: tried to dup a NULL pointer!
 	<item>a number of other minor and cosmetic bugfixes. See the list of <url
 		url="http://www.squid-cache.org/Versions/v2/2.6/changesets/"
 			name="squid-2.6 changes"> and the <url url="ChangeLog"
