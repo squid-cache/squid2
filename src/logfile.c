@@ -270,7 +270,10 @@ logfilePrintf(va_alist)
 	if (fmt[strlen(fmt) - 1] == '\n')
 	    buf[8191] = '\n';
     }
-    logfileWrite(lf, buf, (size_t) s);
+    if (s > 0)
+	logfileWrite(lf, buf, (size_t) s);
+    else
+	debug(50, 1) ("Failed to format log data for %s\n", lf->path);
     va_end(args);
 }
 
