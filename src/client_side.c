@@ -673,15 +673,8 @@ static void
 clientHandleETagMiss(clientHttpRequest * http)
 {
     StoreEntry *entry = http->entry;
-    MemObject *mem = entry->mem_obj;
     request_t *request = http->request;
 
-    if (mem->reply) {
-	const char *etag = httpHeaderGetStr(&mem->reply->header, HDR_ETAG);
-	if (etag) {
-	    storeAddVary(mem->url, mem->log_url, mem->method, NULL, httpHeaderGetStr(&mem->reply->header, HDR_ETAG), request->vary_hdr, request->vary_headers, strBuf(request->vary_encoding));
-	}
-    }
     request->done_etag = 1;
     if (request->vary) {
 	storeLocateVaryDone(request->vary);
@@ -745,6 +738,21 @@ clientHandleETagReply(void *data, char *buf, ssize_t size)
     if (HTTP_NOT_MODIFIED == mem->reply->sline.status) {
 	/* Remember the ETag and restart */
 	memFree(buf, MEM_CLIENT_SOCK_BUF);
+	if (mem->reply) {
+	    request_t *request = http->request;
+	    const char *etag = httpHeaderGetStr(&mem->reply->header, HDR_ETAG);
+	    const char *vary = request->vary_headers;
+	    int has_vary = httpHeaderHas(&entry->mem_obj->reply->header, HDR_VARY);
+#if X_ACCELERATOR_VARY
+	    has_vary |= httpHeaderHas(&entry->mem_obj->reply->header, HDR_X_ACCELERATOR_VARY);
+#endif
+	    if (has_vary)
+		vary = httpMakeVaryMark(request, mem->reply);
+
+	    if (etag && vary) {
+		storeAddVary(mem->url, mem->log_url, mem->method, NULL, httpHeaderGetStr(&mem->reply->header, HDR_ETAG), request->vary_hdr, request->vary_headers, strBuf(request->vary_encoding));
+	    }
+	}
 	clientHandleETagMiss(http);
 	return;
     }
