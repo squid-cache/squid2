@@ -257,6 +257,7 @@ typedef enum {
     HDR_X_ERROR_STATUS,		/* errormap, received HTTP status line */
     HDR_FRONT_END_HTTPS,
     HDR_PROXY_SUPPORT,
+    HDR_KEEP_ALIVE,
     HDR_OTHER,
     HDR_ENUM_END
 } http_hdr_type;

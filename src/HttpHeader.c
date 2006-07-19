@@ -134,6 +134,7 @@ static const HttpHeaderFieldAttrs HeadersAttrs[] =
     {"X-Error-URL", HDR_X_ERROR_URL, ftStr},
     {"X-Error-Status", HDR_X_ERROR_STATUS, ftInt},
     {"Front-End-Https", HDR_FRONT_END_HTTPS, ftStr},
+    {"Keep-Alive", HDR_KEEP_ALIVE, ftStr},
     {"Other:", HDR_OTHER, ftStr}	/* ':' will not allow matches */
 };
 static HttpHeaderFieldInfo *Headers = NULL;
@@ -389,7 +390,10 @@ httpHeaderUpdate(HttpHeader * old, const HttpHeader * fresh, const HttpHeaderMas
 	/* deny bad guys (ok to check for HDR_OTHER) here */
 	if (denied_mask && CBIT_TEST(*denied_mask, e->id))
 	    continue;
-	httpHeaderDelByName(old, strBuf(e->name));
+	if (e->id != HDR_OTHER)
+	    httpHeaderDelById(old, e->id);
+	else
+	    httpHeaderDelByName(old, strBuf(e->name));
 	httpHeaderAddEntry(old, httpHeaderEntryClone(e));
     }
 }
@@ -650,6 +654,8 @@ httpHeaderDelById(HttpHeader * hdr, http_hdr_type id)
 /*
  * deletes an entry at pos and leaves a gap; leaving a gap makes it
  * possible to iterate(search) and delete fields at the same time
+ * WARNING: Doesn't update the header mask. Call httpHeaderRefreshMask
+ * when done with the delete operations.
  */
 void
 httpHeaderDelAt(HttpHeader * hdr, HttpHeaderPos pos)
@@ -663,6 +669,22 @@ httpHeaderDelAt(HttpHeader * hdr, HttpHeaderPos pos)
     assert(hdr->len >= 0);
     httpHeaderEntryDestroy(e);
 }
+
+/*
+ * Refreshes the header mask. Useful after httpHeaderDelAt constructs
+ */
+void
+httpHeaderRefreshMask(HttpHeader * hdr)
+{
+    HttpHeaderPos pos = HttpHeaderInitPos;
+    HttpHeaderEntry *e;
+    httpHeaderMaskInit(&hdr->mask, 0);
+    debug(55, 7) ("refreshing the mask in hdr %p\n", hdr);
+    while ((e = httpHeaderGetEntry(hdr, &pos))) {
+	CBIT_SET(hdr->mask, e->id);
+    }
+}
+
 
 
 /* appends an entry; 

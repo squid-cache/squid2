@@ -448,6 +448,7 @@ extern String httpHeaderGetByNameListMember(const HttpHeader * hdr, const char *
 extern int httpHeaderDelByName(HttpHeader * hdr, const char *name);
 extern int httpHeaderDelById(HttpHeader * hdr, http_hdr_type id);
 extern void httpHeaderDelAt(HttpHeader * hdr, HttpHeaderPos pos);
+extern void httpHeaderRefreshMask(HttpHeader * hdr);
 /* avoid using these low level routines */
 extern HttpHeaderEntry *httpHeaderGetEntry(const HttpHeader * hdr, HttpHeaderPos * pos);
 extern HttpHeaderEntry *httpHeaderFindEntry(const HttpHeader * hdr, http_hdr_type id);

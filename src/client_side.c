@@ -1855,14 +1855,9 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
 {
     HttpHeader *hdr = &rep->header;
     request_t *request = http->request;
-#if DONT_FILTER_THESE
-    /* but you might want to if you run Squid as an HTTP accelerator */
-    /* httpHeaderDelById(hdr, HDR_ACCEPT_RANGES); */
-    httpHeaderDelById(hdr, HDR_ETAG);
-#endif
     httpHeaderDelById(hdr, HDR_PROXY_CONNECTION);
     /* here: Keep-Alive is a field-name, not a connection directive! */
-    httpHeaderDelByName(hdr, "Keep-Alive");
+    httpHeaderDelById(hdr, HDR_KEEP_ALIVE);
     /* remove Set-Cookie if a hit */
     if (http->flags.hit)
 	httpHeaderDelById(hdr, HDR_SET_COOKIE);
@@ -1872,18 +1867,21 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
 	String strConnection = httpHeaderGetList(hdr, HDR_CONNECTION);
 	const HttpHeaderEntry *e;
 	HttpHeaderPos pos = HttpHeaderInitPos;
+	int headers_deleted = 0;
 	/*
 	 * think: on-average-best nesting of the two loops (hdrEntry
 	 * and strListItem) @?@
 	 */
-	/*
-	 * maybe we should delete standard stuff ("keep-alive","close")
-	 * from strConnection first?
-	 */
 	while ((e = httpHeaderGetEntry(hdr, &pos))) {
-	    if (strListIsMember(&strConnection, strBuf(e->name), ','))
+	    if (e->id == HDR_KEEP_ALIVE)
+		continue;	/* Common, and already taken care of above */
+	    if (strListIsMember(&strConnection, strBuf(e->name), ',')) {
 		httpHeaderDelAt(hdr, pos);
+		headers_deleted++;
+	    }
 	}
+	if (headers_deleted)
+	    httpHeaderRefreshMask(hdr);
 	httpHeaderDelById(hdr, HDR_CONNECTION);
 	stringClean(&strConnection);
     }
@@ -1927,6 +1925,7 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
 	(httpHeaderHas(hdr, HDR_WWW_AUTHENTICATE))) {
 	HttpHeaderPos pos = HttpHeaderInitPos;
 	HttpHeaderEntry *e;
+	int connection_auth_blocked = 0;
 	while ((e = httpHeaderGetEntry(hdr, &pos))) {
 	    if (e->id == HDR_WWW_AUTHENTICATE) {
 		const char *value = strBuf(e->value);
@@ -1940,6 +1939,7 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
 			(value[8] == '\0' || value[8] == ' '))) {
 		    if (request->flags.no_connection_auth) {
 			httpHeaderDelAt(hdr, pos);
+			connection_auth_blocked = 1;
 			continue;
 		    }
 		    request->flags.must_keepalive = 1;
@@ -1951,32 +1951,8 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
 		}
 	    }
 	}
-    }
-    /* Filter unproxyable authentication types */
-    if (http->log_type != LOG_TCP_DENIED &&
-	(httpHeaderHas(hdr, HDR_PROXY_AUTHENTICATE))) {
-	HttpHeaderPos pos = HttpHeaderInitPos;
-	HttpHeaderEntry *e;
-	while ((e = httpHeaderGetEntry(hdr, &pos))) {
-	    if (e->id == HDR_PROXY_AUTHENTICATE) {
-		const char *value = strBuf(e->value);
-		if ((strncasecmp(value, "NTLM", 4) == 0 &&
-			(value[4] == '\0' || value[4] == ' '))
-		    ||
-		    (strncasecmp(value, "Negotiate", 9) == 0 &&
-			(value[9] == '\0' || value[9] == ' '))
-		    ||
-		    (strncasecmp(value, "Kerberos", 8) == 0 &&
-			(value[8] == '\0' || value[8] == ' '))) {
-		    if (request->flags.no_connection_auth) {
-			httpHeaderDelAt(hdr, pos);
-			continue;
-		    }
-		    request->flags.must_keepalive = 1;
-		    break;
-		}
-	    }
-	}
+	if (connection_auth_blocked)
+	    httpHeaderRefreshMask(hdr);
     }
     /* Handle authentication headers */
     if (request->auth_user_request)

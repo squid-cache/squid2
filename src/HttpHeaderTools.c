@@ -468,7 +468,13 @@ httpHdrMangleList(HttpHeader * l, request_t * request)
 {
     HttpHeaderEntry *e;
     HttpHeaderPos p = HttpHeaderInitPos;
-    while ((e = httpHeaderGetEntry(l, &p)))
-	if (0 == httpHdrMangle(e, request))
+    int removed_headers = 0;
+    while ((e = httpHeaderGetEntry(l, &p))) {
+	if (0 == httpHdrMangle(e, request)) {
 	    httpHeaderDelAt(l, p);
+	    removed_headers++;
+	}
+    }
+    if (removed_headers)
+	httpHeaderRefreshMask(l);
 }
