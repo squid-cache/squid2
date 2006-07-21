@@ -3371,6 +3371,7 @@ aclMatchArp(void *dataptr, struct in_addr c)
     splayNode **Top = dataptr;
     struct arpreq arpReq;
 
+    memset(&arpReq, '\0', sizeof(arpReq));
     /* Get size of Windows ARP table */
     if (GetIpNetTable(NetTable, &ipNetTableLen, FALSE) != ERROR_INSUFFICIENT_BUFFER) {
 	debug(28, 0) ("Can't estimate ARP table size!\n");
@@ -3391,7 +3392,7 @@ aclMatchArp(void *dataptr, struct in_addr c)
     for (i = 0; i < NetTable->dwNumEntries; i++) {
 	if ((c.s_addr == NetTable->table[i].dwAddr) && (NetTable->table[i].dwType > 2)) {
 	    arpReq.arp_ha.sa_family = AF_UNSPEC;
-	    memcpy(arpReq.arp_ha.sa_data, NetTable->table[i].bPhysAddr, NetTable[i].table->dwPhysAddrLen);
+	    memcpy(arpReq.arp_ha.sa_data, NetTable->table[i].bPhysAddr, NetTable->table[i].dwPhysAddrLen);
 	}
     }
     xfree(NetTable);
