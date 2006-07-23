@@ -1998,7 +1998,7 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
     }
     /* Signal keep-alive if needed */
     httpHeaderPutStr(hdr,
-	http->flags.accel ? HDR_CONNECTION : HDR_PROXY_CONNECTION,
+	(http->flags.accel || http->flags.transparent) ? HDR_CONNECTION : HDR_PROXY_CONNECTION,
 	request->flags.proxy_keepalive ? "keep-alive" : "close");
 #if ADD_X_REQUEST_URI
     /*
