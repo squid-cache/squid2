@@ -230,8 +230,14 @@ sslReadServer(int fd, void *data)
     }
     cbdataLock(sslState);
     if (len < 0) {
-	debug(50, ignoreErrno(errno) ? 3 : 1)
-	    ("sslReadServer: FD %d: read failure: %s\n", fd, xstrerror());
+	int level = 1;
+#ifdef ECONNRESET
+	if (errno == ECONNRESET)
+	    level = 2;
+#endif
+	if (ignoreErrno(errno))
+	    level = 3;
+	debug(50, level) ("sslReadServer: FD %d: read failure: %s\n", fd, xstrerror());
 	if (!ignoreErrno(errno))
 	    comm_close(fd);
     } else if (len == 0) {
