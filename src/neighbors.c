@@ -1165,6 +1165,7 @@ peerCountMcastPeersStart(void *data)
     psstate->entry = fake;
     psstate->callback = NULL;
     psstate->callback_data = p;
+    cbdataLock(psstate->callback_data);
     psstate->ping.start = current_time;
     mem = fake->mem_obj;
     mem->request = requestLink(psstate->request);
@@ -1184,7 +1185,7 @@ peerCountMcastPeersStart(void *data)
     eventAdd("peerCountMcastPeersDone",
 	peerCountMcastPeersDone,
 	psstate,
-	(double) Config.Timeout.mcast_icp_query, 1);
+	Config.Timeout.mcast_icp_query / 1000.0, 1);
     p->mcast.flags.counting = 1;
     peerCountMcastPeersSchedule(p, MCAST_COUNT_RATE);
 }
@@ -1195,17 +1196,20 @@ peerCountMcastPeersDone(void *data)
     ps_state *psstate = data;
     peer *p = psstate->callback_data;
     StoreEntry *fake = psstate->entry;
-    p->mcast.flags.counting = 0;
-    p->mcast.avg_n_members = doubleAverage(p->mcast.avg_n_members,
-	(double) psstate->ping.n_recv,
-	++p->mcast.n_times_counted,
-	10);
-    debug(15, 1) ("Group %s: %d replies, %4.1f average, RTT %d\n",
-	p->host,
-	psstate->ping.n_recv,
-	p->mcast.avg_n_members,
-	p->stats.rtt);
-    p->mcast.n_replies_expected = (int) p->mcast.avg_n_members;
+    if (cbdataValid(p)) {
+	p->mcast.flags.counting = 0;
+	p->mcast.avg_n_members = doubleAverage(p->mcast.avg_n_members,
+	    (double) psstate->ping.n_recv,
+	    ++p->mcast.n_times_counted,
+	    10);
+	debug(15, 1) ("Group %s: %d replies, %4.1f average, RTT %d\n",
+	    p->host,
+	    psstate->ping.n_recv,
+	    p->mcast.avg_n_members,
+	    p->stats.rtt);
+	p->mcast.n_replies_expected = (int) p->mcast.avg_n_members;
+    }
+    cbdataUnlock(p);
     EBIT_SET(fake->flags, ENTRY_ABORTED);
     requestUnlink(fake->mem_obj->request);
     fake->mem_obj->request = NULL;
