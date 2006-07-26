@@ -653,7 +653,7 @@ void
 wccp2ConnectionOpen(void)
 {
     u_short port = WCCP_PORT;
-    struct sockaddr_in router, local;
+    struct sockaddr_in router, local, null;
     socklen_t local_len, router_len;
     struct wccp2_service_list_t *service_list_ptr;
     struct wccp2_router_list_t *router_list_ptr;
@@ -681,7 +681,9 @@ wccp2ConnectionOpen(void)
 
     debug(80, 1) ("Initialising all WCCPv2 lists\n");
 
+
     /* Initialise all routers on all services */
+    memset(&null, 0, sizeof(null));
     service_list_ptr = wccp2_service_list_head;
     while (service_list_ptr != NULL) {
 	for (router_list_ptr = &service_list_ptr->router_list_head; router_list_ptr->next != NULL; router_list_ptr = router_list_ptr->next) {
@@ -700,15 +702,16 @@ wccp2ConnectionOpen(void)
 	    router_list_ptr->local_ip = local.sin_addr;
 
 	    /* Disconnect the sending socket */
-	    router.sin_family = AF_UNSPEC;
-	    if (connect(theWccp2Connection, (struct sockaddr *) &router, router_len))
-		fatal("Unable to disconnect WCCP out socket");
+	    if (wccp2_numrouters > 1) {
+		null.sin_family = AF_UNSPEC;
+		if (connect(theWccp2Connection, (struct sockaddr *) &router, router_len)) {
+		    null.sin_family = AF_INET;
+		    if (connect(theWccp2Connection, (struct sockaddr *) &router, router_len))
+			fatal("Unable to disconnect WCCP out socket");
+		}
+	    }
 	}
 	service_list_ptr = service_list_ptr->next;
-    }
-    if (wccp2_numrouters == 1) {
-	router.sin_family = AF_INET;
-	connect(theWccp2Connection, (struct sockaddr *) &router, sizeof(router));
     }
     wccp2_connected = 1;
 }
@@ -938,21 +941,21 @@ wccp2HandleUdp(int sock, void *not_used)
 	while ((char *) router_capability_element <= end) {
 	    switch (ntohs(router_capability_element->capability_type)) {
 	    case WCCP2_CAPABILITY_FORWARDING_METHOD:
-		if (ntohl(router_capability_element->capability_value) != Config.Wccp2.forwarding_method) {
+		if (!(ntohl(router_capability_element->capability_value) & Config.Wccp2.forwarding_method)) {
 		    debug(80, 1) ("wccp2HandleUdp: fatal error - A WCCP router has specified a different forwarding method %d, expected %d\n", ntohl(router_capability_element->capability_value), Config.Wccp2.forwarding_method);
 		    wccp2ConnectionClose();
 		    return;
 		}
 		break;
 	    case WCCP2_CAPABILITY_ASSIGNMENT_METHOD:
-		if (ntohl(router_capability_element->capability_value) != WCCP2_ASSIGNMENT_METHOD_HASH) {
+		if (!(ntohl(router_capability_element->capability_value) & WCCP2_ASSIGNMENT_METHOD_HASH)) {
 		    debug(80, 1) ("wccp2HandleUdp: fatal error - A WCCP router has specified a different assignment method %d, expected %d\n", ntohl(router_capability_element->capability_value), WCCP2_ASSIGNMENT_METHOD_HASH);
 		    wccp2ConnectionClose();
 		    return;
 		}
 		break;
 	    case WCCP2_CAPABILITY_RETURN_METHOD:
-		if (ntohl(router_capability_element->capability_value) != Config.Wccp2.return_method) {
+		if (!(ntohl(router_capability_element->capability_value) & Config.Wccp2.return_method)) {
 		    debug(80, 1) ("wccp2HandleUdp: fatal error - A WCCP router has specified a different return method %d, expected %d\n", ntohl(router_capability_element->capability_value), Config.Wccp2.return_method);
 		    wccp2ConnectionClose();
 		    return;
@@ -1082,12 +1085,19 @@ wccp2HereIam(void *voidnotused)
 
 	    statCounter.syscalls.sock.sendtos++;
 
-	    sendto(theWccp2Connection,
-		&service_list_ptr->wccp_packet,
-		service_list_ptr->wccp_packet_size,
-		0,
-		(struct sockaddr *) &router,
-		router_len);
+	    if (wccp2_numrouters > 1) {
+		sendto(theWccp2Connection,
+		    &service_list_ptr->wccp_packet,
+		    service_list_ptr->wccp_packet_size,
+		    0,
+		    (struct sockaddr *) &router,
+		    router_len);
+	    } else {
+		send(theWccp2Connection,
+		    &service_list_ptr->wccp_packet,
+		    service_list_ptr->wccp_packet_size,
+		    0);
+	    }
 	}
 	service_list_ptr = service_list_ptr->next;
     }
