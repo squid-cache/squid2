@@ -305,9 +305,11 @@ typedef enum {
 
     LFT_USER_NAME,
     LFT_USER_LOGIN,
-    LFT_USER_IDENT,
 /*LFT_USER_REALM, */
 /*LFT_USER_SCHEME, */
+    LFT_USER_IDENT,
+    LFT_USER_EXT,
+    LFT_USER_SSL,
 
     LFT_HTTP_CODE,
 /*LFT_HTTP_STATUS, */
@@ -335,9 +337,7 @@ typedef enum {
 /*LFT_REPLY_SIZE_BODY, */
 /*LFT_REPLY_SIZE_BODY_NO_TE, */
 
-#ifdef HAVE_EXTACL_LOG
     LFT_EXT_LOG,
-#endif
 
     LFT_PERCENT			/* special string cases for escaped chars */
 } logformat_bcode_t;
@@ -435,9 +435,7 @@ struct logformat_token_table_entry logformat_token_table[] =
 /*{ "<sb", LFT_REPLY_SIZE_BODY }, */
 /*{ "<sB", LFT_REPLY_SIZE_BODY_NO_TE }, */
 
-#ifdef HAVE_EXTACL_LOG
     {"ea", LFT_EXT_LOG},
-#endif
 
     {"%", LFT_PERCENT},
 
@@ -600,6 +598,19 @@ accessLogCustom(AccessLogEntry * al, customlog * log)
 	    /* case LFT_USER_REALM: */
 	    /* case LFT_USER_SCHEME: */
 
+#if USE_SSL
+	case LFT_USER_SSL:
+	    out = accessLogFormatName(al->cache.ssluser);
+	    dofree = 1;
+	    break;
+#endif
+
+	case LFT_USER_EXT:
+	    if (al->request)
+		out = accessLogFormatName(strBuf(al->request->extacl_log));
+	    dofree = 1;
+	    break;
+
 	case LFT_HTTP_CODE:
 	    outint = al->http.code;
 	    doint = 1;
@@ -656,14 +667,12 @@ accessLogCustom(AccessLogEntry * al, customlog * log)
 	    /*case LFT_REPLY_SIZE_BODY: */
 	    /*case LFT_REPLY_SIZE_BODY_NO_TE: */
 
-#ifdef HAVE_EXTACL_LOG
 	case LFT_EXT_LOG:
 	    if (al->request)
 		out = strBuf(al->request->extacl_log);
 
 	    quote = 1;
 	    break;
-#endif
 
 	case LFT_PERCENT:
 	    out = "%";
