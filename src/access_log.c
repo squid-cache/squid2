@@ -398,7 +398,9 @@ struct logformat_token_table_entry logformat_token_table[] =
     {"tr", LFT_TIME_TO_HANDLE_REQUEST},
 
     {">h", LFT_REQUEST_HEADER},
+    {">h", LFT_REQUEST_ALL_HEADERS},
     {"<h", LFT_REPLY_HEADER},
+    {"<h", LFT_REPLY_ALL_HEADERS},
 
     {"un", LFT_USER_NAME},
     {"ul", LFT_USER_LOGIN},
@@ -983,8 +985,8 @@ accessLogDumpLogFormat(StoreEntry * entry, const char *name, logformat * definit
 		assert(te->config != NULL);
 	    }
 	}
+	storeAppend(entry, "\n", 1);
     }
-    storeAppend(entry, "\n", 1);
 }
 
 void
