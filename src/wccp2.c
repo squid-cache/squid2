@@ -923,7 +923,7 @@ wccp2HandleUdp(int sock, void *not_used)
 
     /* Increment the received id in the packet */
     if (ntohl(router_list_ptr->info->received_id) != ntohl(router_identity_info->router_id_element.received_id)) {
-	debug(80, 3) ("Incoming WCCP2_I_SEE_YOU member change = %d tmp=%d.\n",
+	debug(80, 3) ("Incoming WCCP2_I_SEE_YOU Received ID old=%d new=%d.\n",
 	    ntohl(router_list_ptr->info->received_id), ntohl(router_identity_info->router_id_element.received_id));
 	router_list_ptr->info->received_id = router_identity_info->router_id_element.received_id;
     }
@@ -1248,12 +1248,19 @@ wccp2AssignBuckets(void *voidnotused)
 	    }
 	    if (ntohl(router_list_ptr->num_caches)) {
 		/* send packet */
-		sendto(theWccp2Connection,
-		    &wccp_packet,
-		    offset,
-		    0,
-		    (struct sockaddr *) &router,
-		    router_len);
+		if (wccp2_numrouters > 1) {
+		    sendto(theWccp2Connection,
+			&wccp_packet,
+			offset,
+			0,
+			(struct sockaddr *) &router,
+			router_len);
+		} else {
+		    send(theWccp2Connection,
+			&wccp_packet,
+			offset,
+			0);
+		}
 	    }
 	}
 	service_list_ptr = service_list_ptr->next;
