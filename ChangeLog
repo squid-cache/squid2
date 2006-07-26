@@ -40,6 +40,7 @@ Changes to squid-2.6.STABLE2 (not yet released)
 	- Bug #1673: cache digests not served to other caches
 	- Cleanup of Linux capability code used by tproxy
 	- Bug #1684: xstrdup: tried to dup a NULL pointer!
+	- Added ARP acl support for OpenBSD
 
 Changes to squid-2.6.STABLE1 (1 Jul 2006)
 	
