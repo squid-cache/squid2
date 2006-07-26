@@ -426,6 +426,12 @@ authenticateNegotiateHandleReply(void *data, void *srv, char *reply)
     valid = cbdataValid(r->data);
     if (!valid) {
 	debug(29, 2) ("AuthenticateNegotiateHandleReply: invalid callback data. Releasing helper '%p'.\n", srv);
+	negotiate_request = r->auth_user_request->scheme_data;
+	if (negotiate_request != NULL) {
+	    if (negotiate_request->authserver == NULL)
+		negotiate_request->authserver = srv;
+	    authenticateNegotiateReleaseServer(negotiate_request);
+	}
 	cbdataUnlock(r->data);
 	authenticateStateFree(r);
 	return;

@@ -395,6 +395,12 @@ authenticateNTLMHandleReply(void *data, void *srv, char *reply)
     valid = cbdataValid(r->data);
     if (!valid) {
 	debug(29, 2) ("AuthenticateNTLMHandleReply: invalid callback data. Releasing helper '%p'.\n", srv);
+	ntlm_request = r->auth_user_request->scheme_data;
+	if (ntlm_request != NULL) {
+	    if (ntlm_request->authserver == NULL)
+		ntlm_request->authserver = srv;
+	    authenticateNTLMReleaseServer(ntlm_request);
+	}
 	cbdataUnlock(r->data);
 	authenticateStateFree(r);
 	return;
@@ -433,7 +439,7 @@ authenticateNTLMHandleReply(void *data, void *srv, char *reply)
 	ntlm_request->server_blob = xstrdup(blob);
 	ntlm_request->auth_state = AUTHENTICATE_STATE_NEGOTIATE;
 	safe_free(auth_user_request->message);
-	auth_user_request->message = xstrdup("Authenication in progress");
+	auth_user_request->message = xstrdup("Authentication in progress");
 	debug(29, 4) ("authenticateNTLMHandleReply: Need to challenge the client with a server blob '%s'\n", blob);
     } else if (strncasecmp(reply, "AF ", 3) == 0) {
 	/* we're finished, release the helper */
