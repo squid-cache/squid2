@@ -1199,6 +1199,8 @@ DOC_START
 		un	User name
 		ul	User login
 		ui	User ident
+		us	User SSL
+		ue	User external acl
 		Hs	HTTP status code
 		Ss	Squid request status (TCP_MISS etc)
 		Sh	Squid hierarchy status (DEFAULT_PARENT etc)
