@@ -3062,6 +3062,19 @@ struct arpreq {
 #ifdef _SQUID_SOLARIS_
 #include <sys/sockio.h>
 #else
+/* SG - 25 Jul 2006
+ * Workaround needed to allow the build of ARP acl on OpenBSD.
+ * 
+ * Some defines, like
+ * #define free +
+ * are used in squid.h to block misuse of standard malloc routines
+ * where the Squid versions should be used. This pollutes the C/C++
+ * token namespace crashing any structures or classes having members
+ * of the same names.
+ */
+#ifdef _SQUID_OPENBSD_
+#undef free
+#endif
 #include <sys/sysctl.h>
 #endif
 #ifdef _SQUID_LINUX_
@@ -3072,7 +3085,7 @@ struct arpreq {
 #include <net/route.h>
 #endif
 #include <net/if.h>
-#ifdef _SQUID_FREEBSD_
+#if defined(_SQUID_FREEBSD_) || defined(_SQUID_OPENBSD_)
 #include <net/if_arp.h>
 #endif
 #if HAVE_NETINET_IF_ETHER_H
@@ -3292,7 +3305,8 @@ aclMatchArp(void *dataptr, struct in_addr c)
 	    inet_ntoa(c), splayLastResult ? "NOT found" : "found");
 	return (0 == splayLastResult);
     }
-#elif defined(_SQUID_FREEBSD_)
+#elif defined(_SQUID_FREEBSD_) || defined(_SQUID_OPENBSD_)
+
     struct arpreq arpReq;
     struct sockaddr_in ipAddr;
     splayNode **Top = dataptr;
@@ -3448,7 +3462,7 @@ aclArpCompare(const void *a, const void *b)
 	return (d1[4] > d2[4]) ? 1 : -1;
     if (d1[5] != d2[5])
 	return (d1[5] > d2[5]) ? 1 : -1;
-#elif defined(_SQUID_FREEBSD_)
+#elif defined(_SQUID_FREEBSD_) || defined(_SQUID_OPENBSD_)
     const unsigned char *d1 = a;
     const unsigned char *d2 = b;
     if (d1[0] != d2[0])
