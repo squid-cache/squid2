@@ -38,17 +38,8 @@
 #include <netdb.h>
 
 #define WCCP_PORT 2048
-#define WCCP_VERSION 4
-#define WCCP_REVISION 0
 #define WCCP_RESPONSE_SIZE 12448
-#define WCCP_ACTIVE_CACHES 32
-#define WCCP_HASH_SIZE 32
 #define WCCP_BUCKETS 256
-
-#define WCCP_HERE_I_AM 7
-#define WCCP_I_SEE_YOU 8
-#define WCCP_ASSIGN_BUCKET 9
-
 
 static int theWccp2Connection = -1;
 static int wccp2_connected = 0;
@@ -62,6 +53,7 @@ static EVH wccp2AssignBuckets;
 #define WCCP2_I_SEE_YOU		11
 #define WCCP2_REDIRECT_ASSIGN		12
 #define WCCP2_REMOVAL_QUERY		13
+
 #define WCCP2_VERSION			0x200
 
 #define WCCP2_SECURITY_INFO		0
@@ -102,8 +94,14 @@ static EVH wccp2AssignBuckets;
 #define WCCP2_CAPABILITY_ASSIGNMENT_METHOD	0x02
 #define WCCP2_CAPABILITY_RETURN_METHOD		0x03
 
-#define WCCP2_CAPABILITY_GRE		0x00000001
-#define WCCP2_CAPABILITY_L2		0x00000002
+#define WCCP2_FORWARDING_METHOD_GRE		0x00000001
+#define WCCP2_FORWARDING_METHOD_L2		0x00000002
+
+#define WCCP2_ASSIGNMENT_METHOD_HASH		0x00000001
+#define WCCP2_ASSIGNMENT_METHOD_MASK		0x00000002
+
+#define WCCP2_PACKET_RETURN_METHOD_GRE		0x00000001
+#define WCCP2_PACKET_RETURN_METHOD_L2		0x00000002
 
 #define	WCCP2_NONE_SECURITY_LEN	0
 #define	WCCP2_MD5_SECURITY_LEN	16
@@ -204,6 +202,12 @@ struct wccp2_capability_info_header_t {
 };
 
 static struct wccp2_capability_info_header_t wccp2_capability_info_header;
+
+/* Capability element header */
+struct wccp2_capability_element_header_t {
+    uint16_t capability_type;
+    uint16_t capability_length;
+};
 
 /* Capability element */
 struct wccp2_capability_element_t {
@@ -599,7 +603,7 @@ wccp2Init(void)
 	wccp2_here_i_am_header.length += sizeof(wccp2_capability_info_header);
 	assert(wccp2_here_i_am_header.length <= WCCP_RESPONSE_SIZE);
 	wccp2_capability_info_header.capability_info_type = htons(WCCP2_CAPABILITY_INFO);
-	wccp2_capability_info_header.capability_info_length = htons(2 * sizeof(wccp2_capability_element));
+	wccp2_capability_info_header.capability_info_length = htons(3 * sizeof(wccp2_capability_element));
 	xmemcpy(ptr, &wccp2_capability_info_header, sizeof(wccp2_capability_info_header));
 	ptr += sizeof(wccp2_capability_info_header);
 
@@ -609,6 +613,15 @@ wccp2Init(void)
 	wccp2_capability_element.capability_type = htons(WCCP2_CAPABILITY_FORWARDING_METHOD);
 	wccp2_capability_element.capability_length = htons(sizeof(wccp2_capability_element.capability_value));
 	wccp2_capability_element.capability_value = htonl(Config.Wccp2.forwarding_method);
+	xmemcpy(ptr, &wccp2_capability_element, sizeof(wccp2_capability_element));
+	ptr += sizeof(wccp2_capability_element);
+
+	/* Add the assignment method */
+	wccp2_here_i_am_header.length += sizeof(wccp2_capability_element);
+	assert(wccp2_here_i_am_header.length <= WCCP_RESPONSE_SIZE);
+	wccp2_capability_element.capability_type = htons(WCCP2_CAPABILITY_ASSIGNMENT_METHOD);
+	wccp2_capability_element.capability_length = htons(sizeof(wccp2_capability_element.capability_value));
+	wccp2_capability_element.capability_value = htonl(WCCP2_ASSIGNMENT_METHOD_HASH);
 	xmemcpy(ptr, &wccp2_capability_element, sizeof(wccp2_capability_element));
 	ptr += sizeof(wccp2_capability_element);
 
@@ -781,7 +794,6 @@ wccp2HandleUdp(int sock, void *not_used)
     uint32_t tmp;
     char *ptr;
     int num_caches;
-    uint16_t num_capabilities;
 
     debug(80, 6) ("wccp2HandleUdp: Called.\n");
 
@@ -854,7 +866,7 @@ wccp2HandleUdp(int sock, void *not_used)
 		return;
 	    }
 	    router_capability_header = (struct wccp2_capability_info_header_t *) &wccp2_i_see_you.data[offset];
-	    return;
+	    break;
 	default:
 	    debug(80, 1) ("Unknown record type in WCCPv2 Packet (%d).\n",
 		ntohs(header->type));
@@ -914,31 +926,34 @@ wccp2HandleUdp(int sock, void *not_used)
     }
     /* TODO: check return/forwarding methods */
     if (router_capability_header == NULL) {
-	if ((Config.Wccp2.return_method != WCCP2_CAPABILITY_GRE) || (Config.Wccp2.forwarding_method != WCCP2_CAPABILITY_GRE)) {
-	    debug(80, 1) ("wccp2HandleUdp: fatal error - A WCCP router does not support the forwarding method specified\n");
+	if ((Config.Wccp2.return_method != WCCP2_PACKET_RETURN_METHOD_GRE) || (Config.Wccp2.forwarding_method != WCCP2_FORWARDING_METHOD_GRE)) {
+	    debug(80, 1) ("wccp2HandleUdp: fatal error - A WCCP router does not support the forwarding method specified, only GRE supported\n");
 	    wccp2ConnectionClose();
 	    return;
 	}
     } else {
-	num_capabilities = ntohs(router_capability_header->capability_info_length);
-	/* run through each capability element from last to first */
-	if (num_capabilities > 0) {
-	    num_capabilities--;
-	    router_capability_element = (struct wccp2_capability_element_t *) (router_capability_header) + sizeof(struct wccp2_capability_info_header_t) + (num_capabilities * sizeof(struct wccp2_capability_element_t));
+	char *end = ((char *) router_capability_header) + sizeof(*router_capability_header) + ntohs(router_capability_header->capability_info_length) - sizeof(struct wccp2_capability_info_header_t);
+
+	router_capability_element = (struct wccp2_capability_element_t *) (((char *) router_capability_header) + sizeof(*router_capability_header));
+	while ((char *) router_capability_element <= end) {
 	    switch (ntohs(router_capability_element->capability_type)) {
 	    case WCCP2_CAPABILITY_FORWARDING_METHOD:
 		if (ntohl(router_capability_element->capability_value) != Config.Wccp2.forwarding_method) {
-		    debug(80, 1) ("wccp2HandleUdp: fatal error - A WCCP router has specified a different forwarding method\n");
+		    debug(80, 1) ("wccp2HandleUdp: fatal error - A WCCP router has specified a different forwarding method %d, expected %d\n", ntohl(router_capability_element->capability_value), Config.Wccp2.forwarding_method);
 		    wccp2ConnectionClose();
 		    return;
 		}
 		break;
 	    case WCCP2_CAPABILITY_ASSIGNMENT_METHOD:
-		/* we don't current care */
+		if (ntohl(router_capability_element->capability_value) != WCCP2_ASSIGNMENT_METHOD_HASH) {
+		    debug(80, 1) ("wccp2HandleUdp: fatal error - A WCCP router has specified a different assignment method %d, expected %d\n", ntohl(router_capability_element->capability_value), WCCP2_ASSIGNMENT_METHOD_HASH);
+		    wccp2ConnectionClose();
+		    return;
+		}
 		break;
 	    case WCCP2_CAPABILITY_RETURN_METHOD:
 		if (ntohl(router_capability_element->capability_value) != Config.Wccp2.return_method) {
-		    debug(80, 1) ("wccp2HandleUdp: fatal error - A WCCP router has specified a different return method\n");
+		    debug(80, 1) ("wccp2HandleUdp: fatal error - A WCCP router has specified a different return method %d, expected %d\n", ntohl(router_capability_element->capability_value), Config.Wccp2.return_method);
 		    wccp2ConnectionClose();
 		    return;
 		}
@@ -947,6 +962,7 @@ wccp2HandleUdp(int sock, void *not_used)
 		debug(80, 1) ("Unknown capability type in WCCPv2 Packet (%d).\n",
 		    ntohs(router_capability_element->capability_type));
 	    }
+	    router_capability_element = (struct wccp2_capability_element_t *) (((char *) router_capability_element) + sizeof(struct wccp2_capability_element_header_t) + ntohs(router_capability_element->capability_length));
 	}
     }
 
