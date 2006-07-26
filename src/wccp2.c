@@ -1039,9 +1039,8 @@ wccp2HandleUdp(int sock, void *not_used)
 	if (ntohl(router_view_header->change_number) != router_list_ptr->member_change) {
 	    debug(80, 4) ("Change detected - queueing up new assignment\n");
 	    router_list_ptr->member_change = ntohl(router_view_header->change_number);
-	    if (!eventFind(wccp2AssignBuckets, NULL)) {
-		eventAdd("wccp2AssignBuckets", wccp2AssignBuckets, NULL, 15.0, 1);
-	    }
+	    eventDelete(wccp2AssignBuckets, NULL);
+	    eventAdd("wccp2AssignBuckets", wccp2AssignBuckets, NULL, 15.0, 1);
 	}
     } else {
 	debug(80, 5) ("I am not the lowest ip cache - not assigning buckets\n");
