@@ -923,17 +923,24 @@ httpBuildRequestHeader(request_t * request,
     const HttpHeaderEntry *e;
     String strFwd;
     HttpHeaderPos pos = HttpHeaderInitPos;
+    String etags = StringNull;
+
     httpHeaderInit(hdr_out, hoRequest);
     /* append our IMS header */
     if (request->lastmod > -1)
 	httpHeaderPutTime(hdr_out, HDR_IF_MODIFIED_SINCE, request->lastmod);
-    if (request->etag)
-	httpHeaderPutStr(hdr_out, HDR_IF_NONE_MATCH, request->etag);
-    else if (request->etags) {
+    if (request->etag) {
+	etags = httpHeaderGetList(hdr_in, HDR_IF_NONE_MATCH);
+	strListAddUnique(&etags, request->etag, ',');
+    } else if (request->etags) {
 	int i;
+	etags = httpHeaderGetList(hdr_in, HDR_IF_NONE_MATCH);
 	for (i = 0; i < request->etags->count; i++)
-	    httpHeaderPutStr(hdr_out, HDR_IF_NONE_MATCH, request->etags->items[i]);
+	    strListAddUnique(&etags, request->etags->items[i], ',');
     }
+    if (strLen(etags))
+	httpHeaderPutStr(hdr_out, HDR_IF_NONE_MATCH, strBuf(etags));
+    stringClean(&etags);
     /* decide if we want to do Ranges ourselves 
      * (and fetch the whole object now)
      * We want to handle Ranges ourselves iff
@@ -1020,6 +1027,12 @@ httpBuildRequestHeader(request_t * request,
 	    /* append unless we added our own;
 	     * note: at most one client's ims header can pass through */
 	    if (!httpHeaderHas(hdr_out, HDR_IF_MODIFIED_SINCE))
+		httpHeaderAddEntry(hdr_out, httpHeaderEntryClone(e));
+	    break;
+	case HDR_IF_NONE_MATCH:
+	    /* append unless we added our own;
+	     * note: at most one client's ims header can pass through */
+	    if (!httpHeaderHas(hdr_out, HDR_IF_NONE_MATCH))
 		httpHeaderAddEntry(hdr_out, httpHeaderEntryClone(e));
 	    break;
 	case HDR_MAX_FORWARDS:

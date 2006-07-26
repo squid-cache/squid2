@@ -232,6 +232,14 @@ strListAdd(String * str, const char *item, char del)
     stringAppend(str, item, strlen(item));
 }
 
+/* appends an item to the list if not already there */
+void
+strListAddUnique(String * str, const char *item, char del)
+{
+    if (!strListIsMember(str, item, del))
+	strListAdd(str, item, del);
+}
+
 /*
  * iterates through a 0-terminated string of items separated by 'del's.
  * white space around 'del' is considered to be a part of 'del'
