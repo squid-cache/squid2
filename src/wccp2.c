@@ -684,6 +684,7 @@ wccp2ConnectionOpen(void)
 
     /* Initialise all routers on all services */
     memset(&null, 0, sizeof(null));
+    null.sin_family = AF_UNSPEC;
     service_list_ptr = wccp2_service_list_head;
     while (service_list_ptr != NULL) {
 	for (router_list_ptr = &service_list_ptr->router_list_head; router_list_ptr->next != NULL; router_list_ptr = router_list_ptr->next) {
@@ -701,15 +702,11 @@ wccp2ConnectionOpen(void)
 
 	    router_list_ptr->local_ip = local.sin_addr;
 
-	    /* Disconnect the sending socket */
-	    if (wccp2_numrouters > 1) {
-		null.sin_family = AF_UNSPEC;
-		if (connect(theWccp2Connection, (struct sockaddr *) &null, router_len)) {
-		    null.sin_family = AF_INET;
-		    if (connect(theWccp2Connection, (struct sockaddr *) &null, router_len))
-			fatal("Unable to disconnect WCCP out socket");
-		}
-	    }
+	    /* Disconnect the sending socket. Note: FreeBSD returns error
+	     * but disconnects anyway so we have to just assume it worked
+	     */
+	    if (wccp2_numrouters > 1)
+		connect(theWccp2Connection, (struct sockaddr *) &null, router_len);
 	}
 	service_list_ptr = service_list_ptr->next;
     }
