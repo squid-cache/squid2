@@ -4997,6 +4997,20 @@ DOC_START
 	until all the child processes have been started.
 DOC_END
 
+NAME: minimum_expiry_time
+COMMENT: (seconds)
+TYPE: time_t
+LOC: Config.minimum_expiry_time
+DEFAULT: 60 seconds
+DOC_START
+	The minimum caching time according to (Expires - Date)
+	Headers Squid honors if the object can't be revalidated
+	defaults to 60 seconds. In reverse proxy enorinments it
+	might be desirable to honor shorter object lifetimes. It
+	is most likely better to make your server return a
+	meaningful Last-Modified header however.
+DOC_END
+
 NAME: relaxed_header_parser
 COMMENT: on|off|warn
 TYPE: tristate

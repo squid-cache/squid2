@@ -40,7 +40,32 @@ Changes to squid-2.6.STABLE2 (not yet released)
 	- Bug #1673: cache digests not served to other caches
 	- Cleanup of Linux capability code used by tproxy
 	- Bug #1684: xstrdup: tried to dup a NULL pointer!
-	- Added ARP acl support for OpenBSD
+	- Bug #1668: unchecked vsnprintf() return code could lead to log
+	  corruption
+	- Bug #1688: Assertion failure in HttpHeader.c in some header_access
+	  configurations
+	- Cygwin support fir --disable-internal-dns
+	- Silence those annoying sslReadServer: Connection reset by peer
+	  errors.
+	- Bug #1693: persistent connections broken in transparent
+	  interception mode
+	- Bug #1691: multicast peering issues
+	- Bug #1696: Correct WCCP2 processing of router capability info
+	  segments
+	- Bug #1694: Assertion failure in mgr:config if using
+	  access_log_format %<h
+	- Bug #1677: Duplicate etags in the If-None-Match header
+	- Bug #1665: access_log_format codes for login names from external
+	  acl or ssl
+	- Bug #1681: All ntlmauthenticator processes are busy
+	- Added ARP acl support for OpenBSD and ARP fixes for Windows
+	- Bug #1700: WCCP fails on FreeBSD (Unable to disconnect WCCP out
+	  socket)
+	- WCCP2 correct dampening of assign buckets when there it lots of
+	  changes
+	- minimum_expiry_time to tune the magic 60 seconds limit of what
+	  is considered cachable when the object doesn't have any cache
+	  validators.
 
 Changes to squid-2.6.STABLE1 (1 Jul 2006)
 	

@@ -147,6 +147,8 @@ membership check</LI>
 <DT><B>error_map</B><DD><P>New directive to allow dynamic rewrites of error pages</P>
 <DT><B>via</B><DD><P>New directive to disable the use of the Via directive</P>
 <DT><B>wccp2_*</B><DD><P>WCCP2 protocol support</P>
+<DT><B>minimum_expiry_time</B><DD><P>tune the magic 60 seconds limit of what is considered cachable when the object doesn't have any cache validators. (2.6.STABLE2)</P>
+
 </DL>
 </P>
 
@@ -324,6 +326,11 @@ redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd
 <LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1660">#1660</a>: Accept-Encoding related memory corruption</LI>
 <LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1673">#1673</a>: cache digests not served to other caches</LI>
 <LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1684">#1684</a>: xstrdup: tried to dup a NULL pointer!</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1688">#1688</a>: Assertion failure in HttpHeader.c in some header_access configurations</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1696">#1696</a>, Bug #1700 and more: WCCP2 fixes</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1677">#1677</a>: Duplicate etags in the If-None-Match in cache validations causing lighttpd to fail with error 400</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1681">#1681</a>: All ntlmauthenticator processes are busy</LI>
+<LI>new minimum_expiry_time squid.conf directive backported from Squid-3</LI>
 <LI>a number of other minor and cosmetic bugfixes. See the list of 
 <A HREF="http://www.squid-cache.org/Versions/v2/2.6/changesets/">squid-2.6 changes</A> and the 
 <A HREF="ChangeLog">ChangeLog</A> file for details.</LI>

@@ -118,6 +118,8 @@ membership check
 <tag>error_map</tag>New directive to allow dynamic rewrites of error pages
 <tag>via</tag>New directive to disable the use of the Via directive
 <tag>wccp2_*</tag>WCCP2 protocol support
+<tag>minimum_expiry_time</tag>tune the magic 60 seconds limit of what is considered cachable when the object doesn't have any cache validators. (2.6.STABLE2)
+
 </descrip>
 
 <sect>Known issues
@@ -272,6 +274,11 @@ redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd</verb>
 	<item>Bug #1660: Accept-Encoding related memory corruption
 	<item>Bug #1673: cache digests not served to other caches
 	<item>Bug #1684: xstrdup: tried to dup a NULL pointer!
+	<item>Bug #1688: Assertion failure in HttpHeader.c in some header_access configurations
+	<item>Bug #1696, Bug #1700 and more: WCCP2 fixes
+	<item>Bug #1677: Duplicate etags in the If-None-Match in cache validations causing lighttpd to fail with error 400
+	<item>Bug #1681: All ntlmauthenticator processes are busy
+	<item>new minimum_expiry_time squid.conf directive backported from Squid-3
 	<item>a number of other minor and cosmetic bugfixes. See the list of <url
 		url="http://www.squid-cache.org/Versions/v2/2.6/changesets/"
 			name="squid-2.6 changes"> and the <url url="ChangeLog"

@@ -787,6 +787,7 @@ struct _SquidConfig {
     } warnings;
     char *store_dir_select_algorithm;
     int sleep_after_fork;	/* microseconds */
+    time_t minimum_expiry_time;	/* seconds */
     external_acl *externalAclHelperList;
     errormap *errorMapList;
 #if USE_SSL
