@@ -945,6 +945,10 @@ aclParseAclLine(acl ** head)
 	debug(28, 0) ("aclParseAclLine: missing ACL name.\n");
 	self_destruct();
     }
+    if (strlen(t) >= ACL_NAME_SZ) {
+	debug(28, 0) ("aclParseAclLine: ACL name '%s' too long. Max %d characters allowed\n", t, ACL_NAME_SZ - 1);
+	self_destruct();
+    }
     xstrncpy(aclname, t, ACL_NAME_SZ);
     /* snarf the ACL type */
     if ((t = strtok(NULL, w_space)) == NULL) {
