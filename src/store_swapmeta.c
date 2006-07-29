@@ -120,7 +120,7 @@ storeSwapMetaPack(tlv * tlv_list, int *length)
 tlv *
 storeSwapMetaUnpack(const char *buf, int *hdr_len)
 {
-    tlv *TLV;			/* we'll return this */
+    tlv *TLV = NULL;		/* we'll return this */
     tlv **T = &TLV;
     char type;
     int length;
