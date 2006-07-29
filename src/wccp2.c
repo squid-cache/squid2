@@ -664,7 +664,7 @@ wccp2ConnectionOpen(void)
 	return;
     }
     theWccp2Connection = comm_open(SOCK_DGRAM,
-	0,
+	IPPROTO_UDP,
 	Config.Wccp2.address,
 	port,
 	COMM_NONBLOCKING,
