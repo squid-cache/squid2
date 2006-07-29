@@ -2010,6 +2010,10 @@ struct _StatCounters {
 	int times_used;
     } icp;
     struct {
+	int pkts_sent;
+	int pkts_recv;
+    } htcp;
+    struct {
 	int requests;
     } unlink;
     struct {
