@@ -577,7 +577,7 @@ snmpConstructReponse(snmp_request_t * rq)
     snmp_free_pdu(rq->PDU);
     if (RespPDU != NULL) {
 	snmp_build(&rq->session, RespPDU, rq->outbuf, &rq->outlen);
-	sendto(rq->sock, rq->outbuf, rq->outlen, 0, (struct sockaddr *) &rq->from, sizeof(rq->from));
+	comm_udp_sendto(rq->sock, &rq->from, sizeof(rq->from), rq->outbuf, rq->outlen);
 	snmp_free_pdu(RespPDU);
     }
 }

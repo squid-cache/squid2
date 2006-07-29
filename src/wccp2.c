@@ -1079,15 +1079,12 @@ wccp2HereIam(void *voidnotused)
 	    debug(80, 3) ("Sending HereIam packet size %d\n", (int) service_list_ptr->wccp_packet_size);
 	    /* Send the packet */
 
-	    statCounter.syscalls.sock.sendtos++;
-
 	    if (wccp2_numrouters > 1) {
-		sendto(theWccp2Connection,
+		comm_udp_sendto(theWccp2Connection,
+		    &router,
+		    router_len,
 		    &service_list_ptr->wccp_packet,
-		    service_list_ptr->wccp_packet_size,
-		    0,
-		    (struct sockaddr *) &router,
-		    router_len);
+		    service_list_ptr->wccp_packet_size);
 	    } else {
 		send(theWccp2Connection,
 		    &service_list_ptr->wccp_packet,
@@ -1245,12 +1242,11 @@ wccp2AssignBuckets(void *voidnotused)
 	    if (ntohl(router_list_ptr->num_caches)) {
 		/* send packet */
 		if (wccp2_numrouters > 1) {
-		    sendto(theWccp2Connection,
+		    comm_udp_sendto(theWccp2Connection,
+			&router,
+			router_len,
 			&wccp_packet,
-			offset,
-			0,
-			(struct sockaddr *) &router,
-			router_len);
+			offset);
 		} else {
 		    send(theWccp2Connection,
 			&wccp_packet,
