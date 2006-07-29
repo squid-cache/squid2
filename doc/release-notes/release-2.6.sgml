@@ -266,7 +266,7 @@ redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd</verb>
 <itemize>
         <item>Bug #1650: transparent interception "Unable to forward this request at this time"
 	<item>Bug #1658: Memory corruption when using client-side SSL certificates
-	<item>Multiple fixes to the expreimental COSS cache_dir type
+	<item>Multiple fixes to the experimental COSS cache_dir type
 	<item>Added the missing concurrency parameter to basic/digest auth schemes
 	<item>Bug #1669: SEGV in storeAddVaryReadOld
 	<item>Bug #1670: assertion failure: i-&gt;prefix_size &gt; 0 in client_side.c:2509
