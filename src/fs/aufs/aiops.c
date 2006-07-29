@@ -327,7 +327,16 @@ squidaio_init(void)
 	    if (j < 4)
 		j = 4;
 	}
+#if COSS_USE_AUFSOPS
+	j = 6;
+	for (i = 0; i < n_coss_dirs; i++) {
+	    squidaio_nthreads += j;
+	    j = 3;
+	}
+#endif
     }
+    if (squidaio_nthreads == 0)
+	squidaio_nthreads = 16;
     squidaio_magic1 = squidaio_nthreads * MAGIC1_FACTOR;
     squidaio_magic2 = squidaio_nthreads * MAGIC2_FACTOR;
     for (i = 0; i < squidaio_nthreads; i++) {
