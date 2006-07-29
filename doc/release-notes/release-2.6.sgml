@@ -277,6 +277,7 @@ redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd</verb>
 	<item>Bug #1688: Assertion failure in HttpHeader.c in some header_access configurations
 	<item>Bug #1696, Bug #1700 and more: WCCP2 fixes
 	<item>Bug #1677: Duplicate etags in the If-None-Match in cache validations causing lighttpd to fail with error 400
+	<item>Added ARP acl support for OpenBSD and ARP fixes for Windows
 	<item>Bug #1681: All ntlmauthenticator processes are busy
 	<item>new minimum_expiry_time squid.conf directive backported from Squid-3
 	<item>a number of other minor and cosmetic bugfixes. See the list of <url
