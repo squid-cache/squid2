@@ -358,6 +358,13 @@ storeUfsDirCloseSwapLog(SwapDir * sd)
 }
 
 static void
+storeUfsCheckConfig(SwapDir * sd)
+{
+    if (!opt_create_swap_dirs)
+	requirePathnameExists("cache_dir", sd->path);
+}
+
+static void
 storeUfsDirInit(SwapDir * sd)
 {
     static int started_clean_event = 0;
@@ -1904,6 +1911,7 @@ storeUfsDirParse(SwapDir * sd, int index, char *path)
     ufsinfo->map = NULL;	/* Debugging purposes */
     ufsinfo->suggest = 0;
     ufsinfo->open_files = 0;
+    sd->checkconfig = storeUfsCheckConfig;
     sd->init = storeUfsDirInit;
     sd->newfs = storeUfsDirNewfs;
     sd->dump = storeUfsDirDump;

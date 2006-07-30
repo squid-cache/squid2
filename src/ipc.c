@@ -78,6 +78,8 @@ ipcCreate(int type, const char *prog, const char *const args[], const char *name
     assert(type != IPC_FIFO);
 #endif
 
+    requirePathnameExists(name, prog);
+
     if (rfd)
 	*rfd = -1;
     if (wfd)

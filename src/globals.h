@@ -176,5 +176,6 @@ extern int opt_no_daemon;	/* 0 */
 #if LINUX_TPROXY
 extern int need_linux_tproxy;	/* 0 */
 #endif
+extern int opt_parse_cfg_only;	/* 0 */
 
 #endif /* SQUID_GLOBALS_H */

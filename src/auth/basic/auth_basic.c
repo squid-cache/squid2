@@ -64,6 +64,7 @@ static AUTHSFIXERR authenticateBasicFixErrorHeader;
 static AUTHSFREE authenticateBasicFreeUser;
 static AUTHSFREECONFIG authBasicFreeConfig;
 static AUTHSPARSE authBasicParse;
+static AUTHSCHECKCONFIG authBasicCheckConfig;
 static AUTHSINIT authBasicInit;
 static AUTHSSTART authenticateBasicStart;
 static AUTHSSTATS authenticateBasicStats;
@@ -92,6 +93,7 @@ authSchemeSetup_basic(authscheme_entry_t * authscheme)
     assert(!authbasic_initialised);
     authscheme->Active = authenticateBasicActive;
     authscheme->parse = authBasicParse;
+    authscheme->checkconfig = authBasicCheckConfig;
     authscheme->dump = authBasicCfgDump;
     authscheme->init = authBasicInit;
     authscheme->authAuthenticate = authenticateBasicAuthenticateUser;
@@ -339,7 +341,6 @@ authBasicParse(authScheme * scheme, int n_configured, char *param_str)
 	if (basicConfig->authenticate)
 	    wordlistDestroy(&basicConfig->authenticate);
 	parse_wordlist(&basicConfig->authenticate);
-	requirePathnameExists("authparam basic program", basicConfig->authenticate->key);
     } else if (strcasecmp(param_str, "children") == 0) {
 	parse_int(&basicConfig->authenticateChildren);
     } else if (strcasecmp(param_str, "concurrency") == 0) {
@@ -355,6 +356,13 @@ authBasicParse(authScheme * scheme, int n_configured, char *param_str)
     } else {
 	debug(29, 0) ("unrecognised basic auth scheme parameter '%s'\n", param_str);
     }
+}
+
+static void
+authBasicCheckConfig(authScheme * scheme)
+{
+    auth_basic_config *config = scheme->scheme_data;
+    requirePathnameExists("auth_param basic program", config->authenticate->key);
 }
 
 static void

@@ -353,6 +353,8 @@ storeDirConfigure(void)
 	Config.Swap.maxSize += SD->max_size;
 	SD->low_size = (int) (((float) SD->max_size *
 		(float) Config.Swap.lowWaterMark) / 100.0);
+	if (SD->checkconfig)
+	    SD->checkconfig(SD);
     }
 }
 

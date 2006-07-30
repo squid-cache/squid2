@@ -701,6 +701,19 @@ authenticateSchemeInit(void)
 }
 
 void
+authenticateConfigure(authConfig * config)
+{
+    int i;
+    authScheme *scheme;
+    for (i = 0; i < config->n_configured; i++) {
+	scheme = config->schemes + i;
+	if (authscheme_list[scheme->Id].checkconfig && authscheme_list[scheme->Id].configured()) {
+	    authscheme_list[scheme->Id].checkconfig(scheme);
+	}
+    }
+}
+
+void
 authenticateInit(authConfig * config)
 {
     int i;

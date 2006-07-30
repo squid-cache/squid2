@@ -347,6 +347,14 @@ storeAufsDirCloseSwapLog(SwapDir * sd)
 }
 
 static void
+storeAufsCheckConfig(SwapDir * sd)
+{
+    if (!opt_create_swap_dirs)
+	requirePathnameExists("cache_dir", sd->path);
+}
+
+
+static void
 storeAufsDirInit(SwapDir * sd)
 {
     static int started_clean_event = 0;
@@ -1868,6 +1876,7 @@ storeAufsDirParse(SwapDir * sd, int index, char *path)
     aioinfo->swaplog_fd = -1;
     aioinfo->map = NULL;	/* Debugging purposes */
     aioinfo->suggest = 0;
+    sd->checkconfig = storeAufsCheckConfig;
     sd->init = storeAufsDirInit;
     sd->newfs = storeAufsDirNewfs;
     sd->dump = storeAufsDirDump;

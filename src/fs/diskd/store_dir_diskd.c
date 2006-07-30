@@ -99,6 +99,7 @@ static void storeDiskdDirCloseTmpSwapLog(SwapDir * sd);
 static FILE *storeDiskdDirOpenTmpSwapLog(SwapDir *, int *, int *);
 static STLOGOPEN storeDiskdDirOpenSwapLog;
 static STINIT storeDiskdDirInit;
+static STCHECKCONFIG storeDiskdCheckConfig;
 static STFREE storeDiskdDirFree;
 static STLOGCLEANSTART storeDiskdDirWriteCleanStart;
 static STLOGCLEANNEXTENTRY storeDiskdDirCleanLogNextEntry;
@@ -354,6 +355,14 @@ storeDiskdDirCloseSwapLog(SwapDir * sd)
     assert(n_diskd_dirs >= 0);
     if (0 == n_diskd_dirs)
 	safe_free(diskd_dir_index);
+}
+
+static void
+storeDiskdCheckConfig(SwapDir * sd)
+{
+    requirePathnameExists("diskd_program", Config.Program.diskd);
+    if (!opt_create_swap_dirs)
+	requirePathnameExists("cache_dir", sd->path);
 }
 
 static void
@@ -2203,6 +2212,7 @@ storeDiskdDirParse(SwapDir * sd, int index, char *path)
     diskdinfo->suggest = 0;
     diskdinfo->magic1 = 64;
     diskdinfo->magic2 = 72;
+    sd->checkconfig = storeDiskdCheckConfig;
     sd->init = storeDiskdDirInit;
     sd->newfs = storeDiskdDirNewfs;
     sd->dump = storeDiskdDirDump;

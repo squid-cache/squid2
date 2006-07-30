@@ -454,6 +454,8 @@ configDoConfigure(void)
 	requirePathnameExists("location_rewrite_program", Config.Program.location_rewrite.command->key);
     requirePathnameExists("Icon Directory", Config.icons.directory);
     requirePathnameExists("Error Directory", Config.errorDirectory);
+    authenticateConfigure(&Config.authConfig);
+    externalAclConfigure();
 #if HTTP_VIOLATIONS
     {
 	const refresh_t *R;
@@ -2964,7 +2966,7 @@ requirePathnameExists(const char *name, const char *path)
 	path = pathbuf;
     }
     if (stat(path, &sb) < 0) {
-	if (opt_send_signal == -1 || opt_send_signal == SIGHUP)
+	if ((opt_send_signal == -1 || opt_send_signal == SIGHUP) && !opt_parse_cfg_only)
 	    fatalf("%s %s: %s", name, path, xstrerror());
 	else
 	    fprintf(stderr, "WARNING: %s %s: %s\n", name, path, xstrerror());

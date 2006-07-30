@@ -68,6 +68,7 @@ static AUTHSONCLOSEC authenticateNTLMOnCloseConnection;
 static AUTHSUSERNAME authenticateNTLMUsername;
 static AUTHSREQFREE authNTLMAURequestFree;
 static AUTHSPARSE authNTLMParse;
+static AUTHSCHECKCONFIG authNTLMCheckConfig;
 static AUTHSSTART authenticateNTLMStart;
 static AUTHSSTATS authenticateNTLMStats;
 static AUTHSSHUTDOWN authNTLMDone;
@@ -157,7 +158,6 @@ authNTLMParse(authScheme * scheme, int n_configured, char *param_str)
 	if (ntlmConfig->authenticate)
 	    wordlistDestroy(&ntlmConfig->authenticate);
 	parse_wordlist(&ntlmConfig->authenticate);
-	requirePathnameExists("authparam ntlm program", ntlmConfig->authenticate->key);
     } else if (strcasecmp(param_str, "children") == 0) {
 	parse_int(&ntlmConfig->authenticateChildren);
     } else if (strcasecmp(param_str, "keep_alive") == 0) {
@@ -167,6 +167,12 @@ authNTLMParse(authScheme * scheme, int n_configured, char *param_str)
     }
 }
 
+static void
+authNTLMCheckConfig(authScheme * scheme)
+{
+    auth_ntlm_config *config = scheme->scheme_data;
+    requirePathnameExists("authparam ntlm program", config->authenticate->key);
+}
 
 void
 authSchemeSetup_ntlm(authscheme_entry_t * authscheme)
@@ -175,6 +181,7 @@ authSchemeSetup_ntlm(authscheme_entry_t * authscheme)
     authscheme->Active = authenticateNTLMActive;
     authscheme->configured = authNTLMConfigured;
     authscheme->parse = authNTLMParse;
+    authscheme->checkconfig = authNTLMCheckConfig;
     authscheme->dump = authNTLMCfgDump;
     authscheme->requestFree = authNTLMAURequestFree;
     authscheme->freeconfig = authNTLMFreeConfig;

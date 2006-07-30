@@ -73,6 +73,7 @@ static AUTHSFREE authenticateDigestUserFree;
 static AUTHSFREECONFIG authDigestFreeConfig;
 static AUTHSINIT authDigestInit;
 static AUTHSPARSE authDigestParse;
+static AUTHSCHECKCONFIG authDigestCheckConfig;
 static AUTHSREQFREE authDigestAURequestFree;
 static AUTHSSTART authenticateDigestStart;
 static AUTHSSTATS authenticateDigestStats;
@@ -607,6 +608,7 @@ authSchemeSetup_digest(authscheme_entry_t * authscheme)
     authscheme->Active = authenticateDigestActive;
     authscheme->configured = authDigestConfigured;
     authscheme->parse = authDigestParse;
+    authscheme->checkconfig = authDigestCheckConfig;
     authscheme->freeconfig = authDigestFreeConfig;
     authscheme->dump = authDigestCfgDump;
     authscheme->init = authDigestInit;
@@ -995,7 +997,6 @@ authDigestParse(authScheme * scheme, int n_configured, char *param_str)
 	if (digestConfig->authenticate)
 	    wordlistDestroy(&digestConfig->authenticate);
 	parse_wordlist(&digestConfig->authenticate);
-	requirePathnameExists("authparam digest program", digestConfig->authenticate->key);
     } else if (strcasecmp(param_str, "children") == 0) {
 	parse_int(&digestConfig->authenticateChildren);
     } else if (strcasecmp(param_str, "concurrency") == 0) {
@@ -1019,6 +1020,12 @@ authDigestParse(authScheme * scheme, int n_configured, char *param_str)
     }
 }
 
+static void
+authDigestCheckConfig(authScheme * scheme)
+{
+    auth_digest_config *config = scheme->scheme_data;
+    requirePathnameExists("authparam digest program", config->authenticate->key);
+}
 
 static void
 authenticateDigestStats(StoreEntry * sentry)

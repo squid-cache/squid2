@@ -1088,6 +1088,15 @@ externalAclStats(StoreEntry * sentry)
 }
 
 void
+externalAclConfigure(void)
+{
+    external_acl *p;
+    for (p = Config.externalAclHelperList; p; p = p->next) {
+	requirePathnameExists("external_acl_type", p->cmdline->key);
+    }
+}
+
+void
 externalAclInit(void)
 {
     static int firstTimeInit = 1;
