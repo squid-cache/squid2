@@ -23,6 +23,7 @@ struct _diskdinfo_t {
     int suggest;
     int smsgid;
     int rmsgid;
+    int rfd;
     int wfd;
     int away;
     struct {

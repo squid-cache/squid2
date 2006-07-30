@@ -366,12 +366,17 @@ storeDiskdCheckConfig(SwapDir * sd)
 }
 
 static void
+diskdExited(int fd, void *unused)
+{
+    fatal("diskd exited unexpectedly");
+}
+
+static void
 storeDiskdDirInit(SwapDir * sd)
 {
     static int started_clean_event = 0;
     int x;
     int i;
-    int rfd;
     int ikey;
     const char *args[5];
     char skey1[32];
@@ -425,15 +430,13 @@ storeDiskdDirInit(SwapDir * sd)
 	Config.Program.diskd,
 	args,
 	"diskd",
-	&rfd,
+	&diskdinfo->rfd,
 	&diskdinfo->wfd);
     if (x < 0)
 	fatalf("execl: %s", Config.Program.diskd);
-    if (rfd != diskdinfo->wfd)
-	comm_close(rfd);
-    fd_note(diskdinfo->wfd, "squid -> diskd");
-    commSetTimeout(diskdinfo->wfd, -1, NULL, NULL);
-    commSetNonBlocking(diskdinfo->wfd);
+    fd_note(diskdinfo->rfd, "diskd -> squid health monitor");
+    fd_note(diskdinfo->wfd, "squid -> diskd health monitor");
+    commSetSelect(diskdinfo->rfd, COMM_SELECT_READ, diskdExited, NULL, 0);
     storeDiskdDirInitBitmap(sd);
     if (storeDiskdDirVerifyCacheDirs(sd) < 0)
 	fatal(errmsg);
