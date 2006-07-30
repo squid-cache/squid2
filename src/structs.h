@@ -506,6 +506,7 @@ struct _SquidConfig {
 	struct in_addr address;
 	int forwarding_method;
 	int return_method;
+	int rebuildwait;
 	void *info;
     } Wccp2;
 #endif

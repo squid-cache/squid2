@@ -1058,6 +1058,11 @@ wccp2HereIam(void *voidnotused)
 	debug(80, 1) ("wccp2HereIam: wccp2 socket closed.  Shutting down WCCP2\n");
 	return;
     }
+    /* Wait 10 seconds if store dirs are rebuilding */
+    if (store_dirs_rebuilding && Config.Wccp2.rebuildwait) {
+	eventAdd("wccp2HereIam", wccp2HereIam, NULL, 1.0, 1);
+	return;
+    }
     router_len = sizeof(router);
     memset(&router, '\0', router_len);
     router.sin_family = AF_INET;
@@ -1095,8 +1100,7 @@ wccp2HereIam(void *voidnotused)
 	service_list_ptr = service_list_ptr->next;
     }
 
-    if (!eventFind(wccp2HereIam, NULL))
-	eventAdd("wccp2HereIam", wccp2HereIam, NULL, 10.0, 1);
+    eventAdd("wccp2HereIam", wccp2HereIam, NULL, 10.0, 1);
 }
 
 static void
