@@ -66,6 +66,11 @@ Changes to squid-2.6.STABLE2 (not yet released)
 	- minimum_expiry_time to tune the magic 60 seconds limit of what
 	  is considered cachable when the object doesn't have any cache
 	  validators.
+	- Bug #1703: wrong path to diskd helper corrected, and config
+	  parser extended to trap incorrect paths early
+	- Bug #1703: COSS failed to initialize async-io threads
+	- Bug #1702: Warn if acl name is too long
+	- Bug #1685: Crashes or other odd results after storeSwapMetaUnpack: errors
 
 Changes to squid-2.6.STABLE1 (1 Jul 2006)
 	

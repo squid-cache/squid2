@@ -148,6 +148,7 @@ membership check</LI>
 <DT><B>via</B><DD><P>New directive to disable the use of the Via directive</P>
 <DT><B>wccp2_*</B><DD><P>WCCP2 protocol support</P>
 <DT><B>minimum_expiry_time</B><DD><P>tune the magic 60 seconds limit of what is considered cachable when the object doesn't have any cache validators. (2.6.STABLE2)</P>
+<DT><B>wccp2_rebuild_wait</B><DD><P>make Squid delay registering with a WCCP router until store rebuild have finished. Default on. (2.6.STABLE2)</P>
 
 </DL>
 </P>
@@ -332,6 +333,8 @@ redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd
 <LI>Added ARP acl support for OpenBSD and ARP fixes for Windows</LI>
 <LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1681">#1681</a>: All ntlmauthenticator processes are busy</LI>
 <LI>new minimum_expiry_time squid.conf directive backported from Squid-3</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1703">#1703</a>: Wrong default path to the diskd helper causing hangs at 100% CPU</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1685">#1685</a>: Crashes or other odd results after storeSwapMetaUnpack: errors</LI>
 <LI>a number of other minor and cosmetic bugfixes. See the list of 
 <A HREF="http://www.squid-cache.org/Versions/v2/2.6/changesets/">squid-2.6 changes</A> and the 
 <A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
