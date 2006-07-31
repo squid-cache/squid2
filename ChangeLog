@@ -1,3 +1,12 @@
+Changes to squid-2.5.STABLE3 (not yet released)
+
+	- Bug #1577: assertion failed "fm->max_n_files <= (1 << 24)" on
+	  very large cache_dir.  Limit number of objects stored to slightly
+	  less to avoid this.
+	- Bug #1705: Correct error message on invalid time weekday specification
+	- Don't attempt to guess netmask in src/dst acl specifications
+	  if none was provided. Assume it's an IP even if it ends in 0
+
 Changes to squid-2.6.STABLE2 (31 Jul 2006)
 
 	- WCCP2 doesn't update statCounter.syscalls.sock.sendtos counter.

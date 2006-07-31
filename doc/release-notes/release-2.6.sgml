@@ -290,6 +290,20 @@ redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd</verb>
 </itemize>
 
 
+<sect>Key changes squid-2.6.STABLE2 to 2.6.STABLE3
+
+<p>
+<itemize>
+	<item>src/dst acl parsing changed to not attempt to guess a netmask
+	if none was specified. Instead assume it's an IP address and not
+	a network even if it ends in 0
+	<item>a number of other minor and cosmetic bugfixes. See the list of <url
+		url="http://www.squid-cache.org/Versions/v2/2.6/changesets/"
+			name="squid-2.6 changes"> and the <url url="ChangeLog"
+				name="ChangeLog"> file for details.
+</itemize>
+
+
 
 </article>
 
