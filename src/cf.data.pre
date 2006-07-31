@@ -4210,6 +4210,7 @@ NAME: wccp2_rebuild_wait
 TYPE: onoff
 LOC: Config.Wccp2.rebuildwait
 DEFAULT: on
+IFDEF: USE_WCCPv2
 DOC_START
 	If this is enabled Squid will wait for the cache dir rebuild to finish
 	before sending the first wccp2 HereIAm packet
