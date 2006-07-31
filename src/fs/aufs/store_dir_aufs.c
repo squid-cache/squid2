@@ -1545,8 +1545,6 @@ storeAufsDirMaintain(SwapDir * SD)
     while (1) {
 	if (SD->cur_size < SD->low_size && aioinfo->map->n_files_in_map < FILEMAP_MAX)
 	    break;
-	if (SD->cur_size < SD->low_size)
-	    break;
 	if (removed >= max_remove)
 	    break;
 	e = walker->Next(walker);
