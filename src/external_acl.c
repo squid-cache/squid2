@@ -57,6 +57,7 @@ static void external_acl_cache_delete(external_acl * def, external_acl_entry * e
 static int external_acl_entry_expired(external_acl * def, external_acl_entry * entry);
 static int external_acl_grace_expired(external_acl * def, external_acl_entry * entry);
 static void external_acl_cache_touch(external_acl * def, external_acl_entry * entry);
+static int external_acl_is_pending(external_acl * def, const char *key);
 
 /*******************************************************************
  * external_acl cache entry
@@ -529,8 +530,18 @@ aclMatchExternal(void *data, aclCheck_t * ch)
 	}
     }
     if (!entry) {
+	int lookup_needed = 1;
 	entry = hash_lookup(acl->def->cache, key);
-	if (!entry || external_acl_grace_expired(acl->def, entry)) {
+	if (entry && !external_acl_entry_expired(acl->def, entry)) {
+	    lookup_needed = external_acl_grace_expired(acl->def, entry);
+	    /* Don't make graceful lookups if already pending */
+	    if (lookup_needed && external_acl_is_pending(acl->def, key))
+		lookup_needed = 0;
+	    /* Don't make graceful lookups when under high load */
+	    if (acl->def->helper->stats.queue_size > acl->def->helper->n_running * 2 / 3)
+		lookup_needed = 0;
+	}
+	if (lookup_needed) {
 	    debug(82, 2) ("aclMatchExternal: %s(\"%s\") = lookup needed\n", acl->def->name, key);
 	    if (acl->def->helper->stats.queue_size <= acl->def->helper->n_running) {
 		ch->state[ACL_EXTERNAL] = ACL_LOOKUP_NEEDED;
@@ -974,6 +985,20 @@ externalAclMessage(external_acl_entry * entry)
     return entry->message;
 }
 
+static int
+external_acl_is_pending(external_acl * def, const char *key)
+{
+    /* Check for a pending lookup */
+    dlink_node *node;
+    for (node = def->queue.head; node; node = node->next) {
+	externalAclState *oldstatetmp = node->data;
+	if (strcmp(key, oldstatetmp->key) == 0) {
+	    return 1;
+	}
+    }
+    return 0;
+}
+
 void
 externalAclLookup(aclCheck_t * ch, void *acl_data, EAH * callback, void *callback_data)
 {
@@ -1026,11 +1051,6 @@ externalAclLookup(aclCheck_t * ch, void *acl_data, EAH * callback, void *callbac
 	    graceful = 1;
 	}
     }
-    if (!graceful && entry && !external_acl_grace_expired(def, entry)) {
-	/* Should not really happen, but why not.. */
-	callback(callback_data, entry);
-	return;
-    }
     /* No pending lookup found. Sumbit to helper */
     state = cbdataAlloc(externalAclState);
     state->def = def;
@@ -1064,6 +1084,8 @@ externalAclLookup(aclCheck_t * ch, void *acl_data, EAH * callback, void *callbac
 	/* No need to wait during grace period */
 	callback(callback_data, entry);
 	return;
+    } else {
+	ch->state[ACL_EXTERNAL] = ACL_LOOKUP_PENDING;
     }
 }
 

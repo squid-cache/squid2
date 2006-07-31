@@ -73,6 +73,8 @@ Changes to squid-2.6.STABLE2 (not yet released)
 	- Bug #1702: Warn if acl name is too long
 	- Bug #1685: Crashes or other odd results after storeSwapMetaUnpack: errors
 	- wccp2_rebuild_wait directive to delay registering with WCCP until the
+	- Bug #1662: Infinite loop in external acl with grace period if the
+	  same http_access line had multiple external acls
 
 Changes to squid-2.6.STABLE1 (1 Jul 2006)
 	
