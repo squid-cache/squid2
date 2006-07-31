@@ -324,4 +324,8 @@
 #define FILE_MODE(x) ((x)&(O_RDONLY|O_WRONLY|O_RDWR))
 #endif
 
+/* swap_filen is 25 bits, signed */
+#define FILEMAP_MAX_SIZE (1<<24)
+#define FILEMAP_MAX (FILEMAP_MAX_SIZE - 65536)
+
 #endif /* SQUID_DEFINES_H */

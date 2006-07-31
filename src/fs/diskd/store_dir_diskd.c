@@ -1751,6 +1751,7 @@ storeDiskdDirValidFileno(SwapDir * SD, sfileno filn, int flag)
 void
 storeDiskdDirMaintain(SwapDir * SD)
 {
+    diskdinfo_t *diskdinfo = SD->fsdata;
     StoreEntry *e = NULL;
     int removed = 0;
     int max_scan;
@@ -1772,7 +1773,7 @@ storeDiskdDirMaintain(SwapDir * SD)
     debug(20, 3) ("storeMaintainSwapSpace: f=%f, max_scan=%d, max_remove=%d\n", f, max_scan, max_remove);
     walker = SD->repl->PurgeInit(SD->repl, max_scan);
     while (1) {
-	if (SD->cur_size < SD->low_size)
+	if (SD->cur_size < SD->low_size && diskdinfo->map->n_files_in_map < FILEMAP_MAX)
 	    break;
 	if (removed >= max_remove)
 	    break;

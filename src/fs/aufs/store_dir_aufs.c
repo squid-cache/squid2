@@ -1520,6 +1520,7 @@ storeAufsDirValidFileno(SwapDir * SD, sfileno filn, int flag)
 void
 storeAufsDirMaintain(SwapDir * SD)
 {
+    squidaioinfo_t *aioinfo = (squidaioinfo_t *) SD->fsdata;
     StoreEntry *e = NULL;
     int removed = 0;
     int max_scan;
@@ -1542,6 +1543,8 @@ storeAufsDirMaintain(SwapDir * SD)
 	f, max_scan, max_remove);
     walker = SD->repl->PurgeInit(SD->repl, max_scan);
     while (1) {
+	if (SD->cur_size < SD->low_size && aioinfo->map->n_files_in_map < FILEMAP_MAX)
+	    break;
 	if (SD->cur_size < SD->low_size)
 	    break;
 	if (removed >= max_remove)
