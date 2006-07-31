@@ -72,5 +72,6 @@ if [ -f $tmpdir/doc/release-notes/release-$RELEASE.html ]; then
     ln -sf ${name}-RELEASENOTES.html $dst/RELEASENOTES.html
 fi
 if [ -f $dst/changesets/index.html ]; then
+    $dst/changesets/.update
     cp -p $dst/changesets/index.html $dst/changesets/$tag.html
 fi
