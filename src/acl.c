@@ -620,7 +620,8 @@ aclParseTimeSpec(void *curlist)
 		default:
 		    debug(28, 0) ("%s line %d: %s\n",
 			cfg_filename, config_lineno, config_input_line);
-		    debug(28, 0) ("aclParseTimeSpec: Bad Day '%c'\n", *t);
+		    debug(28, 0) ("aclParseTimeSpec: Bad Day '%c'\n", t[-1]);
+		    self_destruct();
 		    break;
 		}
 	    }
