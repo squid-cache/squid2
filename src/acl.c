@@ -64,7 +64,7 @@ static int aclMatchUserMaxIP(void *, auth_user_request_t *, struct in_addr);
 static void aclParseHeader(void *data);
 static void aclDestroyHeader(void *data);
 static squid_acl aclStrToType(const char *s);
-static int decode_addr(const char *, struct in_addr *, struct in_addr *);
+static int decode_addr(const char *, struct in_addr *);
 static void aclCheck(aclCheck_t * checklist);
 static void aclCheckCallback(aclCheck_t * checklist, allow_t answer);
 #if USE_IDENT
@@ -422,9 +422,8 @@ aclParseType(void *current)
  * This function should NOT be called if 'asc' is a hostname!
  */
 static int
-decode_addr(const char *asc, struct in_addr *addr, struct in_addr *mask)
+decode_addr(const char *asc, struct in_addr *addr)
 {
-    u_num32 a;
     int a1 = 0, a2 = 0, a3 = 0, a4 = 0;
 
     switch (sscanf(asc, "%d.%d.%d.%d", &a1, &a2, &a3, &a4)) {
@@ -444,21 +443,6 @@ decode_addr(const char *asc, struct in_addr *addr, struct in_addr *mask)
 	return 0;		/* This is not valid address */
     }
 
-    if (mask != NULL) {		/* mask == NULL if called to decode a netmask */
-
-	/* Guess netmask */
-	a = (u_num32) ntohl(addr->s_addr);
-	if (!(a & 0xFFFFFFFFul))
-	    mask->s_addr = htonl(0x00000000ul);
-	else if (!(a & 0x00FFFFFF))
-	    mask->s_addr = htonl(0xFF000000ul);
-	else if (!(a & 0x0000FFFF))
-	    mask->s_addr = htonl(0xFFFF0000ul);
-	else if (!(a & 0x000000FF))
-	    mask->s_addr = htonl(0xFFFFFF00ul);
-	else
-	    mask->s_addr = htonl(0xFFFFFFFFul);
-    }
     return 1;
 }
 
@@ -487,6 +471,7 @@ aclParseIpData(const char *t)
 	q->mask.s_addr = 0;
 	return q;
     }
+    q->mask.s_addr = no_addr.s_addr;	/* 255.255.255.255 */
     if (sscanf(t, SCAN_ACL1, addr1, addr2, mask) == 3) {
 	(void) 0;
     } else if (sscanf(t, SCAN_ACL2, addr1, addr2, &c) == 2) {
@@ -525,7 +510,7 @@ aclParseIpData(const char *t)
 	return NULL;
     }
     /* Decode addr1 */
-    if (!decode_addr(addr1, &q->addr1, &q->mask)) {
+    if (!decode_addr(addr1, &q->addr1)) {
 	debug(28, 0) ("%s line %d: %s\n",
 	    cfg_filename, config_lineno, config_input_line);
 	debug(28, 0) ("aclParseIpData: Ignoring invalid IP acl entry: unknown first address '%s'\n", addr1);
@@ -533,7 +518,7 @@ aclParseIpData(const char *t)
 	return NULL;
     }
     /* Decode addr2 */
-    if (*addr2 && !decode_addr(addr2, &q->addr2, &q->mask)) {
+    if (*addr2 && !decode_addr(addr2, &q->addr2)) {
 	debug(28, 0) ("%s line %d: %s\n",
 	    cfg_filename, config_lineno, config_input_line);
 	debug(28, 0) ("aclParseIpData: Ignoring invalid IP acl entry: unknown second address '%s'\n", addr2);
@@ -541,7 +526,7 @@ aclParseIpData(const char *t)
 	return NULL;
     }
     /* Decode mask */
-    if (*mask && !decode_addr(mask, &q->mask, NULL)) {
+    if (*mask && !decode_addr(mask, &q->mask)) {
 	debug(28, 0) ("%s line %d: %s\n",
 	    cfg_filename, config_lineno, config_input_line);
 	debug(28, 0) ("aclParseIpData: Ignoring invalid IP acl entry: unknown netmask '%s'\n", mask);
