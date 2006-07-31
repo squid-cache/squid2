@@ -1,4 +1,4 @@
-Changes to squid-2.6.STABLE2 (not yet released)
+Changes to squid-2.6.STABLE2 (31 Jul 2006)
 
 	- WCCP2 doesn't update statCounter.syscalls.sock.sendtos counter.
 	- Releasenotes Table of contents should use relative links without
