@@ -407,6 +407,8 @@ struct logformat_token_table_entry logformat_token_table[] =
 /*{ "ur", LFT_USER_REALM }, */
 /*{ "us", LFT_USER_SCHEME }, */
     {"ui", LFT_USER_IDENT},
+    {"us", LFT_USER_SSL},
+    {"ue", LFT_USER_EXT},
 
     {"Hs", LFT_HTTP_CODE},
 /*{ "Ht", LFT_HTTP_STATUS }, */
@@ -429,13 +431,13 @@ struct logformat_token_table_entry logformat_token_table[] =
 /*{ ">sb", LFT_REQUEST_SIZE_BODY }, */
 /*{ ">sB", LFT_REQUEST_SIZE_BODY_NO_TE }, */
 
+    {"ea", LFT_EXT_LOG},
+
     {"<st", LFT_REPLY_SIZE_TOTAL},
 /*{ "<sl", LFT_REPLY_SIZE_LINE }, * /   / * the reply line (protocol, code, text) */
 /*{ "<sh", LFT_REPLY_SIZE_HEADERS }, */
 /*{ "<sb", LFT_REPLY_SIZE_BODY }, */
 /*{ "<sB", LFT_REPLY_SIZE_BODY_NO_TE }, */
-
-    {"ea", LFT_EXT_LOG},
 
     {"%", LFT_PERCENT},
 
