@@ -309,7 +309,9 @@ typedef enum {
 /*LFT_USER_SCHEME, */
     LFT_USER_IDENT,
     LFT_USER_EXT,
+#if USE_SSL
     LFT_USER_SSL,
+#endif
 
     LFT_HTTP_CODE,
 /*LFT_HTTP_STATUS, */
