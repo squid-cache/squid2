@@ -1578,9 +1578,9 @@ storeAufsDirCheckLoadAv(SwapDir * SD, store_op_t op)
 
     ql = aioQueueSize();
     if (ql == 0) {
-	return 1;
+	return AUFS_LOAD_BASE;
     }
-    loadav = ql * 1000 / MAGIC1;
+    loadav = AUFS_LOAD_BASE + (ql * AUFS_LOAD_QUEUE_WEIGHT / MAGIC1);
     return loadav;
 }
 
@@ -1681,6 +1681,7 @@ storeAufsDirStats(SwapDir * SD, StoreEntry * sentry)
     storeAppendPrintf(sentry, "Current Size: %d KB\n", SD->cur_size);
     storeAppendPrintf(sentry, "Percent Used: %0.2f%%\n",
 	100.0 * SD->cur_size / SD->max_size);
+    storeAppendPrintf(sentry, "Current load metric: %d / %d\n", storeAufsDirCheckLoadAv(SD, ST_OP_CREATE), MAX_LOAD_VALUE);
     storeAppendPrintf(sentry, "Filemap bits in use: %d of %d (%d%%)\n",
 	aioinfo->map->n_files_in_map, aioinfo->map->max_n_files,
 	percent(aioinfo->map->n_files_in_map, aioinfo->map->max_n_files));

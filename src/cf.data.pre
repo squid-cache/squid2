@@ -1133,6 +1133,35 @@ DOC_START
 	you should not change the COSS block size after Squid
 	has written some objects to the cache_dir.
 
+	overwrite-percent=n defines the percentage of disk that COSS
+	must write to before a given object will be moved to the
+	current stripe.  A value of "n" closer to 100 will cause COSS
+	to waste less disk space by having multiple copies of an object
+	on disk, but will increase the chances of overwriting a popular
+	object as COSS overwrites stripes.  A value of "n" close to 0 
+	will cause COSS to keep all current objects in the current COSS
+	stripe at the expense of the hit rate.  The default value of 50
+	will allow any given object to be stored on disk a maximum of
+	2 times.
+
+	max-stripe-waste=n defines the maximum amount of space that COSS 
+	will waste in a given stripe (in bytes).  When COSS writes data
+	to disk, it will potentially waste up to "max-size" worth of disk
+	space for each 1MB of data written.  If "max-size" is set to a
+	large value (ie >256k), this could potentially result in large
+	amounts of wasted disk space. Setting this value to a lower value
+	(ie 64k or 32k) will result in a COSS disk refusing to cache
+	larger objects until the COSS stripe has been filled to within 
+	"max-stripe-waste" of the maximum size (1MB).
+
+	membufs=n defines the number of "memory-only" stripes that COSS
+	will use.  When an cache hit is performed on a COSS stripe before
+	COSS has reached the overwrite-percent value for that object,
+	COSS will use a series of memory buffers to hold the object in
+	while the data is sent to the client.  This will define the maximum
+	number of memory-only buffers that COSS will use.  The default value
+	is 10, which will use a maximum of 10MB of memory for buffers.
+
 	Common options:
 
 	read-only, this cache_dir is read only.

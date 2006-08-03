@@ -1613,7 +1613,7 @@ int
 storeUfsDirCheckLoadAv(SwapDir * SD, store_op_t op)
 {
     ufsinfo_t *ufsinfo = SD->fsdata;
-    return 500 + ufsinfo->open_files / 2;
+    return UFS_LOAD_BASE + ufsinfo->open_files / 2;
 }
 
 /*
@@ -1715,6 +1715,7 @@ storeUfsDirStats(SwapDir * SD, StoreEntry * sentry)
     storeAppendPrintf(sentry, "Current Size: %d KB\n", SD->cur_size);
     storeAppendPrintf(sentry, "Percent Used: %0.2f%%\n",
 	100.0 * SD->cur_size / SD->max_size);
+    storeAppendPrintf(sentry, "Current load metric: %d / %d\n", storeUfsDirCheckLoadAv(SD, ST_OP_CREATE), MAX_LOAD_VALUE);
     storeAppendPrintf(sentry, "Filemap bits in use: %d of %d (%d%%)\n",
 	ufsinfo->map->n_files_in_map, ufsinfo->map->max_n_files,
 	percent(ufsinfo->map->n_files_in_map, ufsinfo->map->max_n_files));

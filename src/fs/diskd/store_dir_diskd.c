@@ -1813,7 +1813,7 @@ storeDiskdDirCheckLoadAv(SwapDir * SD, store_op_t op)
     /* the parse function guarantees magic2 is positivie */
     if (diskdinfo->away >= diskdinfo->magic1)
 	return -1;
-    return diskdinfo->away * 1000 / diskdinfo->magic2;
+    return DISKD_LOAD_BASE + (diskdinfo->away * DISKD_LOAD_QUEUE_WEIGHT / diskdinfo->magic2);
 }
 
 /*
@@ -1962,6 +1962,7 @@ storeDiskdDirStats(SwapDir * SD, StoreEntry * sentry)
     storeAppendPrintf(sentry, "Current Size: %d KB\n", SD->cur_size);
     storeAppendPrintf(sentry, "Percent Used: %0.2f%%\n",
 	100.0 * SD->cur_size / SD->max_size);
+    storeAppendPrintf(sentry, "Current load metric: %d / %d\n", storeDiskdDirCheckLoadAv(SD, ST_OP_CREATE), MAX_LOAD_VALUE);
     storeAppendPrintf(sentry, "Filemap bits in use: %d of %d (%d%%)\n",
 	diskdinfo->map->n_files_in_map, diskdinfo->map->max_n_files,
 	percent(diskdinfo->map->n_files_in_map, diskdinfo->map->max_n_files));

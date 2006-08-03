@@ -46,6 +46,7 @@
 #define STORE_META_BUFSZ 4096
 
 int n_coss_dirs = 0;
+int max_coss_dir_size = 0;
 /* static int last_coss_pick_index = -1; */
 int coss_initialised = 0;
 MemPool *coss_state_pool = NULL;
@@ -93,7 +94,13 @@ static STFSRECONFIGURE storeCossDirReconfigure;
 static STDUMP storeCossDirDump;
 static STCALLBACK storeCossDirCallback;
 static void storeCossDirParseBlkSize(SwapDir *, const char *, const char *, int);
+static void storeCossDirParseOverwritePct(SwapDir *, const char *, const char *, int);
+static void storeCossDirParseMaxWaste(SwapDir *, const char *, const char *, int);
+static void storeCossDirParseMemOnlyBufs(SwapDir *, const char *, const char *, int);
 static void storeCossDirDumpBlkSize(StoreEntry *, const char *, SwapDir *);
+static void storeCossDirDumpOverwritePct(StoreEntry *, const char *, SwapDir *);
+static void storeCossDirDumpMaxWaste(StoreEntry *, const char *, SwapDir *);
+static void storeCossDirDumpMemOnlyBufs(StoreEntry *, const char *, SwapDir *);
 static OBJH storeCossStats;
 
 static void storeDirCoss_StartDiskRebuild(RebuildState * rb);
@@ -104,6 +111,9 @@ STSETUP storeFsSetup_coss;
 static struct cache_dir_option options[] =
 {
     {"block-size", storeCossDirParseBlkSize, storeCossDirDumpBlkSize},
+    {"overwrite-percent", storeCossDirParseOverwritePct, storeCossDirDumpOverwritePct},
+    {"max-stripe-waste", storeCossDirParseMaxWaste, storeCossDirDumpMaxWaste},
+    {"membufs", storeCossDirParseMemOnlyBufs, storeCossDirDumpMemOnlyBufs},
     {NULL, NULL}
 };
 
@@ -570,20 +580,26 @@ int
 storeCossDirCheckObj(SwapDir * SD, const StoreEntry * e)
 {
     CossInfo *cs = SD->fsdata;
+    int objsize = objectLen(e) + e->mem_obj->swap_hdr_sz;
     /* Check if the object is a special object, we can't cache these */
     if (EBIT_TEST(e->flags, ENTRY_SPECIAL))
 	return 0;
     if (cs->rebuild.rebuilding == 1)
 	return 0;
+    /* Check to see if the object is going to waste too much disk space */
+    if (objsize > cs->sizerange_max)
+	return 0;
+
     return 1;
 }
 
 int
 storeCossDirCheckLoadAv(SwapDir * SD, store_op_t op)
 {
-#if !USE_AUFSOPS
     CossInfo *cs = (CossInfo *) SD->fsdata;
-#else
+#if USE_AUFSOPS
+    float disk_size_weight, current_write_weight;
+    int cur_load_interval = (squid_curtime / cs->load_interval) % 2;
     int ql = 0;
 #endif
     int loadav;
@@ -592,13 +608,31 @@ storeCossDirCheckLoadAv(SwapDir * SD, store_op_t op)
 #if USE_AUFSOPS
     ql = aioQueueSize();
     if (ql == 0)
-	loadav = 0;
+	loadav = COSS_LOAD_BASE;
     else
-	loadav = ql * 1000 / MAGIC1;
+	loadav = COSS_LOAD_BASE + (ql * COSS_LOAD_QUEUE_WEIGHT / MAGIC1);
+
+    /* We want to try an keep the disks at a similar write rate 
+     * otherwise the LRU algorithm breaks
+     *
+     * The queue length has a 10% weight on the load
+     * The number of stripes written has a 90% weight
+     */
+    disk_size_weight = (float) max_coss_dir_size / SD->max_size;
+    current_write_weight = (float) cs->loadcalc[cur_load_interval] * COSS_LOAD_STRIPE_WEIGHT / MAX_LOAD_VALUE;
+
+    loadav += disk_size_weight * current_write_weight;
+
+    /* Remove the folowing check if we want to allow COSS partitions to get
+     * "too busy"
+     */
+    if (loadav > MAX_LOAD_VALUE)
+	loadav = MAX_LOAD_VALUE;
+
     debug(47, 9) ("storeAufsDirCheckObj: load=%d\n", loadav);
     return loadav;
 #else
-    loadav = cs->aq.aq_numpending * 1000 / MAX_ASYNCOP;
+    loadav = cs->aq.aq_numpending * MAX_LOAD_VALUE / MAX_ASYNCOP;
     return loadav;
 #endif
 }
@@ -632,6 +666,7 @@ storeCossDirStats(SwapDir * SD, StoreEntry * sentry)
     storeAppendPrintf(sentry, "Current Size: %d KB\n", SD->cur_size);
     storeAppendPrintf(sentry, "Percent Used: %0.2f%%\n",
 	100.0 * SD->cur_size / SD->max_size);
+    storeAppendPrintf(sentry, "Current load metric: %d / %d\n", storeCossDirCheckLoadAv(SD, ST_OP_CREATE), MAX_LOAD_VALUE);
     storeAppendPrintf(sentry, "Number of object collisions: %d\n", (int) cs->numcollisions);
 #if 0
     /* is this applicable? I Hope not .. */
@@ -716,7 +751,21 @@ storeCossDirParse(SwapDir * sd, int index, char *path)
     cs->blksz_bits = 9;		/* default block size = 512 */
     cs->blksz_mask = (1 << cs->blksz_bits) - 1;
 
+    /* By default, only overwrite objects that were written mor ethan 50% of the disk ago
+     * and use a maximum of 10 in-memory stripes
+     */
+    cs->minumum_overwrite_pct = 0.5;
+    cs->nummemstripes = 10;
+
+    /* Calculate load in 60 second incremenets */
+    /* This could be made configurable */
+    cs->load_interval = 60;
+
     parse_cachedir_options(sd, options, 0);
+
+    cs->sizerange_max = sd->max_objsize;
+    cs->sizerange_min = sd->max_objsize;
+
     /* Enforce maxobjsize being set to something */
     if (sd->max_objsize == -1)
 	fatal("COSS requires max-size to be set to something other than -1!\n");
@@ -728,12 +777,15 @@ storeCossDirParse(SwapDir * sd, int index, char *path)
      * signed integer, as defined in structs.h.
      */
     max_offset = (off_t) 0xFFFFFF << cs->blksz_bits;
-    if (sd->max_size > (unsigned long) (max_offset >> 10)) {
+    if ((sd->max_size + cs->nummemstripes) > (unsigned long) (max_offset >> 10)) {
 	debug(47, 0) ("COSS block-size = %d bytes\n", 1 << cs->blksz_bits);
 	debug(47, 0) ("COSS largest file offset = %lu KB\n", (unsigned long) max_offset >> 10);
 	debug(47, 0) ("COSS cache_dir size = %d KB\n", sd->max_size);
 	fatal("COSS cache_dir size exceeds largest offset\n");
     }
+    cs->max_disk_nf = ((off_t) sd->max_size << 10) >> cs->blksz_bits;
+    debug(47, 0) ("COSS: max disk fileno is %d\n", cs->max_disk_nf);
+
     /* XXX todo checks */
 
     /* Ensure that off_t range can cover the max_size */
@@ -748,6 +800,19 @@ storeCossDirParse(SwapDir * sd, int index, char *path)
 	cs->stripes[i].membuf = NULL;
 	cs->stripes[i].numdiskobjs = -1;
     }
+    cs->minimum_stripe_distance = cs->numstripes * cs->minumum_overwrite_pct;
+
+    debug(47, 0) ("COSS: number of memory-only stripes %d of %d bytes each\n", cs->nummemstripes, COSS_MEMBUF_SZ);
+    cs->memstripes = xcalloc(cs->nummemstripes, sizeof(struct _cossstripe));
+    for (i = 0; i < cs->nummemstripes; i++) {
+	cs->memstripes[i].id = i;
+	cs->memstripes[i].membuf = NULL;
+	cs->memstripes[i].numdiskobjs = -1;
+    }
+
+    /* Update the max size (used for load calculations */
+    if (sd->max_size > max_coss_dir_size)
+	max_coss_dir_size = sd->max_size;
 }
 
 static void
@@ -782,6 +847,49 @@ storeCossDirDump(StoreEntry * entry, SwapDir * s)
 }
 
 static void
+storeCossDirParseMemOnlyBufs(SwapDir * sd, const char *name, const char *value, int reconfiguring)
+{
+    CossInfo *cs = sd->fsdata;
+    int membufs = atoi(value);
+    if (reconfiguring) {
+	debug(47, 0) ("WARNING: cannot change COSS memory bufs Squid is running\n");
+	return;
+    }
+    if (membufs < 2)
+	fatal("COSS ERROR: There must be at least 2 membufs\n");
+    if (membufs > 500)
+	fatal("COSS ERROR: Squid will likely use too much memory if it ever used 500MB worth of buffers\n");
+    cs->nummemstripes = membufs;
+}
+
+static void
+storeCossDirParseMaxWaste(SwapDir * sd, const char *name, const char *value, int reconfiguring)
+{
+    CossInfo *cs = sd->fsdata;
+    int waste = atoi(value);
+
+    if (waste < 8192)
+	fatal("COSS max-stripe-waste must be > 8192\n");
+    if (waste > sd->max_objsize)
+	debug(47, 1) ("storeCossDirParseMaxWaste: COSS max-stripe-waste can not be bigger than the max object size (%" PRINTF_OFF_T ")\n", sd->max_objsize);
+    cs->sizerange_min = waste;
+}
+
+static void
+storeCossDirParseOverwritePct(SwapDir * sd, const char *name, const char *value, int reconfiguring)
+{
+    CossInfo *cs = sd->fsdata;
+    int pct = atoi(value);
+
+    if (pct < 0)
+	fatal("COSS overwrite percent must be > 0\n");
+    if (pct > 100)
+	fatal("COSS overwrite percent must be < 100\n");
+    cs->minumum_overwrite_pct = (float) pct / 100;
+    cs->minimum_stripe_distance = cs->numstripes * cs->minumum_overwrite_pct;
+}
+
+static void
 storeCossDirParseBlkSize(SwapDir * sd, const char *name, const char *value, int reconfiguring)
 {
     CossInfo *cs = sd->fsdata;
@@ -808,6 +916,27 @@ storeCossDirParseBlkSize(SwapDir * sd, const char *name, const char *value, int 
 	fatal("COSS block-size must be 8192 or smaller\n");
     cs->blksz_bits = nbits;
     cs->blksz_mask = (1 << cs->blksz_bits) - 1;
+}
+
+static void
+storeCossDirDumpMemOnlyBufs(StoreEntry * e, const char *option, SwapDir * sd)
+{
+    CossInfo *cs = sd->fsdata;
+    storeAppendPrintf(e, " membufs=%d MB", cs->nummemstripes);
+}
+
+static void
+storeCossDirDumpMaxWaste(StoreEntry * e, const char *option, SwapDir * sd)
+{
+    CossInfo *cs = sd->fsdata;
+    storeAppendPrintf(e, " max-stripe-waste=%d", cs->sizerange_min);
+}
+
+static void
+storeCossDirDumpOverwritePct(StoreEntry * e, const char *option, SwapDir * sd)
+{
+    CossInfo *cs = sd->fsdata;
+    storeAppendPrintf(e, " overwrite-percent=%d%%", (int) cs->minumum_overwrite_pct * 100);
 }
 
 static void
@@ -892,6 +1021,7 @@ storeCossStats(StoreEntry * sentry)
     storeAppendPrintf(sentry, "dead_stripes:     %d\n", coss_stats.dead_stripes);
     storeAppendPrintf(sentry, "alloc.alloc:      %d\n", coss_stats.alloc.alloc);
     storeAppendPrintf(sentry, "alloc.realloc:    %d\n", coss_stats.alloc.realloc);
+    storeAppendPrintf(sentry, "alloc.memalloc:   %d\n", coss_stats.alloc.memalloc);
     storeAppendPrintf(sentry, "alloc.collisions: %d\n", coss_stats.alloc.collisions);
     storeAppendPrintf(sentry, "disk_overflows:   %d\n", coss_stats.disk_overflows);
     storeAppendPrintf(sentry, "stripe_overflows: %d\n", coss_stats.stripe_overflows);
@@ -1126,9 +1256,9 @@ storeDirCoss_ParseStripeBuffer(RebuildState * rb)
 	tmpe.hash.key = key;
 	/* Check sizes */
 	if (tmpe.swap_file_sz == 0) {
-	    tmpe.swap_file_sz = len;
+	    tmpe.swap_file_sz = len + bl;
 	}
-	if (tmpe.swap_file_sz != len) {
+	if (tmpe.swap_file_sz != (len + bl)) {
 	    debug(47, 3) ("COSS: %s: stripe %d: file size mismatch (%" PRINTF_OFF_T " != %" PRINTF_OFF_T ")\n", SD->path, cs->rebuild.curstripe, tmpe.swap_file_sz, len);
 	    goto nextobject;
 	}

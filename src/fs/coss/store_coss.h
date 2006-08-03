@@ -46,6 +46,7 @@ struct _coss_stats {
     struct {
 	int alloc;
 	int realloc;
+	int memalloc;
 	int collisions;
     } alloc;
     int disk_overflows;
@@ -73,6 +74,7 @@ struct _cossmembuf {
 	unsigned int writing:1;
 	unsigned int written:1;
 	unsigned int dead:1;
+	unsigned int memonly:1;
     } flags;
     int numobjs;
 };
@@ -114,6 +116,7 @@ struct _coss_pending_reloc {
     sfileno original_filen, new_filen;	/* in blocks, not in bytes */
     dlink_list ops;
     char *p;
+    struct _cossmembuf *locked_membuf;
 };
 
 
@@ -126,6 +129,8 @@ struct _cossinfo {
     int fd;
     int swaplog_fd;
     int numcollisions;
+    int loadcalc[2];
+    int load_interval;
     dlink_list pending_relocs;
     dlink_list pending_ops;
     int pending_reloc_count;
@@ -137,7 +142,11 @@ struct _cossinfo {
     unsigned int blksz_bits;
     unsigned int blksz_mask;	/* just 1<<blksz_bits - 1 */
 
+    float minumum_overwrite_pct;
+    int minimum_stripe_distance;
     int numstripes;
+    int sizerange_max;
+    int sizerange_min;
     struct _cossstripe *stripes;
     int curstripe;
     struct {
@@ -147,6 +156,13 @@ struct _cossinfo {
 	char *buf;
 	int buflen;
     } rebuild;
+    int max_disk_nf;
+
+    off_t current_memonly_offset;
+    struct _cossmembuf *current_memonly_membuf;
+    int nummemstripes;
+    struct _cossstripe *memstripes;
+    int curmemstripe;
 };
 
 struct _cossindex {
