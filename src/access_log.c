@@ -409,7 +409,9 @@ struct logformat_token_table_entry logformat_token_table[] =
 /*{ "ur", LFT_USER_REALM }, */
 /*{ "us", LFT_USER_SCHEME }, */
     {"ui", LFT_USER_IDENT},
+#if USE_SSL
     {"us", LFT_USER_SSL},
+#endif
     {"ue", LFT_USER_EXT},
 
     {"Hs", LFT_HTTP_CODE},
