@@ -841,9 +841,8 @@ storeCossDirReconfigure(SwapDir * sd, int index, char *path)
 void
 storeCossDirDump(StoreEntry * entry, SwapDir * s)
 {
-    storeAppendPrintf(entry, " %d",
-	s->max_size >> 20);
-    dump_cachedir_options(entry, NULL, s);
+    storeAppendPrintf(entry, " %d", s->max_size >> 10);
+    dump_cachedir_options(entry, options, s);
 }
 
 static void
