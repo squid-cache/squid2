@@ -241,7 +241,7 @@ storeCossRecycle(SwapDir * SD, StoreEntry * e)
     storeCossUnlink(SD, e);
 }
 
-int
+static int
 storeCossRelocateRequired(CossInfo * cs, sfileno f)
 {
     int stripes_written;
