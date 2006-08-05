@@ -294,7 +294,7 @@ authenticateAuthUserRequestSetIp(auth_user_request_t * auth_user_request, struct
     auth_user->ipcount++;
 
     ip1 = xstrdup(inet_ntoa(ipaddr));
-    debug(29, 2) ("authenticateAuthUserRequestSetIp: user '%s' has been seen at a new IP address (%s)\n ", authenticateUserUsername(auth_user), ip1);
+    debug(29, 2) ("authenticateAuthUserRequestSetIp: user '%s' has been seen at a new IP address (%s)\n", authenticateUserUsername(auth_user), ip1);
     safe_free(ip1);
 }
 
