@@ -1,10 +1,27 @@
+#include "config.h"
+
+#if HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
+#if HAVE_STDIO_H
 #include <stdio.h>
+#endif
+#if HAVE_STDLIB_H
 #include <stdlib.h>
+#endif
+#if HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 #include <assert.h>
+#if HAVE_STRING_H
 #include <string.h>
+#endif
+#if HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
+#if HAVE_FCNTL_H
 #include <fcntl.h>
+#endif
 
 #include "../src/defines.h"
 #include "../src/enums.h"
@@ -25,9 +42,18 @@ struct _tlv {
 #define	MEM_TLV	sizeof(tlv)
 #define	memAllocate(a)	malloc(a)
 #define	memFree(a, b)	free(a)
-#define xmemcpy(a, b, c) memcpy(a, b, c)
 #define xmalloc(a) malloc(a)
 #define xfree(a) free(a)
+
+#ifndef PRId64
+#ifdef _SQUID_MSWIN_		/* Windows native port using MSVCRT */
+#define PRId64 "I64d"
+#elif SIZEOF_INT64_T > SIZEOF_LONG
+#define PRId64 "lld"
+#else
+#define PRId64 "ld"
+#endif
+#endif
 
 #if SIZEOF_INT64_T > SIZEOF_LONG && HAVE_STRTOLL
 typedef int64_t squid_off_t;
@@ -153,66 +179,65 @@ storeSwapMetaUnpack(const char *buf, int *hdr_len)
 static void
 parse_stripe(int stripeid, char *buf, int len)
 {
-	int j = 0;
-	int bl = 0;
-	tlv *t, *tlv_list;
-	int64_t *l;
-	int tmp;
+    int j = 0;
+    int bl = 0;
+    tlv *t, *tlv_list;
+    int64_t *l;
+    int tmp;
 
-	while (j < len) {
-		l = NULL;
-		bl = 0;
-		tlv_list = storeSwapMetaUnpack(&buf[j], &bl);
-		if (tlv_list == NULL) {
-			printf("  Object: NULL\n");
-			return;
-		}
-		printf("  Object: (filen %d) hdr size %d\n", j / BLOCKSIZE + (stripeid * STRIPESIZE / BLOCKSIZE), bl);
-		for (t = tlv_list; t; t = t->next) {
-			switch(t->type) {
-				case STORE_META_URL:
-					/* XXX Is this OK? Is the URL guaranteed to be \0 terminated? */
-					printf("    URL: %s\n", (char *)t->value);
-					break;
-				case STORE_META_OBJSIZE:
-					l = t->value;
-					printf("Size: %" PRINTF_OFF_T " (len %d)\n", *l, t->length);
-					break;
-			}
-		}
-		if (l == NULL) {
-			printf("  STRIPE: Completed, got an object with no size\n");
-			return;
-		}
-		j = j + *l + bl;
-		/* And now, the blocksize! */
-		tmp = j / BLOCKSIZE;
-		tmp = (tmp+1) * BLOCKSIZE;
-		j = tmp;
+    while (j < len) {
+	l = NULL;
+	bl = 0;
+	tlv_list = storeSwapMetaUnpack(&buf[j], &bl);
+	if (tlv_list == NULL) {
+	    printf("  Object: NULL\n");
+	    return;
 	}
+	printf("  Object: (filen %d) hdr size %d\n", j / BLOCKSIZE + (stripeid * STRIPESIZE / BLOCKSIZE), bl);
+	for (t = tlv_list; t; t = t->next) {
+	    switch (t->type) {
+	    case STORE_META_URL:
+		/* XXX Is this OK? Is the URL guaranteed to be \0 terminated? */
+		printf("    URL: %s\n", (char *) t->value);
+		break;
+	    case STORE_META_OBJSIZE:
+		l = t->value;
+		printf("Size: %" PRINTF_OFF_T " (len %d)\n", *l, t->length);
+		break;
+	    }
+	}
+	if (l == NULL) {
+	    printf("  STRIPE: Completed, got an object with no size\n");
+	    return;
+	}
+	j = j + *l + bl;
+	/* And now, the blocksize! */
+	tmp = j / BLOCKSIZE;
+	tmp = (tmp + 1) * BLOCKSIZE;
+	j = tmp;
+    }
 }
 
 int
 main(int argc, char *argv[])
 {
-	int fd;
-	char buf[STRIPESIZE];
-	int i = 0, len;
+    int fd;
+    char buf[STRIPESIZE];
+    int i = 0, len;
 
-	if (argc < 2) {
-		printf("Usage: %s <path to COSS datafile>\n", argv[0]);
-		exit(1);
-	}
-
-	fd = open(argv[1], O_RDONLY);
-	if (fd < 0) {
-		perror("open");
-		exit(1);
-	}
-	while ((len = read(fd, buf, STRIPESIZE)) > 0) {
-		printf("STRIPE: %d (len %d)\n", i, len);
-		parse_stripe(i, buf, len);
-		i++;
-	}
-	return 0;
+    if (argc < 2) {
+	printf("Usage: %s <path to COSS datafile>\n", argv[0]);
+	exit(1);
+    }
+    fd = open(argv[1], O_RDONLY);
+    if (fd < 0) {
+	perror("open");
+	exit(1);
+    }
+    while ((len = read(fd, buf, STRIPESIZE)) > 0) {
+	printf("STRIPE: %d (len %d)\n", i, len);
+	parse_stripe(i, buf, len);
+	i++;
+    }
+    return 0;
 }
