@@ -24,11 +24,11 @@ splay_insert(void *data, splayNode * top, SPLAYCMP * compare)
 {
     splayNode *new = xcalloc(sizeof(splayNode), 1);
     new->data = data;
+    top = splay_splay(data, top, compare);
     if (top == NULL) {
 	new->left = new->right = NULL;
 	return new;
     }
-    top = splay_splay(data, top, compare);
     if (splayLastResult < 0) {
 	new->left = top->left;
 	new->right = top;

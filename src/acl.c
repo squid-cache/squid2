@@ -553,10 +553,12 @@ aclParseIpList(void *curlist)
     splayNode **Top = curlist;
     acl_ip_data *q = NULL;
     while ((t = strtokFile())) {
-	q = aclParseIpData(t);
-	while (q != NULL) {
+	acl_ip_data *next;
+	for (q = aclParseIpData(t); q != NULL; q = next) {
+	    next = q->next;
 	    *Top = splay_insert(q, *Top, aclIpNetworkCompare);
-	    q = q->next;
+	    if (splayLastResult == 0)
+		xfree(q);
 	}
     }
 }
@@ -799,7 +801,10 @@ aclParseUserList(void **current)
     } else {
 	if (data->flags.case_insensitive)
 	    Tolower(t);
-	Top = splay_insert(xstrdup(t), Top, (SPLAYCMP *) strcmp);
+	t = xstrdup(t);
+	Top = splay_insert(t, Top, (SPLAYCMP *) strcmp);
+	if (splayLastResult == 0)
+	    xfree(t);
     }
     debug(28, 3) ("aclParseUserList: Case-insensitive-switch is %d\n",
 	data->flags.case_insensitive);
@@ -810,7 +815,10 @@ aclParseUserList(void **current)
 	debug(28, 6) ("aclParseUserList: Got token: %s\n", t);
 	if (data->flags.case_insensitive)
 	    Tolower(t);
-	Top = splay_insert(xstrdup(t), Top, (SPLAYCMP *) strcmp);
+	t = xstrdup(t);
+	Top = splay_insert(t, Top, (SPLAYCMP *) strcmp);
+	if (splayLastResult == 0)
+	    xfree(t);
     }
     data->names = Top;
 }
@@ -827,7 +835,10 @@ aclParseDomainList(void *curlist)
     splayNode **Top = curlist;
     while ((t = strtokFile())) {
 	Tolower(t);
-	*Top = splay_insert(xstrdup(t), *Top, aclDomainCompare);
+	t = xstrdup(t);
+	*Top = splay_insert(t, *Top, aclDomainCompare);
+	if (splayLastResult == 0)
+	    safe_free(t);
     }
 }
 
@@ -850,7 +861,10 @@ aclParseCertList(void *curlist)
     }
     Top = &(*datap)->values;
     while ((t = strtokFile())) {
-	*Top = splay_insert(xstrdup(t), *Top, aclDomainCompare);
+	t = xstrdup(t);
+	*Top = splay_insert(t, *Top, aclDomainCompare);
+	if (splayLastResult == 0)
+	    safe_free(t);
     }
 }
 
@@ -3139,6 +3153,8 @@ aclParseArpList(void *curlist)
 	if ((q = aclParseArpData(t)) == NULL)
 	    continue;
 	*Top = splay_insert(q, *Top, aclArpCompare);
+	if (splayLastResult == 0)
+	    safe_free(q);
     }
 }
 
