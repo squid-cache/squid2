@@ -5036,9 +5036,12 @@ clientPinConnection(ConnStateData * conn, int fd, const request_t * request, pee
     else if (conn->pinning.fd != -1)
 	comm_close(conn->pinning.fd);
     conn->pinning.fd = fd;
+    safe_free(conn->pinning.host);
     conn->pinning.host = xstrdup(host);
     conn->pinning.port = port;
     conn->pinning.pinned = 1;
+    if (conn->pinning.peer)
+	cbdataUnlock(conn->pinning.peer);
     conn->pinning.peer = peer;
     if (peer)
 	cbdataLock(conn->pinning.peer);
