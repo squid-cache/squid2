@@ -243,8 +243,13 @@ storeSwapOut(StoreEntry * e)
 	assert(mem->inmem_lo == 0);
 	if (storeCheckCachable(e))
 	    storeSwapOutStart(e);
-	else
+	else {
+	    /* Now that we know the data is not cachable, free the memory
+	     * to make sure the forwarding code does not defer the connection
+	     */
+	    storeSwapOutMaintainMemObject(e);
 	    return;
+	}
 	/* ENTRY_CACHABLE will be cleared and we'll never get here again */
     }
     if (NULL == mem->swapout.sio)
