@@ -4325,7 +4325,7 @@ clientLifetimeTimeout(int fd, void *data)
 }
 
 static int
-httpAcceptDefer(int fdunused, void *dataunused)
+httpAcceptDefer(int fd, void *dataunused)
 {
     static time_t last_warn = 0;
     if (fdNFree() >= RESERVED_FD)
@@ -4334,6 +4334,7 @@ httpAcceptDefer(int fdunused, void *dataunused)
 	debug(33, 0) ("WARNING! Your cache is running out of filedescriptors\n");
 	last_warn = squid_curtime;
     }
+    commDeferFD(fd);
     return 1;
 }
 
