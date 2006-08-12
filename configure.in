@@ -1100,9 +1100,12 @@ if test "$use_dnsserver" = "yes"; then
     AC_DEFINE(USE_DNSSERVERS, 1, [If --disable-internal-dns was given to configure, then we'll use
 	the dnsserver processes instead.])
     AM_CONDITIONAL(USE_DNSSERVER, true)
-    dnl Cygwin needs -lresolv when using --disable-internal-dns
-    case "$host_os" in
-    cygwin|cygwin32)
+    dnl Some platforms need -lresolv when using --disable-internal-dns
+     case "$host" in
+	*-solaris*)
+        LIBS="$LIBS -lresolv"
+	    ;;
+	*-cygwin*)
         LIBS="$LIBS -lresolv"
         ;;
     esac
@@ -1443,6 +1446,7 @@ AC_ARG_ENABLE(follow-x-forwarded-for,
 [ if test "$enableval" = "yes" ; then
     echo "follow X-Forwarded-For enabled"
     AC_DEFINE(FOLLOW_X_FORWARDED_FOR, 1, [Enable following X-Forwarded-For headers])
+    AC_SEARCH_LIBS(inet_aton, resolv) dnl some systems don't have this in libc
   fi
 ])
 
