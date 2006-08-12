@@ -79,12 +79,13 @@ static MemPool *conn_close_pool = NULL;
 static void
 CommWriteStateCallbackAndFree(int fd, int code)
 {
-    CommWriteStateData *CommWriteState = fd_table[fd].rwstate;
+    CommWriteStateData *CommWriteState = &fd_table[fd].rwstate;
     CWCB *callback = NULL;
     void *data;
-    fd_table[fd].rwstate = NULL;
-    if (CommWriteState == NULL)
+    if (CommWriteState->valid == NULL) {
 	return;
+    }
+    CommWriteState->valid = 0;
     if (CommWriteState->free_func) {
 	FREE *free_func = CommWriteState->free_func;
 	void *free_buf = CommWriteState->buf;
@@ -95,10 +96,10 @@ CommWriteStateCallbackAndFree(int fd, int code)
     callback = CommWriteState->handler;
     data = CommWriteState->handler_data;
     CommWriteState->handler = NULL;
+    CommWriteState->valid = 0;
     if (callback && cbdataValid(data))
 	callback(fd, CommWriteState->buf, CommWriteState->offset, code, data);
     cbdataUnlock(data);
-    memPoolFree(comm_write_pool, CommWriteState);
 }
 
 /* Return the local port associated with fd. */
@@ -1041,9 +1042,11 @@ comm_init(void)
 static void
 commHandleWrite(int fd, void *data)
 {
-    CommWriteStateData *state = data;
     int len = 0;
     int nleft;
+    CommWriteStateData *state = &fd_table[fd].rwstate;
+
+    assert(state->valid == 1);
 
     debug(5, 5) ("commHandleWrite: FD %d: off %ld, sz %ld.\n",
 	fd, (long int) state->offset, (long int) state->size);
@@ -1072,7 +1075,7 @@ commHandleWrite(int fd, void *data)
 	    commSetSelect(fd,
 		COMM_SELECT_WRITE,
 		commHandleWrite,
-		state,
+		NULL,
 		0);
 	} else {
 	    debug(5, 2) ("commHandleWrite: FD %d: write failure: %s.\n",
@@ -1087,7 +1090,7 @@ commHandleWrite(int fd, void *data)
 	    commSetSelect(fd,
 		COMM_SELECT_WRITE,
 		commHandleWrite,
-		state,
+		NULL,
 		0);
 	} else {
 	    CommWriteStateCallbackAndFree(fd, COMM_OK);
@@ -1102,23 +1105,22 @@ commHandleWrite(int fd, void *data)
 void
 comm_write(int fd, const char *buf, int size, CWCB * handler, void *handler_data, FREE * free_func)
 {
-    CommWriteStateData *state = fd_table[fd].rwstate;
+    CommWriteStateData *state = &fd_table[fd].rwstate;
     debug(5, 5) ("comm_write: FD %d: sz %d: hndl %p: data %p.\n",
 	fd, size, handler, handler_data);
-    if (NULL != state) {
-	debug(5, 1) ("comm_write: fd_table[%d].rwstate != NULL\n", fd);
-	memPoolFree(comm_write_pool, state);
-	fd_table[fd].rwstate = NULL;
+    if (state->valid) {
+	debug(5, 1) ("comm_write: fd_table[%d].rwstate.valid == true!\n", fd);
+	fd_table[fd].rwstate.valid = 0;
     }
-    fd_table[fd].rwstate = state = memPoolAlloc(comm_write_pool);
     state->buf = (char *) buf;
     state->size = size;
     state->offset = 0;
     state->handler = handler;
     state->handler_data = handler_data;
     state->free_func = free_func;
+    state->valid = 1;
     cbdataLock(handler_data);
-    commSetSelect(fd, COMM_SELECT_WRITE, commHandleWrite, state, 0);
+    commSetSelect(fd, COMM_SELECT_WRITE, commHandleWrite, NULL, 0);
 }
 
 /* a wrapper around comm_write to allow for MemBuf to be comm_written in a snap */

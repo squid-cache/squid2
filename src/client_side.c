@@ -4266,7 +4266,7 @@ requestTimeout(int fd, void *data)
     ConnStateData *conn = data;
     ErrorState *err;
     debug(33, 3) ("requestTimeout: FD %d: lifetime is expired.\n", fd);
-    if (fd_table[fd].rwstate) {
+    if (fd_table[fd].rwstate.valid) {
 	/*
 	 * Some data has been sent to the client, just close the FD
 	 */
