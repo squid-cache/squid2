@@ -3764,6 +3764,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
     /* This tries to back out what is done above */
     dlinkDelete(&http->active, &ClientActiveRequests);
     safe_free(http->uri);
+    xfree(inbuf);
     cbdataFree(http);
     return parseHttpRequestAbort(conn, "error:invalid-request");
 }
