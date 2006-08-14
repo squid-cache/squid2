@@ -250,7 +250,7 @@ ntlmGetString(ntlmhdr * hdr, strhdr * str, int flags)
 	d = buf;
 
 	for (; l; l--) {
-	    if (*sc == '\0' || !isprint((int)(unsigned char)*sc)) {
+	    if (*sc == '\0' || !isprint((int) (unsigned char) *sc)) {
 		fprintf(stderr, "ntlmGetString: bad ascii: %04x\n", *sc);
 		return (NULL);
 	    }
@@ -276,8 +276,10 @@ ntlmDecodeAuth(struct ntlm_authenticate *auth, char *buf, size_t size)
     if (!buf)
 	return 1;
     origbuf = buf;
-    assert(0 == ntlmCheckHeader(&auth->hdr, NTLM_AUTHENTICATE));
-
+    if (ntlmCheckHeader(&auth->hdr, NTLM_AUTHENTICATE)) {
+	fprintf(stderr, "ntlmDecodeAuth: header check fails\n");
+	return -1;
+    }
     debug("ntlmDecodeAuth: size of %d\n", size);
     debug("ntlmDecodeAuth: flg %08x\n", auth->flags);
     debug("ntlmDecodeAuth: usr o(%d) l(%d)\n", auth->user.offset, auth->user.len);
@@ -365,9 +367,7 @@ int
 main(int argc, char *argv[])
 {
     char buf[BUFFER_SIZE];
-    char user[256];
-    char *p;
-    char *decoded = NULL;
+    char user[256], *p, *decoded = NULL;
     struct ntlm_challenge chal;
     struct ntlm_negotiate *nego;
     char helper_command[3];
@@ -412,9 +412,8 @@ main(int argc, char *argv[])
 		decoded = base64_decode(data);
 		debug("sending 'TT' to squid with data:\n");
 		hex_dump(decoded, (strlen(data) * 3) / 4);
-	    } else {
+	    } else
 		SEND2("TT %s", data);
-	    }
 	} else if (strncasecmp(buf, "KK ", 3) == 0) {
 	    if (!ntlmCheckHeader((ntlmhdr *) decoded, NTLM_AUTHENTICATE)) {
 		if (!ntlmDecodeAuth((struct ntlm_authenticate *) decoded, user, 256)) {
