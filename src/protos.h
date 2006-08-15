@@ -185,6 +185,7 @@ extern void commCloseAllSockets(void);
  * comm_select.c
  */
 extern void comm_select_init(void);
+extern void comm_select_postinit(void);
 extern void comm_select_shutdown(void);
 extern int comm_select(int);
 extern void commUpdateEvents(int fd);
