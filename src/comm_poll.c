@@ -570,6 +570,7 @@ comm_poll_dns_incoming(void)
 void
 comm_select_init(void)
 {
+    debug(5, 1) ("comm_select_init: using poll\n");
     cachemgrRegister("comm_incoming",
 	"comm_incoming() stats",
 	commIncomingStats, 0, 1);

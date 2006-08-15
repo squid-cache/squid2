@@ -68,6 +68,7 @@ epolltype_atoi(int x)
 void
 comm_select_init()
 {
+    debug(5, 1) ("comm_select_init: using epoll\n");
     kdpfd = epoll_create(Squid_MaxFD);
     if (kdpfd < 0)
 	fatalf("comm_select_init: epoll_create(): %s\n", xstrerror());

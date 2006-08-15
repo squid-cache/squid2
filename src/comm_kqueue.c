@@ -53,6 +53,7 @@ static unsigned *kqueue_state;	/* keep track of the kqueue state */
 void
 comm_select_init()
 {
+    debug(5, 1) ("comm_select_init: using kqueue\n");
     kq = kqueue();
     if (kq < 0)
 	fatalf("comm_select_init: kqueue(): %s\n", xstrerror());
