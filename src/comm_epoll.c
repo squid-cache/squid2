@@ -68,7 +68,6 @@ epolltype_atoi(int x)
 void
 comm_select_init()
 {
-    debug(5, 1) ("comm_select_init: using epoll\n");
     kdpfd = epoll_create(Squid_MaxFD);
     if (kdpfd < 0)
 	fatalf("comm_select_init: epoll_create(): %s\n", xstrerror());
@@ -79,12 +78,24 @@ comm_select_init()
 }
 
 void
+comm_select_postinit()
+{
+    debug(5, 1) ("Using epoll for the IO loop\n");
+}
+
+void
 comm_select_shutdown()
 {
     fd_close(kdpfd);
     close(kdpfd);
     kdpfd = -1;
     safe_free(epoll_state);
+}
+
+void
+comm_select_status(StoreEntry * sentry)
+{
+    storeAppendPrintf(sentry, "\tIO loop method:                     epoll\n");
 }
 
 void

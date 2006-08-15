@@ -659,6 +659,7 @@ info_get(StoreEntry * sentry)
 	RESERVED_FD);
     storeAppendPrintf(sentry, "\tStore Disk files open:                %4d\n",
 	store_open_disk_fd);
+    comm_select_status(sentry);
 
     storeAppendPrintf(sentry, "Internal Data Structures:\n");
     storeAppendPrintf(sentry, "\t%6d StoreEntries\n",

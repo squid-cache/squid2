@@ -552,6 +552,7 @@ mainInitialize(void)
 	debug(1, 1) ("Windows sockets initialized\n");
 #endif
 
+    comm_select_postinit();
     if (!configured_once)
 	disk_init();		/* disk_init must go before ipcache_init() */
     ipcache_init();

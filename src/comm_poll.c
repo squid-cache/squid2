@@ -570,15 +570,26 @@ comm_poll_dns_incoming(void)
 void
 comm_select_init(void)
 {
-    debug(5, 1) ("comm_select_init: using poll\n");
     cachemgrRegister("comm_incoming",
 	"comm_incoming() stats",
 	commIncomingStats, 0, 1);
 }
 
 void
+comm_select_postinit()
+{
+    debug(5, 1) ("Using poll for the IO loop\n");
+}
+
+void
 comm_select_shutdown(void)
 {
+}
+
+void
+comm_select_status(StoreEntry * sentry)
+{
+    storeAppendPrintf(sentry, "\tIO loop method:                     poll\n");
 }
 
 static void
