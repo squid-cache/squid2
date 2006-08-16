@@ -3735,7 +3735,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 	    http->flags.transparent = 1;
     } else if (conn->port->accel) {
 	http->flags.accel = 1;
-	if (!conn->port->vhost) {
+	if (!conn->port->vhost && strncasecmp(url, "cache_object://", 15) != 0) {
 	    url = strstr(url, "//");
 	    if (!url)
 		goto invalid_request;
