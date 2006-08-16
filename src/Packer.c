@@ -93,7 +93,7 @@
 
 /* append()'s */
 static void (*const store_append) (StoreEntry *, const char *, int) = &storeAppend;
-static void (*const memBuf_append) (MemBuf *, const char *, int) = &memBufAppend;
+static void (*const memBuf_append) (MemBuf *, const void *, int) = &memBufAppend;
 
 /* vprintf()'s */
 static void (*const store_vprintf) (StoreEntry *, const char *, va_list ap) = &storeAppendVPrintf;

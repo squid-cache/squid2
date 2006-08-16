@@ -193,6 +193,7 @@ extern void commSetEvents(int fd, int need_read, int need_write);
 extern void commUpdateReadHandler(int, PF *, void *);
 extern void commUpdateWriteHandler(int, PF *, void *);
 extern void comm_quick_poll_required(void);
+extern void comm_select_status(StoreEntry *);
 
 extern void packerToStoreInit(Packer * p, StoreEntry * e);
 extern void packerToMemInit(Packer * p, MemBuf * mb);
