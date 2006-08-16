@@ -2053,7 +2053,8 @@ clientProcessVary(VaryData * vary, void *data)
 	return;
     }
     if (vary->key) {
-	debug(33, 2) ("clientProcessVary: HIT key=%s etag=%s\n", vary->key, vary->etag);
+	debug(33, 2) ("clientProcessVary: HIT key=%s etag=%s\n",
+	    vary->key, vary->etag ? vary->etag : "NONE");
     } else {
 	int i;
 	debug(33, 2) ("clientProcessVary MISS\n");
