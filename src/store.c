@@ -418,18 +418,21 @@ free_AddVaryState(void *data)
 {
     AddVaryState *state = data;
     debug(11, 2) ("free_AddVaryState: %p\n", data);
-    if (!state->done && state->key) {
-	storeAppendPrintf(state->e, "Key: %s\n", state->key);
-	if (state->accept_encoding)
-	    storeAppendPrintf(state->e, "Accept-Encoding: %s\n", state->accept_encoding);
-	if (state->etag)
-	    storeAppendPrintf(state->e, "ETag: %s\n", state->etag);
-	storeAppendPrintf(state->e, "VaryData: %s\n", state->vary_headers);
+    if (!EBIT_TEST(state->e->flags, ENTRY_ABORTED)) {
+	storeBuffer(state->e);
+	if (!state->done && state->key) {
+	    storeAppendPrintf(state->e, "Key: %s\n", state->key);
+	    if (state->accept_encoding)
+		storeAppendPrintf(state->e, "Accept-Encoding: %s\n", state->accept_encoding);
+	    if (state->etag)
+		storeAppendPrintf(state->e, "ETag: %s\n", state->etag);
+	    storeAppendPrintf(state->e, "VaryData: %s\n", state->vary_headers);
+	}
+	storeTimestampsSet(state->e);
+	storeComplete(state->e);
+	storeTimestampsSet(state->e);
+	storeBufferFlush(state->e);
     }
-    storeBufferFlush(state->e);
-    storeTimestampsSet(state->e);
-    storeComplete(state->e);
-    storeTimestampsSet(state->e);
     storeUnlockObject(state->e);
     state->e = NULL;
     if (state->sc) {
@@ -539,6 +542,12 @@ storeAddVaryReadOld(void *data, char *buf, ssize_t size)
 	cbdataFree(state);
 	return;
     }
+    if (EBIT_TEST(state->e->flags, ENTRY_ABORTED)) {
+	debug(11, 1) ("storeAddVaryReadOld: New index aborted at %d (%d)\n", (int) state->seen_offset, (int) size);
+	cbdataFree(state);
+	return;
+    }
+    storeBuffer(state->e);
     if (state->seen_offset != 0) {
 	state->seen_offset = state->seen_offset + size;
     } else {
@@ -661,6 +670,7 @@ storeAddVaryReadOld(void *data, char *buf, ssize_t size)
     if (l)
 	memmove(state->buf, p, l);
     debug(11, 3) ("storeAddVaryReadOld: %p seen_offset=%" PRINTF_OFF_T " buf_offset=%d\n", data, state->seen_offset, (int) state->buf_offset);
+    storeBufferFlush(state->e);
     storeClientCopy(state->sc, state->oe,
 	state->seen_offset,
 	state->seen_offset,
@@ -704,7 +714,6 @@ storeAddVary(const char *url, const char *log_url, const method_t method, const 
     storeSetPublicKey(state->e);
     storeBuffer(state->e);
     httpReplySwapOut(state->e->mem_obj->reply, state->e);
-    storeBufferFlush(state->e);
     if (state->oe) {
 	/* Here we need to tack on the old etag/vary information, and we should
 	 * merge, clean up etc
