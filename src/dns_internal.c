@@ -83,6 +83,7 @@
 static int RcodeMatrix[MAX_RCODE][MAX_ATTEMPT];
 
 typedef struct _idns_query idns_query;
+CBDATA_TYPE(idns_query);
 typedef struct _ns ns;
 
 typedef struct _sp sp;
@@ -107,13 +108,16 @@ struct _idns_query {
     idns_query *queue;
     unsigned short domain;
     unsigned short do_searchpath;
+    int tcp_socket;
+    char *tcp_buffer;
+    size_t tcp_buffer_size;
+    size_t tcp_buffer_offset;
 };
 
 struct _ns {
     struct sockaddr_in S;
     int nqueries;
     int nreplies;
-    int large_pkts;
 };
 
 struct _sp {
@@ -531,6 +535,19 @@ idnsTickleQueue(void)
 }
 
 static void
+idnsTcpCleanup(idns_query * q)
+{
+    if (q->tcp_socket != -1) {
+	comm_close(q->tcp_socket);
+	q->tcp_socket = -1;
+    }
+    if (q->tcp_buffer) {
+	memFreeBuf(q->tcp_buffer_size, q->tcp_buffer);
+	q->tcp_buffer = NULL;
+    }
+}
+
+static void
 idnsSendQuery(idns_query * q)
 {
     int x;
@@ -543,6 +560,7 @@ idnsSendQuery(idns_query * q)
     assert(nns > 0);
     assert(q->lru.next == NULL);
     assert(q->lru.prev == NULL);
+    idnsTcpCleanup(q);
   try_again:
     ns = q->nsends % nns;
     x = comm_udp_sendto(DnsSocket,
@@ -627,12 +645,106 @@ idnsCallback(idns_query * q, rfc1035_rr * answers, int n, const char *error)
 	cbdataUnlock(q2->callback_data);
 	if (valid)
 	    q2->callback(q2->callback_data, answers, n, error);
-	memFree(q2, MEM_IDNS_QUERY);
+	cbdataFree(q2);
     }
     if (q->hash.key) {
 	hash_remove_link(idns_lookup_hash, &q->hash);
 	q->hash.key = NULL;
     }
+}
+
+static void
+idnsReadTcp(int fd, void *data)
+{
+    ssize_t n;
+    idns_query *q = data;
+    int ns = (q->nsends - 1) % nns;
+    if (!q->tcp_buffer)
+	q->tcp_buffer = memAllocBuf(1024, &q->tcp_buffer_size);
+    statCounter.syscalls.sock.reads++;
+    n = FD_READ_METHOD(q->tcp_socket, q->tcp_buffer + q->tcp_buffer_offset, q->tcp_buffer_size - q->tcp_buffer_offset);
+    if (n < 0 && ignoreErrno(errno)) {
+	commSetSelect(q->tcp_socket, COMM_SELECT_READ, idnsReadTcp, q, 0);
+	return;
+    }
+    if (n <= 0) {
+	debug(78, 2) ("idnsReadTcp: Short response for %s.\n", q->name);
+	dlinkDelete(&q->lru, &lru_list);
+	idnsSendQuery(q);
+	return;
+    }
+    fd_bytes(fd, n, FD_READ);
+    q->tcp_buffer_offset += n;
+    if (q->tcp_buffer_offset > 2) {
+	unsigned short response_size = ntohs(*(short *) q->tcp_buffer);
+	if (q->tcp_buffer_offset >= response_size + 2) {
+	    nameservers[ns].nreplies++;
+	    idnsGrokReply(q->tcp_buffer + 2, response_size);
+	    return;
+	}
+	if (q->tcp_buffer_size < response_size + 2)
+	    q->tcp_buffer = memReallocBuf(q->tcp_buffer, response_size + 2, &q->tcp_buffer_size);
+    }
+    commSetSelect(q->tcp_socket, COMM_SELECT_READ, idnsReadTcp, q, 0);
+}
+
+static void
+idnsSendTcpQueryDone(int fd, char *bufnotused, size_t size, int errflag, void *data)
+{
+    idns_query *q = data;
+    if (size > 0)
+	fd_bytes(fd, size, FD_WRITE);
+    if (errflag == COMM_ERR_CLOSING)
+	return;
+    if (errflag) {
+	dlinkDelete(&q->lru, &lru_list);
+	idnsSendQuery(q);
+	return;
+    }
+    commSetSelect(q->tcp_socket, COMM_SELECT_READ, idnsReadTcp, q, 0);
+}
+
+static void
+idnsSendTcpQuery(int fd, int status, void *data)
+{
+    MemBuf buf;
+    idns_query *q = data;
+    short nsz;
+    if (status != COMM_OK) {
+	dlinkDelete(&q->lru, &lru_list);
+	idnsSendQuery(q);
+	return;
+    }
+    memBufInit(&buf, q->sz + 2, q->sz + 2);
+    nsz = htons(q->sz);
+    memBufAppend(&buf, &nsz, 2);
+    memBufAppend(&buf, q->buf, q->sz);
+    comm_write_mbuf(q->tcp_socket, buf, idnsSendTcpQueryDone, q);
+}
+
+static void
+idnsRetryTcp(idns_query * q)
+{
+    struct in_addr addr;
+    int ns = (q->nsends - 1) % nns;
+    idnsTcpCleanup(q);
+    if (Config.Addrs.udp_outgoing.s_addr != no_addr.s_addr)
+	addr = Config.Addrs.udp_outgoing;
+    else
+	addr = Config.Addrs.udp_incoming;
+    q->tcp_socket = comm_open(SOCK_STREAM,
+	IPPROTO_TCP,
+	addr,
+	0,
+	COMM_NONBLOCKING,
+	"DNS TCP Socket");
+    dlinkAdd(q, &q->lru, &lru_list);
+    commConnectStart(q->tcp_socket,
+	inet_ntoa(nameservers[ns].S.sin_addr),
+	ntohs(nameservers[ns].S.sin_port),
+	idnsSendTcpQuery,
+	q
+	);
 }
 
 static void
@@ -663,6 +775,12 @@ idnsGrokReply(const char *buf, size_t sz)
 	return;
     }
     dlinkDelete(&q->lru, &lru_list);
+    if (message->tc && q->tcp_socket == -1) {
+	debug(78, 2) ("idnsGrokReply: Response for %s truncated. Retrying using TCP\n", message->query->name);
+	rfc1035MessageDestroy(message);
+	idnsRetryTcp(q);
+	return;
+    }
     idnsRcodeCount(n, q->attempt);
     q->error = NULL;
     if (n < 0) {
@@ -709,7 +827,8 @@ idnsGrokReply(const char *buf, size_t sz)
     idnsCallback(q, message->answer, n, q->error);
     rfc1035MessageDestroy(message);
 
-    memFree(q, MEM_IDNS_QUERY);
+    idnsTcpCleanup(q);
+    cbdataFree(q);
 }
 
 static void
@@ -796,7 +915,8 @@ idnsCheckQueue(void *unused)
 		idnsCallback(q, NULL, -q->rcode, q->error);
 	    else
 		idnsCallback(q, NULL, -16, "Timeout");
-	    memFree(q, MEM_IDNS_QUERY);
+	    idnsTcpCleanup(q);
+	    cbdataFree(q);
 	}
     }
     idnsTickleQueue();
@@ -823,6 +943,7 @@ void
 idnsInit(void)
 {
     static int init = 0;
+    CBDATA_INIT_TYPE(idns_query);
     if (DnsSocket < 0) {
 	int port;
 	struct in_addr addr;
@@ -895,7 +1016,8 @@ idnsCachedLookup(const char *key, IDNSCB * callback, void *data)
     idns_query *old = hash_lookup(idns_lookup_hash, key);
     if (!old)
 	return 0;
-    q = memAllocate(MEM_IDNS_QUERY);
+    q = cbdataAlloc(idns_query);
+    q->tcp_socket = -1;
     q->callback = callback;
     q->callback_data = data;
     cbdataLock(q->callback_data);
@@ -919,7 +1041,8 @@ idnsALookup(const char *name, IDNSCB * callback, void *data)
     idns_query *q;
     if (idnsCachedLookup(name, callback, data))
 	return;
-    q = memAllocate(MEM_IDNS_QUERY);
+    q = cbdataAlloc(idns_query);
+    q->tcp_socket = -1;
     q->id = idnsQueryID();
 
     for (i = 0; i < strlen(name); i++) {
@@ -948,7 +1071,7 @@ idnsALookup(const char *name, IDNSCB * callback, void *data)
     if (q->sz < 0) {
 	/* problem with query data -- query not sent */
 	callback(data, NULL, 0, "Internal error");
-	memFree(q, MEM_IDNS_QUERY);
+	cbdataFree(q);
 	return;
     }
     debug(78, 3) ("idnsALookup: buf is %d bytes for %s, id = %#hx\n",
@@ -968,7 +1091,8 @@ idnsPTRLookup(const struct in_addr addr, IDNSCB * callback, void *data)
     const char *ip = inet_ntoa(addr);
     if (idnsCachedLookup(ip, callback, data))
 	return;
-    q = memAllocate(MEM_IDNS_QUERY);
+    q = cbdataAlloc(idns_query);
+    q->tcp_socket = -1;
     q->id = idnsQueryID();
     q->sz = rfc1035BuildPTRQuery(addr, q->buf, sizeof(q->buf), q->id, &q->query);
     debug(78, 3) ("idnsPTRLookup: buf is %d bytes for %s, id = %#hx\n",
@@ -976,7 +1100,7 @@ idnsPTRLookup(const struct in_addr addr, IDNSCB * callback, void *data)
     if (q->sz < 0) {
 	/* problem with query data -- query not sent */
 	callback(data, NULL, 0, "Internal error");
-	memFree(q, MEM_IDNS_QUERY);
+	cbdataFree(q);
 	return;
     }
     q->callback = callback;

@@ -363,7 +363,10 @@ ipcacheParse(ipcache_entry * i, rfc1035_rr * answers, int nr, const char *error_
 	if (ttl == 0 || ttl > answers[k].ttl)
 	    ttl = answers[k].ttl;
     }
-    i->addrs.count = (unsigned char) na;
+    if (na < 256)
+	i->addrs.count = (unsigned char) na;
+    else
+	i->addrs.count = 255;
     if (ttl == 0 || ttl > Config.positiveDnsTtl)
 	ttl = Config.positiveDnsTtl;
     if (ttl < Config.negativeDnsTtl)
