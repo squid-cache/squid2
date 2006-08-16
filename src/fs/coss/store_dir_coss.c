@@ -44,6 +44,7 @@
 #endif
 
 #define STORE_META_BUFSZ 4096
+#define HITONLY_BUFS 2
 
 int n_coss_dirs = 0;
 int max_coss_dir_size = 0;
@@ -97,10 +98,12 @@ static void storeCossDirParseBlkSize(SwapDir *, const char *, const char *, int)
 static void storeCossDirParseOverwritePct(SwapDir *, const char *, const char *, int);
 static void storeCossDirParseMaxWaste(SwapDir *, const char *, const char *, int);
 static void storeCossDirParseMemOnlyBufs(SwapDir *, const char *, const char *, int);
+static void storeCossDirParseMaxFullBufs(SwapDir *, const char *, const char *, int);
 static void storeCossDirDumpBlkSize(StoreEntry *, const char *, SwapDir *);
 static void storeCossDirDumpOverwritePct(StoreEntry *, const char *, SwapDir *);
 static void storeCossDirDumpMaxWaste(StoreEntry *, const char *, SwapDir *);
 static void storeCossDirDumpMemOnlyBufs(StoreEntry *, const char *, SwapDir *);
+static void storeCossDirDumpMaxFullBufs(StoreEntry *, const char *, SwapDir *);
 static OBJH storeCossStats;
 
 static void storeDirCoss_StartDiskRebuild(RebuildState * rb);
@@ -114,6 +117,7 @@ static struct cache_dir_option options[] =
     {"overwrite-percent", storeCossDirParseOverwritePct, storeCossDirDumpOverwritePct},
     {"max-stripe-waste", storeCossDirParseMaxWaste, storeCossDirDumpMaxWaste},
     {"membufs", storeCossDirParseMemOnlyBufs, storeCossDirDumpMemOnlyBufs},
+    {"maxfullbufs", storeCossDirParseMaxFullBufs, storeCossDirDumpMaxFullBufs},
     {NULL, NULL}
 };
 
@@ -624,10 +628,16 @@ storeCossDirCheckLoadAv(SwapDir * SD, store_op_t op)
     loadav += disk_size_weight * current_write_weight;
 
     /* Remove the folowing check if we want to allow COSS partitions to get
-     * "too busy"
+     * too busy to accept new objects
      */
     if (loadav > MAX_LOAD_VALUE)
 	loadav = MAX_LOAD_VALUE;
+
+    /* Finally, we want to reject all new obects if the number of full stripes
+     * is too large
+     */
+    if (cs->numfullstripes > cs->hitonlyfullstripes)
+	loadav += MAX_LOAD_VALUE;
 
     debug(47, 9) ("storeAufsDirCheckObj: load=%d\n", loadav);
     return loadav;
@@ -802,6 +812,15 @@ storeCossDirParse(SwapDir * sd, int index, char *path)
     }
     cs->minimum_stripe_distance = cs->numstripes * cs->minumum_overwrite_pct;
 
+    /* Make sure cs->maxfull has a default value */
+    if (cs->maxfullstripes == 0)
+	cs->maxfullstripes = cs->numstripes;
+
+    /* We will reject new objects (ie go into hit-only mode)
+     * if there are <= 2 stripes available
+     */
+    cs->hitonlyfullstripes = cs->maxfullstripes - HITONLY_BUFS;
+
     debug(47, 0) ("COSS: number of memory-only stripes %d of %d bytes each\n", cs->nummemstripes, COSS_MEMBUF_SZ);
     cs->memstripes = xcalloc(cs->nummemstripes, sizeof(struct _cossstripe));
     for (i = 0; i < cs->nummemstripes; i++) {
@@ -810,7 +829,7 @@ storeCossDirParse(SwapDir * sd, int index, char *path)
 	cs->memstripes[i].numdiskobjs = -1;
     }
 
-    /* Update the max size (used for load calculations */
+    /* Update the max size (used for load calculations) */
     if (sd->max_size > max_coss_dir_size)
 	max_coss_dir_size = sd->max_size;
 }
@@ -843,6 +862,18 @@ storeCossDirDump(StoreEntry * entry, SwapDir * s)
 {
     storeAppendPrintf(entry, " %d", s->max_size >> 10);
     dump_cachedir_options(entry, options, s);
+}
+
+static void
+storeCossDirParseMaxFullBufs(SwapDir * sd, const char *name, const char *value, int reconfiguring)
+{
+    CossInfo *cs = sd->fsdata;
+    int maxfull = atoi(value);
+    if (maxfull <= HITONLY_BUFS)
+	fatalf("COSS ERROR: There must be more than %d maxfullbufs\n", HITONLY_BUFS);
+    if (maxfull > 500)
+	fatal("COSS ERROR: Squid will likely use too much memory if it ever used 500MB worth of full buffers\n");
+    cs->maxfullstripes = maxfull;
 }
 
 static void
@@ -915,6 +946,13 @@ storeCossDirParseBlkSize(SwapDir * sd, const char *name, const char *value, int 
 	fatal("COSS block-size must be 8192 or smaller\n");
     cs->blksz_bits = nbits;
     cs->blksz_mask = (1 << cs->blksz_bits) - 1;
+}
+
+static void
+storeCossDirDumpMaxFullBufs(StoreEntry * e, const char *option, SwapDir * sd)
+{
+    CossInfo *cs = sd->fsdata;
+    storeAppendPrintf(e, " maxfullbufs=%d MB", cs->maxfullstripes);
 }
 
 static void

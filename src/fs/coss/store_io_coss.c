@@ -162,14 +162,29 @@ storeCossAllocate(SwapDir * SD, const StoreEntry * e, int which)
     /* Since we're not supporting NOTIFY anymore, lets fail */
     assert(which != COSS_ALLOC_NOTIFY);
 
-    /* Check if we have overflowed the disk .. */
-    if ((cs->current_offset + allocsize) > ((off_t) SD->max_size << 10)) {
+    /* Check to see if we need to allocate a membuf to start */
+    if (cs->current_membuf == NULL) {
+	if (cs->curstripe < cs->numstripes)
+	    newmb = storeCossCreateMemBuf(SD, cs->curstripe + 1, checkf, &coll);
+	else
+	    newmb = storeCossCreateMemBuf(SD, 0, checkf, &coll);
+
+	cs->current_membuf = newmb;
+	if (newmb == NULL) {
+	    cs->sizerange_max = SD->max_objsize;
+	    return -1;
+	}
+	cs->current_offset = cs->current_membuf->diskstart;
+
+	/* Check if we have overflowed the disk .. */
+    } else if ((cs->current_offset + allocsize) > ((off_t) SD->max_size << 10)) {
 	/*
 	 * tried to allocate past the end of the disk, so wrap
 	 * back to the beginning
 	 */
 	coss_stats.disk_overflows++;
 	cs->current_membuf->flags.full = 1;
+	cs->numfullstripes++;
 	cs->current_membuf->diskend = cs->current_offset;
 	storeCossMaybeWriteMemBuf(SD, cs->current_membuf);
 	/* cs->current_membuf may be invalid at this point */
@@ -178,7 +193,10 @@ storeCossAllocate(SwapDir * SD, const StoreEntry * e, int which)
 
 	newmb = storeCossCreateMemBuf(SD, 0, checkf, &coll);
 	cs->current_membuf = newmb;
-
+	if (newmb == NULL) {
+	    cs->sizerange_max = SD->max_objsize;
+	    return -1;
+	}
 	/* Check if we have overflowed the MemBuf */
     } else if ((cs->current_offset + allocsize) >= cs->current_membuf->diskend) {
 	/*
@@ -186,6 +204,7 @@ storeCossAllocate(SwapDir * SD, const StoreEntry * e, int which)
 	 */
 	coss_stats.stripe_overflows++;
 	cs->current_membuf->flags.full = 1;
+	cs->numfullstripes++;
 	cs->current_offset = cs->current_membuf->diskend;
 	storeCossMaybeWriteMemBuf(SD, cs->current_membuf);
 	/* cs->current_membuf may be invalid at this point */
@@ -194,6 +213,10 @@ storeCossAllocate(SwapDir * SD, const StoreEntry * e, int which)
 	assert(cs->curstripe < (cs->numstripes - 1));
 	newmb = storeCossCreateMemBuf(SD, cs->curstripe + 1, checkf, &coll);
 	cs->current_membuf = newmb;
+	if (newmb == NULL) {
+	    cs->sizerange_max = SD->max_objsize;
+	    return -1;
+	}
     }
     /* If we didn't get a collision, then update the current offset and return it */
     if (coll == 0) {
@@ -372,6 +395,10 @@ storeCossOpen(SwapDir * SD, StoreEntry * e, STFNCB * file_callback,
 	} else {
 	    debug(79, 3) ("storeCossOpen: %s memory miss - not reallocating (Current stripe : %d  Object in stripe : %d)\n", SD->path, cs->curstripe, storeCossFilenoToStripe(cs, sio->swap_filen));
 	    nf = storeCossMemOnlyAllocate(SD, e);
+	    if (nf == -1) {
+		debug(79, 3) ("storeCossOpen: %s memory miss - reallocating because all membufs are in use\n", SD->path);
+		nf = storeCossAllocate(SD, e, COSS_ALLOC_REALLOC);
+	    }
 	}
 	if (nf == -1) {
 	    /* We have to clean up neatly .. */
@@ -731,6 +758,8 @@ storeCossMaybeFreeBuf(CossInfo * cs, CossMemBuf * mb)
 	if (mb->flags.memonly) {
 	    assert(cs->memstripes[mb->stripe].membuf == mb);
 	    cs->memstripes[mb->stripe].membuf = NULL;
+	} else {
+	    cs->numfullstripes--;
 	}
 	debug(79, 3) ("storeCossMaybeFreeBuf: %p: lockcount = 0, written = 1: marking dead\n", mb);
 	mb->flags.dead = 1;
@@ -807,6 +836,7 @@ storeCossCreateMemOnlyBuf(SwapDir * SD)
     CossInfo *cs = (CossInfo *) SD->fsdata;
     off_t start;
     int stripe;
+    static time_t last_warn = 0;
 
     /* TODO: Maybe make this a simple search for a free membuf */
     for (stripe = 0; stripe < cs->nummemstripes; stripe++) {
@@ -814,7 +844,10 @@ storeCossCreateMemOnlyBuf(SwapDir * SD)
 	    break;
     }
     if (stripe >= cs->nummemstripes) {
-	debug(79, 1) ("storeCossCreateMemOnlyBuf: no free membufs.  You may beed to increase the value of membufs on the %s cache_dir\n", SD->path);
+	if (last_warn + 15 < squid_curtime) {
+	    debug(79, 1) ("storeCossCreateMemOnlyBuf: no free membufs.  You may need to increase the value of membufs on the %s cache_dir\n", SD->path);
+	    last_warn = squid_curtime;
+	}
 	return NULL;
     }
     cs->curmemstripe = stripe;
@@ -854,8 +887,16 @@ storeCossCreateMemBuf(SwapDir * SD, int stripe, sfileno curfn, int *collision)
     CossInfo *cs = (CossInfo *) SD->fsdata;
     off_t start = (off_t) stripe * COSS_MEMBUF_SZ;
     off_t o;
+    static time_t last_warn = 0;
     assert(start >= 0);
 
+    if (cs->numfullstripes >= cs->maxfullstripes) {
+	if (last_warn + 15 < squid_curtime) {
+	    debug(79, 1) ("storeCossCreateMemBuf: Maximum number of full buffers reached on %s. You may need to increase the maxfullbuffers option for this cache_dir\n", SD->path);
+	    last_warn = squid_curtime;
+	}
+	return NULL;
+    }
     /* No, we shouldn't ever try to create a membuf if we haven't freed the one on
      * this stripe. Grr */
     assert(cs->stripes[stripe].membuf == NULL);

@@ -145,6 +145,9 @@ struct _cossinfo {
     float minumum_overwrite_pct;
     int minimum_stripe_distance;
     int numstripes;
+    int maxfullstripes;
+    int hitonlyfullstripes;
+    int numfullstripes;
     int sizerange_max;
     int sizerange_min;
     struct _cossstripe *stripes;

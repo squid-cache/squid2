@@ -1162,6 +1162,14 @@ DOC_START
 	number of memory-only buffers that COSS will use.  The default value
 	is 10, which will use a maximum of 10MB of memory for buffers.
 
+	maxfullbufs=n defines the maximum number of stripes a COSS partition 
+	will have in memory waiting to be freed (either because the disk is
+	under load and the stripe is unwritten, or because clients are still 
+	transferring data from objects using the memory).  In order to try 
+	and maintain a good hit rate under load, COSS will reserve the last 
+	2 full stripes for object hits. (ie a COSS cache_dir will reject 
+	new objects when the number of full stripes is 2 less than maxfullbufs)
+
 	Common options:
 
 	read-only, this cache_dir is read only.
