@@ -33,6 +33,9 @@ Squid is a WWW Cache application developed by the Web Caching community.</EM>
 <P>
 <H2><A NAME="toc7">7.</A> <A HREF="#s7">Key changes squid-2.6.STABLE1 to 2.6.STABLE2</A></H2>
 
+<P>
+<H2><A NAME="toc8">8.</A> <A HREF="#s8">Key changes squid-2.6.STABLE2 to 2.6.STABLE3</A></H2>
+
 
 <HR>
 <H2><A NAME="s1">1.</A> <A HREF="#toc1">Key changes from squid 2.5</A></H2>
@@ -335,6 +338,31 @@ redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd
 <LI>new minimum_expiry_time squid.conf directive backported from Squid-3</LI>
 <LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1703">#1703</a>: Wrong default path to the diskd helper causing hangs at 100% CPU</LI>
 <LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1685">#1685</a>: Crashes or other odd results after storeSwapMetaUnpack: errors</LI>
+<LI>a number of other minor and cosmetic bugfixes. See the list of 
+<A HREF="http://www.squid-cache.org/Versions/v2/2.6/changesets/">squid-2.6 changes</A> and the 
+<A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
+</UL>
+</P>
+
+
+<H2><A NAME="s8">8.</A> <A HREF="#toc8">Key changes squid-2.6.STABLE2 to 2.6.STABLE3</A></H2>
+
+<P>
+<UL>
+<LI>src/dst acl parsing changed to not attempt to guess a netmask
+if none was specified. Instead assume it's an IP address and not
+a network even if it ends in 0</LI>
+<LI>Several memory leaks plugged</LI>
+<LI>Delay pools now work again (broken in 2.6.STABLE1 &amp; 2)</LI>
+<LI>New log_format %ue and %us tags for external acl or ssl user id</LI>
+<LI>COSS fixes and performance improvements</LI>
+<LI>Include acl's is now shown in their original form in cachemgr configuration dumps.</LI>
+<LI>ntlm fake_auth finally handles non-ascii user names</LI>
+<LI>TCP fallback on truncated DNS responses, making the internal
+DNS client complete.</LI>
+<LI>Downloads could hang when using the cache_dir max-size option</LI>
+<LI>Fixed some assertion failures and segmentation faults</LI>
+<LI>Some small optimizations to reduce CPU usage</LI>
 <LI>a number of other minor and cosmetic bugfixes. See the list of 
 <A HREF="http://www.squid-cache.org/Versions/v2/2.6/changesets/">squid-2.6 changes</A> and the 
 <A HREF="ChangeLog">ChangeLog</A> file for details.</LI>

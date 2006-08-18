@@ -6,6 +6,26 @@ Changes to squid-2.5.STABLE3 (not yet released)
 	- Bug #1705: Correct error message on invalid time weekday specification
 	- Don't attempt to guess netmask in src/dst acl specifications
 	  if none was provided. Assume it's an IP even if it ends in 0
+	- Bug #1665: log_format %ue, %us tags for external or ssl user id
+	- Bug #1707: delay pools often ignored the set limit
+	- Bug #1716: Support for recent OpenSSL 0.9.7 versions
+	  (0.9.8 always worked)
+	- COSS fixes and performance improvements
+	- Memory leak when reading configuration files with overlapping
+	  ACL data where squid -k parse complains.
+	- Memory leak related to pinned connections
+	- Show include acls unexpanded in cachemgr configuration dumps
+	- Fixed WARNING defer handler for HTTP Socket does not call commDeferFD
+	- Bug #1304: Downloads may hang when using the cache_dir max-size option
+	- Optimization of network I/O
+	- Bug #1730: make problem with --enable-follow-x-forwarded-for on Solaris
+	- Fixed a memory leak on certain invalid requests
+	- Bug #1733: ERR_CANNOT_FORWARD Portuguese translation update
+	- Bug #582: ntlm fake_auth not handles non-ascii login names
+	- New startup message indicating the type of event loop used
+	- Bug #1602: TCP fallback on truncated DNS responses
+	- Bug #1667: assertion failed: store.c:1081: "e->store_status == STORE_PENDING"
+	- Bug #1723: cachemgr now works in accelerator mode
 
 Changes to squid-2.6.STABLE2 (31 Jul 2006)
 
