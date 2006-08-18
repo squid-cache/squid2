@@ -169,6 +169,13 @@ refreshStaleness(const StoreEntry * entry, time_t check_time, time_t age, const 
 	sf->max = 1;
 	return (age - R->max);
     }
+    if (check_time < entry->timestamp) {
+	debug(22, 1) ("STALE: Entry's timestamp greater than check time. Clock going backwards?\n");
+	debug(22, 1) ("\tcheck_time:\t%s\n", mkrfc1123(check_time));
+	debug(22, 1) ("\tentry->timestamp:\t%s\n", mkrfc1123(entry->timestamp));
+	debug(22, 1) ("\tstaleness:\t%ld\n", (long int) entry->timestamp - check_time);
+	return (entry->timestamp - check_time);
+    }
     /*
      * Try the last-modified factor algorithm.
      */
