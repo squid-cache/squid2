@@ -284,8 +284,8 @@ redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd</verb>
 	<item>Bug #1703: Wrong default path to the diskd helper causing hangs at 100% CPU
 	<item>Bug #1685: Crashes or other odd results after storeSwapMetaUnpack: errors
 	<item>a number of other minor and cosmetic bugfixes. See the list of <url
-		url="http://www.squid-cache.org/Versions/v2/2.6/changesets/"
-			name="squid-2.6 changes"> and the <url url="ChangeLog"
+		url="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE2.html"
+			name="squid-2.6.STABLE2 changes"> and the <url url="ChangeLog"
 				name="ChangeLog"> file for details.
 </itemize>
 
@@ -309,8 +309,8 @@ redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd</verb>
 	<item>Fixed some assertion failures and segmentation faults
 	<item>Some small optimizations to reduce CPU usage
 	<item>a number of other minor and cosmetic bugfixes. See the list of <url
-		url="http://www.squid-cache.org/Versions/v2/2.6/changesets/"
-			name="squid-2.6 changes"> and the <url url="ChangeLog"
+		url="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE3.html"
+			name="squid-2.6.STABLE3 changes"> and the <url url="ChangeLog"
 				name="ChangeLog"> file for details.
 </itemize>
 
