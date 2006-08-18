@@ -1116,6 +1116,7 @@ accessLogLog(AccessLogEntry * al, aclCheck_t * checklist)
     for (log = Config.Log.accesslogs; log; log = log->next) {
 	if (checklist && log->aclList && aclMatchAclList(log->aclList, checklist) != 1)
 	    continue;
+	logfileLineStart(log->logfile);
 	switch (log->type) {
 	case CLF_AUTO:
 	    if (Config.onoff.common_log)
@@ -1138,7 +1139,7 @@ accessLogLog(AccessLogEntry * al, aclCheck_t * checklist)
 	    fatalf("Unknown log format %d\n", log->type);
 	    break;
 	}
-	logfileFlush(log->logfile);
+	logfileLineEnd(log->logfile);
 	if (!checklist)
 	    break;
     }
@@ -1438,7 +1439,6 @@ headersLog(int cs, int pq, method_t m, void *data)
     logfileWrite(headerslog, &S, sizeof(S));
     logfileWrite(headerslog, hmask, sizeof(HttpHeaderMask));
     logfileWrite(headerslog, &ccmask, sizeof(int));
-    logfileFlush(headerslog);
 }
 
 #endif

@@ -69,6 +69,7 @@ storeLog(int tag, const StoreEntry * e)
 	 * Because if we print it before the swap file number, it'll break
 	 * the existing log format.
 	 */
+	logfileLineStart(storelog);
 	logfilePrintf(storelog, "%9ld.%03d %-7s %02d %08X %s %4d %9ld %9ld %9ld %s %" PRINTF_OFF_T "/%" PRINTF_OFF_T " %s %s\n",
 	    (long int) current_time.tv_sec,
 	    (int) current_time.tv_usec / 1000,
@@ -85,8 +86,10 @@ storeLog(int tag, const StoreEntry * e)
 	    mem->inmem_hi - mem->reply->hdr_sz,
 	    RequestMethodStr[mem->method],
 	    mem->log_url);
+	logfileLineEnd(storelog);
     } else {
 	/* no mem object. Most RELEASE cases */
+	logfileLineStart(storelog);
 	logfilePrintf(storelog, "%9ld.%03d %-7s %02d %08X %s   ?         ?         ?         ? ?/? ?/? ? ?\n",
 	    (long int) current_time.tv_sec,
 	    (int) current_time.tv_usec / 1000,
@@ -94,6 +97,7 @@ storeLog(int tag, const StoreEntry * e)
 	    e->swap_dirn,
 	    e->swap_filen,
 	    storeKeyText(e->hash.key));
+	logfileLineEnd(storelog);
     }
 }
 
