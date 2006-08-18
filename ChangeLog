@@ -1,4 +1,4 @@
-Changes to squid-2.5.STABLE3 (not yet released)
+Changes to squid-2.5.STABLE3 (Aug 18 2006)
 
 	- Bug #1577: assertion failed "fm->max_n_files <= (1 << 24)" on
 	  very large cache_dir.  Limit number of objects stored to slightly
