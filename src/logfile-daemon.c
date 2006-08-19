@@ -36,6 +36,11 @@
 
 #include "defines.h"
 
+#define SQUID_MAXPATHLEN 256
+#ifndef MAXPATHLEN
+#define MAXPATHLEN SQUID_MAXPATHLEN
+#endif
+
 /* parse buffer - ie, length of longest expected line */
 #define	LOGFILE_BUF_LEN		65536
 
