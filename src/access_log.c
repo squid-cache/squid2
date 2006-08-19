@@ -1116,30 +1116,32 @@ accessLogLog(AccessLogEntry * al, aclCheck_t * checklist)
     for (log = Config.Log.accesslogs; log; log = log->next) {
 	if (checklist && log->aclList && aclMatchAclList(log->aclList, checklist) != 1)
 	    continue;
-	logfileLineStart(log->logfile);
-	switch (log->type) {
-	case CLF_AUTO:
-	    if (Config.onoff.common_log)
-		accessLogCommon(al, log->logfile);
-	    else
+	if (log->logfile) {
+	    logfileLineStart(log->logfile);
+	    switch (log->type) {
+	    case CLF_AUTO:
+		if (Config.onoff.common_log)
+		    accessLogCommon(al, log->logfile);
+		else
+		    accessLogSquid(al, log->logfile);
+		break;
+	    case CLF_SQUID:
 		accessLogSquid(al, log->logfile);
-	    break;
-	case CLF_SQUID:
-	    accessLogSquid(al, log->logfile);
-	    break;
-	case CLF_COMMON:
-	    accessLogCommon(al, log->logfile);
-	    break;
-	case CLF_CUSTOM:
-	    accessLogCustom(al, log);
-	    break;
-	case CLF_NONE:
-	    goto last;
-	default:
-	    fatalf("Unknown log format %d\n", log->type);
-	    break;
+		break;
+	    case CLF_COMMON:
+		accessLogCommon(al, log->logfile);
+		break;
+	    case CLF_CUSTOM:
+		accessLogCustom(al, log);
+		break;
+	    case CLF_NONE:
+		goto last;
+	    default:
+		fatalf("Unknown log format %d\n", log->type);
+		break;
+	    }
+	    logfileLineEnd(log->logfile);
 	}
-	logfileLineEnd(log->logfile);
 	if (!checklist)
 	    break;
     }
