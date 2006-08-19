@@ -309,7 +309,8 @@ logfileOpen(const char *path, size_t bufsz, int fatal_flag)
     lf->nbufs = 0;
 
     /* Queue the initial control data */
-    asprintf(&tmpbuf, "r%d\nb%d\n", Config.Log.rotateNumber, Config.onoff.buffered_logs);
+    tmpbuf = (char *) xmalloc(BUFSIZ);
+    snprintf(tmpbuf, BUFSIZ, "r%d\nb%d\n", Config.Log.rotateNumber, Config.onoff.buffered_logs);
     logfileAppend(lf, tmpbuf, strlen(tmpbuf));
     xfree(tmpbuf);
 
