@@ -30,6 +30,11 @@
 #if HAVE_STRING_H
 #include <string.h>
 #endif
+#if HAVE_PATHS_H
+#include <paths.h>
+#endif
+
+#include "defines.h"
 
 /* parse buffer - ie, length of longest expected line */
 #define	LOGFILE_BUF_LEN		65536
@@ -104,7 +109,7 @@ main(int argc, char *argv[])
     }
     setbuf(stdout, NULL);
     close(2);
-    t = open("/dev/null", O_RDWR);
+    t = open(_PATH_DEVNULL, O_RDWR);
     assert(t > -1);
     dup2(t, 2);
 

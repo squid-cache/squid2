@@ -298,7 +298,11 @@
 #define URI_WHITESPACE_DENY 4
 
 #ifndef _PATH_DEVNULL
+#ifdef _SQUID_MSWIN_
+#define _PATH_DEVNULL "NUL"
+#else
 #define _PATH_DEVNULL "/dev/null"
+#endif
 #endif
 
 /* cbdata macros */

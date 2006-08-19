@@ -154,6 +154,9 @@
 #endif
 #include <netdb.h>
 #endif
+#if HAVE_PATHS_H
+#include <paths.h>
+#endif
 #if HAVE_PWD_H
 #include <pwd.h>
 #endif

@@ -1551,6 +1551,7 @@ AC_CHECK_HEADERS(
 	openssl/md5.h \
 	openssl/ssl.h \
 	openssl/engine.h \
+	paths.h \
 	poll.h \
 	pwd.h \
 	regex.h \
