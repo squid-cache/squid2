@@ -13,13 +13,13 @@
 
 int do_flush = 0;
 
-void
+static void
 signal_alarm(int unused)
 {
     do_flush = 1;
 }
 
-void
+static void
 rotate(const char *path, int rotate_count)
 {
 #ifdef S_ISREG
