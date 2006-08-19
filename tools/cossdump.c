@@ -12,7 +12,9 @@
 #if HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#if HAVE_ASSERT_H
 #include <assert.h>
+#endif
 #if HAVE_STRING_H
 #include <string.h>
 #endif
