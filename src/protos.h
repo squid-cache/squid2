@@ -1355,7 +1355,7 @@ extern unsigned int url_checksum(const char *url);
  */
 extern StatCounters *snmpStatGet(int);
 
-/* CygWin & Windows NT Port */
+/* Cygwin & native Windows Port */
 /* win32.c */
 #ifdef _SQUID_WIN32_
 extern int WIN32_Subsystem_Init(int *, char ***);

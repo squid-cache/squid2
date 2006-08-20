@@ -40,9 +40,15 @@
 
 #include "squid.h"
 
-/* This code compiles only CygWin & Windows NT Port */
+/* This code compiles only Cygwin & native Windows Port */
 #ifdef _SQUID_WIN32_
 #include <windows.h>
+#ifdef _SQUID_MSWIN_
+#ifndef _MSWSOCK_
+#include <mswsock.h>
+#endif
+#include <process.h>
+#endif
 
 static unsigned int GetOSVersion();
 void WIN32_svcstatusupdate(DWORD, DWORD);
@@ -51,6 +57,11 @@ static int WIN32_StoreKey(const char *, DWORD, unsigned char *, int);
 static int WIN32_create_key(void);
 static void WIN32_build_argv(char *);
 void WINAPI SquidWinSvcMain(DWORD, char **);
+
+#if defined(_SQUID_MSWIN_)
+void WIN32_ExceptionHandlerCleanup(void);
+static LPTOP_LEVEL_EXCEPTION_FILTER Win32_Old_ExceptionHandler = NULL;
+#endif /* _SQUID_MSWIN_ */
 
 static SERVICE_STATUS svcStatus;
 static SERVICE_STATUS_HANDLE svcHandle;
@@ -326,6 +337,9 @@ WIN32_Exit()
 	    SetServiceStatus(svcHandle, &svcStatus);
 	}
     }
+#endif
+#ifdef _SQUID_MSWIN_
+    WIN32_ExceptionHandlerCleanup();
 #endif
     _exit(0);
 }
@@ -718,6 +732,49 @@ main(int argc, char **argv)
     return 0;
 }
 #endif
+
+#if defined(_SQUID_MSWIN_)
+
+LONG CALLBACK
+WIN32_ExceptionHandler(EXCEPTION_POINTERS * ep)
+{
+    EXCEPTION_RECORD *er;
+
+    er = ep->ExceptionRecord;
+
+    switch (er->ExceptionCode) {
+    case EXCEPTION_ACCESS_VIOLATION:
+	raise(SIGSEGV);
+	break;
+    case EXCEPTION_DATATYPE_MISALIGNMENT:
+    case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
+    case EXCEPTION_IN_PAGE_ERROR:
+	death(SIGBUS);
+	break;
+    default:
+	break;
+    }
+    return EXCEPTION_CONTINUE_SEARCH;
+}
+
+void
+WIN32_ExceptionHandlerInit()
+{
+#if !defined(_DEBUG)
+    if (Win32_Old_ExceptionHandler == NULL)
+	Win32_Old_ExceptionHandler = SetUnhandledExceptionFilter(WIN32_ExceptionHandler);
 #endif
+}
+
+void
+WIN32_ExceptionHandlerCleanup()
+{
+    if (Win32_Old_ExceptionHandler != NULL)
+	SetUnhandledExceptionFilter(Win32_Old_ExceptionHandler);
+}
+
+#endif /* _SQUID_MSWIN_ */
+
+#endif /* _SQUID_WIN32 */
 
 #endif /* WIN32_C */
