@@ -579,26 +579,24 @@ accessLogCustom(AccessLogEntry * al, customlog * log)
 	    break;
 
 	case LFT_USER_NAME:
-	    {
-		char *user = accessLogFormatName(al->cache.authuser);
-		if (!user)
-		    user = accessLogFormatName(al->cache.rfc931);
+	    out = al->cache.authuser;
+	    if (!out || !*out)
+		out = al->cache.rfc931;
 #if USE_SSL
-		if (!user)
-		    user = accessLogFormatName(al->cache.ssluser);
+	    if (!out || !*out)
+		out = al->cache.ssluser;
 #endif
-		dofree = 1;
-	    }
+	    quote = 1;
 	    break;
 
 	case LFT_USER_LOGIN:
-	    out = accessLogFormatName(al->cache.authuser);
-	    dofree = 1;
+	    out = al->cache.authuser;
+	    quote = 1;
 	    break;
 
 	case LFT_USER_IDENT:
-	    out = accessLogFormatName(al->cache.rfc931);
-	    dofree = 1;
+	    out = al->cache.rfc931;
+	    quote = 1;
 	    break;
 
 	    /* case LFT_USER_REALM: */
@@ -606,15 +604,15 @@ accessLogCustom(AccessLogEntry * al, customlog * log)
 
 #if USE_SSL
 	case LFT_USER_SSL:
-	    out = accessLogFormatName(al->cache.ssluser);
-	    dofree = 1;
+	    out = al->cache.ssluser;
+	    quote = 1;
 	    break;
 #endif
 
 	case LFT_USER_EXT:
 	    if (al->request)
-		out = accessLogFormatName(strBuf(al->request->extacl_log));
-	    dofree = 1;
+		out = strBuf(al->request->extacl_log);
+	    quote = 1;
 	    break;
 
 	case LFT_HTTP_CODE:
