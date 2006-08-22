@@ -787,7 +787,7 @@ storeCossDirParse(SwapDir * sd, int index, char *path)
      * signed integer, as defined in structs.h.
      */
     max_offset = (off_t) 0xFFFFFF << cs->blksz_bits;
-    if ((sd->max_size + cs->nummemstripes) > (unsigned long) (max_offset >> 10)) {
+    if ((sd->max_size + (cs->nummemstripes * (COSS_MEMBUF_SZ >> 10))) > (unsigned long) (max_offset >> 10)) {
 	debug(47, 0) ("COSS block-size = %d bytes\n", 1 << cs->blksz_bits);
 	debug(47, 0) ("COSS largest file offset = %lu KB\n", (unsigned long) max_offset >> 10);
 	debug(47, 0) ("COSS cache_dir size = %d KB\n", sd->max_size);
