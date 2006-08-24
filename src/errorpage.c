@@ -452,7 +452,7 @@ errorConvert(char token, ErrorState * err)
     memBufReset(&mb);
     switch (token) {
     case 'a':
-	if (r->auth_user_request)
+	if (r && r->auth_user_request)
 	    p = authenticateUserRequestUsername(r->auth_user_request);
 	if (!p)
 	    p = "-";
