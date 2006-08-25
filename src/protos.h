@@ -1155,7 +1155,7 @@ extern void errorSend(int fd, ErrorState *);
 extern void errorAppendEntry(StoreEntry *, ErrorState *);
 extern void errorStateFree(ErrorState * err);
 extern int errorReservePageId(const char *page_name);
-extern ErrorState *errorCon(err_type type, http_status);
+extern ErrorState *errorCon(err_type type, http_status, request_t * request);
 extern int errorPageId(const char *page_name);
 
 extern void pconnPush(int, const char *host, u_short port, const char *domain, struct in_addr *client_address, u_short client_port);

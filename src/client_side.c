@@ -455,9 +455,7 @@ clientAccessCheckDone(int answer, void *data)
 	    if (page_id == ERR_NONE)
 		page_id = ERR_ACCESS_DENIED;
 	}
-	err = errorCon(page_id, status);
-	err->request = requestLink(http->orig_request);
-	err->src_addr = http->conn->peer.sin_addr;
+	err = errorCon(page_id, status, http->orig_request);
 	if (http->conn->auth_user_request)
 	    err->auth_user_request = http->conn->auth_user_request;
 	else if (http->request->auth_user_request)
@@ -517,9 +515,7 @@ clientAccessCheckDone2(int answer, void *data)
 	    if (page_id == ERR_NONE)
 		page_id = ERR_ACCESS_DENIED;
 	}
-	err = errorCon(page_id, status);
-	err->request = requestLink(http->orig_request);
-	err->src_addr = http->conn->peer.sin_addr;
+	err = errorCon(page_id, status, http->orig_request);
 	if (http->conn->auth_user_request)
 	    err->auth_user_request = http->conn->auth_user_request;
 	else if (http->request->auth_user_request)
@@ -1084,9 +1080,7 @@ clientPurgeRequest(clientHttpRequest * http)
     debug(33, 3) ("Config2.onoff.enable_purge = %d\n", Config2.onoff.enable_purge);
     if (!Config2.onoff.enable_purge) {
 	http->log_type = LOG_TCP_DENIED;
-	err = errorCon(ERR_ACCESS_DENIED, HTTP_FORBIDDEN);
-	err->request = requestLink(http->orig_request);
-	err->src_addr = http->conn->peer.sin_addr;
+	err = errorCon(ERR_ACCESS_DENIED, HTTP_FORBIDDEN, http->orig_request);
 	http->entry = clientCreateStoreEntry(http, http->request->method, null_request_flags);
 	errorAppendEntry(http->entry, err);
 	return;
@@ -1103,9 +1097,7 @@ clientPurgeRequest(clientHttpRequest * http)
 	if (entry) {
 	    if (EBIT_TEST(entry->flags, ENTRY_SPECIAL)) {
 		http->log_type = LOG_TCP_DENIED;
-		err = errorCon(ERR_ACCESS_DENIED, HTTP_FORBIDDEN);
-		err->request = requestLink(http->request);
-		err->src_addr = http->conn->peer.sin_addr;
+		err = errorCon(ERR_ACCESS_DENIED, HTTP_FORBIDDEN, http->request);
 		http->entry = clientCreateStoreEntry(http, http->request->method, null_request_flags);
 		errorAppendEntry(http->entry, err);
 		return;
@@ -2679,8 +2671,7 @@ clientSendMoreHeaderData(void *data, char *buf, ssize_t size)
     }
     clientMaxBodySize(http->request, http, rep);
     if (http->log_type != LOG_TCP_DENIED && clientReplyBodyTooLarge(http, rep->content_length)) {
-	ErrorState *err = errorCon(ERR_TOO_BIG, HTTP_FORBIDDEN);
-	err->request = requestLink(http->orig_request);
+	ErrorState *err = errorCon(ERR_TOO_BIG, HTTP_FORBIDDEN, http->orig_request);
 	storeClientUnregister(http->sc, http->entry, http);
 	http->sc = NULL;
 	storeUnlockObject(http->entry);
@@ -2841,8 +2832,7 @@ clientHttpReplyAccessCheckDone(int answer, void *data)
 	page_id = aclGetDenyInfoPage(&Config.denyInfoList, AclMatchedName);
 	if (page_id == ERR_NONE)
 	    page_id = ERR_ACCESS_DENIED;
-	err = errorCon(page_id, HTTP_FORBIDDEN);
-	err->request = requestLink(http->orig_request);
+	err = errorCon(page_id, HTTP_FORBIDDEN, http->orig_request);
 	storeClientUnregister(http->sc, http->entry, http);
 	http->sc = NULL;
 	storeUnlockObject(http->entry);
@@ -3211,9 +3201,7 @@ clientProcessOnlyIfCachedMiss(clientHttpRequest * http)
     debug(33, 4) ("clientProcessOnlyIfCachedMiss: '%s %s'\n",
 	RequestMethodStr[r->method], url);
     http->al.http.code = HTTP_GATEWAY_TIMEOUT;
-    err = errorCon(ERR_ONLY_IF_CACHED_MISS, HTTP_GATEWAY_TIMEOUT);
-    err->request = requestLink(http->orig_request);
-    err->src_addr = http->conn->peer.sin_addr;
+    err = errorCon(ERR_ONLY_IF_CACHED_MISS, HTTP_GATEWAY_TIMEOUT, http->orig_request);
     if (http->entry) {
 	storeClientUnregister(http->sc, http->entry, http);
 	http->sc = NULL;
@@ -3469,9 +3457,7 @@ clientProcessMiss(clientHttpRequest * http)
      */
     if (r->flags.loopdetect && (http->flags.accel || http->flags.transparent)) {
 	http->al.http.code = HTTP_FORBIDDEN;
-	err = errorCon(ERR_ACCESS_DENIED, HTTP_FORBIDDEN);
-	err->request = requestLink(http->orig_request);
-	err->src_addr = http->conn->peer.sin_addr;
+	err = errorCon(ERR_ACCESS_DENIED, HTTP_FORBIDDEN, http->orig_request);
 	http->log_type = LOG_TCP_DENIED;
 	http->entry = clientCreateStoreEntry(http, r->method, null_request_flags);
 	errorAppendEntry(http->entry, err);
@@ -3930,7 +3916,8 @@ clientReadRequest(int fd, void *data)
 	    commSetTimeout(fd, Config.Timeout.lifetime, clientLifetimeTimeout, http);
 	    if (parser_return_code < 0) {
 		debug(33, 1) ("clientReadRequest: FD %d Invalid Request\n", fd);
-		err = errorCon(ERR_INVALID_REQ, HTTP_BAD_REQUEST);
+		err = errorCon(ERR_INVALID_REQ, HTTP_BAD_REQUEST, NULL);
+		err->src_addr = conn->peer.sin_addr;
 		err->request_hdrs = xstrdup(conn->in.buf);
 		http->log_type = LOG_TCP_DENIED;
 		http->entry = clientCreateStoreEntry(http, method, null_request_flags);
@@ -3940,7 +3927,7 @@ clientReadRequest(int fd, void *data)
 	    }
 	    if ((request = urlParse(method, http->uri)) == NULL) {
 		debug(33, 5) ("Invalid URL: %s\n", http->uri);
-		err = errorCon(ERR_INVALID_URL, HTTP_BAD_REQUEST);
+		err = errorCon(ERR_INVALID_URL, HTTP_BAD_REQUEST, NULL);
 		err->src_addr = conn->peer.sin_addr;
 		err->url = xstrdup(http->uri);
 		http->al.http.code = err->http_status;
@@ -3955,10 +3942,8 @@ clientReadRequest(int fd, void *data)
 	    if ((http->http_ver.major >= 1) && !httpRequestParseHeader(request, prefix + req_line_sz)) {
 		debug(33, 1) ("Failed to parse request headers: %s\n%s\n",
 		    http->uri, prefix);
-		err = errorCon(ERR_INVALID_URL, HTTP_BAD_REQUEST);
-		err->src_addr = conn->peer.sin_addr;
+		err = errorCon(ERR_INVALID_URL, HTTP_BAD_REQUEST, request);
 		err->url = xstrdup(http->uri);
-		err->request = requestLink(request);
 		http->al.http.code = err->http_status;
 		http->log_type = LOG_TCP_DENIED;
 		http->entry = clientCreateStoreEntry(http, method, null_request_flags);
@@ -4005,9 +3990,7 @@ clientReadRequest(int fd, void *data)
 	    request->http_ver = http->http_ver;
 	    if (!urlCheckRequest(request) ||
 		httpHeaderHas(&request->header, HDR_TRANSFER_ENCODING)) {
-		err = errorCon(ERR_UNSUP_REQ, HTTP_NOT_IMPLEMENTED);
-		err->src_addr = conn->peer.sin_addr;
-		err->request = requestLink(request);
+		err = errorCon(ERR_UNSUP_REQ, HTTP_NOT_IMPLEMENTED, request);
 		request->flags.proxy_keepalive = 0;
 		http->al.http.code = err->http_status;
 		http->log_type = LOG_TCP_DENIED;
@@ -4016,9 +3999,7 @@ clientReadRequest(int fd, void *data)
 		break;
 	    }
 	    if (!clientCheckContentLength(request)) {
-		err = errorCon(ERR_INVALID_REQ, HTTP_LENGTH_REQUIRED);
-		err->src_addr = conn->peer.sin_addr;
-		err->request = requestLink(request);
+		err = errorCon(ERR_INVALID_REQ, HTTP_LENGTH_REQUIRED, request);
 		http->al.http.code = err->http_status;
 		http->log_type = LOG_TCP_DENIED;
 		http->entry = clientCreateStoreEntry(http, request->method, null_request_flags);
@@ -4036,8 +4017,7 @@ clientReadRequest(int fd, void *data)
 		cbdataLock(conn);
 		/* Is it too large? */
 		if (clientRequestBodyTooLarge(request->content_length)) {
-		    err = errorCon(ERR_TOO_BIG, HTTP_REQUEST_ENTITY_TOO_LARGE);
-		    err->request = requestLink(request);
+		    err = errorCon(ERR_TOO_BIG, HTTP_REQUEST_ENTITY_TOO_LARGE, request);
 		    http->log_type = LOG_TCP_DENIED;
 		    http->entry = clientCreateStoreEntry(http,
 			METHOD_NONE, null_request_flags);
@@ -4070,7 +4050,8 @@ clientReadRequest(int fd, void *data)
 		    (int) conn->in.offset);
 		debug(33, 1) ("Config 'request_header_max_size'= %ld bytes.\n",
 		    (long int) Config.maxRequestHeaderSize);
-		err = errorCon(ERR_TOO_BIG, HTTP_REQUEST_ENTITY_TOO_LARGE);
+		err = errorCon(ERR_TOO_BIG, HTTP_REQUEST_ENTITY_TOO_LARGE, NULL);
+		err->src_addr = conn->peer.sin_addr;
 		http = parseHttpRequestAbort(conn, "error:request-too-large");
 		/* add to the client request queue */
 		for (H = &conn->chr; *H; H = &(*H)->next);
@@ -4282,7 +4263,8 @@ requestTimeout(int fd, void *data)
 	/*
 	 * Generate an error
 	 */
-	err = errorCon(ERR_LIFETIME_EXP, HTTP_REQUEST_TIMEOUT);
+	err = errorCon(ERR_LIFETIME_EXP, HTTP_REQUEST_TIMEOUT, NULL);
+	err->src_addr = conn->peer.sin_addr;
 	err->url = xstrdup("N/A");
 	/*
 	 * Normally we shouldn't call errorSend() in client_side.c, but

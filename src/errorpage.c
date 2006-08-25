@@ -261,13 +261,17 @@ errorPageName(int pageId)
  * Abstract:  This function creates a ErrorState object.
  */
 ErrorState *
-errorCon(err_type type, http_status status)
+errorCon(err_type type, http_status status, request_t * request)
 {
     ErrorState *err;
     err = cbdataAlloc(ErrorState);
     err->page_id = type;	/* has to be reset manually if needed */
     err->type = type;
     err->http_status = status;
+    if (request != NULL) {
+	err->request = requestLink(request);
+	err->src_addr = request->client_addr;
+    }
     return err;
 }
 

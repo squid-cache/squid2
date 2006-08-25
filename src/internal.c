@@ -70,8 +70,7 @@ internalStart(request_t * request, StoreEntry * entry)
     } else {
 	debugObj(76, 1, "internalStart: unknown request:\n",
 	    request, (ObjPackMethod) & httpRequestPackDebug);
-	err = errorCon(ERR_INVALID_REQ, HTTP_NOT_FOUND);
-	err->request = requestLink(request);
+	err = errorCon(ERR_INVALID_REQ, HTTP_NOT_FOUND, request);
 	errorAppendEntry(entry, err);
     }
 }

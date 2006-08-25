@@ -101,7 +101,7 @@ httpTimeout(int fd, void *data)
     debug(11, 4) ("httpTimeout: FD %d: '%s'\n", fd, storeUrl(entry));
     if (entry->store_status == STORE_PENDING) {
 	fwdFail(httpState->fwd,
-	    errorCon(ERR_READ_TIMEOUT, HTTP_GATEWAY_TIMEOUT));
+	    errorCon(ERR_READ_TIMEOUT, HTTP_GATEWAY_TIMEOUT, httpState->fwd->request));
     }
     comm_close(fd);
 }
@@ -681,13 +681,13 @@ httpReadReply(int fd, void *data)
 	    commSetSelect(fd, COMM_SELECT_READ, httpReadReply, httpState, 0);
 	} else {
 	    ErrorState *err;
-	    err = errorCon(ERR_READ_ERROR, HTTP_BAD_GATEWAY);
+	    err = errorCon(ERR_READ_ERROR, HTTP_BAD_GATEWAY, httpState->fwd->request);
 	    err->xerrno = errno;
 	    fwdFail(httpState->fwd, err);
 	    comm_close(fd);
 	}
     } else if (len == 0 && entry->mem_obj->inmem_hi == 0) {
-	fwdFail(httpState->fwd, errorCon(ERR_ZERO_SIZE_OBJECT, HTTP_BAD_GATEWAY));
+	fwdFail(httpState->fwd, errorCon(ERR_ZERO_SIZE_OBJECT, HTTP_BAD_GATEWAY, httpState->fwd->request));
 	httpState->eof = 1;
 	comm_close(fd);
     } else if (len == 0) {
@@ -703,11 +703,11 @@ httpReadReply(int fd, void *data)
 	    httpProcessReplyHeader(httpState, buf, len);
 	if (entry->mem_obj->reply->sline.status == HTTP_HEADER_TOO_LARGE) {
 	    storeEntryReset(entry);
-	    fwdFail(httpState->fwd, errorCon(ERR_TOO_BIG, HTTP_BAD_GATEWAY));
+	    fwdFail(httpState->fwd, errorCon(ERR_TOO_BIG, HTTP_BAD_GATEWAY, httpState->fwd->request));
 	    httpState->fwd->flags.dont_retry = 1;
 	} else if (entry->mem_obj->reply->sline.status == HTTP_INVALID_HEADER && !(entry->mem_obj->reply->sline.version.major == 0 && entry->mem_obj->reply->sline.version.minor == 9)) {
 	    storeEntryReset(entry);
-	    fwdFail(httpState->fwd, errorCon(ERR_INVALID_RESP, HTTP_BAD_GATEWAY));
+	    fwdFail(httpState->fwd, errorCon(ERR_INVALID_RESP, HTTP_BAD_GATEWAY, httpState->fwd->request));
 	    httpState->fwd->flags.dont_retry = 1;
 	} else {
 	    fwdComplete(httpState->fwd);
@@ -722,14 +722,14 @@ httpReadReply(int fd, void *data)
 		if (s == HTTP_HEADER_TOO_LARGE) {
 		    debug(11, 1) ("WARNING: %s:%d: HTTP header too large\n", __FILE__, __LINE__);
 		    storeEntryReset(entry);
-		    fwdFail(httpState->fwd, errorCon(ERR_TOO_BIG, HTTP_BAD_GATEWAY));
+		    fwdFail(httpState->fwd, errorCon(ERR_TOO_BIG, HTTP_BAD_GATEWAY, httpState->fwd->request));
 		    httpState->fwd->flags.dont_retry = 1;
 		    comm_close(fd);
 		    return;
 		}
 		if (s == HTTP_INVALID_HEADER && !(entry->mem_obj->reply->sline.version.major == 0 && entry->mem_obj->reply->sline.version.minor == 9)) {
 		    storeEntryReset(entry);
-		    fwdFail(httpState->fwd, errorCon(ERR_INVALID_RESP, HTTP_BAD_GATEWAY));
+		    fwdFail(httpState->fwd, errorCon(ERR_INVALID_RESP, HTTP_BAD_GATEWAY, httpState->fwd->request));
 		    httpState->fwd->flags.dont_retry = 1;
 		    comm_close(fd);
 		    return;
@@ -882,7 +882,7 @@ httpSendComplete(int fd, char *bufnotused, size_t size, int errflag, void *data)
 	return;
     if (errflag) {
 	ErrorState *err;
-	err = errorCon(ERR_WRITE_ERROR, HTTP_BAD_GATEWAY);
+	err = errorCon(ERR_WRITE_ERROR, HTTP_BAD_GATEWAY, httpState->fwd->request);
 	err->xerrno = errno;
 	fwdFail(httpState->fwd, err);
 	comm_close(fd);
@@ -1455,7 +1455,7 @@ httpSendRequestEntry(int fd, char *bufnotused, size_t size, int errflag, void *d
 	return;
     if (errflag) {
 	ErrorState *err;
-	err = errorCon(ERR_WRITE_ERROR, HTTP_BAD_GATEWAY);
+	err = errorCon(ERR_WRITE_ERROR, HTTP_BAD_GATEWAY, httpState->fwd->request);
 	err->xerrno = errno;
 	fwdFail(httpState->fwd, err);
 	comm_close(fd);

@@ -217,10 +217,8 @@ fwdServerClosed(int fd, void *data)
 	eventAdd("fwdConnectStart", fwdConnectStart, fwdState, originserver ? 0.05 : 0.005, 0);
 	return;
     }
-    if (!fwdState->err && shutting_down) {
-	fwdState->err = errorCon(ERR_SHUTTING_DOWN, HTTP_SERVICE_UNAVAILABLE);
-	fwdState->err->request = requestLink(fwdState->request);
-    }
+    if (!fwdState->err && shutting_down)
+	fwdState->err = errorCon(ERR_SHUTTING_DOWN, HTTP_SERVICE_UNAVAILABLE, fwdState->request);
     fwdStateFree(fwdState);
 }
 
@@ -248,13 +246,12 @@ fwdNegotiateSSL(int fd, void *data)
 	    return;
 	default:
 	    debug(81, 1) ("fwdNegotiateSSL: Error negotiating SSL connection on FD %d: %s (%d/%d/%d)\n", fd, ERR_error_string(ERR_get_error(), NULL), ssl_error, ret, errno);
-	    err = errorCon(ERR_CONNECT_FAIL, HTTP_SERVICE_UNAVAILABLE);
+	    err = errorCon(ERR_CONNECT_FAIL, HTTP_SERVICE_UNAVAILABLE, request);
 #ifdef EPROTO
 	    err->xerrno = EPROTO;
 #else
 	    err->xerrno = EACCES;
 #endif
-	    err->request = requestLink(request);
 	    fwdFail(fwdState, err);
 	    if (fs->peer) {
 		peerConnectFailed(fs->peer);
@@ -308,9 +305,8 @@ fwdInitiateSSL(FwdState * fwdState)
 	ErrorState *err;
 	debug(83, 1) ("fwdInitiateSSL: Error allocating handle: %s\n",
 	    ERR_error_string(ERR_get_error(), NULL));
-	err = errorCon(ERR_SOCKET_FAILURE, HTTP_INTERNAL_SERVER_ERROR);
+	err = errorCon(ERR_SOCKET_FAILURE, HTTP_INTERNAL_SERVER_ERROR, fwdState->request);
 	err->xerrno = errno;
-	err->request = requestLink(fwdState->request);
 	fwdFail(fwdState, err);
 	fwdStateFree(fwdState);
 	return;
@@ -347,13 +343,13 @@ fwdConnectDone(int server_fd, int status, void *data)
 	    fwdState->flags.dont_retry = 1;
 	debug(17, 4) ("fwdConnectDone: Unknown host: %s\n",
 	    request->host);
-	err = errorCon(ERR_DNS_FAIL, HTTP_SERVICE_UNAVAILABLE);
+	err = errorCon(ERR_DNS_FAIL, HTTP_SERVICE_UNAVAILABLE, fwdState->request);
 	err->dnsserver_msg = xstrdup(dns_error_message);
 	fwdFail(fwdState, err);
 	comm_close(server_fd);
     } else if (status != COMM_OK) {
 	assert(fs);
-	err = errorCon(ERR_CONNECT_FAIL, HTTP_SERVICE_UNAVAILABLE);
+	err = errorCon(ERR_CONNECT_FAIL, HTTP_SERVICE_UNAVAILABLE, fwdState->request);
 	err->xerrno = errno;
 	fwdFail(fwdState, err);
 	if (fs->peer)
@@ -388,7 +384,7 @@ fwdConnectTimeout(int fd, void *data)
     if (Config.onoff.log_ip_on_direct && fs->code == HIER_DIRECT && fd_table[fd].ipaddr[0])
 	hierarchyNote(&fwdState->request->hier, fs->code, fd_table[fd].ipaddr);
     if (entry->mem_obj->inmem_hi == 0) {
-	err = errorCon(ERR_CONNECT_FAIL, HTTP_GATEWAY_TIMEOUT);
+	err = errorCon(ERR_CONNECT_FAIL, HTTP_GATEWAY_TIMEOUT, fwdState->request);
 	err->xerrno = ETIMEDOUT;
 	fwdFail(fwdState, err);
 	/*
@@ -566,7 +562,7 @@ fwdConnectStart(void *data)
 	url);
     if (fd < 0) {
 	debug(50, 4) ("fwdConnectStart: %s\n", xstrerror());
-	err = errorCon(ERR_SOCKET_FAILURE, HTTP_INTERNAL_SERVER_ERROR);
+	err = errorCon(ERR_SOCKET_FAILURE, HTTP_INTERNAL_SERVER_ERROR, fwdState->request);
 	err->xerrno = errno;
 	fwdFail(fwdState, err);
 	fwdStateFree(fwdState);
@@ -643,7 +639,7 @@ fwdStartFail(FwdState * fwdState)
 {
     ErrorState *err;
     debug(17, 3) ("fwdStartFail: %s\n", storeUrl(fwdState->entry));
-    err = errorCon(ERR_CANNOT_FORWARD, HTTP_SERVICE_UNAVAILABLE);
+    err = errorCon(ERR_CANNOT_FORWARD, HTTP_SERVICE_UNAVAILABLE, fwdState->request);
     err->xerrno = errno;
     fwdFail(fwdState, err);
     fwdStateFree(fwdState);
@@ -710,7 +706,7 @@ fwdDispatch(FwdState * fwdState)
 	default:
 	    debug(17, 1) ("fwdDispatch: Cannot retrieve '%s'\n",
 		storeUrl(entry));
-	    err = errorCon(ERR_UNSUP_REQ, HTTP_BAD_REQUEST);
+	    err = errorCon(ERR_UNSUP_REQ, HTTP_BAD_REQUEST, fwdState->request);
 	    fwdFail(fwdState, err);
 	    /*
 	     * Force a persistent connection to be closed because
@@ -825,9 +821,7 @@ fwdStart(int fd, StoreEntry * e, request_t * r)
 	    page_id = aclGetDenyInfoPage(&Config.denyInfoList, AclMatchedName);
 	    if (page_id == ERR_NONE)
 		page_id = ERR_FORWARDING_DENIED;
-	    err = errorCon(page_id, HTTP_FORBIDDEN);
-	    err->request = requestLink(r);
-	    err->src_addr = r->client_addr;
+	    err = errorCon(page_id, HTTP_FORBIDDEN, r);
 	    errorAppendEntry(e, err);
 	    return;
 	}
@@ -839,8 +833,7 @@ fwdStart(int fd, StoreEntry * e, request_t * r)
 #endif
     if (shutting_down) {
 	/* more yuck */
-	err = errorCon(ERR_SHUTTING_DOWN, HTTP_SERVICE_UNAVAILABLE);
-	err->request = requestLink(r);
+	err = errorCon(ERR_SHUTTING_DOWN, HTTP_SERVICE_UNAVAILABLE, r);
 	errorAppendEntry(e, err);
 	return;
     }

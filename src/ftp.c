@@ -2456,30 +2456,30 @@ ftpFailedErrorMessage(FtpStateData * ftpState, err_type error)
 	case SENT_PASS:
 	    if (ftpState->ctrl.replycode > 500)
 		if (ftpState->password_url)
-		    err = errorCon(ERR_FTP_FORBIDDEN, HTTP_FORBIDDEN);
+		    err = errorCon(ERR_FTP_FORBIDDEN, HTTP_FORBIDDEN, ftpState->fwd->request);
 		else
-		    err = errorCon(ERR_FTP_FORBIDDEN, HTTP_UNAUTHORIZED);
+		    err = errorCon(ERR_FTP_FORBIDDEN, HTTP_UNAUTHORIZED, ftpState->fwd->request);
 	    else if (ftpState->ctrl.replycode == 421)
-		err = errorCon(ERR_FTP_UNAVAILABLE, HTTP_SERVICE_UNAVAILABLE);
+		err = errorCon(ERR_FTP_UNAVAILABLE, HTTP_SERVICE_UNAVAILABLE, ftpState->fwd->request);
 	    break;
 	case SENT_CWD:
 	case SENT_RETR:
 	    if (ftpState->ctrl.replycode == 550)
-		err = errorCon(ERR_FTP_NOT_FOUND, HTTP_NOT_FOUND);
+		err = errorCon(ERR_FTP_NOT_FOUND, HTTP_NOT_FOUND, ftpState->fwd->request);
 	    break;
 	default:
 	    break;
 	}
 	break;
     case ERR_READ_TIMEOUT:
-	err = errorCon(error, HTTP_GATEWAY_TIMEOUT);
+	err = errorCon(error, HTTP_GATEWAY_TIMEOUT, ftpState->fwd->request);
 	break;
     default:
-	err = errorCon(error, HTTP_BAD_GATEWAY);
+	err = errorCon(error, HTTP_BAD_GATEWAY, ftpState->fwd->request);
 	break;
     }
     if (err == NULL)
-	err = errorCon(ERR_FTP_FAILURE, HTTP_BAD_GATEWAY);
+	err = errorCon(ERR_FTP_FAILURE, HTTP_BAD_GATEWAY, ftpState->fwd->request);
     err->xerrno = errno;
     err->ftp.server_msg = ftpState->ctrl.message;
     ftpState->ctrl.message = NULL;
@@ -2521,8 +2521,7 @@ ftpSendReply(FtpStateData * ftpState)
 	err_code = ERR_FTP_PUT_ERROR;
 	http_code = HTTP_INTERNAL_SERVER_ERROR;
     }
-    err = errorCon(err_code, http_code);
-    err->request = requestLink(ftpState->request);
+    err = errorCon(err_code, http_code, ftpState->request);
     if (ftpState->old_request)
 	err->ftp.request = xstrdup(ftpState->old_request);
     else
@@ -2611,9 +2610,8 @@ ftpAppendSuccessHeader(FtpStateData * ftpState)
 static HttpReply *
 ftpAuthRequired(request_t * request, const char *realm)
 {
-    ErrorState *err = errorCon(ERR_CACHE_ACCESS_DENIED, HTTP_UNAUTHORIZED);
+    ErrorState *err = errorCon(ERR_CACHE_ACCESS_DENIED, HTTP_UNAUTHORIZED, request);
     HttpReply *rep;
-    err->request = requestLink(request);
     rep = errorBuildReply(err);
     errorStateFree(err);
     /* add Authenticate header */

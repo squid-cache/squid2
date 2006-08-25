@@ -424,19 +424,17 @@ sslConnectDone(int fd, int status, void *data)
     if (status == COMM_ERR_DNS) {
 	debug(26, 4) ("sslConnect: Unknown host: %s\n", sslState->host);
 	comm_close(fd);
-	err = errorCon(ERR_DNS_FAIL, HTTP_NOT_FOUND);
+	err = errorCon(ERR_DNS_FAIL, HTTP_NOT_FOUND, request);
 	*sslState->status_ptr = HTTP_NOT_FOUND;
-	err->request = requestLink(request);
 	err->dnsserver_msg = xstrdup(dns_error_message);
 	err->callback = sslErrorComplete;
 	err->callback_data = sslState;
 	errorSend(sslState->client.fd, err);
     } else if (status != COMM_OK) {
 	comm_close(fd);
-	err = errorCon(ERR_CONNECT_FAIL, HTTP_SERVICE_UNAVAILABLE);
+	err = errorCon(ERR_CONNECT_FAIL, HTTP_SERVICE_UNAVAILABLE, request);
 	*sslState->status_ptr = HTTP_SERVICE_UNAVAILABLE;
 	err->xerrno = errno;
-	err->request = requestLink(request);
 	err->callback = sslErrorComplete;
 	err->callback_data = sslState;
 	errorSend(sslState->client.fd, err);
@@ -472,10 +470,9 @@ sslConnectTimeout(int fd, void *data)
 	hierarchyNote(&sslState->request->hier, sslState->servers->code,
 	    sslState->host);
     comm_close(fd);
-    err = errorCon(ERR_CONNECT_FAIL, HTTP_SERVICE_UNAVAILABLE);
+    err = errorCon(ERR_CONNECT_FAIL, HTTP_SERVICE_UNAVAILABLE, request);
     *sslState->status_ptr = HTTP_SERVICE_UNAVAILABLE;
     err->xerrno = ETIMEDOUT;
-    err->request = requestLink(request);
     err->callback = sslErrorComplete;
     err->callback_data = sslState;
     errorSend(sslState->client.fd, err);
@@ -510,10 +507,8 @@ sslStart(clientHttpRequest * http, squid_off_t * size_ptr, int *status_ptr)
 	ch.request = request;
 	answer = aclCheckFast(Config.accessList.miss, &ch);
 	if (answer == 0) {
-	    err = errorCon(ERR_FORWARDING_DENIED, HTTP_FORBIDDEN);
+	    err = errorCon(ERR_FORWARDING_DENIED, HTTP_FORBIDDEN, request);
 	    *status_ptr = HTTP_FORBIDDEN;
-	    err->request = requestLink(request);
-	    err->src_addr = request->client_addr;
 	    errorSend(fd, err);
 	    return;
 	}
@@ -532,10 +527,9 @@ sslStart(clientHttpRequest * http, squid_off_t * size_ptr, int *status_ptr)
 	url);
     if (sock == COMM_ERROR) {
 	debug(26, 4) ("sslStart: Failed because we're out of sockets.\n");
-	err = errorCon(ERR_SOCKET_FAILURE, HTTP_INTERNAL_SERVER_ERROR);
+	err = errorCon(ERR_SOCKET_FAILURE, HTTP_INTERNAL_SERVER_ERROR, request);
 	*status_ptr = HTTP_INTERNAL_SERVER_ERROR;
 	err->xerrno = errno;
-	err->request = requestLink(request);
 	errorSend(fd, err);
 	return;
     }
@@ -618,9 +612,8 @@ sslPeerSelectComplete(FwdServer * fs, void *data)
     peer *g = NULL;
     if (fs == NULL) {
 	ErrorState *err;
-	err = errorCon(ERR_CANNOT_FORWARD, HTTP_SERVICE_UNAVAILABLE);
+	err = errorCon(ERR_CANNOT_FORWARD, HTTP_SERVICE_UNAVAILABLE, sslState->request);
 	*sslState->status_ptr = HTTP_SERVICE_UNAVAILABLE;
-	err->request = requestLink(sslState->request);
 	err->callback = sslErrorComplete;
 	err->callback_data = sslState;
 	errorSend(sslState->client.fd, err);

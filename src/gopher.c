@@ -604,7 +604,7 @@ gopherTimeout(int fd, void *data)
     StoreEntry *entry = gopherState->entry;
     debug(10, 4) ("gopherTimeout: FD %d: '%s'\n", fd, storeUrl(entry));
     fwdFail(gopherState->fwdState,
-	errorCon(ERR_READ_TIMEOUT, HTTP_GATEWAY_TIMEOUT));
+	errorCon(ERR_READ_TIMEOUT, HTTP_GATEWAY_TIMEOUT, gopherState->fwdState->request));
     comm_close(fd);
 }
 
@@ -658,13 +658,13 @@ gopherReadReply(int fd, void *data)
 	    commSetSelect(fd, COMM_SELECT_READ, gopherReadReply, data, 0);
 	} else {
 	    ErrorState *err;
-	    err = errorCon(ERR_READ_ERROR, HTTP_INTERNAL_SERVER_ERROR);
+	    err = errorCon(ERR_READ_ERROR, HTTP_INTERNAL_SERVER_ERROR, gopherState->fwdState->request);
 	    err->xerrno = errno;
 	    fwdFail(gopherState->fwdState, err);
 	    comm_close(fd);
 	}
     } else if (len == 0 && entry->mem_obj->inmem_hi == 0) {
-	fwdFail(gopherState->fwdState, errorCon(ERR_ZERO_SIZE_OBJECT, HTTP_SERVICE_UNAVAILABLE));
+	fwdFail(gopherState->fwdState, errorCon(ERR_ZERO_SIZE_OBJECT, HTTP_SERVICE_UNAVAILABLE, gopherState->fwdState->request));
 	comm_close(fd);
     } else if (len == 0) {
 	/* Connection closed; retrieval done. */
@@ -706,7 +706,7 @@ gopherSendComplete(int fd, char *buf, size_t size, int errflag, void *data)
     }
     if (errflag) {
 	ErrorState *err;
-	err = errorCon(ERR_WRITE_ERROR, HTTP_BAD_GATEWAY);
+	err = errorCon(ERR_WRITE_ERROR, HTTP_BAD_GATEWAY, gopherState->fwdState->request);
 	err->xerrno = errno;
 	err->url = xstrdup(storeUrl(entry));
 	fwdFail(gopherState->fwdState, err);
