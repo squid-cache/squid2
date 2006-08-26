@@ -627,7 +627,7 @@ aclParseTimeSpec(void *curlist)
 	} else {
 	    /* assume its time-of-day spec */
 	    if ((sscanf(t, "%d:%d-%d:%d", &h1, &m1, &h2, &m2) < 4) || (!((h1 >= 0 && h1 < 24) && (h2 >= 0 && h2 < 24) && (m1 >= 0 && m1 < 60) && (m2 >= 0 && m2 < 60)))) {
-		debug(28, 0) ("aclParseTimeSpec: ERROR: Bad time range\n");
+		debug(28, 0) ("aclParseTimeSpec: ERROR: Bad time range '%s'\n", t);
 		self_destruct();
 	    }
 	    q = memAllocate(MEM_ACL_TIME_DATA);
