@@ -44,7 +44,7 @@ static void aclParseWordList(void *curlist);
 static void aclParseProtoList(void *curlist);
 static void aclParseMethodList(void *curlist);
 static void aclParseTimeSpec(void *curlist);
-static void aclParseIntRange(void *curlist);
+static void aclParsePortRange(void *curlist);
 static void aclDestroyTimeList(acl_time_data * data);
 static void aclDestroyIntRange(intrange *);
 static void aclLookupProxyAuthStart(aclCheck_t * checklist);
@@ -329,22 +329,34 @@ aclParseIntlist(void *curlist)
 }
 
 static void
-aclParseIntRange(void *curlist)
+aclParsePortRange(void *curlist)
 {
     intrange **Tail;
     intrange *q = NULL;
     char *t = NULL;
     for (Tail = curlist; *Tail; Tail = &((*Tail)->next));
     while ((t = strtokFile())) {
-	q = xcalloc(1, sizeof(intrange));
-	q->i = atoi(t);
-	t = strchr(t, '-');
-	if (t && *(++t))
-	    q->j = atoi(t);
-	else
-	    q->j = q->i;
-	*(Tail) = q;
-	Tail = &q->next;
+	int port = atoi(t);
+	if (port > 0 && port < 65536) {
+	    q = xcalloc(1, sizeof(intrange));
+	    q->i = port;
+	    t = strchr(t, '-');
+	    if (t && *(++t)) {
+		port = atoi(t);
+		if (port > 0 && port < 65536 && port > q->i) {
+		    q->j = port;
+		} else {
+		    debug(28, 0) ("aclParsePortRange: Invalid port range\n");
+		    self_destruct();
+		}
+	    } else
+		q->j = q->i;
+	    *(Tail) = q;
+	    Tail = &q->next;
+	} else {
+	    debug(28, 0) ("aclParsePortRange: Invalid port value\n");
+	    self_destruct();
+	}
     }
 }
 
@@ -1025,7 +1037,7 @@ aclParseAclLine(acl ** head)
 #endif
     case ACL_URL_PORT:
     case ACL_MY_PORT:
-	aclParseIntRange(&A->data);
+	aclParsePortRange(&A->data);
 	break;
 #if USE_IDENT
     case ACL_IDENT:
