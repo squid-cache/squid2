@@ -175,9 +175,8 @@ membership check
 
 
 <sect>Windows support
-<P>This Squid version can run on Windows as a system service using the Cygwin environment.<newline>
-Windows NT 4 and later are supported.<newline>
-On Windows 2000/XP/2003 the service is configured to use the Windows Service Recovery option
+<P>This Squid version can run on Windows as a system service using the Cygwin environment. Windows NT 4 SP4 and later are supported.<newline>
+On Windows 2000 and later the service is configured to use the Windows Service Recovery option
 restarting automatically after 60 seconds.
 <descrip>
 
@@ -261,6 +260,23 @@ redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd</verb>
 </descrip>
 
 
+<descrip>
+<tag>Building Squid on Windows:</tag>
+A reasonably recent release of Cygwin is needed. Like other Unix/Linux environments, -devel version of libraries must be installed.<newline>
+When running configure, --disable-wccp and --disable-wccpv2 options should always specified to avoid compile errors.<newline>
+<itemize>
+<item>New configure options:<newline>
+<itemize>
+<item>--enable-win32-service<newline>
+</itemize>
+<item>Updated configure options:<newline>
+<itemize>
+<item>--enable-arp-acl<newline>
+<item>--enable-default-hostsfile<newline>
+</itemize>
+</itemize>
+
+</descrip>
 <sect>Key changes squid-2.6.STABLE1 to 2.6.STABLE2
 
 <p>

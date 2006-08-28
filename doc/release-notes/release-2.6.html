@@ -111,7 +111,7 @@ membership check</LI>
 <DT><B>https_port</B><DD><P>Many new options. Reconstructs URLs as https:// by default.</P>
 <DT><B>cache_peer</B><DD><P>Many new options to support origin servers and SSL encryption</P>
 <DT><B>ssl_engine</B><DD><P>New directive for hardware assisted SSL encryption</P>
-<DT><B>sslproxy_*</B><DD><P>New directives defining how to gateway http-&gt;https</P>
+<DT><B>sslproxy_*</B><DD><P>New directives defining how to gateway http->https</P>
 <DT><B>sslpassword_program</B><DD><P>New helper directive to query an external program for SSL key encryption password (if any)</P>
 <DT><B>no_cache</B><DD><P>Renamed to cache to better reflect the functionaliy. no_cache still accepted.</P>
 <DT><B>cache</B><DD><P>New name for the old no_cache directive.</P>
@@ -162,7 +162,7 @@ membership check</LI>
 <P>
 <UL>
 <LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1590">#1590</a>: "ETag Loop" warnings in cache.log</LI>
-<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=761">#761</a>: assertion failed: cbdata.c:249: "c-&gt;locks &gt; 0" when using diskd</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=761">#761</a>: assertion failed: cbdata.c:249: "c->locks > 0" when using diskd</LI>
 <LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1640">#1640</a>: unstable if mixing coss cache_dir type with other cache_dir types (ufs/aufs/diskd).</LI>
 <LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1602">#1602</a>: Need to implement TCP fallback on truncated (large) DNS responses</LI>
 </UL>
@@ -216,9 +216,8 @@ in the /usr/include local directory. Don't forget to fix files permission and ow
 
 <H2><A NAME="s6">6.</A> <A HREF="#toc6">Windows support</A></H2>
 
-<P>This Squid version can run on Windows as a system service using the Cygwin environment.<BR>
-Windows NT 4 and later are supported.<BR>
-On Windows 2000/XP/2003 the service is configured to use the Windows Service Recovery option
+<P>This Squid version can run on Windows as a system service using the Cygwin environment. Windows NT 4 SP4 and later are supported.<BR>
+On Windows 2000 and later the service is configured to use the Windows Service Recovery option
 restarting automatically after 60 seconds.
 <DL>
 
@@ -315,7 +314,27 @@ redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd
 </DL>
 </P>
 
+<P>
+<DL>
+<DT><B>Building Squid on Windows:</B><DD><P>A reasonably recent release of Cygwin is needed. Like other Unix/Linux environments, -devel version of libraries must be installed.<BR>
+When running configure, --disable-wccp and --disable-wccpv2 options should always specified to avoid compile errors.<BR>
+<UL>
+<LI>New configure options:<BR>
+<UL>
+<LI>--enable-win32-service<BR></LI>
+</UL>
+</LI>
+<LI>Updated configure options:<BR>
+<UL>
+<LI>--enable-arp-acl<BR></LI>
+<LI>--enable-default-hostsfile<BR></LI>
+</UL>
+</LI>
+</UL>
+</P>
 
+</DL>
+</P>
 <H2><A NAME="s7">7.</A> <A HREF="#toc7">Key changes squid-2.6.STABLE1 to 2.6.STABLE2</A></H2>
 
 <P>
@@ -325,7 +344,7 @@ redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd
 <LI>Multiple fixes to the experimental COSS cache_dir type</LI>
 <LI>Added the missing concurrency parameter to basic/digest auth schemes</LI>
 <LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1669">#1669</a>: SEGV in storeAddVaryReadOld</LI>
-<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1670">#1670</a>: assertion failure: i-&gt;prefix_size &gt; 0 in client_side.c:2509</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1670">#1670</a>: assertion failure: i->prefix_size > 0 in client_side.c:2509</LI>
 <LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1671">#1671</a>: transparent interception fails with FreeBSD ipfw or Linux-2.2 ipchains</LI>
 <LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1660">#1660</a>: Accept-Encoding related memory corruption</LI>
 <LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1673">#1673</a>: cache digests not served to other caches</LI>
