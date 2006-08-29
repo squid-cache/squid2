@@ -388,8 +388,9 @@ main(int argc, char *argv[])
 
 	if ((p = strchr(buf, '\n')) != NULL)
 	    *p = '\0';		/* strip \n */
-	if ((strlen(buf) > 3) && NTLM_packet_debug_enabled) {
+	if (strlen(buf) > 3)
 	    decoded = base64_decode(buf + 3);
+	if ((strlen(buf) > 3) && NTLM_packet_debug_enabled) {
 	    strncpy(helper_command, buf, 2);
 	    helper_command[2] = '\0';
 	    debug("Got '%s' from Squid with data:\n", helper_command);
