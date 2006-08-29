@@ -719,10 +719,10 @@ storeCossWriteMemBuf(SwapDir * SD, CossMemBuf * t)
 	/* XXX This may cause problems later on; worry about figuring it out later on */
 	//assert(t->diskend - t->diskstart == COSS_MEMBUF_SZ);
 	debug(79, 3) ("aioWrite: FD %d: disk start: %llu, size %llu\n", cs->fd, (long long int) t->diskstart, (long long int) t->diskend - t->diskstart);
-	aioWrite(cs->fd, t->diskstart, &(t->buffer[0]), t->diskend - t->diskstart, storeCossWriteMemBufDone, t, NULL);
+	aioWrite(cs->fd, t->diskstart, &(t->buffer[0]), COSS_MEMBUF_SZ, storeCossWriteMemBufDone, t, NULL);
 #else
 	a_file_write(&cs->aq, cs->fd, t->diskstart, &t->buffer,
-	    t->diskend - t->diskstart, storeCossWriteMemBufDone, t, NULL);
+	    COSS_MEMBUF_SZ, storeCossWriteMemBufDone, t, NULL);
 #endif
     } else {
 	/* No need to write, just mark as written and free */
