@@ -164,7 +164,7 @@ storeCossAllocate(SwapDir * SD, const StoreEntry * e, int which)
 
     /* Check to see if we need to allocate a membuf to start */
     if (cs->current_membuf == NULL) {
-	if (cs->curstripe < cs->numstripes)
+	if (cs->curstripe < (cs->numstripes - 1))
 	    newmb = storeCossCreateMemBuf(SD, cs->curstripe + 1, checkf, &coll);
 	else
 	    newmb = storeCossCreateMemBuf(SD, 0, checkf, &coll);
