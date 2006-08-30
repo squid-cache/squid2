@@ -186,7 +186,7 @@ char *md5sum(const char *s){
    for(idx=0;idx<16;idx++)
        sprintf(&sum[idx*2],"%02x",digest[idx]);
 
-   sum[33]='\0';
+   sum[32]='\0';
 
    /* Don't leave anything around in vm they could use. */
    memset(digest, 0, sizeof digest);
