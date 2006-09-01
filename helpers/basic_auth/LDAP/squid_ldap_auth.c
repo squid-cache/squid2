@@ -89,6 +89,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #ifdef _SQUID_MSWIN_		/* Native Windows port and MinGW */
 
@@ -119,7 +120,6 @@ PFldap_start_tls_s Win32_ldap_start_tls_s;
 
 #include <lber.h>
 #include <ldap.h>
-#include <ctype.h>
 
 #endif
 
