@@ -143,6 +143,14 @@
 #endif
 #endif
 
+/* Large cache file support needs SIZEOF_INT64_T.
+ * On system with __int64 type could be not defined, so here we define it if needed.
+ */
+#if (SIZEOF_INT64_T == 0) && (SIZEOF___INT64 > 0)
+#undef SIZEOF_INT64_T
+#define SIZEOF_INT64_T SIZEOF___INT64
+#endif 
+
 /* 
  * Don't allow inclusion of malloc.h on FreeBSD, Next and OpenBSD 
  */
