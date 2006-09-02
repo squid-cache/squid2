@@ -221,6 +221,7 @@ _db_print(const char *,...) PRINTF_FORMAT_ARG1;
 #else
 extern void _db_print();
 #endif
+extern int debug_log_flush(void);
 extern void xassert(const char *, const char *, int);
 
 /* packs, then prints an object using debug() */
