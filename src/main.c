@@ -434,6 +434,13 @@ mainReconfigure(void)
     neighbors_init();
     storeDirOpenSwapLogs();
     mimeInit(Config.mimeTablePathname);
+    if (Config.onoff.announce) {
+	if (!eventFind(start_announce, NULL))
+	    eventAdd("start_announce", start_announce, NULL, 3600.0, 1);
+    } else {
+	if (eventFind(start_announce, NULL))
+	    eventDelete(start_announce, NULL);
+    }
     eventCleanup();
     writePidFile();		/* write PID file */
     debug(1, 1) ("Ready to serve requests.\n");
