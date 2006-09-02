@@ -559,7 +559,6 @@ struct _SquidConfig {
 #if USE_SSL
 	char *ssl_password;
 #endif
-	char *logfile_daemon;
     } Program;
 #if USE_DNSSERVERS
     int dnsChildren;
@@ -2418,28 +2417,17 @@ struct _diskd_queue {
     } shm;
 };
 
-struct _logfile_buffer {
-    char *buf;
-    int size;
-    int len;
-    int written_len;
-    dlink_node node;
-};
-
 struct _Logfile {
-    int rfd, wfd;
-    char eol;
-    pid_t pid;
+    int fd;
     char path[MAXPATHLEN];
-    dlink_list bufs;
-    int nbufs;
-    int last_warned;
+    char *buf;
+    size_t bufsz;
+    ssize_t offset;
     struct {
 	unsigned int fatal;
 	unsigned int syslog;
     } flags;
     int syslog_priority;
-    int flush_pending;
 };
 
 struct _logformat {

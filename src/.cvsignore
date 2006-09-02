@@ -7,7 +7,6 @@ cf_gen_defines.h
 cf_parser.h
 dnsserver
 globals.c
-logfile-daemon
 pinger
 repl_modules.c
 squid
