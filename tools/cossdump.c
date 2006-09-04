@@ -179,7 +179,7 @@ storeSwapMetaUnpack(const char *buf, int *hdr_len)
 #define BLKBITS 10
 
 static void
-parse_stripe(int stripeid, char *buf, int len)
+parse_stripe(int stripeid, char *buf, int len, int blocksize)
 {
     int j = 0;
     int bl = 0;
@@ -195,7 +195,7 @@ parse_stripe(int stripeid, char *buf, int len)
 	    printf("  Object: NULL\n");
 	    return;
 	}
-	printf("  Object: (filen %d) hdr size %d\n", j / BLOCKSIZE + (stripeid * STRIPESIZE / BLOCKSIZE), bl);
+	printf("  Object: (filen %d) hdr size %d\n", j / blocksize + (stripeid * STRIPESIZE / blocksize), bl);
 	for (t = tlv_list; t; t = t->next) {
 	    switch (t->type) {
 	    case STORE_META_URL:
@@ -214,8 +214,8 @@ parse_stripe(int stripeid, char *buf, int len)
 	}
 	j = j + *l + bl;
 	/* And now, the blocksize! */
-	tmp = j / BLOCKSIZE;
-	tmp = (tmp + 1) * BLOCKSIZE;
+	tmp = j / blocksize;
+	tmp = (tmp + 1) * blocksize;
 	j = tmp;
     }
 }
@@ -226,9 +226,12 @@ main(int argc, char *argv[])
     int fd;
     char buf[STRIPESIZE];
     int i = 0, len;
+    unsigned int numstripes = 0;
+    int blocksize = BLOCKSIZE;
+    int blksize_bits;
 
-    if (argc < 2) {
-	printf("Usage: %s <path to COSS datafile>\n", argv[0]);
+    if (argc < 4) {
+	printf("Usage: %s <path to COSS datafile> <blocksize> <number of stripes>\n", argv[0]);
 	exit(1);
     }
     fd = open(argv[1], O_RDONLY);
@@ -236,10 +239,24 @@ main(int argc, char *argv[])
 	perror("open");
 	exit(1);
     }
+
+    blocksize = (unsigned int) atoi(argv[2]);
+    for(blksize_bits = 0;((blocksize >> blksize_bits) > 0);blksize_bits++) {
+	if( ((blocksize >> blksize_bits) > 0) &&
+	  (((blocksize >> blksize_bits) << blksize_bits) != blocksize)) {
+	    printf("Blocksize bits must be a power of 2\n");
+	    exit(1);
+	}
+    }
+
+    numstripes = (unsigned int) atoi(argv[3]);
+
     while ((len = read(fd, buf, STRIPESIZE)) > 0) {
 	printf("STRIPE: %d (len %d)\n", i, len);
-	parse_stripe(i, buf, len);
+	parse_stripe(i, buf, len, blocksize);
 	i++;
+	if((numstripes > 0) && (i >= numstripes))
+	    break;
     }
     return 0;
 }
