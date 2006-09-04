@@ -261,7 +261,24 @@ void
 storeCossRecycle(SwapDir * SD, StoreEntry * e)
 {
     debug(79, 3) ("storeCossRecycle: %s: offset %d\n", SD->path, e->swap_filen);
-    storeCossUnlink(SD, e);
+
+    /* Expire the object */
+    storeExpireNow(e);
+    storeReleaseRequest(e);
+
+    /* If there is a valid filen remove from COSS linked list */
+    if (e->swap_filen > -1) {
+	storeCossUnlink(SD, e);
+
+	/* 
+	 * Set filen and dirn to -1.  
+	 * This makes storeRelease() treat the entry differently 
+	 */
+	e->swap_filen = -1;
+	e->swap_dirn = -1;
+    }
+    /* Finally make the store layer forget about this object */
+    storeRelease(e);
 }
 
 static int
@@ -503,6 +520,9 @@ storeCossWrite(SwapDir * SD, storeIOState * sio, char *buf, size_t size, squid_o
     assert(sio->e->mem_obj->object_sz != -1);
     coss_stats.write.ops++;
 
+    if (sio->offset != offset) {
+	debug(79, 1) ("storeCossWrite: Possible data corruption on fileno %d, offsets do not match (Current:%" PRINTF_OFF_T " Want:%" PRINTF_OFF_T ")\n", sio->swap_filen, sio->offset, offset);
+    }
     debug(79, 3) ("storeCossWrite: %s: offset %ld, len %lu\n", SD->path,
 	(long int) sio->offset, (unsigned long int) size);
     diskoffset = storeCossFilenoToDiskOffset(sio->swap_filen, SD->fsdata) + sio->offset;

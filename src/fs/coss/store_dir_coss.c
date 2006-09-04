@@ -1279,7 +1279,7 @@ storeDirCoss_ParseStripeBuffer(RebuildState * rb)
 	/* Finally, make sure there's enough data left in this stripe to satisfy the object
 	 * we've just been informed about
 	 */
-	if (cs->rebuild.buflen - j < len) {
+	if ((cs->rebuild.buflen - j) < (len + bl)) {
 	    debug(47, 3) ("COSS: %s: stripe %d: Not enough data in this stripe for this object, bye bye.\n", SD->path, cs->rebuild.curstripe);
 	    storeSwapTLVFree(tlv_list);
 	    return;
@@ -1307,6 +1307,8 @@ storeDirCoss_ParseStripeBuffer(RebuildState * rb)
 	/* Time to consider the object! */
 	tmpe.swap_filen = filen;
 	tmpe.swap_dirn = SD->index;
+
+	debug(47, 3) ("COSS: %s Considering filneumber %d\n", SD->path, tmpe.swap_filen);
 	storeCoss_ConsiderStoreEntry(rb, key, &tmpe);
 
       nextobject:
@@ -1392,6 +1394,7 @@ storeCoss_ConsiderStoreEntry(RebuildState * rb, const cache_key * key, StoreEntr
     oe = storeGet(key);
     if (oe == NULL) {
 	rb->cosscounts.new++;
+	debug(47, 3) ("COSS: Adding filen %d\n", e->swap_filen);
 	/* no clash! woo, can add and forget */
 	storeCoss_AddStoreEntry(rb, key, e);
 	return;
