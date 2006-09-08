@@ -33,6 +33,11 @@
  *
  */
 
+/* On native Windows, squid_mswin.h needs to know when we are compiling
+ * comm.c for the correct handling of FD<=>socket magic
+ */
+#define COMM_C
+
 #include "squid.h"
 
 #if defined(_SQUID_CYGWIN_)

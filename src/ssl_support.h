@@ -59,4 +59,10 @@ const char *sslGetCAAttribute(SSL * ssl, const char *attribute);
 const char *sslGetUserCertificatePEM(SSL * ssl);
 const char *sslGetUserCertificateChainPEM(SSL * ssl);
 
+#ifdef _SQUID_MSWIN_
+
+#define SSL_set_fd(s,f) (SSL_set_fd(s,fd_table[fd].win32.handle))
+
+#endif /* _SQUID_MSWIN_ */
+
 #endif /* SQUID_SSL_SUPPORT_H */

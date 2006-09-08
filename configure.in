@@ -58,6 +58,24 @@ mingw|mingw32|cygwin|cygwin32)
 	;;
 esac
 
+case "$host_os" in
+mingw|mingw32)
+        AM_CONDITIONAL(ENABLE_MINGW32SPECIFIC, true)
+	AC_PATH_PROG(WIN32_PSAPI, psapi.dll, none)
+	CFLAGS="$CFLAGS -mthreads"
+	if test "$ac_cv_path_WIN32_PSAPI" = "none"; then
+		echo "PSAPI.DLL is recommended to run Squid on Windows Platform"
+		echo "Please see PSAPI.DLL section on doc/release-notes/release-2.6.html."
+	else
+		AC_DEFINE(HAVE_WIN32_PSAPI,1,[Define if you have PSAPI.DLL on Windows systems])
+		LIBS="$LIBS -lpsapi"
+	fi
+	;;
+*)
+	AM_CONDITIONAL(ENABLE_MINGW32SPECIFIC, false)
+	;;
+esac
+
 if test -z "$CACHE_HTTP_PORT"; then
 	CACHE_HTTP_PORT="3128"
 fi
@@ -1738,21 +1756,30 @@ if test $ac_cv_have_ext_mallinfo = "yes" ; then
   AC_DEFINE(HAVE_EXT_MALLINFO, 1, [Define if struct mallinfo has mxfast member])
 fi
 
-AC_CACHE_CHECK(for struct rusage,ac_cv_have_struct_rusage, [
-  AC_TRY_COMPILE([
+case "$host_os" in
+  mingw|mingw32)
+    AC_DEFINE(HAVE_STRUCT_RUSAGE)
+    ac_cv_func_getrusage='yes'
+    echo "Using own rusage on Windows."
+    ;;
+  *)      
+    AC_CACHE_CHECK(for struct rusage,ac_cv_have_struct_rusage, [
+      AC_TRY_COMPILE([
 #if HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
 #if HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
 #endif],
-    [struct rusage R;],
-    ac_cv_have_struct_rusage="yes",
-    ac_cv_have_struct_rusage="no")
+        [struct rusage R;],
+        ac_cv_have_struct_rusage="yes",
+        ac_cv_have_struct_rusage="no")
 ])
-if test $ac_cv_have_struct_rusage = "yes" ; then
-  AC_DEFINE(HAVE_STRUCT_RUSAGE, 1, [Define if you have struct rusage])
-fi
+    if test $ac_cv_have_struct_rusage = "yes" ; then
+      AC_DEFINE(HAVE_STRUCT_RUSAGE, 1, [Define if you have struct rusage])
+    fi
+    ;;
+esac
 
 AC_CACHE_CHECK(for ip->ip_hl, ac_cv_have_ip_hl, [
   AC_TRY_COMPILE([#include <sys/types.h>
@@ -2225,6 +2252,13 @@ if test -z "$ac_cv_func_poll"; then
 			;;
 	esac
 fi
+
+dnl Override statfs detect on MinGW because is emulated in source code
+case "$host_os" in
+mingw|mingw32)
+	ac_cv_func_statfs='yes'
+	;;
+esac
 
 dnl Check for library functions
 AC_CHECK_FUNCS(\
@@ -2710,6 +2744,12 @@ main() {
 SQUID_MAXFD=`cat conftestval`,
 SQUID_MAXFD=256,
 SQUID_MAXFD=256)
+dnl Microsoft MSVCRT.DLL supports 2048 maximum FDs
+case "$host_os" in
+mingw|mingw32)
+  SQUID_MAXFD="2048"
+  ;;
+esac
 AC_MSG_RESULT($SQUID_MAXFD)
 fi # --with-maxfd SQUID_MAXFD
 AC_DEFINE_UNQUOTED(SQUID_MAXFD, $SQUID_MAXFD, [Maximum number of open filedescriptors])

@@ -62,6 +62,14 @@ else
 WIN32SOURCE = 
 endif
 
+if ENABLE_MINGW32SPECIFIC
+MINGWEXLIB = -lmingwex
+IPC_SOURCE = ipc_win32.c
+else
+MINGWEXLIB =
+IPC_SOURCE = ipc.c
+endif
+
 if USE_POLL
 COMMLOOP_SOURCE = comm_poll.c
 endif
@@ -121,6 +129,8 @@ EXTRA_squid_SOURCES = \
 	comm_select_win32.c \
 	comm_kqueue.c \
 	comm_generic.c \
+	ipc.c \
+	ipc_win32.c \
 	win32.c
 
 squid_SOURCES = \
@@ -172,7 +182,7 @@ squid_SOURCES = \
 	icp_v3.c \
 	ident.c \
 	internal.c \
-	ipc.c \
+	$(IPC_SOURCE) \
 	ipcache.c \
 	$(LEAKFINDERSOURCE) \
 	locrewrite.c \
@@ -250,7 +260,8 @@ squid_LDADD = \
 	@SSLLIB@ \
 	@LIB_EPOLL@ \
 	-lmiscutil \
-	@XTRA_LIBS@
+	@XTRA_LIBS@ \
+	$(MINGWEXLIB)
 
 unlinkd_SOURCES = 
 unlinkd_LDADD = unlinkd-daemon.o

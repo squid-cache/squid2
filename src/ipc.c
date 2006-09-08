@@ -55,8 +55,8 @@ ipcCloseAllFD(int prfd, int pwfd, int crfd, int cwfd)
     return -1;
 }
 
-int
-ipcCreate(int type, const char *prog, const char *const args[], const char *name, int *rfd, int *wfd)
+pid_t
+ipcCreate(int type, const char *prog, const char *const args[], const char *name, int *rfd, int *wfd, void **hIpc)
 {
     pid_t pid;
     struct sockaddr_in CS;
@@ -84,6 +84,9 @@ ipcCreate(int type, const char *prog, const char *const args[], const char *name
 	*rfd = -1;
     if (wfd)
 	*wfd = -1;
+    if (hIpc)
+	*hIpc = NULL;
+
     if (type == IPC_TCP_SOCKET) {
 	crfd = cwfd = comm_open(SOCK_STREAM,
 	    IPPROTO_TCP,

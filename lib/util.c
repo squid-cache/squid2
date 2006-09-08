@@ -33,6 +33,11 @@
  *
  */
 
+/* On native Windows, squid_mswin.h needs to know when we are compiling
+ * util.c for the correct handling of FD<=>socket magic
+ */
+#define UTIL_C
+
 #define _etext etext
 
 #include "config.h"
@@ -626,7 +631,7 @@ xstrerror(void)
     const char *errmsg;
 
     errmsg = strerror(errno);
-   
+
     if (!errmsg || !*errmsg)
 	errmsg = "Unknown error";
 

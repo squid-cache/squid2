@@ -44,6 +44,9 @@
 #ifdef _SQUID_WIN32_
 #include <windows.h>
 #ifdef _SQUID_MSWIN_
+#if HAVE_WIN32_PSAPI
+#include <psapi.h>
+#endif
 #ifndef _MSWSOCK_
 #include <mswsock.h>
 #endif
@@ -59,6 +62,9 @@ static void WIN32_build_argv(char *);
 void WINAPI SquidWinSvcMain(DWORD, char **);
 
 #if defined(_SQUID_MSWIN_)
+static int Win32SockInit(void);
+static void Win32SockCleanup(void);
+extern LPCRITICAL_SECTION dbg_mutex;
 void WIN32_ExceptionHandlerCleanup(void);
 static LPTOP_LEVEL_EXCEPTION_FILTER Win32_Old_ExceptionHandler = NULL;
 #endif /* _SQUID_MSWIN_ */
@@ -330,6 +336,9 @@ WIN32_Abort(int sig)
 void
 WIN32_Exit()
 {
+#ifdef _SQUID_MSWIN_
+    Win32SockCleanup();
+#endif
 #if USE_WIN32_SERVICE
     if (WIN32_run_mode == _WIN_SQUID_RUN_MODE_SERVICE) {
 	if (!Squid_Aborting) {
@@ -339,6 +348,8 @@ WIN32_Exit()
     }
 #endif
 #ifdef _SQUID_MSWIN_
+    if (dbg_mutex)
+	DeleteCriticalSection(dbg_mutex);
     WIN32_ExceptionHandlerCleanup();
 #endif
     _exit(0);
@@ -412,7 +423,14 @@ WIN32_Subsystem_Init(int *argc, char ***argv)
 	svcStatus.dwCheckPoint = 0;
 	svcStatus.dwWaitHint = 10000;
 	SetServiceStatus(svcHandle, &svcStatus);
+#ifdef _SQUID_MSWIN_
+	_setmaxstdio(Squid_MaxFD);
+#endif
     }
+#endif
+#ifdef _SQUID_MSWIN_
+    if (Win32SockInit() < 0)
+	return 1;
 #endif
     return 0;
 }
@@ -734,6 +752,152 @@ main(int argc, char **argv)
 #endif
 
 #if defined(_SQUID_MSWIN_)
+static int s_iInitCount = 0;
+
+int
+WIN32_pipe(int handles[2])
+{
+    int new_socket;
+    fde *F = NULL;
+
+    struct sockaddr_in serv_addr;
+    int len = sizeof(serv_addr);
+    u_short handle1_port;
+
+    handles[0] = handles[1] = -1;
+
+    statCounter.syscalls.sock.sockets++;
+    if ((new_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
+	return -1;
+
+    memset((void *) &serv_addr, 0, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(0);
+    serv_addr.sin_addr = local_addr;
+
+    if (bind(new_socket, (SOCKADDR *) & serv_addr, len) < 0 ||
+	listen(new_socket, 1) < 0 || getsockname(new_socket, (SOCKADDR *) & serv_addr, &len) < 0 ||
+	(handles[1] = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
+	closesocket(new_socket);
+	return -1;
+    }
+    handle1_port = ntohs(serv_addr.sin_port);
+    if (connect(handles[1], (SOCKADDR *) & serv_addr, len) < 0 ||
+	(handles[0] = accept(new_socket, (SOCKADDR *) & serv_addr, &len)) < 0) {
+	closesocket(handles[1]);
+	handles[1] = -1;
+	closesocket(new_socket);
+	return -1;
+    }
+    closesocket(new_socket);
+
+    F = &fd_table[handles[0]];
+    F->local_addr = local_addr;
+    F->local_port = ntohs(serv_addr.sin_port);
+
+    F = &fd_table[handles[1]];
+    F->local_addr = local_addr;
+    xstrncpy(F->ipaddr, inet_ntoa(local_addr), 16);
+    F->remote_port = handle1_port;
+
+    return 0;
+}
+
+int
+WIN32_getrusage(int who, struct rusage *usage)
+{
+#if HAVE_WIN32_PSAPI
+    if ((WIN32_OS_version == _WIN_OS_WINNT) || (WIN32_OS_version == _WIN_OS_WIN2K)
+	|| (WIN32_OS_version == _WIN_OS_WINXP) || (WIN32_OS_version == _WIN_OS_WINNET)) {
+	/* On Windows NT/2000 call PSAPI.DLL for process Memory */
+	/* informations -- Guido Serassio                       */
+	HANDLE hProcess;
+	PROCESS_MEMORY_COUNTERS pmc;
+	hProcess = OpenProcess(PROCESS_QUERY_INFORMATION |
+	    PROCESS_VM_READ,
+	    FALSE, GetCurrentProcessId());
+	{
+	    /* Microsoft CRT doesn't have getrusage function,  */
+	    /* so we get process CPU time information from PSAPI.DLL. */
+	    FILETIME ftCreate, ftExit, ftKernel, ftUser;
+	    if (GetProcessTimes(hProcess, &ftCreate, &ftExit, &ftKernel, &ftUser)) {
+		int64_t tUser64 = (*(int64_t *) & ftUser / 10);
+		int64_t tKernel64 = (*(int64_t *) & ftKernel / 10);
+		usage->ru_utime.tv_sec = (long) (tUser64 / 1000000);
+		usage->ru_stime.tv_sec = (long) (tKernel64 / 1000000);
+		usage->ru_utime.tv_usec = (long) (tUser64 % 1000000);
+		usage->ru_stime.tv_usec = (long) (tKernel64 % 1000000);
+	    } else {
+		CloseHandle(hProcess);
+		return -1;
+	    }
+	}
+	if (GetProcessMemoryInfo(hProcess, &pmc, sizeof(pmc))) {
+	    usage->ru_maxrss = (DWORD) (pmc.WorkingSetSize / getpagesize());
+	    usage->ru_majflt = pmc.PageFaultCount;
+	} else {
+	    CloseHandle(hProcess);
+	    return -1;
+	}
+	CloseHandle(hProcess);
+    }
+#endif
+    return 0;
+}
+
+static int
+Win32SockInit(void)
+{
+    int iVersionRequested;
+    WSADATA wsaData;
+    int err, opt;
+    int optlen = sizeof(opt);
+
+
+    if (s_iInitCount > 0) {
+	s_iInitCount++;
+	return (0);
+    } else if (s_iInitCount < 0)
+	return (s_iInitCount);
+    /* s_iInitCount == 0. Do the initailization */
+    iVersionRequested = MAKEWORD(2, 0);
+    err = WSAStartup((WORD) iVersionRequested, &wsaData);
+    if (err) {
+	s_iInitCount = -1;
+	return (s_iInitCount);
+    }
+    if (LOBYTE(wsaData.wVersion) != 2 ||
+	HIBYTE(wsaData.wVersion) != 0) {
+	s_iInitCount = -2;
+	WSACleanup();
+	return (s_iInitCount);
+    }
+    if (WIN32_OS_version != _WIN_OS_WINNT) {
+	if (getsockopt(INVALID_SOCKET, SOL_SOCKET, SO_OPENTYPE, (char *) &opt, &optlen)) {
+	    s_iInitCount = -3;
+	    WSACleanup();
+	    return (s_iInitCount);
+	} else {
+	    opt = opt | SO_SYNCHRONOUS_NONALERT;
+	    if (setsockopt(INVALID_SOCKET, SOL_SOCKET, SO_OPENTYPE, (char *) &opt, optlen)) {
+		s_iInitCount = -3;
+		WSACleanup();
+		return (s_iInitCount);
+	    }
+	}
+    }
+    WIN32_Socks_initialized = 1;
+    s_iInitCount++;
+    return (s_iInitCount);
+}
+
+static void
+Win32SockCleanup(void)
+{
+    if (--s_iInitCount == 0)
+	WSACleanup();
+    return;
+}
 
 LONG CALLBACK
 WIN32_ExceptionHandler(EXCEPTION_POINTERS * ep)
@@ -754,8 +918,10 @@ WIN32_ExceptionHandler(EXCEPTION_POINTERS * ep)
     default:
 	break;
     }
+
     return EXCEPTION_CONTINUE_SEARCH;
 }
+
 
 void
 WIN32_ExceptionHandlerInit()

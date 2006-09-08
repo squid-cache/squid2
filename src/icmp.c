@@ -50,6 +50,9 @@ static void icmpSend(pingerEchoData * pkt, int len);
 static void icmpHandleSourcePing(const struct sockaddr_in *from, const char *buf);
 #endif
 
+static void *hIpc;
+static pid_t pid;
+
 static void
 icmpSendEcho(struct in_addr to, int opcode, const char *payload, int len)
 {
@@ -183,18 +186,18 @@ icmpOpen(void)
 {
 #if USE_ICMP
     const char *args[2];
-    int x;
     int rfd;
     int wfd;
     args[0] = "(pinger)";
     args[1] = NULL;
-    x = ipcCreate(IPC_DGRAM,
+    pid = ipcCreate(IPC_DGRAM,
 	Config.Program.pinger,
 	args,
 	"Pinger Socket",
 	&rfd,
-	&wfd);
-    if (x < 0)
+	&wfd,
+	&hIpc);
+    if (pid < 0)
 	return;
     assert(rfd == wfd);
     icmp_sock = rfd;
@@ -212,7 +215,21 @@ icmpClose(void)
     if (icmp_sock < 0)
 	return;
     debug(37, 1) ("Closing Pinger socket on FD %d\n", icmp_sock);
+#ifdef _SQUID_MSWIN_
+    send(icmp_sock, "$shutdown\n", 10, 0);
+#endif
     comm_close(icmp_sock);
+#ifdef _SQUID_MSWIN_
+    if (hIpc) {
+	if (WaitForSingleObject(hIpc, 12000) != WAIT_OBJECT_0) {
+	    getCurrentTime();
+	    debug(37, 1)
+		("icmpClose: WARNING: (pinger,%ld) didn't exit in 12 seconds\n",
+		(long int) pid);
+	}
+	CloseHandle(hIpc);
+    }
+#endif
     icmp_sock = -1;
 #endif
 }

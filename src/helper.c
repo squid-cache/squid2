@@ -66,10 +66,12 @@ helperOpenServers(helper * hlp)
     helper_server *srv;
     int nargs = 0;
     int k;
-    int x;
+    pid_t pid;
     int rfd;
     int wfd;
     wordlist *w;
+    void *hIpc;
+
     if (hlp->cmdline == NULL)
 	return;
     progname = hlp->cmdline->key;
@@ -89,20 +91,22 @@ helperOpenServers(helper * hlp)
     for (k = 0; k < hlp->n_to_start; k++) {
 	getCurrentTime();
 	rfd = wfd = -1;
-	x = ipcCreate(hlp->ipc_type,
+	pid = ipcCreate(hlp->ipc_type,
 	    progname,
 	    args,
 	    shortname,
 	    &rfd,
-	    &wfd);
-	if (x < 0) {
+	    &wfd,
+	    &hIpc);
+	if (pid < 0) {
 	    debug(84, 1) ("WARNING: Cannot run '%s' process.\n", progname);
 	    continue;
 	}
 	hlp->n_running++;
 	hlp->n_active++;
 	srv = cbdataAlloc(helper_server);
-	srv->pid = x;
+	srv->hIpc = hIpc;
+	srv->pid = pid;
 	srv->index = k;
 	srv->rfd = rfd;
 	srv->wfd = wfd;
@@ -145,10 +149,12 @@ helperStatefulOpenServers(statefulhelper * hlp)
     helper_stateful_server *srv;
     int nargs = 0;
     int k;
-    int x;
+    pid_t pid;
     int rfd;
     int wfd;
     wordlist *w;
+    void *hIpc;
+
     if (hlp->cmdline == NULL)
 	return;
     progname = hlp->cmdline->key;
@@ -168,20 +174,22 @@ helperStatefulOpenServers(statefulhelper * hlp)
     for (k = 0; k < hlp->n_to_start; k++) {
 	getCurrentTime();
 	rfd = wfd = -1;
-	x = ipcCreate(hlp->ipc_type,
+	pid = ipcCreate(hlp->ipc_type,
 	    progname,
 	    args,
 	    shortname,
 	    &rfd,
-	    &wfd);
-	if (x < 0) {
+	    &wfd,
+	    &hIpc);
+	if (pid < 0) {
 	    debug(84, 1) ("WARNING: Cannot run '%s' process.\n", progname);
 	    continue;
 	}
 	hlp->n_running++;
 	hlp->n_active++;
 	srv = cbdataAlloc(helper_stateful_server);
-	srv->pid = x;
+	srv->hIpc = hIpc;
+	srv->pid = pid;
 	srv->flags.reserved = 0;
 	srv->stats.submits = 0;
 	srv->index = k;
@@ -439,6 +447,11 @@ void
 helperShutdown(helper * hlp)
 {
     dlink_node *link = hlp->servers.head;
+#ifdef _SQUID_MSWIN_
+    HANDLE hIpc;
+    pid_t pid;
+    int no;
+#endif
     while (link) {
 	int wfd;
 	helper_server *srv;
@@ -468,9 +481,26 @@ helperShutdown(helper * hlp)
 	    continue;
 	}
 	srv->flags.closing = 1;
+#ifdef _SQUID_MSWIN_
+	hIpc = srv->hIpc;
+	pid = srv->pid;
+	no = srv->index + 1;
+	shutdown(srv->wfd, SD_BOTH);
+#endif
 	wfd = srv->wfd;
 	srv->wfd = -1;
 	comm_close(wfd);
+#ifdef _SQUID_MSWIN_
+	if (hIpc) {
+	    if (WaitForSingleObject(hIpc, 5000) != WAIT_OBJECT_0) {
+		getCurrentTime();
+		debug(84, 1) ("helperShutdown: WARNING: %s #%d (%s,%ld) "
+		    "didn't exit in 5 seconds\n",
+		    hlp->id_name, no, hlp->cmdline->key, (long int) pid);
+	    }
+	    CloseHandle(hIpc);
+	}
+#endif
     }
 }
 
@@ -479,6 +509,11 @@ helperStatefulShutdown(statefulhelper * hlp)
 {
     dlink_node *link = hlp->servers.head;
     helper_stateful_server *srv;
+#ifdef _SQUID_MSWIN_
+    HANDLE hIpc;
+    pid_t pid;
+    int no;
+#endif
     int wfd;
     while (link) {
 	srv = link->data;
@@ -507,9 +542,26 @@ helperStatefulShutdown(statefulhelper * hlp)
 	    continue;
 	}
 	srv->flags.closing = 1;
+#ifdef _SQUID_MSWIN_
+	hIpc = srv->hIpc;
+	pid = srv->pid;
+	no = srv->index + 1;
+	shutdown(srv->wfd, SD_BOTH);
+#endif
 	wfd = srv->wfd;
 	srv->wfd = -1;
 	comm_close(wfd);
+#ifdef _SQUID_MSWIN_
+	if (hIpc) {
+	    if (WaitForSingleObject(hIpc, 5000) != WAIT_OBJECT_0) {
+		getCurrentTime();
+		debug(84, 1) ("helperShutdown: WARNING: %s #%d (%s,%ld) "
+		    "didn't exit in 5 seconds\n",
+		    hlp->id_name, no, hlp->cmdline->key, (long int) pid);
+	    }
+	    CloseHandle(hIpc);
+	}
+#endif
     }
 }
 

@@ -25,6 +25,7 @@ struct _diskdinfo_t {
     int rmsgid;
     int rfd;
     int wfd;
+    void *hIpc;
     int away;
     struct {
 	char *buf;

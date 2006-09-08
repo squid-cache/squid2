@@ -440,21 +440,37 @@ statFiledescriptors(StoreEntry * sentry)
     int i;
     fde *f;
     storeAppendPrintf(sentry, "Active file descriptors:\n");
+#ifdef _SQUID_MSWIN_
+    storeAppendPrintf(sentry, "%-4s %-10s %-6s %-4s %-7s* %-7s* %-21s %s\n",
+	"File",
+	"Handle",
+#else
     storeAppendPrintf(sentry, "%-4s %-6s %-4s %-7s* %-7s* %-21s %s\n",
 	"File",
+#endif
 	"Type",
 	"Tout",
 	"Nread",
 	"Nwrite",
 	"Remote Address",
 	"Description");
+#ifdef _SQUID_MSWIN_
+    storeAppendPrintf(sentry, "---- ---------- ------ ---- -------- -------- --------------------- ------------------------------\n");
+#else
     storeAppendPrintf(sentry, "---- ------ ---- -------- -------- --------------------- ------------------------------\n");
+#endif
     for (i = 0; i < Squid_MaxFD; i++) {
 	f = &fd_table[i];
 	if (!f->flags.open)
 	    continue;
+#ifdef _SQUID_MSWIN_
+	storeAppendPrintf(sentry, "%4d 0x%-8lX %-6.6s %4d %7" PRINTF_OFF_T "%c %7" PRINTF_OFF_T "%c %-21s %s\n",
+	    i,
+	    f->win32.handle,
+#else
 	storeAppendPrintf(sentry, "%4d %-6.6s %4d %7" PRINTF_OFF_T "%c %7" PRINTF_OFF_T "%c %-21s %s\n",
 	    i,
+#endif
 	    fdTypeStr[f->type],
 	    f->timeout_handler ? (int) (f->timeout - squid_curtime) / 60 : 0,
 	    f->bytes_read,

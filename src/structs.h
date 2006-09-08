@@ -914,6 +914,11 @@ struct _fde {
 #if USE_SSL
     SSL *ssl;
 #endif
+#ifdef _SQUID_MSWIN_
+    struct {
+	long handle;
+    } win32;
+#endif
 };
 
 struct _fileMap {
@@ -2327,6 +2332,7 @@ struct _helper_server {
 	int uses;
 	unsigned int pending;
     } stats;
+    void *hIpc;
 };
 
 
@@ -2356,6 +2362,7 @@ struct _helper_stateful_server {
 	int releases;
     } stats;
     void *data;			/* State data used by the calling routines */
+    void *hIpc;
 };
 
 /*

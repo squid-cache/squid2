@@ -1227,12 +1227,13 @@ extern void stringAppend(String * s, const char *buf, int len);
 /*
  * ipc.c
  */
-extern int ipcCreate(int type,
+extern pid_t ipcCreate(int type,
     const char *prog,
     const char *const args[],
     const char *name,
     int *rfd,
-    int *wfd);
+    int *wfd,
+    void **hIpc);
 
 /* CacheDigest */
 extern CacheDigest *cacheDigestCreate(int capacity, int bpe);

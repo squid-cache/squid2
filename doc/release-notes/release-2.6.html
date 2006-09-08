@@ -261,6 +261,24 @@ squid -O "-D -u 3130" -n squidsvc
 </P>
 <P>
 <DL>
+<DT><B>PSAPI.DLL (Process Status Helper) Considerations</B><DD><P>The process status helper functions make it easier for you to obtain information about
+processes and device drivers running on Microsoft® Windows NT®/Windows® 2000. These
+functions are available in PSAPI.DLL, which is distributed in the Microsoft® Platform
+Software Development Kit (SDK). The same information is generally available through the
+performance data in the registry, but it is more difficult to get to it. PSAPI.DLL is
+freely redistributable.</P>
+<P>PSAPI.DLL is available only on Windows NT, 2000, XP and .NET. The implementation in Squid is
+aware of this, and try to use it only on the rigth platform.</P>
+<P>On Windows NT PSAPI.DLL can be found as component of many applications, if you need it,
+you can find it on Windows NT Resource KIT. If you have problem, it can be
+downloaded from here:
+<A HREF="http://download.microsoft.com/download/platformsdk/Redist/4.0.1371.1/NT4/EN-US/psinst.EXE">http://download.microsoft.com/download/platformsdk/Redist/4.0.1371.1/NT4/EN-US/psinst.EXE</A></P>
+<P>On Windows 2000 and later it is available installing the Windows Support Tools, located on the
+Support\Tools folder of the installation Windows CD-ROM.</P>
+</DL>
+</P>
+<P>
+<DL>
 <DT><B>Registry DNS lookup</B><DD><P>On Windows platforms, if no value is specified in the <EM>dns_nameservers</EM> option on
 squid.conf or in the /etc/resolv.conf file, the list of DNS name servers are
 taken from the Windows registry, both static and dynamic DHCP configurations
@@ -309,6 +327,7 @@ redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd
 </LI>
 <LI>Some code sections can make blocking calls.</LI>
 <LI>Some external helpers may not work.</LI>
+<LI>File Descriptors number hard-limited to 2048 when building with MinGW.</LI>
 </UL>
 </P>
 </DL>

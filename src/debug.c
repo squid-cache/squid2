@@ -48,6 +48,10 @@ static void _db_print_syslog(const char *format, va_list args);
 static void _db_print_stderr(const char *format, va_list args);
 static void _db_print_file(const char *format, va_list args);
 
+#ifdef _SQUID_MSWIN_
+extern LPCRITICAL_SECTION dbg_mutex;
+#endif
+
 #ifdef _SQUID_LINUX_
 /* Workaround for crappy glic header files */
 extern int backtrace(void *, int);
@@ -74,6 +78,33 @@ _db_print(va_alist)
 #define args2 args1
 #define args3 args1
 #endif
+#ifdef _SQUID_MSWIN_
+    /* Multiple WIN32 threads may call this simultaneously */
+    if (!dbg_mutex) {
+	HMODULE krnl_lib = GetModuleHandle("Kernel32");
+	BOOL(FAR WINAPI * InitializeCriticalSectionAndSpinCount)
+	    (LPCRITICAL_SECTION, DWORD) = NULL;
+	if (krnl_lib)
+	    (FARPROC) InitializeCriticalSectionAndSpinCount =
+		GetProcAddress(krnl_lib,
+		"InitializeCriticalSectionAndSpinCount");
+	dbg_mutex = xcalloc(1, sizeof(CRITICAL_SECTION));
+
+	if (InitializeCriticalSectionAndSpinCount) {
+	    /* let multiprocessor systems EnterCriticalSection() fast */
+	    if (!InitializeCriticalSectionAndSpinCount(dbg_mutex, 4000)) {
+		if (debug_log) {
+		    fprintf(debug_log, "FATAL: _db_print: can't initialize critical section\n");
+		    fflush(debug_log);
+		}
+		fprintf(stderr, "FATAL: _db_print: can't initialize critical section\n");
+		abort();
+	    } else
+		InitializeCriticalSection(dbg_mutex);
+	}
+    }
+    EnterCriticalSection(dbg_mutex);
+#endif
     /* give a chance to context-based debugging to print current context */
     if (!Ctx_Lock)
 	ctx_print();
@@ -91,6 +122,9 @@ _db_print(va_alist)
     _db_print_stderr(f, args2);
 #if HAVE_SYSLOG
     _db_print_syslog(format, args3);
+#endif
+#ifdef _SQUID_MSWIN_
+    LeaveCriticalSection(dbg_mutex);
 #endif
     va_end(args1);
 #if STDC_HEADERS

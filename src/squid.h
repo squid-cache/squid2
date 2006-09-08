@@ -505,6 +505,17 @@ struct rusage {
 #define IPPROTO_TCP 0
 #endif
 
+
+#if defined(_SQUID_MSWIN_)
+/* Windows lacks getpagesize() prototype */
+#ifndef getpagesize
+extern size_t getpagesize(void);
+#endif
+#if defined(_MSC_VER)		/* Microsoft C Compiler ONLY */
+#define strtoll WIN32_strtoll
+#endif
+#endif /* _SQUID_MSWIN_ */
+
 /*
  * Trap attempts to build large file cache support without support for
  * large objects

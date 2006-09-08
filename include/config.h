@@ -121,6 +121,7 @@
 #elif defined(WIN32) || defined(WINNT) || defined(__WIN32__) || defined(__WIN32)
 #define _SQUID_MSWIN_
 #define _SQUID_WIN32_
+#include "squid_mswin.h"
 
 #elif defined(__APPLE__)
 #define _SQUID_APPLE_

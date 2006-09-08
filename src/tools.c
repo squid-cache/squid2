@@ -33,6 +33,11 @@
  *
  */
 
+/* On native Windows, squid_mswin.h needs to know when we are compiling
+ * tools.c for the correct handling of FD<=>socket magic
+ */
+#define TOOLS_C
+
 #include "squid.h"
 
 #if LINUX_TPROXY

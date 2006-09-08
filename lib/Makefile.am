@@ -24,6 +24,12 @@ else
 LIBSSPWIN32=
 endif
 
+if ENABLE_MINGW32SPECIFIC
+WIN32SRC = win32lib.c
+else
+WIN32SRC=
+endif
+
 EXTRA_LIBRARIES = \
 	libdlmalloc.a \
 	libregex.a \
@@ -37,7 +43,8 @@ noinst_LIBRARIES = \
 EXTRA_libmiscutil_a_SOURCES = \
 	md5.c \
 	snprintf.c \
-	strsep.c
+	strsep.c \
+	win32lib.c
 libmiscutil_a_SOURCES = \
 	Array.c \
 	base64.c \
@@ -59,7 +66,8 @@ libmiscutil_a_SOURCES = \
 	$(STRSEPSOURCE) \
 	stub_memaccount.c \
 	util.c \
-	uudecode.c
+	uudecode.c \
+	$(WIN32SRC)
 libmiscutil_a_LIBADD = \
 	@LIBOBJS@
 # $(top_srcdir)/include/version.h should be a dependency
