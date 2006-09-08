@@ -91,17 +91,18 @@ am__squid_SOURCES_DIST = access_log.c acl.c asn.c authenticate.c \
 	http.c HttpStatusLine.c HttpHdrCc.c HttpHdrRange.c \
 	HttpHdrContRange.c HttpHeader.c HttpHeaderTools.c HttpBody.c \
 	HttpMsg.c HttpReply.c HttpRequest.c icmp.c icp_v2.c icp_v3.c \
-	ident.c internal.c ipc.c ipcache.c leakfinder.c locrewrite.c \
-	logfile.c main.c mem.c MemPool.c MemBuf.c mime.c multicast.c \
-	neighbors.c net_db.c Packer.c pconn.c peer_digest.c \
-	peer_monitor.c peer_select.c peer_sourcehash.c peer_userhash.c \
-	protos.h redirect.c referer.c refresh.c send-announce.c \
-	snmp_core.c snmp_agent.c squid.h ssl.c ssl_support.c stat.c \
-	StatHist.c String.c stmem.c store.c store_io.c store_client.c \
-	store_digest.c store_dir.c store_key_md5.c store_log.c \
-	store_rebuild.c store_swapin.c store_swapmeta.c \
-	store_swapout.c structs.h tools.c typedefs.h unlinkd.c url.c \
-	urn.c useragent.c wais.c wccp.c wccp2.c whois.c win32.c
+	ident.c internal.c ipc.c ipc_win32.c ipcache.c leakfinder.c \
+	locrewrite.c logfile.c main.c mem.c MemPool.c MemBuf.c mime.c \
+	multicast.c neighbors.c net_db.c Packer.c pconn.c \
+	peer_digest.c peer_monitor.c peer_select.c peer_sourcehash.c \
+	peer_userhash.c protos.h redirect.c referer.c refresh.c \
+	send-announce.c snmp_core.c snmp_agent.c squid.h ssl.c \
+	ssl_support.c stat.c StatHist.c String.c stmem.c store.c \
+	store_io.c store_client.c store_digest.c store_dir.c \
+	store_key_md5.c store_log.c store_rebuild.c store_swapin.c \
+	store_swapmeta.c store_swapout.c structs.h tools.c typedefs.h \
+	unlinkd.c url.c urn.c useragent.c wais.c wccp.c wccp2.c \
+	whois.c win32.c
 @USE_EPOLL_FALSE@@USE_KQUEUE_FALSE@@USE_POLL_FALSE@@USE_SELECT_FALSE@@USE_SELECT_WIN32_TRUE@am__objects_1 = comm_select_win32.$(OBJEXT)
 @USE_EPOLL_FALSE@@USE_KQUEUE_FALSE@@USE_POLL_FALSE@@USE_SELECT_TRUE@am__objects_1 = comm_select.$(OBJEXT)
 @USE_EPOLL_FALSE@@USE_KQUEUE_FALSE@@USE_POLL_TRUE@am__objects_1 = comm_poll.$(OBJEXT)
@@ -112,12 +113,14 @@ am__squid_SOURCES_DIST = access_log.c acl.c asn.c authenticate.c \
 @USE_DNSSERVER_FALSE@am__objects_3 = dns_internal.$(OBJEXT)
 @USE_DNSSERVER_TRUE@am__objects_3 = dns.$(OBJEXT)
 @ENABLE_HTCP_TRUE@am__objects_4 = htcp.$(OBJEXT)
-@MAKE_LEAKFINDER_TRUE@am__objects_5 = leakfinder.$(OBJEXT)
-@USE_SNMP_TRUE@am__objects_6 = snmp_core.$(OBJEXT) \
+@ENABLE_MINGW32SPECIFIC_FALSE@am__objects_5 = ipc.$(OBJEXT)
+@ENABLE_MINGW32SPECIFIC_TRUE@am__objects_5 = ipc_win32.$(OBJEXT)
+@MAKE_LEAKFINDER_TRUE@am__objects_6 = leakfinder.$(OBJEXT)
+@USE_SNMP_TRUE@am__objects_7 = snmp_core.$(OBJEXT) \
 @USE_SNMP_TRUE@	snmp_agent.$(OBJEXT)
-@ENABLE_SSL_TRUE@am__objects_7 = ssl_support.$(OBJEXT)
-@ENABLE_UNLINKD_TRUE@am__objects_8 = unlinkd.$(OBJEXT)
-@ENABLE_WIN32SPECIFIC_TRUE@am__objects_9 = win32.$(OBJEXT)
+@ENABLE_SSL_TRUE@am__objects_8 = ssl_support.$(OBJEXT)
+@ENABLE_UNLINKD_TRUE@am__objects_9 = unlinkd.$(OBJEXT)
+@ENABLE_WIN32SPECIFIC_TRUE@am__objects_10 = win32.$(OBJEXT)
 am_squid_OBJECTS = access_log.$(OBJEXT) acl.$(OBJEXT) asn.$(OBJEXT) \
 	authenticate.$(OBJEXT) cache_cf.$(OBJEXT) \
 	CacheDigest.$(OBJEXT) cache_manager.$(OBJEXT) carp.$(OBJEXT) \
@@ -134,7 +137,7 @@ am_squid_OBJECTS = access_log.$(OBJEXT) acl.$(OBJEXT) asn.$(OBJEXT) \
 	HttpBody.$(OBJEXT) HttpMsg.$(OBJEXT) HttpReply.$(OBJEXT) \
 	HttpRequest.$(OBJEXT) icmp.$(OBJEXT) icp_v2.$(OBJEXT) \
 	icp_v3.$(OBJEXT) ident.$(OBJEXT) internal.$(OBJEXT) \
-	ipc.$(OBJEXT) ipcache.$(OBJEXT) $(am__objects_5) \
+	$(am__objects_5) ipcache.$(OBJEXT) $(am__objects_6) \
 	locrewrite.$(OBJEXT) logfile.$(OBJEXT) main.$(OBJEXT) \
 	mem.$(OBJEXT) MemPool.$(OBJEXT) MemBuf.$(OBJEXT) \
 	mime.$(OBJEXT) multicast.$(OBJEXT) neighbors.$(OBJEXT) \
@@ -142,22 +145,23 @@ am_squid_OBJECTS = access_log.$(OBJEXT) acl.$(OBJEXT) asn.$(OBJEXT) \
 	peer_digest.$(OBJEXT) peer_monitor.$(OBJEXT) \
 	peer_select.$(OBJEXT) peer_sourcehash.$(OBJEXT) \
 	peer_userhash.$(OBJEXT) redirect.$(OBJEXT) referer.$(OBJEXT) \
-	refresh.$(OBJEXT) send-announce.$(OBJEXT) $(am__objects_6) \
-	ssl.$(OBJEXT) $(am__objects_7) stat.$(OBJEXT) \
+	refresh.$(OBJEXT) send-announce.$(OBJEXT) $(am__objects_7) \
+	ssl.$(OBJEXT) $(am__objects_8) stat.$(OBJEXT) \
 	StatHist.$(OBJEXT) String.$(OBJEXT) stmem.$(OBJEXT) \
 	store.$(OBJEXT) store_io.$(OBJEXT) store_client.$(OBJEXT) \
 	store_digest.$(OBJEXT) store_dir.$(OBJEXT) \
 	store_key_md5.$(OBJEXT) store_log.$(OBJEXT) \
 	store_rebuild.$(OBJEXT) store_swapin.$(OBJEXT) \
 	store_swapmeta.$(OBJEXT) store_swapout.$(OBJEXT) \
-	tools.$(OBJEXT) $(am__objects_8) url.$(OBJEXT) urn.$(OBJEXT) \
+	tools.$(OBJEXT) $(am__objects_9) url.$(OBJEXT) urn.$(OBJEXT) \
 	useragent.$(OBJEXT) wais.$(OBJEXT) wccp.$(OBJEXT) \
-	wccp2.$(OBJEXT) whois.$(OBJEXT) $(am__objects_9)
+	wccp2.$(OBJEXT) whois.$(OBJEXT) $(am__objects_10)
 nodist_squid_OBJECTS = repl_modules.$(OBJEXT) auth_modules.$(OBJEXT) \
 	store_modules.$(OBJEXT) globals.$(OBJEXT) \
 	string_arrays.$(OBJEXT)
 squid_OBJECTS = $(am_squid_OBJECTS) $(nodist_squid_OBJECTS)
-squid_DEPENDENCIES =
+am__DEPENDENCIES_1 =
+squid_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am_unlinkd_OBJECTS =
 unlinkd_OBJECTS = $(am_unlinkd_OBJECTS)
 unlinkd_DEPENDENCIES = unlinkd-daemon.o
@@ -228,6 +232,8 @@ ECHO_T = @ECHO_T@
 EGREP = @EGREP@
 ENABLE_HTCP_FALSE = @ENABLE_HTCP_FALSE@
 ENABLE_HTCP_TRUE = @ENABLE_HTCP_TRUE@
+ENABLE_MINGW32SPECIFIC_FALSE = @ENABLE_MINGW32SPECIFIC_FALSE@
+ENABLE_MINGW32SPECIFIC_TRUE = @ENABLE_MINGW32SPECIFIC_TRUE@
 ENABLE_PINGER_FALSE = @ENABLE_PINGER_FALSE@
 ENABLE_PINGER_TRUE = @ENABLE_PINGER_TRUE@
 ENABLE_SSL_FALSE = @ENABLE_SSL_FALSE@
@@ -322,6 +328,7 @@ USE_SELECT_WIN32_TRUE = @USE_SELECT_WIN32_TRUE@
 USE_SNMP_FALSE = @USE_SNMP_FALSE@
 USE_SNMP_TRUE = @USE_SNMP_TRUE@
 VERSION = @VERSION@
+WIN32_PSAPI = @WIN32_PSAPI@
 XTRA_LIBS = @XTRA_LIBS@
 XTRA_OBJS = @XTRA_OBJS@
 ac_ct_CC = @ac_ct_CC@
@@ -384,6 +391,10 @@ target_alias = @target_alias@
 @ENABLE_SSL_TRUE@SSLSOURCE = ssl_support.c
 @ENABLE_WIN32SPECIFIC_FALSE@WIN32SOURCE = 
 @ENABLE_WIN32SPECIFIC_TRUE@WIN32SOURCE = win32.c
+@ENABLE_MINGW32SPECIFIC_FALSE@MINGWEXLIB = 
+@ENABLE_MINGW32SPECIFIC_TRUE@MINGWEXLIB = -lmingwex
+@ENABLE_MINGW32SPECIFIC_FALSE@IPC_SOURCE = ipc.c
+@ENABLE_MINGW32SPECIFIC_TRUE@IPC_SOURCE = ipc_win32.c
 @USE_EPOLL_TRUE@COMMLOOP_SOURCE = comm_epoll.c
 @USE_KQUEUE_TRUE@COMMLOOP_SOURCE = comm_kqueue.c
 @USE_POLL_TRUE@COMMLOOP_SOURCE = comm_poll.c
@@ -412,6 +423,8 @@ EXTRA_squid_SOURCES = \
 	comm_select_win32.c \
 	comm_kqueue.c \
 	comm_generic.c \
+	ipc.c \
+	ipc_win32.c \
 	win32.c
 
 squid_SOURCES = \
@@ -463,7 +476,7 @@ squid_SOURCES = \
 	icp_v3.c \
 	ident.c \
 	internal.c \
-	ipc.c \
+	$(IPC_SOURCE) \
 	ipcache.c \
 	$(LEAKFINDERSOURCE) \
 	locrewrite.c \
@@ -541,7 +554,8 @@ squid_LDADD = \
 	@SSLLIB@ \
 	@LIB_EPOLL@ \
 	-lmiscutil \
-	@XTRA_LIBS@
+	@XTRA_LIBS@ \
+	$(MINGWEXLIB)
 
 unlinkd_SOURCES = 
 unlinkd_LDADD = unlinkd-daemon.o
@@ -774,6 +788,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ident.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/internal.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ipc.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ipc_win32.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ipcache.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/leakfinder.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/locrewrite.Po@am__quote@

@@ -588,6 +588,9 @@
 /* Define to 1 if you have the `vsnprintf' function. */
 #undef HAVE_VSNPRINTF
 
+/* Define if you have PSAPI.DLL on Windows systems */
+#undef HAVE_WIN32_PSAPI
+
 /* Some systems support __va_copy */
 #undef HAVE___VA_COPY
 

@@ -62,10 +62,12 @@ libmiscutil_a_DEPENDENCIES = @LIBOBJS@
 am__libmiscutil_a_SOURCES_DIST = Array.c base64.c getfullhostname.c \
 	hash.c heap.c html_quote.c iso3307.c md5.c radix.c rfc1035.c \
 	rfc1123.c rfc1738.c rfc2617.c safe_inet_addr.c snprintf.c \
-	splay.c Stack.c strsep.c stub_memaccount.c util.c uudecode.c
+	splay.c Stack.c strsep.c stub_memaccount.c util.c uudecode.c \
+	win32lib.c
 @NEED_OWN_MD5_TRUE@am__objects_1 = md5.$(OBJEXT)
 @NEED_OWN_SNPRINTF_TRUE@am__objects_2 = snprintf.$(OBJEXT)
 @NEED_OWN_STRSEP_TRUE@am__objects_3 = strsep.$(OBJEXT)
+@ENABLE_MINGW32SPECIFIC_TRUE@am__objects_4 = win32lib.$(OBJEXT)
 am_libmiscutil_a_OBJECTS = Array.$(OBJEXT) base64.$(OBJEXT) \
 	getfullhostname.$(OBJEXT) hash.$(OBJEXT) heap.$(OBJEXT) \
 	html_quote.$(OBJEXT) iso3307.$(OBJEXT) $(am__objects_1) \
@@ -73,7 +75,7 @@ am_libmiscutil_a_OBJECTS = Array.$(OBJEXT) base64.$(OBJEXT) \
 	rfc1738.$(OBJEXT) rfc2617.$(OBJEXT) safe_inet_addr.$(OBJEXT) \
 	$(am__objects_2) splay.$(OBJEXT) Stack.$(OBJEXT) \
 	$(am__objects_3) stub_memaccount.$(OBJEXT) util.$(OBJEXT) \
-	uudecode.$(OBJEXT)
+	uudecode.$(OBJEXT) $(am__objects_4)
 libmiscutil_a_OBJECTS = $(am_libmiscutil_a_OBJECTS)
 libntlmauth_a_AR = $(AR) $(ARFLAGS)
 libntlmauth_a_DEPENDENCIES = @LIBOBJS@
@@ -138,6 +140,8 @@ ECHO_T = @ECHO_T@
 EGREP = @EGREP@
 ENABLE_HTCP_FALSE = @ENABLE_HTCP_FALSE@
 ENABLE_HTCP_TRUE = @ENABLE_HTCP_TRUE@
+ENABLE_MINGW32SPECIFIC_FALSE = @ENABLE_MINGW32SPECIFIC_FALSE@
+ENABLE_MINGW32SPECIFIC_TRUE = @ENABLE_MINGW32SPECIFIC_TRUE@
 ENABLE_PINGER_FALSE = @ENABLE_PINGER_FALSE@
 ENABLE_PINGER_TRUE = @ENABLE_PINGER_TRUE@
 ENABLE_SSL_FALSE = @ENABLE_SSL_FALSE@
@@ -232,6 +236,7 @@ USE_SELECT_WIN32_TRUE = @USE_SELECT_WIN32_TRUE@
 USE_SNMP_FALSE = @USE_SNMP_FALSE@
 USE_SNMP_TRUE = @USE_SNMP_TRUE@
 VERSION = @VERSION@
+WIN32_PSAPI = @WIN32_PSAPI@
 XTRA_LIBS = @XTRA_LIBS@
 XTRA_OBJS = @XTRA_OBJS@
 ac_ct_CC = @ac_ct_CC@
@@ -281,6 +286,8 @@ target_alias = @target_alias@
 @NEED_OWN_MD5_TRUE@MD5SOURCE = md5.c
 @ENABLE_WIN32SPECIFIC_FALSE@LIBSSPWIN32 = 
 @ENABLE_WIN32SPECIFIC_TRUE@LIBSSPWIN32 = libsspwin32.a
+@ENABLE_MINGW32SPECIFIC_FALSE@WIN32SRC = 
+@ENABLE_MINGW32SPECIFIC_TRUE@WIN32SRC = win32lib.c
 EXTRA_LIBRARIES = \
 	libdlmalloc.a \
 	libregex.a \
@@ -296,7 +303,8 @@ noinst_LIBRARIES = \
 EXTRA_libmiscutil_a_SOURCES = \
 	md5.c \
 	snprintf.c \
-	strsep.c
+	strsep.c \
+	win32lib.c
 
 libmiscutil_a_SOURCES = \
 	Array.c \
@@ -319,7 +327,8 @@ libmiscutil_a_SOURCES = \
 	$(STRSEPSOURCE) \
 	stub_memaccount.c \
 	util.c \
-	uudecode.c
+	uudecode.c \
+	$(WIN32SRC)
 
 libmiscutil_a_LIBADD = \
 	@LIBOBJS@
@@ -434,6 +443,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stub_memaccount.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/util.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/uudecode.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/win32lib.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	if $(COMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
