@@ -117,6 +117,7 @@ socket_write_method(int fd, const char *buf, int len)
     return (send(fd, buf, len, 0));
 }
 
+int
 file_write_method(int fd, const char *buf, int len)
 {
     return (_write(fd, buf, len));

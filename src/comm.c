@@ -945,24 +945,28 @@ commSetTcpRcvbuf(int fd, int size)
 int
 commSetNonBlocking(int fd)
 {
-#ifndef _SQUID_MSWIN_
+#ifdef _SQUID_MSWIN_
+    unsigned long nonblocking = TRUE;
+
+    if (ioctlsocket(fd, FIONBIO, &nonblocking) < 0) {
+	debug(5, 0) ("commSetNonBlocking: FD %d: %s %u\n", fd, xstrerror(), fd_table[fd].type);
+	return COMM_ERROR;
+    }
+#else /* _SQUID_MSWIN_ */
+
     int flags;
     int dummy = 0;
-#endif
-#ifdef _SQUID_WIN32_
-    int nonblocking = TRUE;
+
 #ifdef _SQUID_CYGWIN_
+    int nonblocking = TRUE;
+
     if (fd_table[fd].type != FD_PIPE) {
-#endif
 	if (ioctl(fd, FIONBIO, &nonblocking) < 0) {
 	    debug(5, 0) ("commSetNonBlocking: FD %d: %s %u\n", fd, xstrerror(), fd_table[fd].type);
 	    return COMM_ERROR;
 	}
-#ifdef _SQUID_CYGWIN_
     } else {
 #endif
-#endif
-#ifndef _SQUID_MSWIN_
 	if ((flags = fcntl(fd, F_GETFL, dummy)) < 0) {
 	    debug(5, 0) ("FD %d: fcntl F_GETFL: %s\n", fd, xstrerror());
 	    return COMM_ERROR;
@@ -971,10 +975,10 @@ commSetNonBlocking(int fd)
 	    debug(5, 0) ("commSetNonBlocking: FD %d: %s\n", fd, xstrerror());
 	    return COMM_ERROR;
 	}
-#endif
 #ifdef _SQUID_CYGWIN_
     }
 #endif
+#endif /* _SQUID_MSWIN_ */
     fd_table[fd].flags.nonblocking = 1;
     return 0;
 }
@@ -983,8 +987,8 @@ int
 commUnsetNonBlocking(int fd)
 {
 #ifdef _SQUID_MSWIN_
-    int nonblocking = FALSE;
-    if (ioctlsocket(fd, FIONBIO, (unsigned long *) &nonblocking) < 0) {
+    unsigned long nonblocking = FALSE;
+    if (ioctlsocket(fd, FIONBIO, &nonblocking) < 0) {
 #else
     int flags;
     int dummy = 0;

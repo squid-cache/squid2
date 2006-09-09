@@ -821,8 +821,10 @@ WIN32_getrusage(int who, struct rusage *usage)
 	    /* so we get process CPU time information from PSAPI.DLL. */
 	    FILETIME ftCreate, ftExit, ftKernel, ftUser;
 	    if (GetProcessTimes(hProcess, &ftCreate, &ftExit, &ftKernel, &ftUser)) {
-		int64_t tUser64 = (*(int64_t *) & ftUser / 10);
-		int64_t tKernel64 = (*(int64_t *) & ftKernel / 10);
+		PFILETIME p_ftUser = &ftUser;
+		PFILETIME p_ftKernel = &ftKernel;
+		int64_t tUser64 = (*(int64_t *) p_ftUser / 10);
+		int64_t tKernel64 = (*(int64_t *) p_ftKernel / 10);
 		usage->ru_utime.tv_sec = (long) (tUser64 / 1000000);
 		usage->ru_stime.tv_sec = (long) (tKernel64 / 1000000);
 		usage->ru_utime.tv_usec = (long) (tUser64 % 1000000);

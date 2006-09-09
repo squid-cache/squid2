@@ -85,7 +85,7 @@ _db_print(va_alist)
 	BOOL(FAR WINAPI * InitializeCriticalSectionAndSpinCount)
 	    (LPCRITICAL_SECTION, DWORD) = NULL;
 	if (krnl_lib)
-	    (FARPROC) InitializeCriticalSectionAndSpinCount =
+	    InitializeCriticalSectionAndSpinCount =
 		GetProcAddress(krnl_lib,
 		"InitializeCriticalSectionAndSpinCount");
 	dbg_mutex = xcalloc(1, sizeof(CRITICAL_SECTION));

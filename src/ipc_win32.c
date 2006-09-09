@@ -582,7 +582,7 @@ ipc_thread_1(void *in_params)
 	snprintf(buf1, 8191, "%s(%ld) <-> ipc PARENT socket", prog, (long int) pid);
 	fd_note(prfd_ipc, buf1);
     }
-    /* else {                      /* IPC_TCP_SOCKET */
+    /* else {                       IPC_TCP_SOCKET */
     /*     commSetNoLinger(fd); */
     /*  } */
     thread_params.prog = prog;
