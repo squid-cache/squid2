@@ -57,8 +57,13 @@ LIBRARIES = $(noinst_LIBRARIES)
 ARFLAGS = cru
 libaufs_a_AR = $(AR) $(ARFLAGS)
 libaufs_a_LIBADD =
+am__libaufs_a_SOURCES_DIST = aufs/aiops.c aufs/aiops_win32.c \
+	aufs/async_io.c aufs/store_asyncufs.h aufs/store_dir_aufs.c \
+	aufs/store_io_aufs.c aufs/async_io.h
 am__dirstamp = $(am__leading_dot)dirstamp
-am_libaufs_a_OBJECTS = aufs/aiops.$(OBJEXT) aufs/async_io.$(OBJEXT) \
+@USE_AIOPS_WIN32_FALSE@am__objects_1 = aufs/aiops.$(OBJEXT)
+@USE_AIOPS_WIN32_TRUE@am__objects_1 = aufs/aiops_win32.$(OBJEXT)
+am_libaufs_a_OBJECTS = $(am__objects_1) aufs/async_io.$(OBJEXT) \
 	aufs/store_dir_aufs.$(OBJEXT) aufs/store_io_aufs.$(OBJEXT)
 libaufs_a_OBJECTS = $(am_libaufs_a_OBJECTS)
 libcoss_a_AR = $(AR) $(ARFLAGS)
@@ -95,10 +100,12 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(libaufs_a_SOURCES) $(libcoss_a_SOURCES) \
-	$(libdiskd_a_SOURCES) $(libnull_a_SOURCES) $(libufs_a_SOURCES) \
+SOURCES = $(libaufs_a_SOURCES) $(EXTRA_libaufs_a_SOURCES) \
+	$(libcoss_a_SOURCES) $(libdiskd_a_SOURCES) \
+	$(libnull_a_SOURCES) $(libufs_a_SOURCES) \
 	$(diskd_daemon_SOURCES)
-DIST_SOURCES = $(libaufs_a_SOURCES) $(libcoss_a_SOURCES) \
+DIST_SOURCES = $(am__libaufs_a_SOURCES_DIST) \
+	$(EXTRA_libaufs_a_SOURCES) $(libcoss_a_SOURCES) \
 	$(libdiskd_a_SOURCES) $(libnull_a_SOURCES) $(libufs_a_SOURCES) \
 	$(diskd_daemon_SOURCES)
 ETAGS = etags
@@ -217,6 +224,8 @@ STORE_MODULES = @STORE_MODULES@
 STORE_OBJS = @STORE_OBJS@
 STRIP = @STRIP@
 TRUE = @TRUE@
+USE_AIOPS_WIN32_FALSE = @USE_AIOPS_WIN32_FALSE@
+USE_AIOPS_WIN32_TRUE = @USE_AIOPS_WIN32_TRUE@
 USE_DELAY_POOLS_FALSE = @USE_DELAY_POOLS_FALSE@
 USE_DELAY_POOLS_TRUE = @USE_DELAY_POOLS_TRUE@
 USE_DNSSERVER_FALSE = @USE_DNSSERVER_FALSE@
@@ -277,9 +286,12 @@ sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 AUTOMAKE_OPTIONS = subdir-objects
+@USE_AIOPS_WIN32_FALSE@AIOPS_SOURCE = aufs/aiops.c
+@USE_AIOPS_WIN32_TRUE@AIOPS_SOURCE = aufs/aiops_win32.c
 EXTRA_LIBRARIES = libaufs.a libcoss.a libdiskd.a libnull.a libufs.a
 noinst_LIBRARIES = @STORE_LIBS@
-libaufs_a_SOURCES = aufs/aiops.c aufs/async_io.c aufs/store_asyncufs.h \
+EXTRA_libaufs_a_SOURCES = aufs/aiops.c aufs/aiops_win32.c
+libaufs_a_SOURCES = $(AIOPS_SOURCE) aufs/async_io.c aufs/store_asyncufs.h \
 	aufs/store_dir_aufs.c aufs/store_io_aufs.c aufs/async_io.h
 
 libcoss_a_SOURCES = coss/store_coss.h   coss/store_io_coss.c coss/store_dir_coss.c \
@@ -343,6 +355,8 @@ aufs/$(DEPDIR)/$(am__dirstamp):
 	@$(mkdir_p) aufs/$(DEPDIR)
 	@: > aufs/$(DEPDIR)/$(am__dirstamp)
 aufs/aiops.$(OBJEXT): aufs/$(am__dirstamp) \
+	aufs/$(DEPDIR)/$(am__dirstamp)
+aufs/aiops_win32.$(OBJEXT): aufs/$(am__dirstamp) \
 	aufs/$(DEPDIR)/$(am__dirstamp)
 aufs/async_io.$(OBJEXT): aufs/$(am__dirstamp) \
 	aufs/$(DEPDIR)/$(am__dirstamp)
@@ -442,6 +456,7 @@ diskd-daemon$(EXEEXT): $(diskd_daemon_OBJECTS) $(diskd_daemon_DEPENDENCIES)
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 	-rm -f aufs/aiops.$(OBJEXT)
+	-rm -f aufs/aiops_win32.$(OBJEXT)
 	-rm -f aufs/async_io.$(OBJEXT)
 	-rm -f aufs/store_dir_aufs.$(OBJEXT)
 	-rm -f aufs/store_io_aufs.$(OBJEXT)
@@ -459,6 +474,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@aufs/$(DEPDIR)/aiops.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@aufs/$(DEPDIR)/aiops_win32.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@aufs/$(DEPDIR)/async_io.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@aufs/$(DEPDIR)/store_dir_aufs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@aufs/$(DEPDIR)/store_io_aufs.Po@am__quote@
