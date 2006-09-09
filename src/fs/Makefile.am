@@ -5,10 +5,18 @@
 
 AUTOMAKE_OPTIONS = subdir-objects
 
+if USE_AIOPS_WIN32
+AIOPS_SOURCE = aufs/aiops_win32.c
+else
+AIOPS_SOURCE = aufs/aiops.c
+endif
+
 EXTRA_LIBRARIES = libaufs.a libcoss.a libdiskd.a libnull.a libufs.a
 noinst_LIBRARIES = @STORE_LIBS@
 
-libaufs_a_SOURCES = aufs/aiops.c aufs/async_io.c aufs/store_asyncufs.h \
+EXTRA_libaufs_a_SOURCES = aufs/aiops.c aufs/aiops_win32.c
+
+libaufs_a_SOURCES = $(AIOPS_SOURCE) aufs/async_io.c aufs/store_asyncufs.h \
 	aufs/store_dir_aufs.c aufs/store_io_aufs.c aufs/async_io.h
 libcoss_a_SOURCES = coss/store_coss.h   coss/store_io_coss.c coss/store_dir_coss.c \
 	coss/async_io.c coss/async_io.h

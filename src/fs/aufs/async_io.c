@@ -268,6 +268,7 @@ aioUnlink(const char *path, AIOCB * callback, void *callback_data)
     dlinkAdd(ctrlp, &ctrlp->node, &used_list);
 }				/* aioUnlink */
 
+#if USE_TRUNCATE
 void
 aioTruncate(const char *path, off_t length, AIOCB * callback, void *callback_data)
 {
@@ -285,6 +286,7 @@ aioTruncate(const char *path, off_t length, AIOCB * callback, void *callback_dat
     dlinkAdd(ctrlp, &ctrlp->node, &used_list);
 }				/* aioTruncate */
 
+#endif
 
 int
 aioCheckCallbacks(SwapDir * SD)
