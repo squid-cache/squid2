@@ -175,7 +175,8 @@ membership check
 
 
 <sect>Windows support
-<P>This Squid version can run on Windows as a system service using the Cygwin environment. Windows NT 4 SP4 and later are supported.<newline>
+<P>This Squid version can run on Windows as a system service using the Cygwin emulation environment, 
+or can be compiled in Windows native mode using the MinGW + MSYS development environment. Windows NT 4 SP4 and later are supported.<newline>
 On Windows 2000 and later the service is configured to use the Windows Service Recovery option
 restarting automatically after 60 seconds.
 <descrip>
@@ -226,8 +227,8 @@ Software Development Kit (SDK). The same information is generally available thro
 performance data in the registry, but it is more difficult to get to it. PSAPI.DLL is
 freely redistributable.
 
-PSAPI.DLL is available only on Windows NT, 2000, XP and .NET. The implementation in Squid is
-aware of this, and try to use it only on the rigth platform.
+PSAPI.DLL is available only on Windows NT, 2000, XP and 2003. The implementation in Squid is
+aware of this, and try to use it only on the right platform.
 
 On Windows NT PSAPI.DLL can be found as component of many applications, if you need it,
 you can find it on Windows NT Resource KIT. If you have problem, it can be
@@ -264,6 +265,7 @@ format (CR+LF) and the full Windows path must be specified, for example:
 redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd</verb>
 <item>When Squid runs in command line mode, the launching user account must have administrative privilege on the system
 <item>"Start parameters" in the Windows 2000/XP/2003 Service applet cannot be used
+<item>Building with MinGW, when the configure option --enable-truncate is used, Squid cannot run on Windows NT, only Windows 2000 and later are supported
 </itemize>
 </descrip>
 
@@ -278,14 +280,14 @@ redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd</verb>
 </itemize>
 <item>Some code sections can make blocking calls.
 <item>Some external helpers may not work.
-<item>File Descriptors number hard-limited to 2048 when building on MinGW.
+<item>File Descriptors number hard-limited to 2048 when building with MinGW.
 </itemize>
 </descrip>
 
 
 <descrip>
 <tag>Building Squid on Windows:</tag>
-A reasonably recent release of Cygwin is needed. Like other Unix/Linux environments, -devel version of libraries must be installed.<newline>
+A reasonably recent release of Cygwin or MinGW is needed. Like other Unix/Linux environments, -devel version of libraries must be installed.<newline>
 When running configure, --disable-wccp and --disable-wccpv2 options should always specified to avoid compile errors.<newline>
 <itemize>
 <item>New configure options:<newline>

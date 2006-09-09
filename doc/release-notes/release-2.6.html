@@ -216,7 +216,8 @@ in the /usr/include local directory. Don't forget to fix files permission and ow
 
 <H2><A NAME="s6">6.</A> <A HREF="#toc6">Windows support</A></H2>
 
-<P>This Squid version can run on Windows as a system service using the Cygwin environment. Windows NT 4 SP4 and later are supported.<BR>
+<P>This Squid version can run on Windows as a system service using the Cygwin emulation environment, 
+or can be compiled in Windows native mode using the MinGW + MSYS development environment. Windows NT 4 SP4 and later are supported.<BR>
 On Windows 2000 and later the service is configured to use the Windows Service Recovery option
 restarting automatically after 60 seconds.
 <DL>
@@ -267,8 +268,8 @@ functions are available in PSAPI.DLL, which is distributed in the Microsoft® Pla
 Software Development Kit (SDK). The same information is generally available through the
 performance data in the registry, but it is more difficult to get to it. PSAPI.DLL is
 freely redistributable.</P>
-<P>PSAPI.DLL is available only on Windows NT, 2000, XP and .NET. The implementation in Squid is
-aware of this, and try to use it only on the rigth platform.</P>
+<P>PSAPI.DLL is available only on Windows NT, 2000, XP and 2003. The implementation in Squid is
+aware of this, and try to use it only on the right platform.</P>
 <P>On Windows NT PSAPI.DLL can be found as component of many applications, if you need it,
 you can find it on Windows NT Resource KIT. If you have problem, it can be
 downloaded from here:
@@ -310,6 +311,7 @@ redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd
 </LI>
 <LI>When Squid runs in command line mode, the launching user account must have administrative privilege on the system</LI>
 <LI>"Start parameters" in the Windows 2000/XP/2003 Service applet cannot be used</LI>
+<LI>Building with MinGW, when the configure option --enable-truncate is used, Squid cannot run on Windows NT, only Windows 2000 and later are supported</LI>
 </UL>
 </P>
 </DL>
@@ -335,7 +337,7 @@ redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd
 
 <P>
 <DL>
-<DT><B>Building Squid on Windows:</B><DD><P>A reasonably recent release of Cygwin is needed. Like other Unix/Linux environments, -devel version of libraries must be installed.<BR>
+<DT><B>Building Squid on Windows:</B><DD><P>A reasonably recent release of Cygwin or MinGW is needed. Like other Unix/Linux environments, -devel version of libraries must be installed.<BR>
 When running configure, --disable-wccp and --disable-wccpv2 options should always specified to avoid compile errors.<BR>
 <UL>
 <LI>New configure options:<BR>
