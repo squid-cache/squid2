@@ -2,8 +2,9 @@
 /*
  * $Id$
  *
- * DEBUG: section 54    Interprocess Communication
- * AUTHOR: Duane Wessels
+ * DEBUG: section 54    Windows Interprocess Communication
+ * AUTHOR: Andrey Shorin <tolsty@tushino.com>
+ * AUTHOR: Guido Serassio <serassio@squid-cache.org>
  *
  * SQUID Web Proxy Cache          http://www.squid-cache.org/
  * ----------------------------------------------------------

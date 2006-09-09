@@ -1,7 +1,8 @@
 /*
  * $Id$
  *
- * AUTHOR: Guido Serassio & Andrey Shorin
+ * AUTHOR: Andrey Shorin <tolsty@tushino.com>
+ * AUTHOR: Guido Serassio <serassio@squid-cache.org>
  *
  * SQUID Internet Object Cache  http://squid.nlanr.net/Squid/
  * ----------------------------------------------------------
