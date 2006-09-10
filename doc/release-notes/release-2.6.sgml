@@ -284,7 +284,6 @@ redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd</verb>
 </itemize>
 </descrip>
 
-
 <descrip>
 <tag>Building Squid on Windows:</tag>
 A reasonably recent release of Cygwin or MinGW is needed. Like other Unix/Linux environments, -devel version of libraries must be installed.<newline>
@@ -300,8 +299,44 @@ When running configure, --disable-wccp and --disable-wccpv2 options should alway
 <item>--enable-default-hostsfile<newline>
 </itemize>
 </itemize>
-
 </descrip>
+
+<descrip>
+<tag>Using cache manager on Windows:</tag>
+On Windows, cache manager (cachemgr.cgi) can be used with Microsoft IIS or Apache.<newline>
+Some specific configuration could be needed:<newline>
+<itemize>
+<item>IIS 6 (Windows 2003):<newline>
+<itemize>
+<item>On IIS 6.0 all CGI extensions are denied by default for security reason, so the following configuration is needed:<newline>
+<itemize>
+<item>Create a cgi-bin Directory
+<item>Define the cgi-bin IIS Virtual Directory with read and CGI execute IIS
+permissions, ASP scripts are not needed. This automatically defines a
+cgi-bin IIS web application 
+<item>Copy cachemgr.cgi into cgi-bin directory and look to file permissions:
+the IIS system account and SYSTEM must be able to read and execute the file
+<item>In IIS manager go to Web Service extensions and add a new Web Service
+Extension called <em/"Squid Cachemgr"/, add the cachemgr.cgi file and set the
+extension status to <em/Allowed/
+</itemize>
+</itemize>
+<item>Apache:<newline>
+<itemize>
+<item>On Windows, cachemgr.cgi needs to create a temporary file, so Apache must be instructed
+ to pass the TMP and TEMP Windows environment variables to CGI applications:<newline>
+<verb>
+ScriptAlias /squid/cgi-bin/ "c:/squid/libexec/"
+&lt;Location /squid/cgi-bin/cachemgr.cgi&gt;
+    PassEnv TMP TEMP
+    Order allow,deny
+    Allow from workstation.example.com
+&lt;/Location&gt;
+</verb>
+</itemize>
+</itemize>
+</descrip>
+
 <sect>Key changes squid-2.6.STABLE1 to 2.6.STABLE2
 
 <p>

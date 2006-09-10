@@ -179,11 +179,7 @@ static void auth_html(const char *host, int port, const char *user_name);
 static void error_html(const char *msg);
 static char *menu_url(cachemgr_request * req, const char *action);
 static int parse_status_line(const char *sline, const char **statusStr);
-#ifdef _SQUID_MSWIN_
-static cachemgr_request *read_request(char *);
-#else
 static cachemgr_request *read_request(void);
-#endif
 static char *read_get_request(void);
 static char *read_post_request(void);
 
@@ -196,7 +192,8 @@ static int check_target_acl(const char *hostname, int port);
 
 #ifdef _SQUID_MSWIN_
 static int s_iInitCount = 0;
-int 
+
+int
 Win32SockInit(void)
 {
     int iVersionRequested;
@@ -226,7 +223,7 @@ Win32SockInit(void)
     return (s_iInitCount);
 }
 
-void 
+void
 Win32SockCleanup(void)
 {
     if (--s_iInitCount == 0)
@@ -527,7 +524,8 @@ read_reply(int s, cachemgr_request * req)
     char buf[4 * 1024];
 #ifdef _SQUID_MSWIN_
     int reply;
-    FILE *fp = tmpfile();
+    char *tmpfile = tempnam(NULL, "tmp0000");
+    FILE *fp = fopen(tmpfile, "w+");
 #else
     FILE *fp = fdopen(s, "r");
 #endif
@@ -544,7 +542,14 @@ read_reply(int s, cachemgr_request * req)
     else if (0 == strcasecmp(req->action, "menu"))
 	parse_menu = 1;
     if (fp == NULL) {
+#ifdef _SQUID_MSWIN_
+	perror(tmpfile);
+	xfree(tmpfile);
+	closesocket(s);
+#else
 	perror("fdopen");
+	close(s);
+#endif
 	return 1;
     }
 #ifdef _SQUID_MSWIN_
@@ -648,7 +653,14 @@ read_reply(int s, cachemgr_request * req)
 	    istate = isError;
 	}
     }
+#ifdef _SQUID_MSWIN_
+    fclose(fp);
+    remove(tmpfile);
+    xfree(tmpfile);
+    closesocket(s);
+#else
     close(s);
+#endif
     return 0;
 }
 
@@ -659,9 +671,6 @@ process_request(cachemgr_request * req)
     static struct sockaddr_in S;
     int s;
     int l;
-#ifdef _SQUID_MSWIN_
-    int answer;
-#endif
     static char buf[2 * 1024];
     if (req == NULL) {
 	auth_html(CACHEMGR_HOSTNAME, CACHE_HTTP_PORT, "");
@@ -722,13 +731,7 @@ process_request(cachemgr_request * req)
     write(s, buf, l);
 #endif
     debug(1) fprintf(stderr, "wrote request: '%s'\n", buf);
-#ifdef _SQUID_MSWIN_
-    answer = read_reply(s, req);
-    closesocket(s);
-    return answer;
-#else
     return read_reply(s, req);
-#endif
 }
 
 int
@@ -736,13 +739,11 @@ main(int argc, char *argv[])
 {
     char *s;
     cachemgr_request *req;
-#ifdef _SQUID_MSWIN_
-    int answer;
-#endif
     safe_inet_addr("255.255.255.255", &no_addr);
     now = time(NULL);
 #ifdef _SQUID_MSWIN_
     Win32SockInit();
+    atexit(Win32SockCleanup);
     _setmode(_fileno(stdin), _O_BINARY);
     _setmode(_fileno(stdout), _O_BINARY);
     _fmode = _O_BINARY;
@@ -755,16 +756,10 @@ main(int argc, char *argv[])
 	progname = xstrdup(argv[0]);
     if ((s = getenv("SCRIPT_NAME")) != NULL)
 	script_name = xstrdup(s);
-#ifdef _SQUID_MSWIN_
-    req = read_request(NULL);
-    answer = process_request(req);
-    Win32SockCleanup();
-    return answer;
-#else
     req = read_request();
     return process_request(req);
-#endif
 }
+
 static char *
 read_post_request(void)
 {
@@ -784,6 +779,7 @@ read_post_request(void)
     buf[len] = '\0';
     return buf;
 }
+
 static char *
 read_get_request(void)
 {
@@ -793,16 +789,10 @@ read_get_request(void)
     return xstrdup(s);
 }
 
-#ifdef _SQUID_MSWIN_
-static cachemgr_request *
-read_request(char *buf)
-{
-#else
 static cachemgr_request *
 read_request(void)
 {
     char *buf;
-#endif
     cachemgr_request *req;
     char *s;
     char *t;
