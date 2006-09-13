@@ -410,6 +410,7 @@ AC_ARG_ENABLE(storeio,
 ])
 echo "Store modules built: $STORE_MODULES"
 NEED_DISKD=0
+USE_AIOPS_WIN32=0
 STORE_OBJS="fs/lib`echo $STORE_MODULES|sed -e 's% %.a fs/lib%g'`.a"
 AC_SUBST(STORE_OBJS)
 STORE_LIBS="`echo $STORE_OBJS|sed -e 's%fs/%%g'`"
@@ -425,11 +426,10 @@ for fs in $STORE_MODULES none; do
 	if test -z "$with_pthreads"; then
             case "$host_os" in
             mingw|mingw32|cygwin|cygwin32)
-        	AM_CONDITIONAL(USE_AIOPS_WIN32, true)
+        	USE_AIOPS_WIN32=1
 	        echo "aufs store used, Windows threads support automatically enabled"
                 ;;
             *)
-        	AM_CONDITIONAL(USE_AIOPS_WIN32, false)
 	        echo "aufs store used, pthreads support automatically enabled"
 	        with_pthreads=yes
                 ;;
@@ -446,6 +446,7 @@ for fs in $STORE_MODULES none; do
 done
 AC_SUBST(STORE_MODULES)
 AM_CONDITIONAL([NEED_DISKD], [test "$NEED_DISKD" = 1])
+AM_CONDITIONAL([USE_AIOPS_WIN32], [test "$USE_AIOPS_WIN32" = 1])
 
 dnl --enable-heap-replacement compatibility option
 AC_ARG_ENABLE(heap-replacement,
