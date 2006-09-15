@@ -359,7 +359,7 @@ wccp2_add_service_list(int service, int service_id, int service_priority,
     wccp2_update_service(wccp2_service_list_ptr, service, service_id,
 	service_priority, service_proto, service_flags, ports);
     wccp2_service_list_ptr->wccp2_security_type = security_type;
-    bzero(wccp2_service_list_ptr->wccp_password, WCCP2_PASSWORD_LEN + 1);
+    memset(wccp2_service_list_ptr->wccp_password, 0, WCCP2_PASSWORD_LEN + 1);
     strncpy(wccp2_service_list_ptr->wccp_password, password, WCCP2_PASSWORD_LEN);
     /* add to linked list - XXX this should use the Squid dlink* routines! */
     wccp2_service_list_ptr->next = wccp2_service_list_head;
@@ -397,7 +397,7 @@ wccp2_update_md5_security(char *password, char *ptr, char *packet, int len)
     debug(80, 5) ("wccp2_update_md5_security: called\n");
 
     /* The password field, for the MD5 hash, needs to be 8 bytes and NUL padded. */
-    bzero(pwd, sizeof(pwd));
+    memset(pwd, 0, sizeof(pwd));
     strncpy(pwd, password, sizeof(pwd));
     ws = (struct wccp2_security_md5_t *) ptr;
     assert(ntohs(ws->security_type) == WCCP2_SECURITY_INFO);
@@ -413,7 +413,7 @@ wccp2_update_md5_security(char *password, char *ptr, char *packet, int len)
      * area should be zero'ed before calculating the MD5 hash.
      */
     /* XXX eventually we should be able to kill md5_digest and blit it directly in */
-    bzero(ws->security_implementation, sizeof(ws->security_implementation));
+    memset(ws->security_implementation, 0, sizeof(ws->security_implementation));
     MD5Init(&M);
     MD5Update(&M, pwd, 8);
     MD5Update(&M, packet, len);
@@ -450,12 +450,12 @@ wccp2_check_security(struct wccp2_service_list_t *srv, char *security, char *pac
     /* If execution makes it here then we have an MD5 security */
 
     /* The password field, for the MD5 hash, needs to be 8 bytes and NUL padded. */
-    bzero(pwd, sizeof(pwd));
+    memset(pwd, 0, sizeof(pwd));
     strncpy(pwd, srv->wccp_password, sizeof(pwd));
 
     /* Take a copy of the challenge: we need to NUL it before comparing */
     memcpy(md5_challenge, ws->security_implementation, 16);
-    bzero(ws->security_implementation, sizeof(ws->security_implementation));
+    memset(ws->security_implementation, 0, sizeof(ws->security_implementation));
     MD5Init(&M);
     MD5Update(&M, pwd, 8);
     MD5Update(&M, packet, len);
@@ -1451,7 +1451,7 @@ parse_wccp2_service_info(void *v)
 	return;
     }
     debug(80, 5) ("parse_wccp2_service_info: called\n");
-    bzero(portlist, sizeof(portlist));
+    memset(portlist, 0, sizeof(portlist));
     /* First argument: id */
     service_id = GetInteger();
     if (service_id < 0 || service_id > 255) {

@@ -1219,8 +1219,8 @@ storeDirCoss_ParseStripeBuffer(RebuildState * rb)
 	debug(47, 3) ("COSS: %s: stripe %d: filen %d: header size %d\n", SD->path, cs->rebuild.curstripe, filen, bl);
 
 	/* COSS objects will have an object size written into the metadata */
-	bzero(&tmpe, sizeof(tmpe));
-	bzero(key, sizeof(key));
+	memset(&tmpe, 0, sizeof(tmpe));
+	memset(key, 0, sizeof(key));
 	for (t = tlv_list; t; t = t->next) {
 	    switch (t->type) {
 	    case STORE_META_URL:
