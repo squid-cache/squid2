@@ -1696,13 +1696,13 @@ storeAufsDirStats(SwapDir * SD, StoreEntry * sentry)
     x = storeDirGetUFSStats(SD->path, &totl_kb, &free_kb, &totl_in, &free_in);
     if (0 == x) {
 #ifdef HAVE_STATVFS
-	storeAppendPrintf(sentry, "Filesystem Space in use: %llu/%llu KB (%.0f%%)\n",
-	    (unsigned long long) (totl_kb - free_kb),
-	    (unsigned long long) totl_kb,
+	storeAppendPrintf(sentry, "Filesystem Space in use: %" PRIu64 "/%" PRIu64 " KB (%.0f%%)\n",
+	    (uint64_t) (totl_kb - free_kb),
+	    (uint64_t) totl_kb,
 	    dpercent(totl_kb - free_kb, totl_kb));
-	storeAppendPrintf(sentry, "Filesystem Inodes in use: %llu/%llu (%.0f%%)\n",
-	    (unsigned long long) (totl_in - free_in),
-	    (unsigned long long) totl_in,
+	storeAppendPrintf(sentry, "Filesystem Inodes in use: %" PRIu64 "/%" PRIu64 " (%.0f%%)\n",
+	    (uint64_t) (totl_in - free_in),
+	    (uint64_t) totl_in,
 	    dpercent(totl_in - free_in, totl_in));
 #else
 	storeAppendPrintf(sentry, "Filesystem Space in use: %d/%d KB (%d%%)\n",

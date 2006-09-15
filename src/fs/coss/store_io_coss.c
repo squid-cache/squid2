@@ -122,7 +122,7 @@ storeCossMemOnlyAllocate(SwapDir * SD, const StoreEntry * e)
     cs->current_memonly_offset = ((cs->current_memonly_offset + cs->blksz_mask) >> cs->blksz_bits) << cs->blksz_bits;
     f = storeCossDiskOffsetToFileno(retofs, cs);
     assert(f >= 0 && f <= 0xffffff);
-    debug(79, 3) ("storeCossMemOnlyAllocate: offset %lld, filen: %d\n", (long long int) retofs, f);
+    debug(79, 3) ("storeCossMemOnlyAllocate: offset %" PRId64 ", filen: %d\n", (int64_t) retofs, f);
     return f;
 
 }
@@ -208,8 +208,8 @@ storeCossAllocate(SwapDir * SD, const StoreEntry * e, int which)
 	cs->current_offset = cs->current_membuf->diskend;
 	storeCossMaybeWriteMemBuf(SD, cs->current_membuf);
 	/* cs->current_membuf may be invalid at this point */
-	debug(79, 3) ("storeCossAllocate: %s: New offset - %lld\n", SD->path,
-	    (long long int) cs->current_offset);
+	debug(79, 3) ("storeCossAllocate: %s: New offset - %" PRId64 "\n", SD->path,
+	    (int64_t) cs->current_offset);
 	assert(cs->curstripe < (cs->numstripes - 1));
 	newmb = storeCossCreateMemBuf(SD, cs->curstripe + 1, checkf, &coll);
 	cs->current_membuf = newmb;
@@ -227,7 +227,7 @@ storeCossAllocate(SwapDir * SD, const StoreEntry * e, int which)
 	cs->current_offset = ((cs->current_offset + cs->blksz_mask) >> cs->blksz_bits) << cs->blksz_bits;
 	f = storeCossDiskOffsetToFileno(retofs, cs);
 	assert(f >= 0 && f <= 0xffffff);
-	debug(79, 3) ("storeCossAllocate: offset %lld, filen: %d\n", (long long int) retofs, f);
+	debug(79, 3) ("storeCossAllocate: offset %" PRId64 ", filen: %d\n", (int64_t) retofs, f);
 
 	/* 
 	 * Keep track of the largest object we can accept based on the
@@ -738,7 +738,7 @@ storeCossWriteMemBuf(SwapDir * SD, CossMemBuf * t)
 	/* XXX The last stripe, for now, ain't the coss stripe size for some reason */
 	/* XXX This may cause problems later on; worry about figuring it out later on */
 	//assert(t->diskend - t->diskstart == COSS_MEMBUF_SZ);
-	debug(79, 3) ("aioWrite: FD %d: disk start: %llu, size %llu\n", cs->fd, (long long int) t->diskstart, (long long int) t->diskend - t->diskstart);
+	debug(79, 3) ("aioWrite: FD %d: disk start: %" PRIu64 ", size %" PRIu64 "\n", cs->fd, (uint64_t) t->diskstart, (uint64_t) t->diskend - t->diskstart);
 	aioWrite(cs->fd, t->diskstart, &(t->buffer[0]), COSS_MEMBUF_SZ, storeCossWriteMemBufDone, t, NULL);
 #else
 	a_file_write(&cs->aq, cs->fd, t->diskstart, &t->buffer,
@@ -926,7 +926,7 @@ storeCossCreateMemBuf(SwapDir * SD, int stripe, sfileno curfn, int *collision)
     cs->stripes[stripe].membuf = newmb;
     newmb->diskstart = start;
     newmb->stripe = stripe;
-    debug(79, 2) ("storeCossCreateMemBuf: %s: creating new membuf at stripe %d,  %lld (%p)\n", SD->path, stripe, (long long int) newmb->diskstart, newmb);
+    debug(79, 2) ("storeCossCreateMemBuf: %s: creating new membuf at stripe %d,  %" PRId64 " (%p)\n", SD->path, stripe, (int64_t) newmb->diskstart, newmb);
     newmb->diskend = newmb->diskstart + COSS_MEMBUF_SZ;
     newmb->flags.full = 0;
     newmb->flags.writing = 0;
@@ -1083,10 +1083,10 @@ storeCossNewPendingRelocate(CossInfo * cs, storeIOState * sio, sfileno original_
     storeCossMemBufLockPending(pr, membuf);
 
     disk_offset = storeCossFilenoToDiskOffset(original_filen, cs);
-    debug(79, 3) ("COSS Pending Relocate: size %" PRINTF_OFF_T ", disk_offset %llu\n", (squid_off_t) sio->e->swap_file_sz, (long long int) disk_offset);
+    debug(79, 3) ("COSS Pending Relocate: size %" PRINTF_OFF_T ", disk_offset %" PRIu64 "\n", (squid_off_t) sio->e->swap_file_sz, (int64_t) disk_offset);
 #if USE_AUFSOPS
     /* NOTE: the damned buffer isn't passed into aioRead! */
-    debug(79, 3) ("COSS: aioRead: FD %d, from %d -> %d, offset %llu, len: %ld\n", cs->fd, pr->original_filen, pr->new_filen, (long long int) disk_offset, (long int) pr->len);
+    debug(79, 3) ("COSS: aioRead: FD %d, from %d -> %d, offset %" PRIu64 ", len: %ld\n", cs->fd, pr->original_filen, pr->new_filen, (int64_t) disk_offset, (long int) pr->len);
     aioRead(cs->fd, (off_t) disk_offset, pr->len, storeCossCompletePendingReloc, pr);
 #else
     a_file_read(&cs->aq, cs->fd,
@@ -1209,7 +1209,7 @@ storeCossCreateReadOp(CossInfo * cs, storeIOState * sio)
     /* Create entry */
     op = memPoolAlloc(coss_op_pool);
 
-    debug(79, 3) ("COSS: Creating Read operation: %p: filen %d, offset %lld, size %lld\n", op, sio->swap_filen, (long long int) cstate->requestoffset, (long long int) cstate->requestlen);
+    debug(79, 3) ("COSS: Creating Read operation: %p: filen %d, offset %" PRId64 ", size %" PRId64 "\n", op, sio->swap_filen, (int64_t) cstate->requestoffset, (int64_t) cstate->requestlen);
 
     /* Fill in details */
     op->type = COSS_OP_READ;
