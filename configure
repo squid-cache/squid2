@@ -7258,6 +7258,7 @@ fi
 
 
 
+
 for ac_header in sys/types.h \
 	stddef.h \
 	limits.h \
@@ -7337,6 +7338,7 @@ for ac_header in sys/types.h \
 	nss.h \
 	db.h \
 	db_185.h \
+	aio.h \
 
 do
 as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
