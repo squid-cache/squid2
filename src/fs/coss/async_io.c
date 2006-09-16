@@ -16,7 +16,9 @@
 
 #include "squid.h"
 #include <time.h>
+#if HAVE_AIO_H
 #include <aio.h>
+#endif
 
 #include "async_io.h"
 
@@ -29,6 +31,7 @@
 
 /* Internal routines */
 
+#if !USE_AUFSOPS
 /*
  * find a free aio slot.
  * Return the index, or -1 if we can't find one.
@@ -47,8 +50,6 @@ a_file_findslot(async_queue_t * q)
     /* found nothing */
     return -1;
 }
-
-
 
 
 /* Exported routines */
@@ -221,6 +222,7 @@ a_file_callback(async_queue_t * q)
     }
     return completed;
 }
+#endif
 
 
 void

@@ -298,6 +298,10 @@ When running configure, --disable-wccp and --disable-wccpv2 options should alway
 <item>--enable-arp-acl<newline>
 <item>--enable-default-hostsfile<newline>
 </itemize>
+<item>Unsupported configure options:<newline>
+<itemize>
+<item>--enable-coss-aio-ops: On Cygwin Posix AIO is not available<newline>
+</itemize>
 </itemize>
 </descrip>
 

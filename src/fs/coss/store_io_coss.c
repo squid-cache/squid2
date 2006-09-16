@@ -34,7 +34,9 @@
  */
 
 #include "squid.h"
+#if HAVE_AIO_H
 #include <aio.h>
+#endif
 #include "async_io.h"
 #include "store_coss.h"
 #if USE_AUFSOPS
