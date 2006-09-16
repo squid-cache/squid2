@@ -425,7 +425,7 @@ for fs in $STORE_MODULES none; do
     aufs)
 	if test -z "$with_pthreads"; then
             case "$host_os" in
-            mingw|mingw32|cygwin|cygwin32)
+            mingw|mingw32)
         	USE_AIOPS_WIN32=1
 	        echo "aufs store used, Windows threads support automatically enabled"
                 ;;

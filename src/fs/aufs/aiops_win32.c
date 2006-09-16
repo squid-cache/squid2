@@ -1,4 +1,3 @@
-
 /*
  * $Id$
  *
@@ -246,10 +245,7 @@ static void
 squidaio_fdhandler(int fd, void *data)
 {
     char junk[256];
-    int x;
-    fde *F = &fd_table[done_fd_read];
-    if ((x = FD_READ_METHOD(done_fd_read, junk, sizeof(junk))) > 0)
-	F->bytes_read += x;
+    FD_READ_METHOD(done_fd_read, junk, sizeof(junk));
     commSetSelect(fd, COMM_SELECT_READ, squidaio_fdhandler, NULL, 0);
 }
 
@@ -444,8 +440,6 @@ squidaio_thread_loop(LPVOID lpParam)
 	CloseHandle(cond);
 	fatal("Can't release mutex\n");
     }
-    Sleep(0);
-
     while (1) {
 	DWORD rv;
 	threadp->current_req = request = NULL;
@@ -546,11 +540,8 @@ squidaio_thread_loop(LPVOID lpParam)
 	    return 1;
 	}
 	if (!done_signalled) {
-	    fde *F = &fd_table[done_fd];
-	    int x;
 	    done_signalled = 1;
-	    if ((x = FD_WRITE_METHOD(done_fd, "!", 1)) > 0)
-		F->bytes_written += x;
+	    FD_WRITE_METHOD(done_fd, "!", 1);
 	}
 	threadp->requests++;
 /* Relinquish the remainder of thread time slice to any other thread
@@ -576,30 +567,42 @@ squidaio_queue_request(squidaio_request_t * request)
     request->resultp->_data = request;
     /* Play some tricks with the request_queue2 queue */
     request->next = NULL;
-    if (WaitForSingleObject(request_queue.mutex, 0) == WAIT_OBJECT_0) {
-	if (request_queue2.head) {
-	    /* Grab blocked requests */
-	    *request_queue.tailp = request_queue2.head;
-	    request_queue.tailp = request_queue2.tailp;
-	}
-	/* Enqueue request */
-	*request_queue.tailp = request;
-	request_queue.tailp = &request->next;
-	if (!SetEvent(request_queue.cond))
-	    fatal("couldn't push queue\n");
-	if (!ReleaseMutex(request_queue.mutex)) {
-	    /* unexpected error */
-	    fatal("couldn't push queue\n");
-	}
-	if (request_queue2.head) {
-	    /* Clear queue of blocked requests */
-	    request_queue2.head = NULL;
-	    request_queue2.tailp = &request_queue2.head;
+    if (!request_queue2.head) {
+	if (WaitForSingleObject(request_queue.mutex, 0) == WAIT_OBJECT_0) {
+	    /* Normal path */
+	    *request_queue.tailp = request;
+	    request_queue.tailp = &request->next;
+	    if (!SetEvent(request_queue.cond))
+		fatal("couldn't push queue\n");
+	    if (!ReleaseMutex(request_queue.mutex)) {
+		/* unexpected error */
+		fatal("couldn't push queue\n");
+	    }
+	} else {
+	    /* Oops, the request queue is blocked, use request_queue2 */
+	    *request_queue2.tailp = request;
+	    request_queue2.tailp = &request->next;
 	}
     } else {
-	/* Oops, the request queue is blocked, use request_queue2 */
+	/* Secondary path. We have blocked requests to deal with */
+	/* add the request to the chain */
 	*request_queue2.tailp = request;
-	request_queue2.tailp = &request->next;
+	if (WaitForSingleObject(request_queue.mutex, 0) == WAIT_OBJECT_0) {
+	    /* Ok, the queue is no longer blocked */
+	    *request_queue.tailp = request_queue2.head;
+	    request_queue.tailp = &request->next;
+	    if (!SetEvent(request_queue.cond))
+		fatal("couldn't push queue\n");
+	    if (!ReleaseMutex(request_queue.mutex)) {
+		/* unexpected error */
+		fatal("couldn't push queue\n");
+	    }
+	    request_queue2.head = NULL;
+	    request_queue2.tailp = &request_queue2.head;
+	} else {
+	    /* still blocked, bump the blocked request chain */
+	    request_queue2.tailp = &request->next;
+	}
     }
     if (request_queue2.head) {
 	static int filter = 0;
@@ -755,16 +758,12 @@ squidaio_read(int fd, char *bufp, int bufs, off_t offset, int whence, squidaio_r
 static void
 squidaio_do_read(squidaio_request_t * requestp)
 {
-#ifdef _SQUID_MSWIN_
     lseek(requestp->fd, requestp->offset, requestp->whence);
     if (!ReadFile((HANDLE) _get_osfhandle(requestp->fd), requestp->bufferp,
 	    requestp->buflen, (LPDWORD) & requestp->ret, NULL)) {
 	WIN32_maperror(GetLastError());
 	requestp->ret = -1;
     }
-#else
-    requestp->ret = pread(requestp->fd, requestp->bufferp, requestp->buflen, requestp->offset);
-#endif
     requestp->err = errno;
 }
 
@@ -792,15 +791,12 @@ squidaio_write(int fd, char *bufp, int bufs, off_t offset, int whence, squidaio_
 static void
 squidaio_do_write(squidaio_request_t * requestp)
 {
-#ifdef _SQUID_MSWIN_
+    assert(requestp->offset >= 0);
     if (!WriteFile((HANDLE) _get_osfhandle(requestp->fd), requestp->bufferp,
 	    requestp->buflen, (LPDWORD) & requestp->ret, NULL)) {
 	WIN32_maperror(GetLastError());
 	requestp->ret = -1;
     }
-#else
-    requestp->ret = pwrite(requestp->fd, requestp->bufferp, requestp->buflen, requestp->offset);
-#endif
     requestp->err = errno;
 }
 
@@ -824,10 +820,8 @@ squidaio_close(int fd, squidaio_result_t * resultp)
 static void
 squidaio_do_close(squidaio_request_t * requestp)
 {
-    if ((requestp->ret = close(requestp->fd)) < 0) {
+    if ((requestp->ret = close(requestp->fd)) < 0)
 	debug(43, 0) ("squidaio_do_close: FD %d, errno %d\n", requestp->fd, errno);
-	close(requestp->fd);
-    }
     requestp->err = errno;
 }
 
@@ -943,6 +937,7 @@ squidaio_poll_queues(void)
 	    fatal("couldn't push queue\n");
 	if (!ReleaseMutex(request_queue.mutex)) {
 	    /* unexpected error */
+	    fatal("couldn't push queue\n");
 	}
 	request_queue2.head = NULL;
 	request_queue2.tailp = &request_queue2.head;
@@ -958,6 +953,7 @@ squidaio_poll_queues(void)
 	done_queue.tailp = &done_queue.head;
 	if (!ReleaseMutex(done_queue.mutex)) {
 	    /* unexpected error */
+	    fatal("couldn't poll queue\n");
 	}
 	*done_requests.tailp = requests;
 	request_queue_len -= 1;
@@ -982,10 +978,7 @@ squidaio_poll_done(void)
     if (request == NULL && !polled) {
 	if (done_signalled) {
 	    char junk[256];
-	    fde *F = &fd_table[done_fd_read];
-	    int x;
-	    if ((x = FD_READ_METHOD(done_fd_read, junk, sizeof(junk))) > 0)
-		F->bytes_read += x;
+	    FD_READ_METHOD(done_fd_read, junk, sizeof(junk));
 	    done_signalled = 0;
 	}
 	squidaio_poll_queues();
