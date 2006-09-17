@@ -135,10 +135,11 @@ GetDomainName(void)
     LSA_HANDLE PolicyHandle;
     LSA_OBJECT_ATTRIBUTES ObjectAttributes;
     NTSTATUS status;
-    PPOLICY_PRIMARY_DOMAIN_INFO ppdiDomainInfo;
+    PPOLICY_PRIMARY_DOMAIN_INFO ppdiDomainInfo = NULL;
     PWKSTA_INFO_100 pwkiWorkstationInfo;
     DWORD netret;
     char *DomainName = NULL;
+    LPBYTE pwkiWorkstationInfoTmp;
 
     /* 
      * Always initialize the object attributes to all zeroes.
@@ -152,7 +153,8 @@ GetDomainName(void)
      * The wki100_computername field contains a pointer to a UNICODE
      * string containing the local computer name.
      */
-    netret = NetWkstaGetInfo(NULL, 100, (LPBYTE *) & pwkiWorkstationInfo);
+    netret = NetWkstaGetInfo(NULL, 100, &pwkiWorkstationInfoTmp);
+    pwkiWorkstationInfo = (PWKSTA_INFO_100) pwkiWorkstationInfoTmp;
     if (netret == NERR_Success) {
 	/* 
 	 * We have the workstation name in:
@@ -174,6 +176,7 @@ GetDomainName(void)
 	if (status) {
 	    debug("OpenPolicy Error: %ld\n", status);
 	} else {
+	    PVOID ppdiDomainInfoTmp;
 
 	    /* 
 	     * You have a handle to the policy object. Now, get the
@@ -181,7 +184,8 @@ GetDomainName(void)
 	     */
 	    status = LsaQueryInformationPolicy(PolicyHandle,
 		PolicyPrimaryDomainInformation,
-		(PVOID *) & ppdiDomainInfo);
+		&ppdiDomainInfoTmp);
+	    ppdiDomainInfo = (PPOLICY_PRIMARY_DOMAIN_INFO) ppdiDomainInfoTmp;
 	    if (status) {
 		debug("LsaQueryInformationPolicy Error: %ld\n", status);
 	    } else {
@@ -218,7 +222,7 @@ GetDomainName(void)
 }
 
 /* returns 0 on match, -1 if no match */
-static int 
+static int
 wcstrcmparray(const wchar_t * str, const char **array)
 {
     WCHAR wszGroup[GNLEN + 1];	// Unicode Group
@@ -242,7 +246,7 @@ Valid_Local_Groups(char *UserName, const char **Groups)
     char *Domain_Separator;
     WCHAR wszUserName[UNLEN + 1];	// Unicode user name
 
-    LPLOCALGROUP_USERS_INFO_0 pBuf = NULL;
+    LPLOCALGROUP_USERS_INFO_0 pBuf;
     LPLOCALGROUP_USERS_INFO_0 pTmpBuf;
     DWORD dwLevel = 0;
     DWORD dwFlags = LG_INCLUDE_INDIRECT;
@@ -252,6 +256,7 @@ Valid_Local_Groups(char *UserName, const char **Groups)
     NET_API_STATUS nStatus;
     DWORD i;
     DWORD dwTotalCount = 0;
+    LPBYTE pBufTmp = NULL;
 
     if ((Domain_Separator = strchr(UserName, '/')) != NULL)
 	*Domain_Separator = '\\';
@@ -271,15 +276,15 @@ Valid_Local_Groups(char *UserName, const char **Groups)
      * function should also return the names of the local 
      * groups in which the user is indirectly a member.
      */
-    nStatus = NetUserGetLocalGroups(
-	NULL,
+    nStatus = NetUserGetLocalGroups(NULL,
 	wszUserName,
 	dwLevel,
 	dwFlags,
-	(LPBYTE *) & pBuf,
+	&pBufTmp,
 	dwPrefMaxLen,
 	&dwEntriesRead,
 	&dwTotalEntries);
+    pBuf = (LPLOCALGROUP_USERS_INFO_0) pBufTmp;
     /*
      * If the call succeeds,
      */
@@ -322,7 +327,7 @@ Valid_Global_Groups(char *UserName, const char **Groups)
     WCHAR wszUserDomain[DNLEN + 1];	// Unicode User Domain
 
     char NTDomain[DNLEN + UNLEN + 2];
-    char *domain_qualify;
+    char *domain_qualify = NULL;
     char User[UNLEN + 1];
     size_t j;
 
@@ -330,7 +335,7 @@ Valid_Global_Groups(char *UserName, const char **Groups)
     LPWSTR UsrDCptr = NULL;
     LPGROUP_USERS_INFO_0 pUsrBuf = NULL;
     LPGROUP_USERS_INFO_0 pTmpBuf;
-    LPSERVER_INFO_101 pSrvBuf = NULL;
+    LPSERVER_INFO_101 pSrvBuf;
     DWORD dwLevel = 0;
     DWORD dwPrefMaxLen = -1;
     DWORD dwEntriesRead = 0;
@@ -338,6 +343,7 @@ Valid_Global_Groups(char *UserName, const char **Groups)
     NET_API_STATUS nStatus;
     DWORD i;
     DWORD dwTotalCount = 0;
+    LPBYTE pBufTmp = NULL;
 
     strncpy(NTDomain, UserName, sizeof(NTDomain));
 
@@ -367,7 +373,8 @@ Valid_Global_Groups(char *UserName, const char **Groups)
 
 /* Call the NetServerGetInfo function for local computer, specifying level 101. */
     dwLevel = 101;
-    nStatus = NetServerGetInfo(NULL, dwLevel, (LPBYTE *) & pSrvBuf);
+    nStatus = NetServerGetInfo(NULL, dwLevel, &pBufTmp);
+    pSrvBuf = (LPSERVER_INFO_101) pBufTmp;
 
     if (nStatus == NERR_Success) {
 	/* Check if we are running on a Domain Controller */
@@ -375,8 +382,11 @@ Valid_Global_Groups(char *UserName, const char **Groups)
 	    (pSrvBuf->sv101_type & SV_TYPE_DOMAIN_BAKCTRL)) {
 	    LclDCptr = NULL;
 	    debug("Running on a DC.\n");
-	} else
-	    nStatus = (use_PDC_only ? NetGetDCName(NULL, wszLocalDomain, (LPBYTE *) & LclDCptr) : NetGetAnyDCName(NULL, wszLocalDomain, (LPBYTE *) & LclDCptr));
+	} else {
+	    pBufTmp = NULL;
+	    nStatus = (use_PDC_only ? NetGetDCName(NULL, wszLocalDomain, &pBufTmp) : NetGetAnyDCName(NULL, wszLocalDomain, &pBufTmp));
+	    LclDCptr = (LPWSTR) pBufTmp;
+	}
     } else {
 	fprintf(stderr, "%s NetServerGetInfo() failed.'\n", myname);
 	if (pSrvBuf != NULL)
@@ -390,7 +400,9 @@ Valid_Global_Groups(char *UserName, const char **Groups)
 	if (strcmp(NTDomain, machinedomain) != 0) {
 	    MultiByteToWideChar(CP_ACP, 0, NTDomain,
 		strlen(NTDomain) + 1, wszUserDomain, sizeof(wszUserDomain) / sizeof(wszUserDomain[0]));
-	    nStatus = (use_PDC_only ? NetGetDCName(LclDCptr, wszUserDomain, (LPBYTE *) & UsrDCptr) : NetGetAnyDCName(LclDCptr, wszUserDomain, (LPBYTE *) & UsrDCptr));
+	    pBufTmp = NULL;
+	    nStatus = (use_PDC_only ? NetGetDCName(LclDCptr, wszUserDomain, &pBufTmp) : NetGetAnyDCName(LclDCptr, wszUserDomain, &pBufTmp));
+	    UsrDCptr = (LPWSTR) pBufTmp;
 	    if (nStatus != NERR_Success) {
 		fprintf(stderr, "%s Can't find DC for user's domain '%s'\n", myname, NTDomain);
 		if (pSrvBuf != NULL)
@@ -410,13 +422,15 @@ Valid_Global_Groups(char *UserName, const char **Groups)
 	 * specifying information level 0.
 	 */
 	dwLevel = 0;
+	pBufTmp = NULL;
 	nStatus = NetUserGetGroups(UsrDCptr,
 	    wszUserName,
 	    dwLevel,
-	    (LPBYTE *) & pUsrBuf,
+	    &pBufTmp,
 	    dwPrefMaxLen,
 	    &dwEntriesRead,
 	    &dwTotalEntries);
+	pUsrBuf = (LPGROUP_USERS_INFO_0) pBufTmp;
 	/*
 	 * If the call succeeds,
 	 */

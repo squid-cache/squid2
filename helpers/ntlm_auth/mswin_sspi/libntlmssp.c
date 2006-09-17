@@ -33,7 +33,7 @@ Valid_Group(char *UserName, char *Group)
 
     WCHAR wszGroup[GNLEN + 1];	// Unicode Group
 
-    LPLOCALGROUP_USERS_INFO_0 pBuf = NULL;
+    LPLOCALGROUP_USERS_INFO_0 pBuf;
     LPLOCALGROUP_USERS_INFO_0 pTmpBuf;
     DWORD dwLevel = 0;
     DWORD dwFlags = LG_INCLUDE_INDIRECT;
@@ -43,6 +43,7 @@ Valid_Group(char *UserName, char *Group)
     NET_API_STATUS nStatus;
     DWORD i;
     DWORD dwTotalCount = 0;
+    LPBYTE pBufTmp = NULL;
 
 /* Convert ANSI User Name and Group to Unicode */
 
@@ -64,7 +65,11 @@ Valid_Group(char *UserName, char *Group)
 	wszUserName,
 	dwLevel,
 	dwFlags,
-	(LPBYTE *) & pBuf, dwPrefMaxLen, &dwEntriesRead, &dwTotalEntries);
+	&pBufTmp,
+	dwPrefMaxLen,
+	&dwEntriesRead,
+	&dwTotalEntries);
+    pBuf = (LPLOCALGROUP_USERS_INFO_0) pBufTmp;
     /*
      * If the call succeeds,
      */
@@ -123,10 +128,11 @@ GetDomainName(void)
     LSA_HANDLE PolicyHandle;
     LSA_OBJECT_ATTRIBUTES ObjectAttributes;
     NTSTATUS status;
-    PPOLICY_PRIMARY_DOMAIN_INFO ppdiDomainInfo;
+    PPOLICY_PRIMARY_DOMAIN_INFO ppdiDomainInfo = NULL;
     PWKSTA_INFO_100 pwkiWorkstationInfo;
     DWORD netret;
     char *DomainName = NULL;
+    LPBYTE pwkiWorkstationInfoTmp;
 
     /* 
      * Always initialize the object attributes to all zeroes.
@@ -140,7 +146,8 @@ GetDomainName(void)
      * The wki100_computername field contains a pointer to a UNICODE
      * string containing the local computer name.
      */
-    netret = NetWkstaGetInfo(NULL, 100, (LPBYTE *) & pwkiWorkstationInfo);
+    netret = NetWkstaGetInfo(NULL, 100, &pwkiWorkstationInfoTmp);
+    pwkiWorkstationInfo = (PWKSTA_INFO_100) pwkiWorkstationInfoTmp;
     if (netret == NERR_Success) {
 	/* 
 	 * We have the workstation name in:
@@ -162,6 +169,7 @@ GetDomainName(void)
 	if (status) {
 	    debug("OpenPolicy Error: %ld\n", status);
 	} else {
+	    PVOID ppdiDomainInfoTmp;
 
 	    /* 
 	     * You have a handle to the policy object. Now, get the
@@ -169,7 +177,8 @@ GetDomainName(void)
 	     */
 	    status = LsaQueryInformationPolicy(PolicyHandle,
 		PolicyPrimaryDomainInformation,
-		(void **) &ppdiDomainInfo);
+		&ppdiDomainInfoTmp);
+	    ppdiDomainInfo = (PPOLICY_PRIMARY_DOMAIN_INFO) ppdiDomainInfoTmp;
 	    if (status) {
 		debug("LsaQueryInformationPolicy Error: %ld\n", status);
 	    } else {

@@ -49,11 +49,11 @@ int
 Valid_Group(char *UserName, char *Group)
 {
     int result = FALSE;
-    WCHAR wszUserName[256];	// Unicode user name
+    WCHAR wszUserName[256];	/* Unicode user name */
 
-    WCHAR wszGroup[256];	// Unicode Group
+    WCHAR wszGroup[256];	/* Unicode Group */
 
-    LPLOCALGROUP_USERS_INFO_0 pBuf = NULL;
+    LPLOCALGROUP_USERS_INFO_0 pBuf;
     LPLOCALGROUP_USERS_INFO_0 pTmpBuf;
     DWORD dwLevel = 0;
     DWORD dwFlags = LG_INCLUDE_INDIRECT;
@@ -63,6 +63,7 @@ Valid_Group(char *UserName, char *Group)
     NET_API_STATUS nStatus;
     DWORD i;
     DWORD dwTotalCount = 0;
+    LPBYTE pBufTmp = NULL;
 
 /* Convert ANSI User Name and Group to Unicode */
 
@@ -84,7 +85,11 @@ Valid_Group(char *UserName, char *Group)
 	wszUserName,
 	dwLevel,
 	dwFlags,
-	(LPBYTE *) & pBuf, dwPrefMaxLen, &dwEntriesRead, &dwTotalEntries);
+	&pBufTmp,
+	dwPrefMaxLen,
+	&dwEntriesRead,
+	&dwTotalEntries);
+    pBuf = (LPLOCALGROUP_USERS_INFO_0) pBufTmp;
     /*
      * If the call succeeds,
      */
@@ -126,7 +131,7 @@ Valid_User(char *UserName, char *Password, char *Group)
     int result = NTV_SERVER_ERROR;
     size_t i;
     char NTDomain[256];
-    char *domain_qualify;
+    char *domain_qualify = NULL;
     char DomainUser[256];
     char User[256];
 
