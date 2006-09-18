@@ -1089,8 +1089,6 @@ idnsPTRLookup(const struct in_addr addr, IDNSCB * callback, void *data)
 {
     idns_query *q;
     const char *ip = inet_ntoa(addr);
-    if (idnsCachedLookup(ip, callback, data))
-	return;
     q = cbdataAlloc(idns_query);
     q->tcp_socket = -1;
     q->id = idnsQueryID();
@@ -1100,6 +1098,10 @@ idnsPTRLookup(const struct in_addr addr, IDNSCB * callback, void *data)
     if (q->sz < 0) {
 	/* problem with query data -- query not sent */
 	callback(data, NULL, 0, "Internal error");
+	cbdataFree(q);
+	return;
+    }
+    if (idnsCachedLookup(q->query.name, callback, data)) {
 	cbdataFree(q);
 	return;
     }
