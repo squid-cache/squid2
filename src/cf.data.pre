@@ -4352,6 +4352,16 @@ DOC_START
 	'wccp2_service dynamic <id>' entry.
 DOC_END
 
+NAME: wccp2_weight
+TYPE: int
+LOC: Config.Wccp2.weight
+DEFAULT: 10000
+IFDEF: USE_WCCPv2
+DOC_START
+	Each cache server gets assigned a set of the destination
+	hash proportional to their weight.
+DOC_END
+
 NAME: wccp_address
 TYPE: address
 LOC: Config.Wccp.address
