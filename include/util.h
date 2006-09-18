@@ -120,7 +120,7 @@ double drand48(void);
 /*
  * Returns the amount of known allocated memory
  */
-int statMemoryAccounted(void);
+extern size_t statMemoryAccounted(void);
 
 /* Cygwin & Windows NT Port */
 /* win32lib.c */

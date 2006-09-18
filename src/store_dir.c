@@ -297,8 +297,8 @@ storeDirSwapLog(const StoreEntry * e, int op)
 void
 storeDirUpdateSwapSize(SwapDir * SD, squid_off_t size, int sign)
 {
-    int blks = (size + SD->fs.blksize - 1) / SD->fs.blksize;
-    int k = (blks * SD->fs.blksize >> 10) * sign;
+    squid_off_t blks = (size + SD->fs.blksize - 1) / SD->fs.blksize;
+    int k = ((blks * (squid_off_t) SD->fs.blksize) >> 10) * sign;
     SD->cur_size += k;
     store_swap_size += k;
     if (sign > 0)

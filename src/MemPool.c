@@ -377,7 +377,7 @@ memPoolDescribe(const MemPool * pool)
 	(long int) toKB(memPoolInUseSize(pool)));
 }
 
-int
+size_t
 memTotalAllocated(void)
 {
     return TheMeter.alloc.level;

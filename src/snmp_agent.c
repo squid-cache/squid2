@@ -108,7 +108,7 @@ snmp_confFn(variable_list * Var, snint * ErrP)
 	    break;
 	case CONF_ST_SWMAXSZ:
 	    Answer = snmp_var_new_integer(Var->name, Var->name_length,
-		(snint) Config.Swap.maxSize >> 10,
+		(snint) (Config.Swap.maxSize >> 10),
 		ASN_INTEGER);
 	    break;
 	case CONF_ST_SWHIWM:
@@ -292,7 +292,7 @@ snmp_prfSysFn(variable_list * Var, snint * ErrP)
 	break;
     case PERF_SYS_MEMUSAGE:
 	Answer = snmp_var_new_integer(Var->name, Var->name_length,
-	    (snint) statMemoryAccounted() >> 10,
+	    (snint) (statMemoryAccounted() >> 10),
 	    ASN_INTEGER);
 	break;
     case PERF_SYS_CPUTIME:

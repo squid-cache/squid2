@@ -862,7 +862,7 @@ extern void memFreeString(size_t size, void *);
 extern void memFreeBuf(size_t size, void *);
 extern FREE *memFreeBufFunc(size_t size);
 extern int memInUse(mem_type);
-extern int memTotalAllocated(void);
+extern size_t memTotalAllocated(void);
 extern void memDataInit(mem_type, const char *, size_t, int);
 extern void memCheckInit(void);
 

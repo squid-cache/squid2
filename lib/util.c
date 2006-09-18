@@ -317,7 +317,6 @@ malloc_number(void *p)
 static void
 xmalloc_show_trace(void *p, int sign)
 {
-    int statMemoryAccounted();
     static size_t last_total = 0, last_accounted = 0, last_mallinfo = 0;
     size_t accounted = statMemoryAccounted();
     size_t mi = 0;

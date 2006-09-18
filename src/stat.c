@@ -611,34 +611,34 @@ info_get(StoreEntry * sentry)
     storeAppendPrintf(sentry, "Memory usage for %s via mstats():\n",
 	appname);
     storeAppendPrintf(sentry, "\tTotal space in arena:  %6d KB\n",
-	ms.bytes_total >> 10);
+	(int) (ms.bytes_total >> 10));
     storeAppendPrintf(sentry, "\tTotal free:            %6d KB %d%%\n",
-	ms.bytes_free >> 10, percent(ms.bytes_free, ms.bytes_total));
+	(int) (ms.bytes_free >> 10), percent(ms.bytes_free, ms.bytes_total));
 #elif HAVE_MALLINFO && HAVE_STRUCT_MALLINFO
     mp = mallinfo();
     storeAppendPrintf(sentry, "Memory usage for %s via mallinfo():\n",
 	appname);
     storeAppendPrintf(sentry, "\tTotal space in arena:  %6ld KB\n",
-	(long int) mp.arena >> 10);
+	(long int) (mp.arena >> 10));
     storeAppendPrintf(sentry, "\tOrdinary blocks:       %6ld KB %6ld blks\n",
-	(long int) mp.uordblks >> 10, (long int) mp.ordblks);
+	(long int) (mp.uordblks >> 10), (long int) mp.ordblks);
     storeAppendPrintf(sentry, "\tSmall blocks:          %6ld KB %6ld blks\n",
-	(long int) mp.usmblks >> 10, (long int) mp.smblks);
+	(long int) (mp.usmblks >> 10), (long int) mp.smblks);
     storeAppendPrintf(sentry, "\tHolding blocks:        %6ld KB %6ld blks\n",
-	(long int) mp.hblkhd >> 10, (long int) mp.hblks);
+	(long int) (mp.hblkhd >> 10), (long int) mp.hblks);
     storeAppendPrintf(sentry, "\tFree Small blocks:     %6ld KB\n",
-	(long int) mp.fsmblks >> 10);
+	(long int) (mp.fsmblks >> 10));
     storeAppendPrintf(sentry, "\tFree Ordinary blocks:  %6ld KB\n",
-	(long int) mp.fordblks >> 10);
-    t = mp.uordblks + mp.usmblks + mp.hblkhd;
+	(long int) (mp.fordblks >> 10));
+    t = (mp.uordblks + mp.usmblks + mp.hblkhd) >> 10;
     storeAppendPrintf(sentry, "\tTotal in use:          %6d KB %d%%\n",
-	t >> 10, percent(t, mp.arena + mp.hblkhd));
-    t = mp.fsmblks + mp.fordblks;
+	t, percent(t, (mp.arena + mp.hblkhd) >> 10));
+    t = (mp.fsmblks + mp.fordblks) >> 10;
     storeAppendPrintf(sentry, "\tTotal free:            %6d KB %d%%\n",
-	t >> 10, percent(t, mp.arena + mp.hblkhd));
-    t = mp.arena + mp.hblkhd;
+	t, percent(t, (mp.arena + mp.hblkhd) >> 10));
+    t = (mp.arena + mp.hblkhd) >> 10;
     storeAppendPrintf(sentry, "\tTotal size:            %6d KB\n",
-	t >> 10);
+	t);
 #if HAVE_EXT_MALLINFO
     storeAppendPrintf(sentry, "\tmax size of small blocks:\t%d\n", mp.mxfast);
     storeAppendPrintf(sentry, "\tnumber of small blocks in a holding block:\t%d\n",
@@ -654,7 +654,7 @@ info_get(StoreEntry * sentry)
 #endif /* HAVE_MALLINFO */
     storeAppendPrintf(sentry, "Memory accounted for:\n");
     storeAppendPrintf(sentry, "\tTotal accounted:       %6d KB\n",
-	statMemoryAccounted() >> 10);
+	(int) (statMemoryAccounted() >> 10));
     storeAppendPrintf(sentry, "\tmemPoolAlloc calls: %u\n",
 	mem_pool_alloc_calls);
     storeAppendPrintf(sentry, "\tmemPoolFree calls: %u\n",
@@ -1611,7 +1611,7 @@ statGraphDump(StoreEntry * e)
 
 #endif /* STAT_GRAPHS */
 
-int
+size_t
 statMemoryAccounted(void)
 {
     return memTotalAllocated();

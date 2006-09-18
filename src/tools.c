@@ -154,23 +154,23 @@ dumpMallocStats(void)
     mp = mallinfo();
     fprintf(debug_log, "Memory usage for %s via mallinfo():\n", appname);
     fprintf(debug_log, "\ttotal space in arena:  %6ld KB\n",
-	(long int) mp.arena >> 10);
+	(long int) (mp.arena >> 10));
     fprintf(debug_log, "\tOrdinary blocks:       %6ld KB %6ld blks\n",
-	(long int) mp.uordblks >> 10, (long int) mp.ordblks);
+	(long int) (mp.uordblks >> 10), (long int) mp.ordblks);
     fprintf(debug_log, "\tSmall blocks:          %6ld KB %6ld blks\n",
-	(long int) mp.usmblks >> 10, (long int) mp.smblks);
+	(long int) (mp.usmblks >> 10), (long int) mp.smblks);
     fprintf(debug_log, "\tHolding blocks:        %6ld KB %6ld blks\n",
-	(long int) mp.hblkhd >> 10, (long int) mp.hblks);
+	(long int) (mp.hblkhd >> 10), (long int) mp.hblks);
     fprintf(debug_log, "\tFree Small blocks:     %6ld KB\n",
-	(long int) mp.fsmblks >> 10);
+	(long int) (mp.fsmblks >> 10));
     fprintf(debug_log, "\tFree Ordinary blocks:  %6ld KB\n",
-	(long int) mp.fordblks >> 10);
-    t = mp.uordblks + mp.usmblks + mp.hblkhd;
+	(long int) (mp.fordblks >> 10));
+    t = (mp.uordblks + mp.usmblks + mp.hblkhd) >> 10;
     fprintf(debug_log, "\tTotal in use:          %6d KB %d%%\n",
-	t >> 10, percent(t, mp.arena));
-    t = mp.fsmblks + mp.fordblks;
+	t, percent(t, (mp.arena + mp.hblkhd) >> 10));
+    t = (mp.fsmblks + mp.fordblks) >> 10;
     fprintf(debug_log, "\tTotal free:            %6d KB %d%%\n",
-	t >> 10, percent(t, mp.arena));
+	t, percent(t, (mp.arena + mp.hblkhd) >> 10));
 #if HAVE_EXT_MALLINFO
     fprintf(debug_log, "\tmax size of small blocks:\t%d\n",
 	mp.mxfast);
