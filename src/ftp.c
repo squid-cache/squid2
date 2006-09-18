@@ -311,6 +311,7 @@ ftpStateFreed(void *data)
     stringClean(&ftpState->title_url);
     stringClean(&ftpState->base_href);
     safe_free(ftpState->filepath);
+    safe_free(ftpState->dirpath);
     safe_free(ftpState->data.host);
 }
 
