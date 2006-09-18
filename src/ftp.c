@@ -1733,7 +1733,7 @@ ftpSendPasv(FtpStateData * ftpState)
     int fd;
     struct sockaddr_in addr;
     socklen_t addr_len;
-    if (ftpState->request->method == METHOD_HEAD) {
+    if (ftpState->request->method == METHOD_HEAD && (ftpState->flags.isdir || ftpState->size != -1)) {
 	/* Terminate here for HEAD requests */
 	ftpAppendSuccessHeader(ftpState);
 	storeTimestampsSet(ftpState->entry);
