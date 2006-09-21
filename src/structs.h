@@ -507,6 +507,7 @@ struct _SquidConfig {
 	struct in_addr address;
 	int forwarding_method;
 	int return_method;
+	int assignment_method;
 	int weight;
 	int rebuildwait;
 	void *info;

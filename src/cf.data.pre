@@ -4291,6 +4291,26 @@ DOC_START
 	option is set to GRE.
 DOC_END
 
+NAME: wccp2_assignment_method
+TYPE: int
+LOC: Config.Wccp2.assignment_method
+DEFAULT: 1
+IFDEF: USE_WCCPv2
+DOC_START
+	WCCP2 allows the setting of methods to assign the WCCP hash
+	Valid values are as follows:
+
+	1 - Hash assignment
+	2 - Mask assignment
+
+	Currently (as of IOS 12.4) cisco routers only support assignment.
+	Cisco switches support the L2 redirect assignment method.
+
+	On a cisco 7600, enabling the "accelerated" feature on a wccp service
+	forces the router to use L2 forwarding/return methods and a mask
+	assignment method
+DOC_END
+
 NAME: wccp2_service
 TYPE: wccp2_service
 LOC: Config.Wccp2.info
