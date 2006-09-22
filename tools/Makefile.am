@@ -16,9 +16,15 @@ check_PROGRAMS=
 
 SUBDIRS		= 
 
+if NEED_COSSDUMP
+COSSDUMP = cossdump
+else
+COSSDUMP =
+endif
+
 bin_PROGRAMS = \
 	squidclient \
-	cossdump
+	$(COSSDUMP)
 
 libexec_PROGRAMS = \
 	cachemgr$(CGIEXT)

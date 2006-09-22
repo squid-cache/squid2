@@ -411,6 +411,7 @@ AC_ARG_ENABLE(storeio,
 echo "Store modules built: $STORE_MODULES"
 NEED_DISKD=0
 USE_AIOPS_WIN32=0
+NEED_COSSDUMP=0
 STORE_OBJS="fs/lib`echo $STORE_MODULES|sed -e 's% %.a fs/lib%g'`.a"
 AC_SUBST(STORE_OBJS)
 STORE_LIBS="`echo $STORE_OBJS|sed -e 's%fs/%%g'`"
@@ -440,6 +441,7 @@ for fs in $STORE_MODULES none; do
 	if test -z "$with_aio"; then
 	    echo "coss store used, aio support automatically enabled"
 	    with_aio=yes
+	    NEED_COSSDUMP=1
 	fi
 	;;
     esac
@@ -447,6 +449,7 @@ done
 AC_SUBST(STORE_MODULES)
 AM_CONDITIONAL([NEED_DISKD], [test "$NEED_DISKD" = 1])
 AM_CONDITIONAL([USE_AIOPS_WIN32], [test "$USE_AIOPS_WIN32" = 1])
+AM_CONDITIONAL([NEED_COSSDUMP], [test "$NEED_COSSDUMP" = 1])
 
 dnl --enable-heap-replacement compatibility option
 AC_ARG_ENABLE(heap-replacement,
