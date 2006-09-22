@@ -438,10 +438,10 @@ for fs in $STORE_MODULES none; do
 	fi
 	;;
     coss)
+	NEED_COSSDUMP=1
 	if test -z "$with_aio"; then
 	    echo "coss store used, aio support automatically enabled"
 	    with_aio=yes
-	    NEED_COSSDUMP=1
 	fi
 	;;
     esac
