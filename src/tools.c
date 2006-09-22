@@ -362,37 +362,30 @@ fatal_common(const char *message)
     fprintf(debug_log, "Squid Cache (Version %s): Terminated abnormally.\n",
 	version_string);
     fflush(debug_log);
+    if (!shutting_down) {
+	PrintRusage();
+	dumpMallocStats();
 #ifdef PRINT_STACK_TRACE
 #ifdef _SQUID_HPUX_
-    {
 	extern void U_STACK_TRACE(void);	/* link with -lcl */
 	fflush(debug_log);
 	dup2(fileno(debug_log), 2);
 	U_STACK_TRACE();
-    }
 #endif /* _SQUID_HPUX_ */
 #ifdef _SQUID_SOLARIS_
-    {				/* get ftp://opcom.sun.ca/pub/tars/opcom_stack.tar.gz and */
 	extern void opcom_stack_trace(void);	/* link with -lopcom_stack */
 	fflush(debug_log);
 	dup2(fileno(debug_log), fileno(stdout));
 	opcom_stack_trace();
 	fflush(stdout);
-    }
 #endif /* _SQUID_SOLARIS_ */
 #if HAVE_BACKTRACE_SYMBOLS_FD
-    {
 	static void *(callarray[8192]);
 	int n;
 	n = backtrace(callarray, 8192);
 	backtrace_symbols_fd(callarray, n, fileno(debug_log));
-    }
 #endif
 #endif /* PRINT_STACK_TRACE */
-
-    if (!shutting_down) {
-	PrintRusage();
-	dumpMallocStats();
     }
 }
 
