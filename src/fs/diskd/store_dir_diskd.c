@@ -1811,7 +1811,7 @@ storeDiskdDirCheckLoadAv(SwapDir * SD, store_op_t op)
 {
     diskdinfo_t *diskdinfo = SD->fsdata;
     /* Calculate the storedir load relative to magic2 on a scale of 0 .. 1000 */
-    /* the parse function guarantees magic2 is positivie */
+    /* the parse function guarantees magic2 is positive */
     if (diskdinfo->away >= diskdinfo->magic1)
 	return -1;
     return DISKD_LOAD_BASE + (diskdinfo->away * DISKD_LOAD_QUEUE_WEIGHT / diskdinfo->magic2);
