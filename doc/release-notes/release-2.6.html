@@ -36,6 +36,9 @@ Squid is a WWW Cache application developed by the Web Caching community.</EM>
 <P>
 <H2><A NAME="toc8">8.</A> <A HREF="#s8">Key changes squid-2.6.STABLE2 to 2.6.STABLE3</A></H2>
 
+<P>
+<H2><A NAME="toc9">9.</A> <A HREF="#s9">Key changes squid-2.6.STABLE3 to 2.6.STABLE4</A></H2>
+
 
 <HR>
 <H2><A NAME="s1">1.</A> <A HREF="#toc1">Key changes from squid 2.5</A></H2>
@@ -111,7 +114,7 @@ membership check</LI>
 <DT><B>https_port</B><DD><P>Many new options. Reconstructs URLs as https:// by default.</P>
 <DT><B>cache_peer</B><DD><P>Many new options to support origin servers and SSL encryption</P>
 <DT><B>ssl_engine</B><DD><P>New directive for hardware assisted SSL encryption</P>
-<DT><B>sslproxy_*</B><DD><P>New directives defining how to gateway http->https</P>
+<DT><B>sslproxy_*</B><DD><P>New directives defining how to gateway http-&gt;https</P>
 <DT><B>sslpassword_program</B><DD><P>New helper directive to query an external program for SSL key encryption password (if any)</P>
 <DT><B>no_cache</B><DD><P>Renamed to cache to better reflect the functionaliy. no_cache still accepted.</P>
 <DT><B>cache</B><DD><P>New name for the old no_cache directive.</P>
@@ -152,6 +155,7 @@ membership check</LI>
 <DT><B>wccp2_*</B><DD><P>WCCP2 protocol support</P>
 <DT><B>minimum_expiry_time</B><DD><P>tune the magic 60 seconds limit of what is considered cachable when the object doesn't have any cache validators. (2.6.STABLE2)</P>
 <DT><B>wccp2_rebuild_wait</B><DD><P>make Squid delay registering with a WCCP router until store rebuild have finished. Default on. (2.6.STABLE2)</P>
+<DT><B>wccp2_weight</B><DD><P>Cache server load weigth in the cluster. (2.6.STABLE4)</P>
 
 </DL>
 </P>
@@ -162,7 +166,7 @@ membership check</LI>
 <P>
 <UL>
 <LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1590">#1590</a>: "ETag Loop" warnings in cache.log</LI>
-<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=761">#761</a>: assertion failed: cbdata.c:249: "c->locks > 0" when using diskd</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=761">#761</a>: assertion failed: cbdata.c:249: "c-&gt;locks &gt; 0" when using diskd</LI>
 <LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1640">#1640</a>: unstable if mixing coss cache_dir type with other cache_dir types (ufs/aufs/diskd).</LI>
 <LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1602">#1602</a>: Need to implement TCP fallback on truncated (large) DNS responses</LI>
 </UL>
@@ -387,11 +391,11 @@ extension status to <EM>Allowed</EM></LI>
 to pass the TMP and TEMP Windows environment variables to CGI applications:<BR>
 <PRE>
 ScriptAlias /squid/cgi-bin/ "c:/squid/libexec/"
-&lt;Location /squid/cgi-bin/cachemgr.cgi>
+&lt;Location /squid/cgi-bin/cachemgr.cgi&gt;
     PassEnv TMP TEMP
     Order allow,deny
     Allow from workstation.example.com
-&lt;/Location>
+&lt;/Location&gt;
 </PRE>
 </LI>
 </UL>
@@ -410,7 +414,7 @@ ScriptAlias /squid/cgi-bin/ "c:/squid/libexec/"
 <LI>Multiple fixes to the experimental COSS cache_dir type</LI>
 <LI>Added the missing concurrency parameter to basic/digest auth schemes</LI>
 <LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1669">#1669</a>: SEGV in storeAddVaryReadOld</LI>
-<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1670">#1670</a>: assertion failure: i->prefix_size > 0 in client_side.c:2509</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1670">#1670</a>: assertion failure: i-&gt;prefix_size &gt; 0 in client_side.c:2509</LI>
 <LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1671">#1671</a>: transparent interception fails with FreeBSD ipfw or Linux-2.2 ipchains</LI>
 <LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1660">#1660</a>: Accept-Encoding related memory corruption</LI>
 <LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1673">#1673</a>: cache digests not served to other caches</LI>
@@ -455,6 +459,25 @@ DNS client complete.</LI>
 </P>
 
 
+<H2><A NAME="s9">9.</A> <A HREF="#toc9">Key changes squid-2.6.STABLE3 to 2.6.STABLE4</A></H2>
+
+<P>
+<UL>
+<LI>New wccp2_weight directive</LI>
+<LI>Numeros COSS fixes and improvements</LI>
+<LI>Support for WCCP2 hash based assignment and weighted assignments</LI>
+<LI>Windows port update</LI>
+<LI>Many small fixes to better detect invalid configurations</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1760">#1760</a>: FTP related memory leak</LI>
+<LI>SNMP mib updates for some minor missing details</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1590">#1590</a>: Silence those harmless ETag loop warnings</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1740">#1740</a>: Squid crashes on certain malformed HTTP responses</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1699">#1699</a>: assertion failed: authenticate.c:836: "auth_user_request != NULL"</LI>
+<LI>a number of other minor and cosmetic bugfixes. See the list of 
+<A HREF="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE4.html">squid-2.6.STABLE4 changes</A> and the 
+<A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
+</UL>
+</P>
 
 </BODY>
 </HTML>

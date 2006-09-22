@@ -401,6 +401,19 @@ ScriptAlias /squid/cgi-bin/ "c:/squid/libexec/"
 <p>
 <itemize>
 	<item>New wccp2_weight directive
+	<item>Numeros COSS fixes and improvements
+	<item>Support for WCCP2 hash based assignment and weighted assignments
+	<item>Windows port update
+	<item>Many small fixes to better detect invalid configurations
+	<item>Bug #1760: FTP related memory leak
+	<item>SNMP mib updates for some minor missing details
+	<item>Bug #1590: Silence those harmless ETag loop warnings
+	<item>Bug #1740: Squid crashes on certain malformed HTTP responses
+	<item>Bug #1699: assertion failed: authenticate.c:836: "auth_user_request != NULL"
+	<item>a number of other minor and cosmetic bugfixes. See the list of <url
+		url="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE4.html"
+			name="squid-2.6.STABLE4 changes"> and the <url url="ChangeLog"
+				name="ChangeLog"> file for details.
 </itemize>
 
 </article>

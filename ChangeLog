@@ -1,4 +1,43 @@
-Changes to squid-2.5.STABLE3 (Aug 18 2006)
+Changes to squid-2.6.STABLE4 (Sep 22 2006)
+
+	- Bug #1736: Missing Italian translation of ERR_TOO_BIG error page
+	- Windows port enhancement: added native exception handler with signal emulation
+	- Fix the %un log_format tag again. Got broken in 2.6.STABLE2
+	- Fix Squid crash when using %a in ERR_INVALID_REQ and ERR_INVALID_URL error messages.
+	- Bug #212: variable %i always 0.0.0.0 in many error pages
+	- Bug #1708: Ports in ACL accepts characters and out of range
+	- Bug #1706: Squid time acl accepts invalid time range.
+	- Fix another harmless fake_auth compiler warning on gcc 4.1.1 x86
+	- Fix an harmless snmp_core.c compiler warning on gcc 4.1.1 x86
+	- Bug #1744: squid-2.6.STABLE3 - fakeauth_auth crashing on certain requests
+	- Bug #1746: Harmless off by one overrun in ncsa_auth md5 password validation
+	- Bug #1598: start_announce cannot be disabled
+	- Periodically flush cache.log to disk when "buffered_logs on" is set
+	- Numerous COSS improvements and fixes
+	- Windows port: merge of MinGW support
+	- Windows port: Merged Windows threads support into aufs
+	- Bug #1759: Windows port cachemgr.cgi attempts to write to file system root directory
+	- Numerous portability fixes
+	- Various minor statistics cleanup on 64-bit hosts with more than 4GB of memory
+	- Bug #1758: HEAD on ftp:// URLs always returned 200 OK.
+	- Bug #1760: FTP related memory leak
+	- Bug #1770: WCCP2 weighted assignment
+	- Bug #1768: Redundant DNS PTR lookups
+	- Bug #1696: Add support for wccpv2 mask assignment
+	- Bug #1774: ncsa_auth support for cramfs timestamps
+	- Bug #1769: near-hit and filedescriptor usage missing in SNMP MIB
+	- Bug #1725: cache_peer login=PASS documentation somewhat confusing
+	- Bug #1590: Silence those ETag loop warnings
+	- Bug #1740: Squid crashes on certain malformed HTTP responses
+	- Bug #1699: assertion failed: authenticate.c:836: "auth_user_request != NULL"
+	- Improve error reporting on unexpected CONNECT requests in accelerator mode
+	- Cosmetic change to increase cache.log detail level on invalid requests
+	- Bug #1229: http_port and other directives accept invalid ports
+	- Reject http_port specifications using both transparent and accelerator options
+	- Cosmetic cleanup to not dump stacktraces on configuration errors
+
+
+Changes to squid-2.6.STABLE3 (Aug 18 2006)
 
 	- Bug #1577: assertion failed "fm->max_n_files <= (1 << 24)" on
 	  very large cache_dir.  Limit number of objects stored to slightly
