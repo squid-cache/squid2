@@ -322,7 +322,7 @@ aclParseIntlist(void *curlist)
     for (Tail = curlist; *Tail; Tail = &((*Tail)->next));
     while ((t = strtokFile())) {
 	q = memAllocate(MEM_INTLIST);
-	q->i = atoi(t);
+	q->i = xatoi(t);
 	*(Tail) = q;
 	Tail = &q->next;
     }
@@ -332,25 +332,22 @@ static void
 aclParsePortRange(void *curlist)
 {
     intrange **Tail;
-    intrange *q = NULL;
-    char *t = NULL;
+    char *a;
     for (Tail = curlist; *Tail; Tail = &((*Tail)->next));
-    while ((t = strtokFile())) {
-	int port = atoi(t);
-	if (port > 0 && port < 65536) {
-	    q = xcalloc(1, sizeof(intrange));
-	    q->i = port;
-	    t = strchr(t, '-');
-	    if (t && *(++t)) {
-		port = atoi(t);
-		if (port > 0 && port < 65536 && port > q->i) {
-		    q->j = port;
-		} else {
-		    debug(28, 0) ("aclParsePortRange: Invalid port range\n");
-		    self_destruct();
-		}
-	    } else
-		q->j = q->i;
+    while ((a = strtokFile())) {
+	char *b = strchr(a, '-');
+	unsigned short port1, port2;
+	if (b)
+	    *b++ = '\0';
+	port1 = xatos(a);
+	if (b)
+	    port2 = xatos(b);
+	else
+	    port2 = port1;
+	if (port2 >= port1) {
+	    intrange *q = xcalloc(1, sizeof(intrange));
+	    q->i = port1;
+	    q->j = port2;
 	    *(Tail) = q;
 	    Tail = &q->next;
 	} else {
@@ -1522,7 +1519,7 @@ aclParseUserMaxIP(void *data)
 	if (!t)
 	    goto error;
     }
-    (*acldata)->max = atoi(t);
+    (*acldata)->max = xatoi(t);
     debug(28, 5) ("aclParseUserMaxIP: Max IP address's %d\n", (int) (*acldata)->max);
     return;
   error:

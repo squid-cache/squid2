@@ -95,6 +95,8 @@ extern void wordlistCat(const wordlist *, MemBuf * mb);
 extern void allocate_new_swapdir(cacheSwap *);
 extern void self_destruct(void);
 extern int GetInteger(void);
+extern int xatoi(const char *);
+extern unsigned short xatos(const char *);
 
 /* extra functions from cache_cf.c useful for lib modules */
 extern void parse_int(int *var);

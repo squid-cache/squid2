@@ -231,15 +231,24 @@ xatol(const char *token)
 {
     char *end;
     long ret = strtol(token, &end, 10);
-    if (ret == 0 && end == token)
+    if (end == token || *end)
 	self_destruct();
     return ret;
 }
 
-static int
+int
 xatoi(const char *token)
 {
     return xatol(token);
+}
+
+unsigned short
+xatos(const char *token)
+{
+    long port = xatol(token);
+    if (port & ~0xFFFF)
+	self_destruct();
+    return port;
 }
 
 static double
@@ -2611,7 +2620,7 @@ parse_sockaddr_in_list(sockaddr_in_list ** head)
 	    /* host:port */
 	    host = token;
 	    *t = '\0';
-	    port = (unsigned short) xatoi(t + 1);
+	    port = xatos(t + 1);
 	    if (0 == port)
 		self_destruct();
 	} else if ((port = strtol(token, &tmp, 10)), !*tmp) {
@@ -2678,14 +2687,13 @@ parse_http_port_specification(http_port_list * s, char *token)
 	/* host:port */
 	host = token;
 	*t = '\0';
-	port = (unsigned short) xatoi(t + 1);
-	if (0 == port)
-	    self_destruct();
-    } else if ((port = xatoi(token)) > 0) {
-	/* port */
+	port = xatos(t + 1);
     } else {
-	self_destruct();
+	/* port */
+	port = xatos(token);
     }
+    if (port == 0)
+	self_destruct();
     s->s.sin_port = htons(port);
     if (NULL == host)
 	s->s.sin_addr = any_addr;
@@ -2718,7 +2726,7 @@ parse_http_port_option(http_port_list * s, char *token)
 	s->vport = ntohs(s->s.sin_port);
 	s->accel = 1;
     } else if (strncmp(token, "vport=", 6) == 0) {
-	s->vport = xatoi(token + 6);
+	s->vport = xatos(token + 6);
 	s->accel = 1;
     } else if (strcmp(token, "no-connection-auth") == 0) {
 	s->no_connection_auth = 1;
