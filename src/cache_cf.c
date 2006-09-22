@@ -2742,6 +2742,10 @@ parse_http_port_option(http_port_list * s, char *token)
     } else {
 	self_destruct();
     }
+    if (s->accel && s->transparent) {
+	debug(28, 0) ("Can't be both a transparent proxy and web server accelerator on the same port\n");
+	self_destruct();
+    }
 }
 
 static void
