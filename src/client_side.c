@@ -3281,7 +3281,7 @@ clientProcessRequest2(clientHttpRequest * http)
 	debug(33, 3) ("clientProcessRequest2: storeGet() MISS\n");
 	if (r->vary) {
 	    if (r->done_etag) {
-		debug(33, 1) ("clientProcessRequest2: ETag loop\n");
+		debug(33, 2) ("clientProcessRequest2: ETag loop\n");
 	    } else if (r->etags) {
 		debug(33, 2) ("clientProcessRequest2: ETag miss\n");
 		r->etags = NULL;
