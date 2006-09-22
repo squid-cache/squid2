@@ -326,12 +326,22 @@ snmp_prfSysFn(variable_list * Var, snint * ErrP)
 	break;
     case PERF_SYS_CURUNUSED_FD:
 	Answer = snmp_var_new_integer(Var->name, Var->name_length,
-	    (snint) Squid_MaxFD - Number_FD,
+	    (snint) fdNFree(),
 	    SMI_GAUGE32);
 	break;
     case PERF_SYS_CURRESERVED_FD:
 	Answer = snmp_var_new_integer(Var->name, Var->name_length,
 	    (snint) RESERVED_FD,
+	    SMI_GAUGE32);
+	break;
+    case PERF_SYS_CURUSED_FD:
+	Answer = snmp_var_new_integer(Var->name, Var->name_length,
+	    (snint) Number_FD,
+	    SMI_GAUGE32);
+	break;
+    case PERF_SYS_CURMAX_FD:
+	Answer = snmp_var_new_integer(Var->name, Var->name_length,
+	    (snint) Biggest_FD,
 	    SMI_GAUGE32);
 	break;
     case PERF_SYS_NUMOBJCNT:
@@ -485,6 +495,10 @@ snmp_prfProtoFn(variable_list * Var, snint * ErrP)
 	    break;
 	case PERF_MEDIAN_BHR:
 	    x = statByteHitRatio(minutes);
+	    break;
+	case PERF_MEDIAN_HTTP_NH:
+	    x = statHistDeltaMedian(&l->client_http.nh_svc_time,
+		&f->client_http.nm_svc_time);
 	    break;
 	default:
 	    *ErrP = SNMP_ERR_NOSUCHNAME;
