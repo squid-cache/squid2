@@ -3912,7 +3912,7 @@ clientReadRequest(int fd, void *data)
 	    conn->nrequests++;
 	    commSetTimeout(fd, Config.Timeout.lifetime, clientLifetimeTimeout, http);
 	    if (parser_return_code < 0) {
-		debug(33, 1) ("clientReadRequest: FD %d Invalid Request\n", fd);
+		debug(33, 1) ("clientReadRequest: FD %d (%s:%d) Invalid Request\n", fd, fd_table[fd].ipaddr, fd_table[fd].remote_port);
 		err = errorCon(ERR_INVALID_REQ, HTTP_BAD_REQUEST, NULL);
 		err->src_addr = conn->peer.sin_addr;
 		err->request_hdrs = xstrdup(conn->in.buf);
