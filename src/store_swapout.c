@@ -238,7 +238,7 @@ storeSwapOut(StoreEntry * e)
 	    return;
     }
     /* Ok, we have stuff to swap out.  Is there a swapout.sio open? */
-    if (e->swap_status == SWAPOUT_NONE) {
+    if (e->swap_status == SWAPOUT_NONE && !EBIT_TEST(e->flags, ENTRY_FWD_HDR_WAIT)) {
 	assert(mem->swapout.sio == NULL);
 	assert(mem->inmem_lo == 0);
 	if (storeCheckCachable(e))
