@@ -4301,12 +4301,8 @@ DOC_START
 	1 - Hash assignment
 	2 - Mask assignment
 
-	Currently (as of IOS 12.4) cisco routers only support assignment.
-	Cisco switches support the L2 redirect assignment method.
-
-	On a cisco 7600, enabling the "accelerated" feature on a wccp service
-	forces the router to use L2 forwarding/return methods and a mask
-	assignment method
+	As a general rule, cisco routers support the hash assignment method
+	and cisco switches support the mask assignment method.
 DOC_END
 
 NAME: wccp2_service
