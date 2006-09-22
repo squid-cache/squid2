@@ -3910,13 +3910,6 @@ clientReadRequest(int fd, void *data)
 	    for (H = &conn->chr; *H; H = &(*H)->next);
 	    *H = http;
 	    conn->nrequests++;
-	    /*
-	     * I wanted to lock 'http' here since its callback data for 
-	     * clientLifetimeTimeout(), but there's no logical place to
-	     * cbdataUnlock if the timeout never happens.  Maybe its safe
-	     * enough to assume that if the FD is open, and the timeout
-	     * triggers, that 'http' is valid.
-	     */
 	    commSetTimeout(fd, Config.Timeout.lifetime, clientLifetimeTimeout, http);
 	    if (parser_return_code < 0) {
 		debug(33, 1) ("clientReadRequest: FD %d Invalid Request\n", fd);
