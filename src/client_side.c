@@ -3653,10 +3653,14 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 
     /* handle "accelerated" objects (and internal) */
     if (method == METHOD_CONNECT) {
-	if (http_ver.major < 1)
+	if (http_ver.major < 1) {
+	    debug(33, 1) ("parseHttpRequest: Invalid HTTP version\n");
 	    goto invalid_request;
-	if (conn->port->accel)
+	}
+	if (conn->port->accel) {
+	    debug(33, 1) ("parseHttpRequest: CONNECT not valid in accelerator mode\n");
 	    goto invalid_request;
+	}
     } else if (*url == '/')
   accel:{
 	int vhost = conn->port->vhost || conn->port->transparent;
