@@ -166,6 +166,7 @@ struct _cossinfo {
     int nummemstripes;
     struct _cossstripe *memstripes;
     int curmemstripe;
+    const char *stripe_path;
 };
 
 struct _cossindex {
@@ -217,6 +218,7 @@ extern void storeCossStartMembuf(SwapDir * SD);
 extern void membufsDump(CossInfo * cs, StoreEntry * e);
 extern void storeCossFreeDeadMemBufs(CossInfo * cs);
 extern int storeCossFilenoToStripe(CossInfo * cs, sfileno filen);
+extern char const *stripePath(SwapDir * sd);
 
 extern struct _coss_stats coss_stats;
 

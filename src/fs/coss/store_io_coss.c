@@ -191,7 +191,7 @@ storeCossAllocate(SwapDir * SD, const StoreEntry * e, int which)
 	storeCossMaybeWriteMemBuf(SD, cs->current_membuf);
 	/* cs->current_membuf may be invalid at this point */
 	cs->current_offset = 0;	/* wrap back to beginning */
-	debug(79, 2) ("storeCossAllocate: %s: wrap to 0\n", SD->path);
+	debug(79, 2) ("storeCossAllocate: %s: wrap to 0\n", stripePath(SD));
 
 	newmb = storeCossCreateMemBuf(SD, 0, checkf, &coll);
 	cs->current_membuf = newmb;
@@ -210,7 +210,7 @@ storeCossAllocate(SwapDir * SD, const StoreEntry * e, int which)
 	cs->current_offset = cs->current_membuf->diskend;
 	storeCossMaybeWriteMemBuf(SD, cs->current_membuf);
 	/* cs->current_membuf may be invalid at this point */
-	debug(79, 3) ("storeCossAllocate: %s: New offset - %" PRId64 "\n", SD->path,
+	debug(79, 3) ("storeCossAllocate: %s: New offset - %" PRId64 "\n", stripePath(SD),
 	    (int64_t) cs->current_offset);
 	assert(cs->curstripe < (cs->numstripes - 1));
 	newmb = storeCossCreateMemBuf(SD, cs->curstripe + 1, checkf, &coll);
@@ -245,7 +245,7 @@ storeCossAllocate(SwapDir * SD, const StoreEntry * e, int which)
 	cs->sizerange_max = SD->max_objsize;
 
 	coss_stats.alloc.collisions++;
-	debug(79, 3) ("storeCossAllocate: %s: Collision\n", SD->path);
+	debug(79, 3) ("storeCossAllocate: %s: Collision\n", stripePath(SD));
 	return -1;
     }
 }
@@ -253,7 +253,7 @@ storeCossAllocate(SwapDir * SD, const StoreEntry * e, int which)
 void
 storeCossUnlink(SwapDir * SD, StoreEntry * e)
 {
-    debug(79, 3) ("storeCossUnlink: %s: offset %d\n", SD->path, e->swap_filen);
+    debug(79, 3) ("storeCossUnlink: %s: offset %d\n", stripePath(SD), e->swap_filen);
     coss_stats.unlink.ops++;
     coss_stats.unlink.success++;
     storeCossRemove(SD, e);
@@ -262,7 +262,7 @@ storeCossUnlink(SwapDir * SD, StoreEntry * e)
 void
 storeCossRecycle(SwapDir * SD, StoreEntry * e)
 {
-    debug(79, 3) ("storeCossRecycle: %s: offset %d\n", SD->path, e->swap_filen);
+    debug(79, 3) ("storeCossRecycle: %s: offset %d\n", stripePath(SD), e->swap_filen);
 
     /* Expire the object */
     storeExpireNow(e);
@@ -391,7 +391,7 @@ storeCossOpen(SwapDir * SD, StoreEntry * e, STFNCB * file_callback,
 	// This seems to cause a crash: either the membuf pointer is set wrong or the membuf
 	// is deallocated from underneath us.
 	storeCossMemBufLock(SD, sio);
-	debug(79, 3) ("storeCossOpen: %s: memory hit!\n", SD->path);
+	debug(79, 3) ("storeCossOpen: %s: memory hit!\n", stripePath(SD));
     } else {
 	/* Do the allocation */
 	/* this is the first time we've been called on a new sio
@@ -409,13 +409,13 @@ storeCossOpen(SwapDir * SD, StoreEntry * e, STFNCB * file_callback,
 
 	/* If the object is allocated too recently, make a memory-only copy */
 	if (storeCossRelocateRequired(cs, sio->swap_filen)) {
-	    debug(79, 3) ("storeCossOpen: %s: memory miss - doing reallocation (Current stripe : %d  Object in stripe : %d)\n", SD->path, cs->curstripe, storeCossFilenoToStripe(cs, sio->swap_filen));
+	    debug(79, 3) ("storeCossOpen: %s: memory miss - doing reallocation (Current stripe : %d  Object in stripe : %d)\n", stripePath(SD), cs->curstripe, storeCossFilenoToStripe(cs, sio->swap_filen));
 	    nf = storeCossAllocate(SD, e, COSS_ALLOC_REALLOC);
 	} else {
-	    debug(79, 3) ("storeCossOpen: %s memory miss - not reallocating (Current stripe : %d  Object in stripe : %d)\n", SD->path, cs->curstripe, storeCossFilenoToStripe(cs, sio->swap_filen));
+	    debug(79, 3) ("storeCossOpen: %s memory miss - not reallocating (Current stripe : %d  Object in stripe : %d)\n", stripePath(SD), cs->curstripe, storeCossFilenoToStripe(cs, sio->swap_filen));
 	    nf = storeCossMemOnlyAllocate(SD, e);
 	    if (nf == -1) {
-		debug(79, 3) ("storeCossOpen: %s memory miss - reallocating because all membufs are in use\n", SD->path);
+		debug(79, 3) ("storeCossOpen: %s memory miss - reallocating because all membufs are in use\n", stripePath(SD));
 		nf = storeCossAllocate(SD, e, COSS_ALLOC_REALLOC);
 	    }
 	}
@@ -494,7 +494,7 @@ storeCossRead(SwapDir * SD, storeIOState * sio, char *buf, size_t size, squid_of
     assert(sio->read.callback_data == NULL);
     sio->read.callback = callback;
     sio->read.callback_data = callback_data;
-    debug(79, 3) ("storeCossRead: %s: file number %d offset %ld\n", SD->path, sio->swap_filen, (long int) offset);
+    debug(79, 3) ("storeCossRead: %s: file number %d offset %ld\n", stripePath(SD), sio->swap_filen, (long int) offset);
     sio->offset = offset;
     cstate->flags.reading = 1;
     if ((offset + size) > sio->st_size)
@@ -525,7 +525,7 @@ storeCossWrite(SwapDir * SD, storeIOState * sio, char *buf, size_t size, squid_o
     if (sio->offset != offset) {
 	debug(79, 1) ("storeCossWrite: Possible data corruption on fileno %d, offsets do not match (Current:%" PRINTF_OFF_T " Want:%" PRINTF_OFF_T ")\n", sio->swap_filen, sio->offset, offset);
     }
-    debug(79, 3) ("storeCossWrite: %s: offset %ld, len %lu\n", SD->path,
+    debug(79, 3) ("storeCossWrite: %s: offset %ld, len %lu\n", stripePath(SD),
 	(long int) sio->offset, (unsigned long int) size);
     diskoffset = storeCossFilenoToDiskOffset(sio->swap_filen, SD->fsdata) + sio->offset;
     dest = storeCossMemPointerFromDiskOffset(SD->fsdata, diskoffset, &membuf);
@@ -724,7 +724,7 @@ storeCossWriteMemBuf(SwapDir * SD, CossMemBuf * t)
 	coss_stats.stripe_write.ops++;
 	assert(t->stripe < cs->numstripes);
 	if (cs->stripes[t->stripe].pending_relocs > 0) {
-	    debug(79, 1) ("WARNING: %s: One or more pending relocate (reads) from stripe %d are queued - and I'm now writing over that part of the disk. This may result in object data corruption!\n", SD->path, t->stripe);
+	    debug(79, 1) ("WARNING: %s: One or more pending relocate (reads) from stripe %d are queued - and I'm now writing over that part of the disk. This may result in object data corruption!\n", stripePath(SD), t->stripe);
 	}
 	/* Update load stats */
 	cs->loadcalc[cur_load_interval] += 1;
@@ -843,7 +843,7 @@ storeCossWriteMemBufDone(int fd, int r_errflag, size_t r_len, void *my_data)
 	coss_stats.stripe_write.success++;
     }
     assert(cs->stripes[t->stripe].membuf == t);
-    debug(79, 2) ("storeCossWriteMemBufDone: %s: stripe %d: numobjs written: %d, lockcount %d\n", t->SD->path, t->stripe, t->numobjs, t->lockcount);
+    debug(79, 2) ("storeCossWriteMemBufDone: %s: stripe %d: numobjs written: %d, lockcount %d\n", stripePath(t->SD), t->stripe, t->numobjs, t->lockcount);
     cs->stripes[t->stripe].numdiskobjs = t->numobjs;
     cs->stripes[t->stripe].membuf = NULL;
     t->flags.written = 1;
@@ -867,7 +867,7 @@ storeCossCreateMemOnlyBuf(SwapDir * SD)
     }
     if (stripe >= cs->nummemstripes) {
 	if (last_warn + 15 < squid_curtime) {
-	    debug(79, 1) ("storeCossCreateMemOnlyBuf: no free membufs.  You may need to increase the value of membufs on the %s cache_dir\n", SD->path);
+	    debug(79, 1) ("storeCossCreateMemOnlyBuf: no free membufs.  You may need to increase the value of membufs on the %s cache_dir\n", stripePath(SD));
 	    last_warn = squid_curtime;
 	}
 	return NULL;
@@ -914,7 +914,7 @@ storeCossCreateMemBuf(SwapDir * SD, int stripe, sfileno curfn, int *collision)
 
     if (cs->numfullstripes >= cs->maxfullstripes) {
 	if (last_warn + 15 < squid_curtime) {
-	    debug(79, 1) ("storeCossCreateMemBuf: Maximum number of full buffers reached on %s. You may need to increase the maxfullbuffers option for this cache_dir\n", SD->path);
+	    debug(79, 1) ("storeCossCreateMemBuf: Maximum number of full buffers reached on %s. You may need to increase the maxfullbuffers option for this cache_dir\n", stripePath(SD));
 	    last_warn = squid_curtime;
 	}
 	return NULL;
@@ -928,7 +928,7 @@ storeCossCreateMemBuf(SwapDir * SD, int stripe, sfileno curfn, int *collision)
     cs->stripes[stripe].membuf = newmb;
     newmb->diskstart = start;
     newmb->stripe = stripe;
-    debug(79, 2) ("storeCossCreateMemBuf: %s: creating new membuf at stripe %d,  %" PRId64 " (%p)\n", SD->path, stripe, (int64_t) newmb->diskstart, newmb);
+    debug(79, 2) ("storeCossCreateMemBuf: %s: creating new membuf at stripe %d,  %" PRId64 " (%p)\n", stripePath(SD), stripe, (int64_t) newmb->diskstart, newmb);
     newmb->diskend = newmb->diskstart + COSS_MEMBUF_SZ;
     newmb->flags.full = 0;
     newmb->flags.writing = 0;
@@ -941,7 +941,7 @@ storeCossCreateMemBuf(SwapDir * SD, int stripe, sfileno curfn, int *collision)
     assert(newmb->diskend >= 0);
 
     /* Print out the list of membufs */
-    debug(79, 3) ("storeCossCreateMemBuf: %s: membuflist:\n", SD->path);
+    debug(79, 3) ("storeCossCreateMemBuf: %s: membuflist:\n", stripePath(SD));
     for (m = cs->membufs.head; m; m = m->next) {
 	t = m->data;
 	membuf_describe(t, 3, __LINE__);
@@ -958,7 +958,7 @@ storeCossCreateMemBuf(SwapDir * SD, int stripe, sfileno curfn, int *collision)
 	if (curfn > -1 && curfn == e->swap_filen)
 	    *collision = 1;	/* Mark an object alloc collision */
 	assert((o >= newmb->diskstart) && (o < newmb->diskend));
-	debug(79, 3) ("COSS: %s: stripe %d, releasing filen %d (offset %" PRINTF_OFF_T ")\n", SD->path, stripe, e->swap_filen, (squid_off_t) o);
+	debug(79, 3) ("COSS: %s: stripe %d, releasing filen %d (offset %" PRINTF_OFF_T ")\n", stripePath(SD), stripe, e->swap_filen, (squid_off_t) o);
 	storeRelease(e);
 	numreleased++;
 	m = n;
