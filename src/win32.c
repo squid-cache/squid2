@@ -941,4 +941,4 @@ WIN32_ExceptionHandlerCleanup()
 
 #endif /* _SQUID_MSWIN_ */
 
-#endif /* _SQUID_WIN32 */
+#endif /* _SQUID_WIN32_ */
