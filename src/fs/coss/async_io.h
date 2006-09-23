@@ -27,7 +27,7 @@ typedef struct _async_queue async_queue_t;
 struct _async_queue_entry {
     async_queue_entry_state_t aq_e_state;
     async_queue_entry_type_t aq_e_type;
-#if HAVE_AIO_H
+#if !USE_AUFSOPS
     struct aiocb aq_e_aiocb;
 #endif
     union {
