@@ -329,7 +329,7 @@ squidaio_init(void)
 	    if (j < 4)
 		j = 4;
 	}
-#if COSS_USE_AUFSOPS
+#if USE_AUFSOPS
 	j = 6;
 	for (i = 0; i < n_coss_dirs; i++) {
 	    squidaio_nthreads += j;
