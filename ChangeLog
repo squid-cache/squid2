@@ -1,4 +1,4 @@
-Changes to squid-2.6.STABLE4 (Sep 22 2006)
+Changes to squid-2.6.STABLE4 (Sep 23 2006)
 
 	- Bug #1736: Missing Italian translation of ERR_TOO_BIG error page
 	- Windows port enhancement: added native exception handler with signal emulation
