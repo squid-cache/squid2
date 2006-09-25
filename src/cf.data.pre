@@ -1062,10 +1062,13 @@ DOC_START
 	see the --enable-storeio configure option.
 
 	'Directory' is a top-level directory where cache swap
-	files will be stored.  If you want to use an entire disk
+	files will be stored. If you want to use an entire disk
 	for caching, this can be the mount-point directory.
 	The directory must exist and be writable by the Squid
-	process.  Squid will NOT create this directory for you.
+	process. Squid will NOT create this directory for you.
+	Only using COSS, a raw disk device or a stripe file can
+	be specified, but the configuration of the "cache_wap_log"
+	tag is mandatory.
 
 	The ufs store type:
 

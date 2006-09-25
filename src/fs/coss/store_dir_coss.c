@@ -49,7 +49,7 @@
 #define HITONLY_BUFS 2
 
 int max_coss_dir_size = 0;
-/* static int last_coss_pick_index = -1; */
+static int last_coss_pick_index = -1;
 int coss_initialised = 0;
 MemPool *coss_state_pool = NULL;
 MemPool *coss_index_pool = NULL;
@@ -136,7 +136,8 @@ stripePath(SwapDir * sd)
 	if (stat(sd->path, &st) == 0) {
 	    if (S_ISDIR(st.st_mode))
 		strcat(pathtmp, "/stripe");
-	}
+	} else
+	    fatalf("stripePath: Cannot stat %s.", sd->path);
 	cs->stripe_path = xstrdup(pathtmp);
     }
     return cs->stripe_path;
@@ -149,6 +150,8 @@ storeCossDirSwapLogFile(SwapDir * sd, const char *ext)
     LOCAL_ARRAY(char, pathtmp, SQUID_MAXPATHLEN);
     LOCAL_ARRAY(char, digit, 32);
     char *pathtmp2;
+    struct stat st;
+
     if (Config.Log.swap) {
 	xstrncpy(pathtmp, sd->path, SQUID_MAXPATHLEN - 64);
 	pathtmp2 = pathtmp;
@@ -164,8 +167,14 @@ storeCossDirSwapLogFile(SwapDir * sd, const char *ext)
 	    strncat(path, digit, 3);
 	}
     } else {
-	xstrncpy(path, sd->path, SQUID_MAXPATHLEN - 64);
-	strcat(path, "/swap.state");
+	if (stat(sd->path, &st) == 0) {
+	    if (S_ISDIR(st.st_mode)) {
+		xstrncpy(path, sd->path, SQUID_MAXPATHLEN - 64);
+		strcat(path, "/swap.state");
+	    } else
+		fatal("storeCossDirSwapLogFile: 'cache_swap_log' is needed in your COSS configuration.");
+	} else
+	    fatalf("storeCossDirSwapLogFile: Cannot stat %s.", sd->path);
     }
     if (ext)
 	strncat(path, ext, 16);
@@ -562,9 +571,53 @@ storeCossDirSwapLog(const SwapDir * sd, const StoreEntry * e, int op)
 }
 
 static void
-storeCossDirNewfs(SwapDir * sd)
+storeCossDirNewfs(SwapDir * SD)
 {
-    debug(47, 3) ("Creating swap space in %s\n", stripePath(sd));
+    struct stat st;
+    char *block;
+    int swap;
+    int i;
+    CossInfo *cs = (CossInfo *) SD->fsdata;
+
+    if (stat(SD->path, &st) == 0) {
+/* 
+ * TODO : handle the following case:
+ * SD->path is a full stripe file path
+ */
+	if (S_ISDIR(st.st_mode)) {
+	    if (stat(stripePath(SD), &st) != 0) {
+		debug(47, 1) ("Creating COSS stripe %s\n", stripePath(SD));
+		swap = open(stripePath(SD), O_WRONLY | O_CREAT | O_TRUNC | O_BINARY, 0600);
+		block = (char *) xcalloc(COSS_MEMBUF_SZ, 1);
+		for (i = 0; i < cs->numstripes; ++i) {
+		    if (write(swap, block, COSS_MEMBUF_SZ) < COSS_MEMBUF_SZ) {
+			fatalf("Failed to create COSS stripe %s\n", stripePath(SD));
+		    }
+		}
+		close(swap);
+		xfree(block);
+	    }
+	}
+    } else
+	debug(47, 0) ("Failed to create COSS swap space on %s\n", SD->path);
+}
+
+/*
+ * Only "free" the filesystem specific stuff here
+ */
+static void
+storeCossDirFree(SwapDir * SD)
+{
+    CossInfo *cs = (CossInfo *) SD->fsdata;
+    if (cs->swaplog_fd > -1) {
+	file_close(cs->swaplog_fd);
+	cs->swaplog_fd = -1;
+    }
+    xfree(cs->stripes);
+    xfree(cs->memstripes);
+    xfree(cs);
+    SD->fsdata = NULL;		/* Will aid debugging... */
+
 }
 
 /* we are shutting down, flush all membufs to disk */
@@ -574,10 +627,7 @@ storeCossDirShutdown(SwapDir * SD)
     CossInfo *cs = (CossInfo *) SD->fsdata;
     debug(47, 1) ("COSS: %s: syncing\n", stripePath(SD));
 
-#if USE_AUFSOPS
-    aioSync(SD);
-#endif
-    storeCossSync(SD);		/* This'll call a_file_syncqueue() */
+    storeCossSync(SD);		/* This'll call a_file_syncqueue() or a aioSync() */
 #if !USE_AUFSOPS
     a_file_closequeue(&cs->aq);
 #endif
@@ -745,7 +795,7 @@ storeCossDirParse(SwapDir * sd, int index, char *path)
     sd->init = storeCossDirInit;
     sd->newfs = storeCossDirNewfs;
     sd->dump = storeCossDirDump;
-    sd->freefs = storeCossDirShutdown;
+    sd->freefs = storeCossDirFree;
     sd->dblcheck = NULL;
     sd->statfs = storeCossDirStats;
     sd->maintainfs = NULL;
@@ -1003,7 +1053,6 @@ storeCossDirDumpBlkSize(StoreEntry * e, const char *option, SwapDir * sd)
     storeAppendPrintf(e, " block-size=%d", 1 << cs->blksz_bits);
 }
 
-#if OLD_UNUSED_CODE
 SwapDir *
 storeCossDirPick(void)
 {
@@ -1014,7 +1063,7 @@ storeCossDirPick(void)
 	return NULL;
     for (i = 0; i < Config.cacheSwap.n_configured; i++) {
 	SD = &Config.cacheSwap.swapDirs[i];
-	if (SD->type == SWAPDIR_COSS) {
+	if (strcmp(SD->type, SWAPDIR_COSS) == 0) {
 	    if ((last_coss_pick_index == -1) || (n_coss_dirs == 1)) {
 		last_coss_pick_index = i;
 		return SD;
@@ -1028,7 +1077,7 @@ storeCossDirPick(void)
     }
     for (i = 0; i < Config.cacheSwap.n_configured; i++) {
 	SD = &Config.cacheSwap.swapDirs[i];
-	if (SD->type == SWAPDIR_COSS) {
+	if (strcmp(SD->type, SWAPDIR_COSS) == 0) {
 	    if ((last_coss_pick_index == -1) || (n_coss_dirs == 1)) {
 		last_coss_pick_index = i;
 		return SD;
@@ -1042,7 +1091,6 @@ storeCossDirPick(void)
     }
     return NULL;
 }
-#endif
 
 /*
  * initial setup/done code
@@ -1050,6 +1098,13 @@ storeCossDirPick(void)
 static void
 storeCossDirDone(void)
 {
+    int i, n_dirs = n_coss_dirs;
+
+    for (i = 0; i < n_dirs; i++)
+	storeCossDirShutdown(storeCossDirPick());
+/* 
+ * TODO : check if others memPoolDestroy() of COSS objects are needed here
+ */
     memPoolDestroy(coss_state_pool);
     coss_initialised = 0;
 }
@@ -1098,7 +1153,7 @@ storeFsSetup_coss(storefs_entry_t * storefs)
     coss_index_pool = memPoolCreate("COSS index data", sizeof(CossIndexNode));
     coss_realloc_pool = memPoolCreate("COSS pending realloc", sizeof(CossPendingReloc));
     coss_op_pool = memPoolCreate("COSS pending operation", sizeof(CossReadOp));
-    cachemgrRegister("coss", "COSS Stats", storeCossStats, 0, 1);
+    cachemgrRegister(SWAPDIR_COSS, "COSS Stats", storeCossStats, 0, 1);
     coss_initialised = 1;
 }
 

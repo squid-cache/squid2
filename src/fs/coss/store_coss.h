@@ -22,6 +22,8 @@ typedef struct _cossstripe CossStripe;
 #define COSS_ALLOC_ALLOCATE		1
 #define COSS_ALLOC_REALLOC		2
 
+#define SWAPDIR_COSS "coss"
+
 #if USE_AUFSOPS
 /* XXX a hack; the async ops should be broken out! */
 typedef void AIOCB(int fd, void *cbdata, const char *buf,
