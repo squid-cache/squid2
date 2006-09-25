@@ -48,7 +48,6 @@
 #define STORE_META_BUFSZ 4096
 #define HITONLY_BUFS 2
 
-int n_coss_dirs = 0;
 int max_coss_dir_size = 0;
 /* static int last_coss_pick_index = -1; */
 int coss_initialised = 0;

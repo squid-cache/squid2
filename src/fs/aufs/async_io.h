@@ -8,7 +8,6 @@
 #define __ASYNC_IO_H__
 
 extern int n_asyncufs_dirs;
-extern int n_coss_dirs;
 extern int squidaio_nthreads;
 extern int squidaio_magic1;
 extern int squidaio_magic2;
