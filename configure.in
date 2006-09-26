@@ -615,7 +615,7 @@ AC_ARG_ENABLE(snmp,
 [ if test "$enableval" = "yes" ; then
     echo "SNMP monitoring enabled"
     AC_DEFINE(SQUID_SNMP, 1, [Define to enable SNMP monitoring of Squid])
-    SNMPLIB='-L../snmplib -lsnmp'
+    SNMPLIB='../snmplib/libsnmp.a'
     AM_CONDITIONAL(USE_SNMP, true)
     SNMP_MAKEFILE=./snmplib/Makefile
     makesnmplib=snmplib
