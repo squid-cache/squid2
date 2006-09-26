@@ -1053,7 +1053,7 @@ storeCossDirDumpBlkSize(StoreEntry * e, const char *option, SwapDir * sd)
     storeAppendPrintf(e, " block-size=%d", 1 << cs->blksz_bits);
 }
 
-SwapDir *
+static SwapDir *
 storeCossDirPick(void)
 {
     int i, choosenext = 0;
