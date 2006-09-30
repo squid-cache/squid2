@@ -2154,6 +2154,14 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	    debug(33, 2) ("clientProcessHit: Vary detected!\n");
 	    return;
 	}
+    case VARY_RESTART:
+	/* Used on collapsed requests when the main request wasn't
+	 * compatible. Resart processing from the beginning.
+	 */
+	safe_free(r->vary_hdr);
+	safe_free(r->vary_headers);
+	clientProcessRequest(http);
+	return;
     case VARY_CANCEL:
 	/* varyEvaluateMatch found a object loop. Process as miss */
 	debug(33, 1) ("clientProcessHit: Vary object loop!\n");
@@ -3307,6 +3315,9 @@ clientProcessRequest2(clientHttpRequest * http)
 	http->entry = NULL;
 	return LOG_TCP_MISS;
     }
+    if (EBIT_TEST(e->flags, KEY_EARLY_PUBLIC)) {
+	r->flags.collapsed = 1;	/* Don't trust the store entry */
+    }
     if (EBIT_TEST(e->flags, ENTRY_SPECIAL)) {
 	/* Special entries are always hits, no matter what the client says */
 	debug(33, 3) ("clientProcessRequest2: ENTRY_SPECIAL HIT\n");
@@ -3350,6 +3361,7 @@ clientProcessRequest(clientHttpRequest * http)
     debug(33, 4) ("clientProcessRequest: %s '%s'\n",
 	RequestMethodStr[r->method],
 	url);
+    r->flags.collapsed = 0;
     if (r->method == METHOD_CONNECT && !http->redirect.status) {
 	http->log_type = LOG_TCP_MISS;
 #if USE_SSL && SSL_CONNECT_INTERCEPT
@@ -3484,6 +3496,15 @@ clientProcessMiss(clientHttpRequest * http)
     http->entry = clientCreateStoreEntry(http, r->method, r->flags);
     if (Config.onoff.collapsed_forwarding && r->flags.cachable && !r->flags.need_validation && (r->method = METHOD_GET || r->method == METHOD_HEAD)) {
 	http->entry->mem_obj->refresh_timestamp = squid_curtime;
+	/* Set the vary object state */
+	safe_free(http->entry->mem_obj->vary_headers);
+	if (r->vary_headers)
+	    http->entry->mem_obj->vary_headers = xstrdup(r->vary_headers);
+	safe_free(http->entry->mem_obj->vary_encoding);
+	if (strBuf(r->vary_encoding))
+	    http->entry->mem_obj->vary_encoding = xstrdup(strBuf(r->vary_encoding));
+	http->entry->mem_obj->request = requestLink(r);
+	EBIT_SET(http->entry->flags, KEY_EARLY_PUBLIC);
 	storeSetPublicKey(http->entry);
     }
     fwdStart(http->conn->fd, http->entry, r);
@@ -4984,6 +5005,10 @@ varyEvaluateMatch(StoreEntry * entry, request_t * request)
 	    /* Ouch.. we cannot handle this kind of variance */
 	    /* XXX This cannot really happen, but just to be complete */
 	    return VARY_CANCEL;
+	} else if (request->flags.collapsed) {
+	    /* This request was merged before we knew the outcome. Don't trust the response */
+	    /* restart vary processing from the beginning */
+	    return VARY_RESTART;
 	} else {
 	    return VARY_MATCH;
 	}

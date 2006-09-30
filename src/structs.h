@@ -1822,6 +1822,7 @@ struct _request_flags {
 #if LINUX_TPROXY
     unsigned int tproxy:1;
 #endif
+    unsigned int collapsed:1;	/* This request was collapsed. Don't trust the store entry to be valid */
 };
 
 struct _link_list {

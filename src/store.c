@@ -967,8 +967,14 @@ storeSetPublicKey(StoreEntry * e)
     StoreEntry *e2 = NULL;
     const cache_key *newkey;
     MemObject *mem = e->mem_obj;
-    if (e->hash.key && !EBIT_TEST(e->flags, KEY_PRIVATE))
-	return;			/* is already public */
+    if (e->hash.key && !EBIT_TEST(e->flags, KEY_PRIVATE)) {
+	if (EBIT_TEST(e->flags, KEY_EARLY_PUBLIC)) {
+	    EBIT_CLR(e->flags, KEY_EARLY_PUBLIC);
+	    storeSetPrivateKey(e);	/* wasn't really public yet, reset the key */
+	} else {
+	    return;		/* is already public */
+	}
+    }
     assert(mem);
     /*
      * We can't make RELEASE_REQUEST objects public.  Depending on
@@ -1010,7 +1016,7 @@ storeSetPublicKey(StoreEntry * e)
 	    }
 	}
 	newkey = storeKeyPublicByRequest(mem->request);
-	if (mem->vary_headers) {
+	if (mem->vary_headers && !EBIT_TEST(e->flags, KEY_EARLY_PUBLIC)) {
 	    String vary = StringNull;
 	    String varyhdr;
 	    varyhdr = httpHeaderGetList(&mem->reply->header, HDR_VARY);
@@ -1645,9 +1651,12 @@ storeEntryValidToSend(StoreEntry * e)
     if (EBIT_TEST(e->flags, ENTRY_ABORTED))
 	return 0;
     /* Entries which seem to have got stuck is not valid to send to new clients */
-    if (e->store_status == STORE_PENDING)
+    if (e->store_status == STORE_PENDING) {
 	if (!e->mem_obj || e->mem_obj->refresh_timestamp + 30 < squid_curtime)
 	    return 0;
+	else
+	    return -1;
+    }
     return 1;
 }
 

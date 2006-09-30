@@ -528,10 +528,8 @@ enum {
     ENTRY_VALIDATED,
     ENTRY_BAD_LENGTH,
     ENTRY_ABORTED,
-    ENTRY_DEFER_READ
-#if UNUSED_CODE
-    ENTRY_DONT_LOG
-#endif
+    ENTRY_DEFER_READ,
+    KEY_EARLY_PUBLIC
 };
 
 typedef enum {
@@ -742,6 +740,7 @@ enum {
     VARY_NONE,
     VARY_MATCH,
     VARY_OTHER,
+    VARY_RESTART,
     VARY_CANCEL
 };
 
