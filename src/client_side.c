@@ -2180,6 +2180,7 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	    http->log_type = LOG_TCP_NEGATIVE_HIT;
 	    clientSendMoreHeaderData(data, buf, size);
 	} else {
+	    memFree(buf, MEM_CLIENT_SOCK_BUF);
 	    http->log_type = LOG_TCP_MISS;
 	    clientProcessMiss(http);
 	}
