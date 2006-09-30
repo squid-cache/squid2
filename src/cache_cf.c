@@ -277,6 +277,15 @@ GetInteger(void)
     return i;
 }
 
+static u_short
+GetShort(void)
+{
+    char *token = strtok(NULL, w_space);
+    if (token == NULL)
+	self_destruct();
+    return xatos(token);
+}
+
 static squid_off_t
 GetOffT(void)
 {
@@ -1583,7 +1592,6 @@ parse_peer(peer ** head)
 {
     char *token = NULL;
     peer *p;
-    int i;
     p = cbdataAlloc(peer);
     p->http_port = CACHE_HTTP_PORT;
     p->icp.port = CACHE_ICP_PORT;
@@ -1597,10 +1605,10 @@ parse_peer(peer ** head)
     if ((token = strtok(NULL, w_space)) == NULL)
 	self_destruct();
     p->type = parseNeighborType(token);
-    i = GetInteger();
-    p->http_port = (u_short) i;
-    i = GetInteger();
-    p->icp.port = (u_short) i;
+    p->http_port = GetShort();
+    if (!p->http_port)
+	self_destruct();
+    p->icp.port = GetShort();
     p->connection_auth = -1;	/* auto */
     while ((token = strtok(NULL, w_space))) {
 	if (!strcasecmp(token, "proxy-only")) {
@@ -1979,16 +1987,13 @@ static void
 parse_ushortlist(ushortlist ** P)
 {
     char *token;
-    int i;
+    u_short i;
     ushortlist *u;
     ushortlist **U;
     while ((token = strtok(NULL, w_space))) {
-	if (sscanf(token, "%d", &i) != 1)
-	    self_destruct();
-	if (i < 0)
-	    i = 0;
+	i = GetShort();
 	u = xcalloc(1, sizeof(ushortlist));
-	u->i = (u_short) i;
+	u->i = i;
 	for (U = P; *U; U = &(*U)->next);
 	*U = u;
     }
@@ -2413,12 +2418,7 @@ free_ushort(u_short * u)
 static void
 parse_ushort(u_short * var)
 {
-    int i;
-
-    i = GetInteger();
-    if (i < 0)
-	i = 0;
-    *var = (u_short) i;
+    *var = GetShort();
 }
 
 static void
