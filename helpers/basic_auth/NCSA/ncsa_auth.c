@@ -73,6 +73,7 @@ read_passwd_file(const char *passwdfile)
     char *passwd;
     if (hash != NULL) {
 	hashFreeItems(hash, my_free);
+	hashFreeMemory(hash);
     }
     /* initial setup */
     hash = hash_create((HASHCMP *) strcmp, 7921, hash_string);
@@ -149,6 +150,10 @@ main(int argc, char **argv)
 	} else {
 	    printf("ERR Wrong password\n");
 	}
+    }
+    if (hash != NULL) {
+	hashFreeItems(hash, my_free);
+	hashFreeMemory(hash);
     }
     exit(0);
 }
