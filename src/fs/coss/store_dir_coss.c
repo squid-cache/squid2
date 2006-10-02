@@ -858,13 +858,13 @@ storeCossDirParse(SwapDir * sd, int index, char *path)
      */
     max_offset = (off_t) 0xFFFFFF << cs->blksz_bits;
     if ((sd->max_size + (cs->nummemstripes * (COSS_MEMBUF_SZ >> 10))) > (unsigned long) (max_offset >> 10)) {
-	debug(47, 0) ("COSS block-size = %d bytes\n", 1 << cs->blksz_bits);
-	debug(47, 0) ("COSS largest file offset = %lu KB\n", (unsigned long) max_offset >> 10);
-	debug(47, 0) ("COSS cache_dir size = %d KB\n", sd->max_size);
+	debug(47, 1) ("COSS block-size = %d bytes\n", 1 << cs->blksz_bits);
+	debug(47, 1) ("COSS largest file offset = %lu KB\n", (unsigned long) max_offset >> 10);
+	debug(47, 1) ("COSS cache_dir size = %d KB\n", sd->max_size);
 	fatal("COSS cache_dir size exceeds largest offset\n");
     }
     cs->max_disk_nf = ((off_t) sd->max_size << 10) >> cs->blksz_bits;
-    debug(47, 0) ("COSS: max disk fileno is %d\n", cs->max_disk_nf);
+    debug(47, 2) ("COSS: max disk fileno is %d\n", cs->max_disk_nf);
 
     /* XXX todo checks */
 
@@ -873,7 +873,7 @@ storeCossDirParse(SwapDir * sd, int index, char *path)
     /* Ensure that the max size IS a multiple of the membuf size, or things
      * will get very fruity near the end of the disk. */
     cs->numstripes = (off_t) (((off_t) sd->max_size) << 10) / COSS_MEMBUF_SZ;
-    debug(47, 0) ("COSS: number of stripes: %d of %d bytes each\n", cs->numstripes, COSS_MEMBUF_SZ);
+    debug(47, 2) ("COSS: number of stripes: %d of %d bytes each\n", cs->numstripes, COSS_MEMBUF_SZ);
     cs->stripes = xcalloc(cs->numstripes, sizeof(struct _cossstripe));
     for (i = 0; i < cs->numstripes; i++) {
 	cs->stripes[i].id = i;
@@ -891,7 +891,7 @@ storeCossDirParse(SwapDir * sd, int index, char *path)
      */
     cs->hitonlyfullstripes = cs->maxfullstripes - HITONLY_BUFS;
 
-    debug(47, 0) ("COSS: number of memory-only stripes %d of %d bytes each\n", cs->nummemstripes, COSS_MEMBUF_SZ);
+    debug(47, 2) ("COSS: number of memory-only stripes %d of %d bytes each\n", cs->nummemstripes, COSS_MEMBUF_SZ);
     cs->memstripes = xcalloc(cs->nummemstripes, sizeof(struct _cossstripe));
     for (i = 0; i < cs->nummemstripes; i++) {
 	cs->memstripes[i].id = i;
