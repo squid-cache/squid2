@@ -2123,9 +2123,9 @@ DOC_START
 			as ttl)
 	  children=n	number of processes spawn to service external acl
 			lookups of this type.
-			Note: see compatibility note below
 	  concurrency=n	concurrency level per process. Use 0 for simple helpers
 			who can only process a single request at a time.
+			Note: see compatibility note below
 	  cache=n	result cache size, 0 is unbounded (default)
 	  grace=	Percentage remaining of TTL where a refresh of a
 			cached entry should be initiated without needing to
@@ -2189,13 +2189,10 @@ DOC_START
 	of the above described quoting format.
 
 	Compatibility Note: The children= option was named concurrency= in
-	Squid-2.5.STABLE3 and earlier and such syntax is still accepted to
-	keep compatibility within the Squid-2.5 release. However, the meaning
-	of concurrency= option has changed in Squid-3 and the old syntax of
-	the directive is therefore deprecated from Squid-2.5.STABLE4 and later.
-	If you want to be able to easily downgrade to earlier Squid-2.5
-	releases you may want to continue using the old name, if not
-	please use the new name.
+	Squid-2.5.STABLE3 and earlier, and was accepted as an alias for the
+	duration of the Squid-2.5 releases to keep compatibility. However,
+	the meaning of concurrency= option has changed in Squid-2.6 to match
+	that of Squid-3 and the old syntax no longer works.
 DOC_END
 
 COMMENT_START
