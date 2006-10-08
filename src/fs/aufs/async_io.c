@@ -77,12 +77,14 @@ typedef struct squidaio_unlinkq_t {
 
 static dlink_list used_list;
 static int initialised = 0;
+static int usage_count = 0;
 static OBJH aioStats;
 static MemPool *squidaio_ctrl_pool;
 
 void
 aioInit(void)
 {
+    usage_count++;
     if (initialised)
 	return;
     squidaio_ctrl_pool = memPoolCreate("aio_ctrl", sizeof(squidaio_ctrl_t));
@@ -94,6 +96,8 @@ aioInit(void)
 void
 aioDone(void)
 {
+    if (--usage_count > 0)
+	return;
     squidaio_shutdown();
     memPoolDestroy(squidaio_ctrl_pool);
     initialised = 0;
