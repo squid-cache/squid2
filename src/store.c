@@ -1009,10 +1009,12 @@ storeSetPublicKey(StoreEntry * e)
 		    storeRelease(pe);
 	    }
 	    /* Make sure the request knows the variance status */
-	    if (!request->vary_headers) {
-		const char *vary = httpMakeVaryMark(request, mem->reply);
-		if (vary)
-		    request->vary_headers = xstrdup(vary);
+	    else if (!request->vary_headers) {
+		if (!httpMakeVaryMark(request, mem->reply)) {
+		    /* Release the object if we could not index the variance */
+		    storeReleaseRequest(e);
+		    return;
+		}
 	    }
 	}
 	newkey = storeKeyPublicByRequest(mem->request);
