@@ -129,10 +129,7 @@ membership check
 <P>There is a few known issues in this version of Squid which we hope to correct in a later release
 
 <itemize>
-<item>Bug #1590: "ETag Loop" warnings in cache.log
-<item>Bug #761: assertion failed: cbdata.c:249: "c-&gt;locks &gt; 0" when using diskd
-<item>Bug #1640: unstable if mixing coss cache_dir type with other cache_dir types (ufs/aufs/diskd).
-<item>Bug #1602: Need to implement TCP fallback on truncated (large) DNS responses
+<item>Bug #761: Unstable under load when using diskd
 </itemize>
 
 <sect>Known limitations
