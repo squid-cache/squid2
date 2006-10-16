@@ -747,7 +747,7 @@ aclDestroyHeader(void *data)
 	acl_hdr_data *q = *acldata;
 	*acldata = q->next;
 	if (q->reglist)
-	    aclDestroyRegexList((*acldata)->reglist);
+	    aclDestroyRegexList(q->reglist);
 	safe_free(q);
     }
 }
