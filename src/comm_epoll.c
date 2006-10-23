@@ -65,8 +65,8 @@ epolltype_atoi(int x)
     }
 }
 
-void
-comm_select_init()
+static void
+do_select_init()
 {
     kdpfd = epoll_create(Squid_MaxFD);
     if (kdpfd < 0)
@@ -83,8 +83,8 @@ comm_select_postinit()
     debug(5, 1) ("Using epoll for the IO loop\n");
 }
 
-void
-comm_select_shutdown()
+static void
+do_select_shutdown()
 {
     fd_close(kdpfd);
     close(kdpfd);
@@ -153,37 +153,20 @@ commSetEvents(int fd, int need_read, int need_write)
     }
 }
 
-int
-comm_select(int msec)
+static int
+do_comm_select(int msec)
 {
-    static time_t last_timeout = 0;
     int i;
     int num;
     int fd;
     struct epoll_event *cevents;
-    double start = current_dtime;
-
-    if (msec > MAX_POLL_TIME)
-	msec = MAX_POLL_TIME;
-
-    debug(5, 3) ("comm_select: timeout %d\n", msec);
 
     if (epoll_fds == 0) {
 	assert(shutting_down);
 	return COMM_SHUTDOWN;
     }
-    /* Check for disk io callbacks */
-    storeDirCallback();
-
-    /* Check timeouts once per second */
-    if (last_timeout != squid_curtime) {
-	last_timeout = squid_curtime;
-	checkTimeouts();
-    }
     statCounter.syscalls.polls++;
     num = epoll_wait(kdpfd, events, MAX_EVENTS, msec);
-    statCounter.select_loops++;
-
     if (num < 0) {
 	getCurrentTime();
 	if (ignoreErrno(errno))
@@ -194,17 +177,13 @@ comm_select(int msec)
     }
     statHistCount(&statCounter.select_fds_hist, num);
 
-    if (num > 0) {
-	for (i = 0, cevents = events; i < num; i++, cevents++) {
-	    fd = cevents->data.fd;
-	    comm_call_handlers(fd, cevents->events & ~EPOLLOUT, cevents->events & ~EPOLLIN);
-	}
-	getCurrentTime();
-	statCounter.select_time += (current_dtime - start);
-	return COMM_OK;
-    } else {
-	getCurrentTime();
-	debug(5, 8) ("comm_select: time out: %ld.\n", (long int) squid_curtime);
+    if (num == 0)
 	return COMM_TIMEOUT;
+
+    for (i = 0, cevents = events; i < num; i++, cevents++) {
+	fd = cevents->data.fd;
+	comm_call_handlers(fd, cevents->events & ~EPOLLOUT, cevents->events & ~EPOLLIN);
     }
+
+    return COMM_OK;
 }

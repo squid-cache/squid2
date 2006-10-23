@@ -50,8 +50,8 @@ static int kqmax;		/* max structs to buffer */
 static int kqoff;		/* offset into the buffer */
 static unsigned *kqueue_state;	/* keep track of the kqueue state */
 
-void
-comm_select_init()
+static void
+do_select_init()
 {
     kq = kqueue();
     if (kq < 0)
@@ -71,8 +71,8 @@ comm_select_postinit()
     debug(5, 1) ("Using kqueue for the IO loop\n");
 }
 
-void
-comm_select_shutdown()
+static void
+do_select_shutdown()
 {
     fd_close(kq);
     close(kq);
@@ -123,37 +123,20 @@ commSetEvents(int fd, int need_read, int need_write)
     }
 }
 
-int
-comm_select(int msec)
+static int
+do_comm_select(int msec)
 {
-    static time_t last_timeout = 0;
     int i;
     int num;
-    double start = current_dtime;
     static struct kevent ke[KE_LENGTH];
     struct timespec timeout;
-
-    if (msec > MAX_POLL_TIME)
-	msec = MAX_POLL_TIME;
 
     timeout.tv_sec = msec / 1000;
     timeout.tv_nsec = (msec % 1000) * 1000000;
 
-    debug(5, 3) ("comm_select: timeout %d\n", msec);
-
-    /* Check for disk io callbacks */
-    storeDirCallback();
-
-    /* Check timeouts once per second */
-    if (last_timeout != squid_curtime) {
-	last_timeout = squid_curtime;
-	checkTimeouts();
-    }
     statCounter.syscalls.polls++;
     num = kevent(kq, kqlst, kqoff, ke, KE_LENGTH, &timeout);
-    statCounter.select_loops++;
     kqoff = 0;
-
     if (num < 0) {
 	getCurrentTime();
 	if (ignoreErrno(errno))
@@ -162,11 +145,9 @@ comm_select(int msec)
 	debug(5, 1) ("comm_select: kevent failure: %s\n", xstrerror());
 	return COMM_ERROR;
     }
-    if (num == 0) {
-	getCurrentTime();
-	return COMM_TIMEOUT;
-    }
     statHistCount(&statCounter.select_fds_hist, num);
+    if (num == 0)
+	return COMM_TIMEOUT;
 
     for (i = 0; i < num; i++) {
 	int fd = (int) ke[i].ident;
@@ -190,7 +171,5 @@ comm_select(int msec)
 	}
     }
 
-    getCurrentTime();
-    statCounter.select_time += (current_dtime - start);
     return COMM_OK;
 }

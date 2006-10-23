@@ -921,6 +921,9 @@ struct _fde {
 	long handle;
     } win32;
 #endif
+#if DELAY_POOLS
+    int slow_id;
+#endif
 };
 
 struct _fileMap {

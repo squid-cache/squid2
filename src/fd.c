@@ -92,6 +92,10 @@ fd_close(int fd)
     debug(51, 3) ("fd_close FD %d %s\n", fd, F->desc);
     commSetEvents(fd, 0, 0);
     F->flags.open = 0;
+#if DELAY_POOLS
+    if (F->slow_id)
+	commRemoveSlow(fd);
+#endif
     fdUpdateBiggest(fd, 0);
     Number_FD--;
     memset(F, '\0', sizeof(fde));
@@ -194,6 +198,13 @@ fd_bytes(int fd, int len, unsigned int type)
 	F->bytes_read += len;
     else
 	F->bytes_written += len;
+}
+
+void
+fd_init(void)
+{
+    fd_table = xcalloc(Squid_MaxFD, sizeof(fde));
+    /* XXX account fd_table */
 }
 
 void

@@ -671,8 +671,6 @@ main(int argc, char **argv)
 #endif
 
     debug_log = stderr;
-    if (FD_SETSIZE < Squid_MaxFD)
-	Squid_MaxFD = FD_SETSIZE;
 
 #ifdef _SQUID_WIN32_
     if ((WIN32_init_err = WIN32_Subsystem_Init(&argc, &argv)))

@@ -762,6 +762,9 @@ checkTimeouts(void)
 	    comm_close(fd);
 	}
     }
+#if DELAYPOOLS
+    delayPoolsUpdate(NULL);
+#endif
 }
 
 
