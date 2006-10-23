@@ -454,6 +454,8 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 	    return;		/* headers not complete */
 	}
     }
+    safe_free(entry->mem_obj->vary_headers);
+    safe_free(entry->mem_obj->vary_encoding);
     /* Cut away any excess body data (only needed for debug?) */
     memBufAppend(&httpState->reply_hdr, "\0", 1);
     httpState->reply_hdr.buf[hdr_size] = '\0';
@@ -489,7 +491,6 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 	    goto no_cache;
 	}
 	entry->mem_obj->vary_headers = xstrdup(vary);
-	safe_free(entry->mem_obj->vary_encoding);
 	if (strBuf(httpState->orig_request->vary_encoding))
 	    entry->mem_obj->vary_encoding = xstrdup(strBuf(httpState->orig_request->vary_encoding));
     }
