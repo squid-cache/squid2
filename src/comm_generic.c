@@ -170,8 +170,10 @@ static inline void
 check_incoming(void)
 {
     comm_select_handled++;
-    if (comm_select_handled > 30 && comm_select_handled > NHttpSockets << 2)
+    if (comm_select_handled > 30 && comm_select_handled > NHttpSockets << 2) {
+	comm_select_handled = 0;
 	do_check_incoming();
+    }
 }
 
 #if DELAY_POOLS
@@ -215,6 +217,7 @@ static inline void
 comm_call_handlers(int fd, int read_event, int write_event)
 {
     fde *F = &fd_table[fd];
+    const int do_incoming = read_event == 1 || write_event == 1;
     debug(5, 8) ("comm_call_handlers(): got fd=%d read_event=%x write_event=%x F->read_handler=%p F->write_handler=%p\n"
 	,fd, read_event, write_event, F->read_handler, F->write_handler);
     if (F->read_handler) {
@@ -262,7 +265,8 @@ comm_call_handlers(int fd, int read_event, int write_event)
 		    commUpdateEvents(fd);
 #endif
 		statCounter.select_fds++;
-		check_incoming();
+		if (do_incoming)
+		    check_incoming();
 		break;
 	    }
 	}
@@ -297,7 +301,8 @@ comm_call_handlers(int fd, int read_event, int write_event)
 		commUpdateEvents(fd);
 #endif
 	    statCounter.select_fds++;
-	    check_incoming();
+	    if (do_incoming)
+		check_incoming();
 	}
     }
 }
