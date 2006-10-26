@@ -571,35 +571,37 @@ storeCossDirSwapLog(const SwapDir * sd, const StoreEntry * e, int op)
 }
 
 static void
-storeCossDirNewfs(SwapDir * SD)
+storeCossCreateStripe(SwapDir * SD, char *path)
 {
-    struct stat st;
     char *block;
     int swap;
     int i;
     CossInfo *cs = (CossInfo *) SD->fsdata;
 
+    debug(47, 1) ("Creating COSS stripe %s\n", path);
+    swap = open(path, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY, 0600);
+    block = (char *) xcalloc(COSS_MEMBUF_SZ, 1);
+    for (i = 0; i < cs->numstripes; ++i) {
+	if (write(swap, block, COSS_MEMBUF_SZ) < COSS_MEMBUF_SZ) {
+	    fatalf("Failed to create COSS stripe %s\n", path);
+	}
+    }
+    close(swap);
+    xfree(block);
+}
+
+static void
+storeCossDirNewfs(SwapDir * SD)
+{
+    struct stat st;
+
     if (stat(SD->path, &st) == 0) {
-/* 
- * TODO : handle the following case:
- * SD->path is a full stripe file path
- */
 	if (S_ISDIR(st.st_mode)) {
-	    if (stat(stripePath(SD), &st) != 0) {
-		debug(47, 1) ("Creating COSS stripe %s\n", stripePath(SD));
-		swap = open(stripePath(SD), O_WRONLY | O_CREAT | O_TRUNC | O_BINARY, 0600);
-		block = (char *) xcalloc(COSS_MEMBUF_SZ, 1);
-		for (i = 0; i < cs->numstripes; ++i) {
-		    if (write(swap, block, COSS_MEMBUF_SZ) < COSS_MEMBUF_SZ) {
-			fatalf("Failed to create COSS stripe %s\n", stripePath(SD));
-		    }
-		}
-		close(swap);
-		xfree(block);
-	    }
+	    if (stat(stripePath(SD), &st) != 0)
+		storeCossCreateStripe(SD, stripePath(SD));
 	}
     } else
-	debug(47, 0) ("Failed to create COSS swap space on %s\n", SD->path);
+	storeCossCreateStripe(SD, SD->path);
 }
 
 /*
