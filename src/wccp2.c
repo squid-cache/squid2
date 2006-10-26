@@ -622,7 +622,7 @@ wccp2Init(void)
 		wccp2_mask_identity_info.cache_identity.dest_ip_mask = 0;
 		wccp2_mask_identity_info.cache_identity.source_port_mask = 0;
 		wccp2_mask_identity_info.cache_identity.dest_port_mask = 0;
-	    } else if ((service == WCCP2_SERVICE_STANDARD) || (service_flags & WCCP2_SERVICE_DST_IP_HASH) || (service_flags & WCCP2_SERVICE_DST_IP_ALT_HASH)) {
+	    } else if ((service_list_ptr->info.service == WCCP2_SERVICE_STANDARD) || (service_flags & WCCP2_SERVICE_DST_IP_HASH) || (service_flags & WCCP2_SERVICE_DST_IP_ALT_HASH)) {
 		wccp2_mask_identity_info.cache_identity.source_ip_mask = 0;
 		wccp2_mask_identity_info.cache_identity.dest_ip_mask = htonl(0x00001741);
 		wccp2_mask_identity_info.cache_identity.source_port_mask = 0;
@@ -1447,7 +1447,7 @@ wccp2AssignBuckets(void *voidnotused)
 		    mask_element->dest_ip_mask = 0;
 		    mask_element->source_port_mask = 0;
 		    mask_element->dest_port_mask = 0;
-		} else if ((service == WCCP2_SERVICE_STANDARD) || (service_flags & WCCP2_SERVICE_DST_IP_HASH) || (service_flags & WCCP2_SERVICE_DST_IP_ALT_HASH)) {
+		} else if ((service_list_ptr->info.service == WCCP2_SERVICE_STANDARD) || (service_flags & WCCP2_SERVICE_DST_IP_HASH) || (service_flags & WCCP2_SERVICE_DST_IP_ALT_HASH)) {
 		    mask_element->source_ip_mask = 0;
 		    mask_element->dest_ip_mask = htonl(0x00001741);
 		    mask_element->source_port_mask = 0;
@@ -1478,7 +1478,7 @@ wccp2AssignBuckets(void *voidnotused)
 			value_element->dest_ip_value = 0;
 			value_element->source_port_value = 0;
 			value_element->dest_port_value = 0;
-		    } else if ((service == WCCP2_SERVICE_STANDARD) || (service_flags & WCCP2_SERVICE_DST_IP_HASH) || (service_flags & WCCP2_SERVICE_DST_IP_ALT_HASH)) {
+		    } else if ((service_list_ptr->info.service == WCCP2_SERVICE_STANDARD) || (service_flags & WCCP2_SERVICE_DST_IP_HASH) || (service_flags & WCCP2_SERVICE_DST_IP_ALT_HASH)) {
 			value_element->source_ip_value = 0;
 			value_element->dest_ip_value = htonl(value);
 			value_element->source_port_value = 0;
