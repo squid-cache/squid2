@@ -571,7 +571,7 @@ storeCossDirSwapLog(const SwapDir * sd, const StoreEntry * e, int op)
 }
 
 static void
-storeCossCreateStripe(SwapDir * SD, char *path)
+storeCossCreateStripe(SwapDir * SD, const char *path)
 {
     char *block;
     int swap;
@@ -601,7 +601,7 @@ storeCossDirNewfs(SwapDir * SD)
 		storeCossCreateStripe(SD, stripePath(SD));
 	}
     } else
-	storeCossCreateStripe(SD, SD->path);
+	storeCossCreateStripe(SD, (const char *) SD->path);
 }
 
 /*
