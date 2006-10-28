@@ -66,6 +66,7 @@ static void
 do_select_shutdown()
 {
     safe_free(pfds);
+    safe_free(pfd_map);
 }
 
 void
