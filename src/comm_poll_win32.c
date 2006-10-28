@@ -39,53 +39,73 @@
 #include <Winsock2.h>
 #endif
 
-
-static fd_set global_readfds;
-static fd_set global_writefds;
-static int nreadfds;
-static int nwritefds;
+static WSAPOLLFD *pfds;
+static int *pfd_map;
+static int *pfd_map_fd;
+static int nfds = 0;
 
 static void
 do_select_init()
 {
-    if (Squid_MaxFD > FD_SETSIZE)
-	Squid_MaxFD = FD_SETSIZE;
-    nreadfds = nwritefds = 0;
+    int i;
+    pfds = xcalloc(sizeof(*pfds), Squid_MaxFD);
+    pfd_map = xcalloc(sizeof(*pfd_map), Squid_MaxFD);
+    pfd_map_fd = xcalloc(sizeof(*pfd_map_fd), Squid_MaxFD);
+    for (i = 0; i < Squid_MaxFD; i++) {
+	pfd_map_fd[i] = pfd_map[i] = -1;
+    }
 }
 
 void
 comm_select_postinit()
 {
-    debug(5, 1) ("Using select for the IO loop\n");
+    debug(5, 1) ("Using poll for the IO loop\n");
 }
 
 static void
 do_select_shutdown()
 {
+    safe_free(pfds);
+    safe_free(pfd_map);
+    safe_Free(pfd_map_fd);
 }
 
 void
 comm_select_status(StoreEntry * sentry)
 {
-    storeAppendPrintf(sentry, "\tIO loop method:                     select\n");
+    storeAppendPrintf(sentry, "\tIO loop method:                     poll\n");
 }
 
 void
 commSetEvents(int fd, int need_read, int need_write)
 {
-    if (need_read && !__WSAFDIsSet(fd_table[fd].win32.handle, &global_readfds)) {
-	FD_SET(fd, &global_readfds);
-	nreadfds++;
-    } else if (!need_read && __WSAFDIsSet(fd_table[fd].win32.handle, &global_readfds)) {
-	FD_CLR(fd, &global_readfds);
-	nreadfds--;
-    }
-    if (need_write && !__WSAFDIsSet(fd_table[fd].win32.handle, &global_writefds)) {
-	FD_SET(fd, &global_writefds);
-	nwritefds++;
-    } else if (!need_write && __WSAFDIsSet(fd_table[fd].win32.handle, &global_writefds)) {
-	FD_CLR(fd, &global_writefds);
-	nwritefds--;
+    int pfdn = pfd_map[fd];
+    WSAPOLLFD *pfd = pfdn >= 0 ? &pfds[pfdn] : NULL;
+    short events = (need_read ? POLLRDNORM : 0) | (need_write ? POLLWRNORM : 0);
+
+    if (!pfd && !events)
+	return;
+
+    if (!pfd) {
+	pfdn = nfds++;
+	pfd_map[fd] = pfdn;
+	pfd_map_fd[pfdn] = fd;
+	pfd = &pfds[pfdn];
+	pfd->fd = _get_osfhandle(fd);
+	pfd->events = events;
+    } else if (events) {
+	pfd->events = events;
+    } else {
+	int *pfd_fd = &pfd_map_fd[pfdn];
+	pfd_map[fd] = -1;
+	nfds--;
+	*pfd = pfds[nfds];
+	*pfd_fd = pfd_map_fd[nfds];
+	pfds[nfds].events = 0;
+	pfds[nfds].revents = 0;
+	pfds[nfds].fd = -1;
+	if (pfd->fd >= 0)
+	    pfd_map[*pfd_fd] = pfdn;
     }
 }
 
@@ -93,32 +113,20 @@ static int
 do_comm_select(int msec)
 {
     int num;
-    struct timeval tv;
-    fd_set readfds
-           fd_set writefds
-           fd_set errfds;
-    int j;
-    int fd;
+    int i;
 
-    if (nreadfds + nwritefds == 0) {
+    if (nfds == 0) {
 	assert(shutting_down);
 	return COMM_SHUTDOWN;
     }
-    memcpy(&readfds, &global_readfds, sizeof(fd_set));
-    memcpy(&writefds, &global_writefds, sizeof(fd_set));
-    memcpy(&errrfds, &global_writefds, sizeof(fd_set));
-    tv.tv_sec = msec / 1000;
-    tv.tv_usec = (msec % 1000) * 1000;
     statCounter.syscalls.selects++;
-    num = select(Biggest_FD + 1, &readfds, &writefds, &errfds, &tv);
-    statCounter.select_loops++;
-
+    num = WSAPoll(pfds, nfds, msec);
     if (num < 0) {
 	getCurrentTime();
 	if (ignoreErrno(errno))
 	    return COMM_OK;
 
-	debug(5, 1) ("comm_select: select failure: %s\n", xstrerror());
+	debug(5, 1) ("comm_select: poll failure: %s\n", xstrerror());
 	return COMM_ERROR;
     }
     statHistCount(&statCounter.select_fds_hist, num);
@@ -126,11 +134,21 @@ do_comm_select(int msec)
     if (num == 0)
 	return COMM_TIMEOUT;
 
-    for (fd = 0; fd < Biggest_FD; fd++) {
-	int read_event = __WSAFDIsSet(fd_table[fd].win32.handle, &readfds);
-	int write_event = __WSAFDIsSet(fd_table[fd].win32.handle, &writefds) || __WSAFDIsSet(fd_table[fd].win32.handle, &errfds);
-	if (read_event || write_event)
-	    comm_call_handlers(fd, read_event, write_event);
+    for (i = nfds - 1; num > 0 && i >= 0; i--) {
+	WSAPOLLFD *pfd = &pfds[i];
+	short read_event, write_event;
+
+	if (!pfd->revents)
+	    continue;
+
+	read_event = pfd->revents & (POLLRDNORM | POLLIN | POLLHUP | POLLERR);
+	write_event = pfd->revents & (POLLWRNORM | POLLOUT | POLLHUP | POLLERR);
+
+	pfd->revents = 0;
+
+	comm_call_handlers(pfd_map_fd[i], read_event, write_event);
+	num--;
     }
+
     return COMM_OK;
 }
