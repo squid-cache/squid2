@@ -94,10 +94,9 @@ do_comm_select(int msec)
 {
     int num;
     struct timeval tv;
-    fd_set readfds
-           fd_set writefds
-           fd_set errfds;
-    int j;
+    fd_set readfds;
+    fd_set writefds;
+    fd_set errfds;
     int fd;
 
     if (nreadfds + nwritefds == 0) {
@@ -106,7 +105,7 @@ do_comm_select(int msec)
     }
     memcpy(&readfds, &global_readfds, sizeof(fd_set));
     memcpy(&writefds, &global_writefds, sizeof(fd_set));
-    memcpy(&errrfds, &global_writefds, sizeof(fd_set));
+    memcpy(&errfds, &global_writefds, sizeof(fd_set));
     tv.tv_sec = msec / 1000;
     tv.tv_usec = (msec % 1000) * 1000;
     statCounter.syscalls.selects++;
