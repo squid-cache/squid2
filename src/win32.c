@@ -225,12 +225,22 @@ WIN32_StoreKey(const char *key, DWORD type, unsigned char *value,
 static unsigned int
 GetOSVersion()
 {
-    OSVERSIONINFO osvi;
+    OSVERSIONINFOEX osvi;
+    BOOL bOsVersionInfoEx;
 
     safe_free(WIN32_OS_string);
-    memset(&osvi, '\0', sizeof(OSVERSIONINFO));
-    osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-    GetVersionEx((OSVERSIONINFO *) & osvi);
+    memset(&osvi, '\0', sizeof(OSVERSIONINFOEX));
+    /* Try calling GetVersionEx using the OSVERSIONINFOEX structure.
+     * If that fails, try using the OSVERSIONINFO structure.
+     */
+
+    osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
+
+    if (!(bOsVersionInfoEx = GetVersionEx((OSVERSIONINFO *) & osvi))) {
+	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+	if (!GetVersionEx((OSVERSIONINFO *) & osvi))
+	    goto GetVerError;
+    }
     switch (osvi.dwPlatformId) {
     case VER_PLATFORM_WIN32_NT:
 	if (osvi.dwMajorVersion <= 4) {
@@ -250,7 +260,10 @@ GetOSVersion()
 	    return _WIN_OS_WINNET;
 	}
 	if ((osvi.dwMajorVersion == 6) && (osvi.dwMinorVersion == 0)) {
-	    WIN32_OS_string = xstrdup("Windows code name \"Longhorn\"");
+	    if (osvi.wProductType == VER_NT_WORKSTATION)
+		WIN32_OS_string = xstrdup("Windows Vista");
+	    else
+		WIN32_OS_string = xstrdup("Windows Server \"Longhorn\"");
 	    return _WIN_OS_WINLON;
 	}
 	break;
@@ -275,6 +288,7 @@ GetOSVersion()
     default:
 	break;
     }
+  GetVerError:
     WIN32_OS_string = xstrdup("Unknown Windows system");
     return _WIN_OS_UNKNOWN;
 }
