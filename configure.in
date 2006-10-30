@@ -2415,29 +2415,6 @@ else
 	SELECT_TYPE="select"
 fi
 
-case "$SELECT_TYPE" in
-epoll)
-	AC_DEFINE(USE_EPOLL,1,[Use epoll() for the IO loop])
-	AC_CHECK_LIB(epoll, epoll_create, [EPOLL_LIBS="-lepoll"])
-	AC_SUBST(EPOLL_LIBS)
-	;;
-poll)
-	AC_DEFINE(USE_POLL,1,[Use poll() for the IO loop])
-	;;
-select)
-	AC_DEFINE(USE_SELECT,1,[Use select() for the IO loop])
-	;;
-select_win32)
-	AC_DEFINE(USE_SELECT_WIN32,1,[Use Winsock select() for the IO loop])
-	;;
-kqueue)
-	AC_DEFINE(USE_KQUEUE,1,[Use kqueue() for the IO loop])
-	;;
-*)
-	echo "ERROR: Unknown IO loop type '$SELECT_TYPE'"
-	exit 1
-esac
-
 echo "Using ${SELECT_TYPE} for the IO loop."
 AM_CONDITIONAL([USE_POLL], [test $SELECT_TYPE = poll])
 AM_CONDITIONAL([USE_EPOLL], [test $SELECT_TYPE = epoll])
