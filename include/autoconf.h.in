@@ -772,9 +772,6 @@
    dnsserver processes instead. */
 #undef USE_DNSSERVERS
 
-/* Use epoll() for the IO loop */
-#undef USE_EPOLL
-
 /* Define if we should use GNU regex */
 #undef USE_GNUREGEX
 
@@ -792,9 +789,6 @@
 /* Compile in support for Ident (RFC 931) lookups? Enabled by default. */
 #undef USE_IDENT
 
-/* Use kqueue() for the IO loop */
-#undef USE_KQUEUE
-
 /* Enable code for assiting in finding memory leaks. Hacker stuff only. */
 #undef USE_LEAKFINDER
 
@@ -803,18 +797,9 @@
    (USE_SSL) */
 #undef USE_OPENSSL
 
-/* Use poll() for the IO loop */
-#undef USE_POLL
-
 /* If you want to log Referer request header values, define this. By default,
    they are written to referer.log in the Squid log directory. */
 #undef USE_REFERER_LOG
-
-/* Use select() for the IO loop */
-#undef USE_SELECT
-
-/* Use Winsock select() for the IO loop */
-#undef USE_SELECT_WIN32
 
 /* Define this to include code for SSL encryption. */
 #undef USE_SSL
