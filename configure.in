@@ -856,7 +856,7 @@ AC_ARG_ENABLE(select-simple,
 [
   case "$enableval" in
   yes)
-    echo "Forcing select() to be enabled"
+    echo "Forcing select() to be enabled in simple POSIX mode"
     SELECT_TYPE="select_simple"
     ac_cv_func_select='yes'
     ;;
