@@ -849,7 +849,7 @@ AC_ARG_ENABLE(select,
 ])
 
 dnl Enable select()
-AC_ARG_ENABLE(select,
+AC_ARG_ENABLE(select-simple,
 [  --enable-select-simple  Force the use of select support (POSIX).
 			  Useful if your system only supports the bare minium
 			  POSIX select requirements without fds_bits.],
