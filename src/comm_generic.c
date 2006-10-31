@@ -132,8 +132,9 @@ commRemoveSlow(int fd)
 	return;
     fd2 = slow_fds[n_slow_fds--];
     if (F->slow_id <= n_slow_fds) {
+	fde *F2;
 	slow_fds[F->slow_id] = fd2;
-	fde *F2 = &fd_table[fd2];
+	F2 = &fd_table[fd2];
 	F2->slow_id = F->slow_id;
     }
     F->slow_id = 0;
