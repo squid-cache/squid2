@@ -74,5 +74,4 @@ fi
 if [ -f $dst/changesets/index.html ]; then
     rm -f $dst/changesets/$tag.html
     $dst/changesets/.update
-    cp -p $dst/changesets/index.html $dst/changesets/$tag.html
 fi
