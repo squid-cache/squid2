@@ -59,7 +59,7 @@ do_select_init()
 void
 comm_select_postinit()
 {
-    debug(5, 1) ("Using select for the IO loop\n");
+    debug(5, 1) ("Using select in POSIX mode for the IO loop\n");
 }
 
 static void
@@ -70,7 +70,7 @@ do_select_shutdown()
 void
 comm_select_status(StoreEntry * sentry)
 {
-    storeAppendPrintf(sentry, "\tIO loop method:                     select\n");
+    storeAppendPrintf(sentry, "\tIO loop method:                     select in POSIX mode\n");
 }
 
 void
