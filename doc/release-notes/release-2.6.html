@@ -39,6 +39,9 @@ Squid is a WWW Cache application developed by the Web Caching community.</EM>
 <P>
 <H2><A NAME="toc9">9.</A> <A HREF="#s9">Key changes squid-2.6.STABLE3 to 2.6.STABLE4</A></H2>
 
+<P>
+<H2><A NAME="toc10">10.</A> <A HREF="#s10">Key changes squid-2.6.STABLE4 to 2.6.STABLE5</A></H2>
+
 
 <HR>
 <H2><A NAME="s1">1.</A> <A HREF="#toc1">Key changes from squid 2.5</A></H2>
@@ -165,10 +168,7 @@ membership check</LI>
 <P>There is a few known issues in this version of Squid which we hope to correct in a later release</P>
 <P>
 <UL>
-<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1590">#1590</a>: "ETag Loop" warnings in cache.log</LI>
-<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=761">#761</a>: assertion failed: cbdata.c:249: "c-&gt;locks &gt; 0" when using diskd</LI>
-<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1640">#1640</a>: unstable if mixing coss cache_dir type with other cache_dir types (ufs/aufs/diskd).</LI>
-<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1602">#1602</a>: Need to implement TCP fallback on truncated (large) DNS responses</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=761">#761</a>: Unstable under load when using diskd</LI>
 </UL>
 </P>
 
@@ -475,6 +475,23 @@ DNS client complete.</LI>
 <LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1699">#1699</a>: assertion failed: authenticate.c:836: "auth_user_request != NULL"</LI>
 <LI>a number of other minor and cosmetic bugfixes. See the list of 
 <A HREF="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE4.html">squid-2.6.STABLE4 changes</A> and the 
+<A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
+</UL>
+</P>
+
+<H2><A NAME="s10">10.</A> <A HREF="#toc10">Key changes squid-2.6.STABLE4 to 2.6.STABLE5</A></H2>
+
+<P>
+<UL>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1776">#1776</a>: 2.6.STABLE4 aufs fails to compile if coss isn't enabled</LI>
+<LI>COSS improvements and cleanups</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1785">#1785</a>: Memory leak in handling of negatively cached objects</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1780">#1780</a>: Incorrect Vary processing in combination with collapsed_forwarding</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1779">#1779</a>: Delay pools fairness when multiple connections compete for bandwidth</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1796">#1796</a>: Assertion error HttpHeader.c:914: "str"</LI>
+<LI>All comm loops now use the generic event framework</LI>
+<LI>a number of other minor and cosmetic bugfixes. See the list of 
+<A HREF="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE5.html">squid-2.6.STABLE4 changes</A> and the 
 <A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
 </UL>
 </P>

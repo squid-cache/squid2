@@ -413,5 +413,22 @@ ScriptAlias /squid/cgi-bin/ "c:/squid/libexec/"
 				name="ChangeLog"> file for details.
 </itemize>
 
+<sect>Key changes squid-2.6.STABLE4 to 2.6.STABLE5
+
+<p>
+<itemize>
+        <item>Bug #1776: 2.6.STABLE4 aufs fails to compile if coss isn't enabled
+        <item>COSS improvements and cleanups
+        <item>Bug #1785: Memory leak in handling of negatively cached objects
+        <item>Bug #1780: Incorrect Vary processing in combination with collapsed_forwarding
+        <item>Bug #1779: Delay pools fairness when multiple connections compete for bandwidth
+        <item>Bug #1796: Assertion error HttpHeader.c:914: "str"
+        <item>All comm loops now use the generic event framework
+	<item>a number of other minor and cosmetic bugfixes. See the list of <url
+		url="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE5.html"
+			name="squid-2.6.STABLE4 changes"> and the <url url="ChangeLog"
+				name="ChangeLog"> file for details.
+</itemize>
+
 </article>
 

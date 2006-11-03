@@ -1,3 +1,33 @@
+Changes to squid-2.6.STABLE5 (Now 3 2006)
+
+	- Bug #1776: 2.6.STABLE4 aufs fails to compile if coss isn't enabled
+	- COSS improvements and cleanups
+	- SNMP linking issue resolved, enabling SNMP support to be build in all platforms
+	- Bug #1784: access_log syslog results in blanks syslog lines between every entry
+	- Bug #1719: Incorrect error message on invalid cache_peer specifications
+	- Bug #1785: Memory leak in handling of negatively cached objects
+	- Bug #1780: Incorrect Vary processing in combination with collapsed_forwarding
+	- Bug #1782: Memory leak in ncsa_auth on password changes
+	- Suppress some annoying coss startup messages raising the debug level to 2.
+	- Clarify the external_acl_helper concurrency= change.
+	- aioDone() could be called twice from aufs and from coss (when using AIOPS) during shutdown.
+	- Bug #1794: Accept 00:00-24:00 as a valid time specification even if redundand and the same as 00:00-23:59
+	- Bug #1795: Theoretical memory leak in storeSetPublicKey
+	- Removing port 563 from the default SSL_ports and Safe_ports ACLs
+	- Bug #1724: Automatically enable Linux Netfilter support with --enable-linux-tproxy.
+	- Bug #1800: squid -k reconfigure crash when using req/rep_header acls
+	- Clarify the select/poll/kqueue/epoll configure --enable/disable options
+	- Bug #1779: Delay pools fairness when multiple connections compete for bandwidth
+	- Bug #1802: Crash on exit in certain conditions where cache.log is not writeable
+	- Bug #1796: Assertion error HttpHeader.c:914: "str"
+	- Bug #1790: Crash on wccp2 + mask assignement + standard wccp service
+	- Silence harmless gcc compile warning.
+	- Clean up poll memory on shutdown
+	- Ported select, poll and win32 to new comm event framework
+	- Windows port: Correctly identify Windows Vista and Windows Server Longhorn
+	- Added a basic comm_select_simple comm loop only requiring minimal POSIX compliance.
+	- Safeguard from kb_t counter overflows on 32-bit platforms
+
 Changes to squid-2.6.STABLE4 (Sep 23 2006)
 
 	- Bug #1736: Missing Italian translation of ERR_TOO_BIG error page
