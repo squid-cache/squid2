@@ -1220,6 +1220,7 @@ DOC_START
 
 		>a	Client source IP address
 		>A	Client FQDN
+		>p	Client source port
 		<A	Server IP address or peer name
 		la	Local IP address (http_port)
 		lp	Local port number (http_port)
