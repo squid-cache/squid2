@@ -242,7 +242,8 @@ htcpBuildAuth(char *buf, size_t buflen)
     assert(2 == sizeof(u_short));
     auth.length = htons(2);
     copy_sz += 2;
-    assert(buflen >= copy_sz);
+    if (buflen < copy_sz)
+	return -1;
     xmemcpy(buf, &auth, copy_sz);
     return copy_sz;
 }
