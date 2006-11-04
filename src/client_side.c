@@ -165,6 +165,7 @@ static void httpsAcceptSSL(ConnStateData * connState, SSL_CTX * sslContext);
 static int varyEvaluateMatch(StoreEntry * entry, request_t * request);
 static int modifiedSince(StoreEntry *, request_t *);
 static StoreEntry *clientCreateStoreEntry(clientHttpRequest *, method_t, request_flags);
+static int clientNatLookup(ConnStateData * conn);
 
 #if USE_IDENT
 static void
@@ -3683,18 +3684,69 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 	    debug(33, 1) ("parseHttpRequest: CONNECT not valid in accelerator mode\n");
 	    goto invalid_request;
 	}
-    } else if (*url == '/')
-  accel:{
-	int vhost = conn->port->vhost || conn->port->transparent;
+    } else if (*url == '/' && Config.onoff.global_internal_static && internalCheck(url)) {
+      internal:
+	/* prepend our name & port */
+	http->uri = xstrdup(internalStoreUri("", url));
+	http->flags.internal = 1;
+	http->flags.accel = 1;
+	debug(33, 5) ("INTERNAL REWRITE: '%s'\n", http->uri);
+    } else if (*url == '/' && conn->port->transparent) {
+	int port = 80;
+	const char *host = mime_get_header(req_hdr, "Host");
+	char *portstr = strchr(t, ':');
+	if (portstr) {
+	    *portstr++ = '\0';
+	    port = atoi(portstr);
+	}
+	http->flags.transparent = 1;
+	if (!host && !conn->transparent && clientNatLookup(conn) == 0) {
+	    conn->transparent = 1;
+	    if (Config.onoff.accel_no_pmtu_disc) {
+#if defined(IP_MTU_DISCOVER) && defined(IP_PMTUDISC_DONT)
+		int i = IP_PMTUDISC_DONT;
+		setsockopt(conn->fd, SOL_IP, IP_MTU_DISCOVER, &i, sizeof i);
+#else
+		static int reported = 0;
+		if (!reported) {
+		    debug(33, 1) ("Notice: httpd_accel_no_pmtu_disc not supported on your platform\n");
+		    reported = 1;
+		}
+#endif
+	    }
+	}
+	if (!host && conn->transparent) {
+	    port = ntohs(conn->me.sin_port);
+	    if (!host)
+		host = inet_ntoa(conn->me.sin_addr);
+	}
+	if (host) {
+	    snprintf(http->uri, url_sz, "%s://%s:%d%s",
+		conn->port->protocol, host, port, url);
+	} else if (internalCheck(url)) {
+	    goto internal;
+	} else {
+	    static int reported = 0;
+	    if (!reported) {
+		reported++;
+		debug(33, 1) ("Transparent proxying not supported on this platform\n");
+	    }
+	    goto invalid_request;
+	}
+    } else if (*url == '/' || conn->port->accel) {
+	int vhost = conn->port->vhost;
 	int vport = conn->port->vport;
-	int accel = conn->port->accel;
-	if (!vport && conn->transparent)
-	    vport = ntohs(conn->me.sin_port);
-	if (Config.onoff.global_internal_static && conn->port->accel && internalCheck(url)) {
-	    /* prepend our name & port */
-	    http->uri = xstrdup(internalStoreUri("", url));
-	    http->flags.internal = 1;
-	    debug(33, 5) ("INTERNAL REWRITE: '%s'\n", http->uri);
+	http->flags.accel = 1;
+	if (*url != '/' && !vhost && strncasecmp(url, "cache_object://", 15) != 0) {
+	    url = strstr(url, "//");
+	    if (!url)
+		goto invalid_request;
+	    url = strchr(url + 2, '/');
+	    if (!url)
+		url = (char *) "/";
+	}
+	if (!url != '/') {
+	    /* Fully qualified URL. Nothing special to do */
 	} else if (vhost && (t = mime_get_header(req_hdr, "Host"))) {
 	    char *portstr = strchr(t, ':');
 	    int port = 0;
@@ -3723,8 +3775,6 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 	    debug(33, 5) ("DEFAULTSITE REWRITE: '%s'\n", http->uri);
 	} else if (vport) {
 	    /* Put the local socket IP address as the hostname.
-	     * Note: In transparent mode clientNatLookup() has replaced
-	     * the local socket IP with the real destination
 	     */
 	    url_sz = strlen(url) + 32 + Config.appendDomainLen;
 	    http->uri = xcalloc(url_sz, 1);
@@ -3734,27 +3784,9 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 		vport, url);
 	    debug(33, 5) ("VPORT REWRITE: '%s'\n", http->uri);
 	} else if (internalCheck(url)) {
-	    /* prepend our name & port */
-	    http->uri = xstrdup(internalStoreUri("", url));
-	    http->flags.internal = 1;
-	    debug(33, 5) ("INTERNAL REWRITE: '%s'\n", http->uri);
+	    goto internal;
 	} else {
 	    goto invalid_request;
-	}
-	if (accel)
-	    http->flags.accel = 1;
-	else if (conn->port->transparent)
-	    http->flags.transparent = 1;
-    } else if (conn->port->accel) {
-	http->flags.accel = 1;
-	if (!conn->port->vhost && strncasecmp(url, "cache_object://", 15) != 0) {
-	    url = strstr(url, "//");
-	    if (!url)
-		goto invalid_request;
-	    url = strchr(url + 2, '/');
-	    if (!url)
-		url = (char *) "/";
-	    goto accel;
 	}
     }
     if (!http->uri) {
@@ -4499,7 +4531,7 @@ clientNatLookup(ConnStateData * conn)
 {
     static int reported = 0;
     if (!reported) {
-	debug(33, 1) ("NOTICE: no explicit transparent proxy support. Assuming getsockname works\n");
+	debug(33, 1) ("NOTICE: no explicit transparent proxy support enabled. Assuming getsockname() works on intercepted connections\n");
 	reported = 1;
     }
     return 0;
@@ -4543,23 +4575,6 @@ httpAccept(int sock, void *data)
 	connState->fd = fd;
 	connState->pinning.fd = -1;
 	connState->in.buf = memAllocBuf(CLIENT_REQ_BUF_SZ, &connState->in.size);
-	if (connState->port->transparent) {
-	    if (clientNatLookup(connState) == 0) {
-		connState->transparent = 1;
-		if (Config.onoff.accel_no_pmtu_disc) {
-#if defined(IP_MTU_DISCOVER) && defined(IP_PMTUDISC_DONT)
-		    int i = IP_PMTUDISC_DONT;
-		    setsockopt(fd, SOL_IP, IP_MTU_DISCOVER, &i, sizeof i);
-#else
-		    static int reported = 0;
-		    if (!reported) {
-			debug(33, 1) ("Notice: httpd_accel_no_pmtu_disc not supported on your platform\n");
-			reported = 1;
-		    }
-#endif
-		}
-	    }
-	}
 	comm_add_close_handler(fd, connStateFree, connState);
 	if (Config.onoff.log_fqdn)
 	    fqdncache_gethostbyaddr(peer.sin_addr, FQDN_LOOKUP_IF_MISS);
@@ -4720,10 +4735,6 @@ httpsAccept(int sock, void *data)
 	connState->fd = fd;
 	connState->pinning.fd = -1;
 	connState->in.buf = memAllocBuf(CLIENT_REQ_BUF_SZ, &connState->in.size);
-	/* transparent on SSL does not really make sense, but what the heck */
-	if (connState->port->transparent)
-	    if (clientNatLookup(connState))
-		connState->transparent = 1;
 	comm_add_close_handler(fd, connStateFree, connState);
 	if (Config.onoff.log_fqdn)
 	    fqdncache_gethostbyaddr(peer.sin_addr, FQDN_LOOKUP_IF_MISS);
