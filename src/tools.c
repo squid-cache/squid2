@@ -1178,7 +1178,7 @@ parseEtcHosts(void)
 	    if (Config.appendDomain && !strchr(lt, '.')) {
 		/* I know it's ugly, but it's only at reconfig */
 		strncpy(buf2, lt, 512);
-		strncat(buf2, Config.appendDomain, 512 - strlen(lt));
+		strncat(buf2, Config.appendDomain, 512 - strlen(lt) - 1);
 		host = buf2;
 	    } else {
 		host = lt;
