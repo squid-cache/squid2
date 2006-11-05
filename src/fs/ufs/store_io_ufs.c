@@ -200,16 +200,13 @@ storeUfsRecycle(SwapDir * SD, StoreEntry * e)
 {
     debug(79, 3) ("storeUfsUnlink: fileno %08X\n", e->swap_filen);
 
-    /* Release the object without releasing the underlying physical object */
-    storeExpireNow(e);
-    storeReleaseRequest(e);
+    /* Detach from underlying physical object */
     if (e->swap_filen > -1) {
 	storeUfsDirReplRemove(e);
 	storeUfsDirMapBitReset(SD, e->swap_filen);
 	e->swap_filen = -1;
 	e->swap_dirn = -1;
     }
-    storeRelease(e);
 }
 
 /*  === STATIC =========================================================== */

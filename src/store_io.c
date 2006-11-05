@@ -122,9 +122,20 @@ storeUnlink(StoreEntry * e)
 void
 storeRecycle(StoreEntry * e)
 {
-    SwapDir *SD = INDEXSD(e->swap_dirn);
-    SD->obj.recycle(SD, e);
+    if (e->swap_dirn >= 0 && !storeEntryLocked(e)) {
+	SwapDir *SD = INDEXSD(e->swap_dirn);
+
+	/* Expire the object */
+	storeExpireNow(e);
+	storeReleaseRequest(e);
+
+	/* Make the cache_dir forget about it */
+	SD->obj.recycle(SD, e);
+    }
+    /* Finally make the store layer forget about this object */
+    storeRelease(e);
 }
+
 
 squid_off_t
 storeOffset(storeIOState * sio)

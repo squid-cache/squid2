@@ -608,7 +608,6 @@ storeAufsDirRebuildFromSwapLog(void *data)
 		 * the cleanup procedure.
 		 */
 		storeRecycle(e);
-		rb->counts.objcount--;
 		rb->counts.cancelcount++;
 	    }
 	    continue;
@@ -759,7 +758,6 @@ storeAufsDirRebuildFromSwapLogOld(void *data)
 		 * the cleanup procedure.
 		 */
 		storeRecycle(e);
-		rb->counts.objcount--;
 		rb->counts.cancelcount++;
 	    }
 	    continue;

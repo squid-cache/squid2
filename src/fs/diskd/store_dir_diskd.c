@@ -799,7 +799,6 @@ storeDiskdDirRebuildFromSwapLog(void *data)
 		 * the cleanup procedure.
 		 */
 		storeRecycle(e);
-		rb->counts.objcount--;
 		rb->counts.cancelcount++;
 	    }
 	    continue;
@@ -975,7 +974,6 @@ storeDiskdDirRebuildFromSwapLogOld(void *data)
 		 * the cleanup procedure.
 		 */
 		storeRecycle(e);
-		rb->counts.objcount--;
 		rb->counts.cancelcount++;
 	    }
 	    continue;

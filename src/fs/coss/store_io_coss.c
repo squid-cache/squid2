@@ -264,10 +264,6 @@ storeCossRecycle(SwapDir * SD, StoreEntry * e)
 {
     debug(79, 3) ("storeCossRecycle: %s: offset %d\n", stripePath(SD), e->swap_filen);
 
-    /* Expire the object */
-    storeExpireNow(e);
-    storeReleaseRequest(e);
-
     /* If there is a valid filen remove from COSS linked list */
     if (e->swap_filen > -1) {
 	storeCossUnlink(SD, e);
@@ -279,8 +275,6 @@ storeCossRecycle(SwapDir * SD, StoreEntry * e)
 	e->swap_filen = -1;
 	e->swap_dirn = -1;
     }
-    /* Finally make the store layer forget about this object */
-    storeRelease(e);
 }
 
 static int

@@ -1441,10 +1441,6 @@ storeCoss_AddStoreEntry(RebuildState * rb, const cache_key * key, StoreEntry * e
 static void
 storeCoss_DeleteStoreEntry(RebuildState * rb, const cache_key * key, StoreEntry * e)
 {
-    assert(rb->counts.objcount >= 0);
-    /* XXX are these counters even correct, considering e could be a different storedir? */
-    rb->counts.objcount--;
-    assert(e->swap_dirn >= 0);
     storeRecycle(e);
 }
 

@@ -613,11 +613,6 @@ storeUfsDirRebuildFromSwapLog(void *data)
 		 * the cleanup procedure.
 		 */
 		storeRecycle(e);
-		/*
-		 * XXX considering we might've canceled an object from another store;
-		 * XXX what should happen with these stats?
-		 */
-		rb->counts.objcount--;
 		rb->counts.cancelcount++;
 	    }
 	    continue;
@@ -768,8 +763,6 @@ storeUfsDirRebuildFromSwapLogOld(void *data)
 		 * the cleanup procedure.
 		 */
 		storeRecycle(e);
-		/* XXX are these counters valid since e could be from another swapfs? */
-		rb->counts.objcount--;
 		rb->counts.cancelcount++;
 	    }
 	    continue;

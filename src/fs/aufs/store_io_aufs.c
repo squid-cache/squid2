@@ -278,18 +278,15 @@ storeAufsUnlink(SwapDir * SD, StoreEntry * e)
 void
 storeAufsRecycle(SwapDir * SD, StoreEntry * e)
 {
-    debug(79, 3) ("storeAufsUnlink: fileno %08X\n", e->swap_filen);
+    debug(79, 3) ("storeAufsRecycle: fileno %08X\n", e->swap_filen);
 
-    /* Release the object without releasing the underlying physical object */
-    storeExpireNow(e);
-    storeReleaseRequest(e);
+    /* detach from the underlying physical object */
     if (e->swap_filen > -1) {
 	storeAufsDirReplRemove(e);
 	storeAufsDirMapBitReset(SD, e->swap_filen);
 	e->swap_filen = -1;
 	e->swap_dirn = -1;
     }
-    storeRelease(e);
 }
 
 /*  === STATIC =========================================================== */
