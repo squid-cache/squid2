@@ -56,7 +56,6 @@ struct _RebuildState {
     int curlvl1;
     int curlvl2;
     struct {
-	unsigned int need_to_validate:1;
 	unsigned int clean:1;
 	unsigned int init:1;
     } flags;
@@ -864,9 +863,7 @@ storeDiskdDirRebuildFromSwapLog(void *data)
 	     * swapfiles back to StoreEntrys, we don't know the state
 	     * of the entry using that file.  */
 	    /* We'll assume the existing entry is valid, probably because
-	     * were in a slow rebuild and the the swap file number got taken
-	     * and the validation procedure hasn't run. */
-	    assert(rb->flags.need_to_validate);
+	     * the swap file number got taken while we rebuild */
 	    rb->counts.clashcount++;
 	    continue;
 	} else if (e && !disk_entry_newer) {
@@ -1039,9 +1036,7 @@ storeDiskdDirRebuildFromSwapLogOld(void *data)
 	     * swapfiles back to StoreEntrys, we don't know the state
 	     * of the entry using that file.  */
 	    /* We'll assume the existing entry is valid, probably because
-	     * were in a slow rebuild and the the swap file number got taken
-	     * and the validation procedure hasn't run. */
-	    assert(rb->flags.need_to_validate);
+	     * the swap file number got taken while we rebuild */
 	    rb->counts.clashcount++;
 	    continue;
 	} else if (e && !disk_entry_newer) {
@@ -1278,8 +1273,6 @@ storeDiskdDirRebuild(SwapDir * sd)
 	rb->log = fp;
 	rb->flags.clean = (unsigned int) clean;
     }
-    if (!clean)
-	rb->flags.need_to_validate = 1;
     debug(20, 1) ("Rebuilding storage in %s (%s)\n",
 	sd->path, clean ? "CLEAN" : "DIRTY");
     store_dirs_rebuilding++;
