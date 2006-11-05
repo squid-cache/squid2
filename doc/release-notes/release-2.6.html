@@ -341,6 +341,13 @@ redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd
 <P>
 <DL>
 <DT><B>Building Squid on Windows:</B><DD><P>A reasonably recent release of Cygwin or MinGW is needed. Like other Unix/Linux environments, -devel version of libraries must be installed.<BR>
+Using MinGW some libraries must be downloaded separately:<BR><BR>
+OpenSSL: 
+<A HREF="http://www.slproweb.com/products/Win32OpenSSL.html">Shining Light Productions Win32 OpenSSL</A><BR>
+libcrypt: 
+<A HREF="http://sourceforge.net/projects/mingwrep/">MinGW packages repository</A><BR>
+db-1.85: 
+<A HREF="http://tinycobol.org/download.html">TinyCOBOL download area</A><BR><BR>
 When running configure, --disable-wccp and --disable-wccpv2 options should always specified to avoid compile errors.<BR>
 <UL>
 <LI>New configure options:<BR>
@@ -356,7 +363,7 @@ When running configure, --disable-wccp and --disable-wccpv2 options should alway
 </LI>
 <LI>Unsupported configure options:<BR>
 <UL>
-<LI>--enable-coss-aio-ops: On Cygwin Posix AIO is not available<BR></LI>
+<LI>--enable-coss-aio-ops: On Windows Posix AIO is not available<BR></LI>
 </UL>
 </LI>
 </UL>
