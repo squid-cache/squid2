@@ -635,7 +635,7 @@ errorBuildReply(ErrorState * err)
 	    char *quoted_url = rfc1738_escape_part(urlCanonical(err->request));
 	    httpHeaderPutStrf(&rep->header, HDR_LOCATION, name, quoted_url);
 	}
-	httpHeaderPutStrf(&rep->header, HDR_X_SQUID_ERROR, "%d %s\n", err->http_status, "Access Denied");
+	httpHeaderPutStrf(&rep->header, HDR_X_SQUID_ERROR, "%d %s", err->http_status, "Access Denied");
     } else {
 	MemBuf content = errorBuildContent(err);
 	httpReplySetHeaders(rep, version, err->http_status, NULL, "text/html", content.size, 0, squid_curtime);
