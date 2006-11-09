@@ -498,7 +498,7 @@ snmp_prfProtoFn(variable_list * Var, snint * ErrP)
 	    break;
 	case PERF_MEDIAN_HTTP_NH:
 	    x = statHistDeltaMedian(&l->client_http.nh_svc_time,
-		&f->client_http.nm_svc_time);
+		&f->client_http.nh_svc_time);
 	    break;
 	default:
 	    *ErrP = SNMP_ERR_NOSUCHNAME;
