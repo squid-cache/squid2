@@ -165,7 +165,7 @@ static void httpsAcceptSSL(ConnStateData * connState, SSL_CTX * sslContext);
 static int varyEvaluateMatch(StoreEntry * entry, request_t * request);
 static int modifiedSince(StoreEntry *, request_t *);
 static StoreEntry *clientCreateStoreEntry(clientHttpRequest *, method_t, request_flags);
-static int clientNatLookup(ConnStateData * conn);
+static inline int clientNatLookup(ConnStateData * conn);
 
 #if USE_IDENT
 static void
@@ -4526,7 +4526,7 @@ clientNatLookup(ConnStateData * conn)
     }
 }
 #else
-static int inline
+static int
 clientNatLookup(ConnStateData * conn)
 {
     static int reported = 0;
