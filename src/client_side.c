@@ -3546,7 +3546,6 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
     char *end;
     size_t header_sz;		/* size of headers, not including first line */
     size_t prefix_sz;		/* size of whole request (req-line + headers) */
-    size_t url_sz;
     size_t req_sz;
     method_t method;
     clientHttpRequest *http = NULL;
@@ -3692,10 +3691,10 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 	http->flags.accel = 1;
 	debug(33, 5) ("INTERNAL REWRITE: '%s'\n", http->uri);
     } else if (*url == '/' && conn->port->transparent) {
-	int port = 80;
+	int port = 0;
 	const char *host = mime_get_header(req_hdr, "Host");
-	char *portstr = strchr(t, ':');
-	if (portstr) {
+	char *portstr;
+	if (host && (portstr = strchr(host, ':')) != NULL) {
 	    *portstr++ = '\0';
 	    port = atoi(portstr);
 	}
@@ -3721,16 +3720,18 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 		host = inet_ntoa(conn->me.sin_addr);
 	}
 	if (host) {
-	    snprintf(http->uri, url_sz, "%s://%s:%d%s",
-		conn->port->protocol, host, port, url);
+	    size_t url_sz = 10 + strlen(host) + 6 + strlen(url) + 32 + Config.appendDomainLen;
+	    http->uri = xcalloc(url_sz, 1);
+	    if (port) {
+		snprintf(http->uri, url_sz, "%s://%s:%d%s",
+		    conn->port->protocol, host, port, url);
+	    } else {
+		snprintf(http->uri, url_sz, "%s://%s%s",
+		    conn->port->protocol, host, url);
+	    }
 	} else if (internalCheck(url)) {
 	    goto internal;
 	} else {
-	    static int reported = 0;
-	    if (!reported) {
-		reported++;
-		debug(33, 1) ("Transparent proxying not supported on this platform\n");
-	    }
 	    goto invalid_request;
 	}
     } else if (*url == '/' || conn->port->accel) {
@@ -3750,14 +3751,14 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 	} else if (vhost && (t = mime_get_header(req_hdr, "Host"))) {
 	    char *portstr = strchr(t, ':');
 	    int port = 0;
+	    size_t url_sz = strlen(url) + 32 + Config.appendDomainLen +
+	    strlen(t);
 	    if (portstr) {
 		*portstr++ = '\0';
 		port = atoi(portstr);
 	    }
 	    if (vport && !port)
 		port = vport;
-	    url_sz = strlen(url) + 32 + Config.appendDomainLen +
-		strlen(t);
 	    http->uri = xcalloc(url_sz, 1);
 	    if (vport)
 		snprintf(http->uri, url_sz, "%s://%s:%d%s",
@@ -3767,8 +3768,8 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 		    conn->port->protocol, t, url);
 	    debug(33, 5) ("VHOST REWRITE: '%s'\n", http->uri);
 	} else if (conn->port->defaultsite) {
-	    url_sz = strlen(url) + 32 + Config.appendDomainLen +
-		strlen(conn->port->defaultsite);
+	    size_t url_sz = strlen(url) + 32 + Config.appendDomainLen +
+	    strlen(conn->port->defaultsite);
 	    http->uri = xcalloc(url_sz, 1);
 	    snprintf(http->uri, url_sz, "%s://%s%s",
 		conn->port->protocol, conn->port->defaultsite, url);
@@ -3776,7 +3777,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 	} else if (vport) {
 	    /* Put the local socket IP address as the hostname.
 	     */
-	    url_sz = strlen(url) + 32 + Config.appendDomainLen;
+	    size_t url_sz = strlen(url) + 32 + Config.appendDomainLen;
 	    http->uri = xcalloc(url_sz, 1);
 	    snprintf(http->uri, url_sz, "%s://%s:%d%s",
 		http->conn->port->protocol,
@@ -3792,7 +3793,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
     if (!http->uri) {
 	/* No special rewrites have been applied above, use the
 	 * requested url. may be rewritten later, so make extra room */
-	url_sz = strlen(url) + Config.appendDomainLen + 5;
+	size_t url_sz = strlen(url) + Config.appendDomainLen + 5;
 	http->uri = xcalloc(url_sz, 1);
 	strcpy(http->uri, url);
     }
