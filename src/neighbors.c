@@ -265,8 +265,12 @@ getRoundRobinParent(request_t * request)
 	    continue;
 	if (!peerHTTPOkay(p, request))
 	    continue;
-	if (q && q->rr_count < p->rr_count)
+	if (p->weight == 1) {
+	    if (q && q->rr_count < p->rr_count)
+		continue;
+	} else if (p->weight == 0 || (q && q->rr_count < (p->rr_count / p->weight))) {
 	    continue;
+	}
 	q = p;
     }
     if (q)
