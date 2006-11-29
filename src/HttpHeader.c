@@ -1026,7 +1026,7 @@ httpHeaderGetTime(const HttpHeader * hdr, http_hdr_type id)
     assert_eid(id);
     assert(Headers[id].type == ftDate_1123);	/* must be of an appropriate type */
     if ((e = httpHeaderFindEntry(hdr, id))) {
-	value = parse_rfc1123(strBuf(e->value));
+	value = parse_rfc1123(strBuf(e->value), strLen(e->value));
 	httpHeaderNoteParsedEntry(e->id, e->value, value < 0);
     }
     return value;
@@ -1144,7 +1144,7 @@ httpHeaderGetTimeOrTag(const HttpHeader * hdr, http_hdr_type id)
 	    tot.valid = 1;
 	} else {
 	    /* or maybe it is time? */
-	    tot.time = parse_rfc1123(str);
+	    tot.time = parse_rfc1123(str, strLen(e->value));
 	    if (tot.time >= 0)
 		tot.valid = 1;
 	    tot.tag = NULL;

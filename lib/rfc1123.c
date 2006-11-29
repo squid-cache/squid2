@@ -157,11 +157,14 @@ parse_date_elements(const char *day, const char *month, const char *year,
     return tmSaneValues(&tm) ? &tm : NULL;
 }
 
+#define	TIMEBUFLEN	128
+
+/* This routine should be rewritten to not require copying the buffer - [ahc] */
 static struct tm *
-parse_date(const char *str)
+parse_date(const char *str, int len)
 {
     struct tm *tm;
-    char *tmp = xstrdup(str);
+    char tmp[TIMEBUFLEN];
     char *t;
     char *wday = NULL;
     char *day = NULL;
@@ -169,6 +172,10 @@ parse_date(const char *str)
     char *year = NULL;
     char *time = NULL;
     char *zone = NULL;
+    int bl = MIN(len, TIMEBUFLEN - 1);
+
+    memcpy(tmp, str, bl);
+    tmp[bl] = '\0';
 
     for (t = strtok(tmp, ", "); t; t = strtok(NULL, ", ")) {
 	if (xisdigit(*t)) {
@@ -196,19 +203,17 @@ parse_date(const char *str)
 	    zone = t;
     }
     tm = parse_date_elements(day, month, year, time, zone);
-
-    xfree(tmp);
     return tm;
 }
 
 time_t
-parse_rfc1123(const char *str)
+parse_rfc1123(const char *str, int len)
 {
     struct tm *tm;
     time_t t;
     if (NULL == str)
 	return -1;
-    tm = parse_date(str);
+    tm = parse_date(str, len);
     if (!tm)
 	return -1;
     tm->tm_isdst = -1;

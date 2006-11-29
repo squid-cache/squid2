@@ -52,6 +52,10 @@
 #define _etext etext
 #endif
 
+#ifndef MIN
+#define	MIN(a, b)	((a) < (b) ? (a) : (b))
+#endif
+
 extern const char *getfullhostname(void);
 extern const char *mkhttpdlogtime(const time_t *);
 extern const char *mkrfc1123(time_t);
@@ -64,7 +68,7 @@ extern int tvSubUsec(struct timeval, struct timeval);
 extern double tvSubDsec(struct timeval, struct timeval);
 extern char *xstrncpy(char *, const char *, size_t);
 extern size_t xcountws(const char *str);
-extern time_t parse_rfc1123(const char *str);
+extern time_t parse_rfc1123(const char *str, int len);
 extern void *xcalloc(size_t, size_t);
 extern void *xmalloc(size_t);
 extern void *xrealloc(void *, size_t);
