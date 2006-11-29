@@ -1182,6 +1182,7 @@ struct _AccessLogEntry {
 
 struct _clientHttpRequest {
     ConnStateData *conn;
+    dlink_node node;
     request_t *request;		/* Parsed URL ... */
     request_t *orig_request;	/* Parsed URL ... */
     store_client *sc;		/* The store_client we're using */
@@ -1210,7 +1211,6 @@ struct _clientHttpRequest {
     http_version_t http_ver;
     int redirect_state;
     aclCheck_t *acl_checklist;	/* need ptr back so we can unreg if needed */
-    clientHttpRequest *next;
     AccessLogEntry al;
     struct {
 	unsigned int accel:1;
@@ -1254,7 +1254,7 @@ struct _ConnStateData {
     /* note this is ONLY connection based because NTLM is against HTTP spec */
     /* the user details for connection based authentication */
     auth_user_request_t *auth_user_request;
-    clientHttpRequest *chr;
+    dlink_list reqs;
     struct sockaddr_in peer;
     struct sockaddr_in me;
     struct in_addr log_addr;

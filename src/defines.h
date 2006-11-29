@@ -351,4 +351,7 @@
 #define FILEMAP_MAX_SIZE (1<<24)
 #define FILEMAP_MAX (FILEMAP_MAX_SIZE - 65536)
 
+#define	DLINK_ISEMPTY(n)	( (n).head == NULL )
+#define	DLINK_HEAD(n)		( (n).head->data )
+
 #endif /* SQUID_DEFINES_H */

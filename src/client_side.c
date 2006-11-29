@@ -1241,7 +1241,6 @@ static void
 httpRequestFree(void *data)
 {
     clientHttpRequest *http = data;
-    clientHttpRequest **H;
     ConnStateData *conn = http->conn;
     StoreEntry *e;
     request_t *request = http->request;
@@ -1349,18 +1348,9 @@ httpRequestFree(void *data)
     if (http->reply)
 	httpReplyDestroy(http->reply);
     http->reply = NULL;
-    assert(http != http->next);
-    assert(http->conn->chr != NULL);
+    assert(DLINK_HEAD(http->conn->reqs) != NULL);
     /* Unlink us from the clients request list */
-    H = &http->conn->chr;
-    while (*H) {
-	if (*H == http)
-	    break;
-	H = &(*H)->next;
-    }
-    assert(*H != NULL);
-    *H = http->next;
-    http->next = NULL;
+    dlinkDelete(&http->node, &http->conn->reqs);
     dlinkDelete(&http->active, &ClientActiveRequests);
     cbdataFree(http);
 }
@@ -1370,13 +1360,16 @@ static void
 connStateFree(int fd, void *data)
 {
     ConnStateData *connState = data;
+    dlink_node *n;
     clientHttpRequest *http;
     debug(33, 3) ("connStateFree: FD %d\n", fd);
     assert(connState != NULL);
     clientdbEstablished(connState->peer.sin_addr, -1);	/* decrement */
-    while ((http = connState->chr) != NULL) {
+    n = connState->reqs.head;
+    while (n != NULL) {
+	http = n->data;
+	n = n->next;
 	assert(http->conn == connState);
-	assert(connState->chr != connState->chr->next);
 	httpRequestFree(http);
     }
     if (connState->auth_user_request)
@@ -2611,7 +2604,8 @@ clientSendMoreHeaderData(void *data, char *buf, ssize_t size)
     dlinkAdd(http, &http->active, &ClientActiveRequests);
     debug(33, 5) ("clientSendMoreHeaderData: FD %d '%s', out.offset=%ld \n",
 	fd, storeUrl(entry), (long int) http->out.offset);
-    if (conn->chr != http) {
+    assert(conn->reqs.head != NULL);
+    if (DLINK_HEAD(conn->reqs) != http) {
 	/* there is another object in progress, defer this one */
 	debug(33, 2) ("clientSendMoreHeaderData: Deferring %s\n", storeUrl(entry));
 	return;
@@ -2942,7 +2936,8 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
     dlinkAdd(http, &http->active, &ClientActiveRequests);
     debug(33, 5) ("clientSendMoreData: FD %d '%s', out.offset=%d \n",
 	fd, storeUrl(entry), (int) http->out.offset);
-    if (conn->chr != http) {
+    assert(conn->reqs.head != NULL);
+    if (DLINK_HEAD(conn->reqs) != http) {
 	/* there is another object in progress, defer this one */
 	debug(33, 1) ("clientSendMoreData: Deferring %s\n", storeUrl(entry));
 	return;
@@ -3028,7 +3023,11 @@ clientKeepaliveNextRequest(clientHttpRequest * http)
 	comm_close(conn->fd);
 	return;
     }
-    if ((http = conn->chr) == NULL) {
+    http = NULL;
+    if (conn->reqs.head != NULL) {
+	http = DLINK_HEAD(conn->reqs);
+    }
+    if (http == NULL) {
 	debug(33, 5) ("clientKeepaliveNextRequest: FD %d reading next req\n",
 	    conn->fd);
 	fd_note(conn->fd, "Waiting for next request");
@@ -3802,7 +3801,6 @@ clientReadRequest(int fd, void *data)
     int size;
     method_t method;
     clientHttpRequest *http = NULL;
-    clientHttpRequest **H = NULL;
     char *prefix = NULL;
     ErrorState *err = NULL;
     fde *F = &fd_table[fd];
@@ -3832,7 +3830,7 @@ clientReadRequest(int fd, void *data)
 	conn->in.offset += size;
 	conn->in.buf[conn->in.offset] = '\0';	/* Terminate the string */
     } else if (size == 0) {
-	if (conn->chr == NULL && conn->in.offset == 0) {
+	if (DLINK_ISEMPTY(conn->reqs) && conn->in.offset == 0) {
 	    /* no current or pending requests */
 	    debug(33, 4) ("clientReadRequest: FD %d closed\n", fd);
 	    comm_close(fd);
@@ -3876,6 +3874,7 @@ clientReadRequest(int fd, void *data)
     /* Process next request */
     while (conn->in.offset > 0 && conn->body.size_left == 0) {
 	int nrequests;
+	dlink_node *n;
 	size_t req_line_sz = 0;
 	/* Skip leading (and trailing) whitespace */
 	while (conn->in.offset > 0 && xisspace(conn->in.buf[0])) {
@@ -3886,7 +3885,7 @@ clientReadRequest(int fd, void *data)
 	if (conn->in.offset == 0)
 	    break;
 	/* Limit the number of concurrent requests to 2 */
-	for (H = &conn->chr, nrequests = 0; *H; H = &(*H)->next, nrequests++);
+	for (n = conn->reqs.head, nrequests = 0; n; n = n->next, nrequests++);
 	if (nrequests >= (Config.onoff.pipeline_prefetch ? 2 : 1)) {
 	    debug(33, 3) ("clientReadRequest: FD %d max concurrent requests reached\n", fd);
 	    debug(33, 5) ("clientReadRequest: FD %d defering new request until one is done\n", fd);
@@ -3916,8 +3915,7 @@ clientReadRequest(int fd, void *data)
 	    if (conn->in.offset > 0)
 		xmemmove(conn->in.buf, conn->in.buf + http->req_sz, conn->in.offset);
 	    /* add to the client request queue */
-	    for (H = &conn->chr; *H; H = &(*H)->next);
-	    *H = http;
+	    dlinkAddTail(http, &http->node, &conn->reqs);
 	    conn->nrequests++;
 	    commSetTimeout(fd, Config.Timeout.lifetime, clientLifetimeTimeout, http);
 	    if (parser_return_code < 0) {
@@ -4034,11 +4032,12 @@ clientReadRequest(int fd, void *data)
 	    if (request->method == METHOD_CONNECT) {
 		/* Stop reading requests... */
 		commSetSelect(fd, COMM_SELECT_READ, NULL, NULL, 0);
-		if (conn->chr == http)
+		if (!DLINK_ISEMPTY(conn->reqs) && DLINK_HEAD(conn->reqs) == http)
 		    clientCheckFollowXForwardedFor(http);
 		else {
 		    debug(33, 1) ("WARNING: pipelined CONNECT request seen from %s\n", inet_ntoa(http->conn->peer.sin_addr));
-		    debugObj(33, 1, "Previous request:\n", conn->chr->request, (ObjPackMethod) & httpRequestPackDebug);
+		    debugObj(33, 1, "Previous request:\n", ((clientHttpRequest *) DLINK_HEAD(conn->reqs))->request,
+			(ObjPackMethod) & httpRequestPackDebug);
 		    debugObj(33, 1, "This request:\n", request, (ObjPackMethod) & httpRequestPackDebug);
 		}
 		break;
@@ -4060,8 +4059,7 @@ clientReadRequest(int fd, void *data)
 		err->src_addr = conn->peer.sin_addr;
 		http = parseHttpRequestAbort(conn, "error:request-too-large");
 		/* add to the client request queue */
-		for (H = &conn->chr; *H; H = &(*H)->next);
-		*H = http;
+		dlinkAddTail(http, &http->node, &conn->reqs);
 		http->log_type = LOG_TCP_DENIED;
 		http->entry = clientCreateStoreEntry(http, METHOD_NONE, null_request_flags);
 		errorAppendEntry(http->entry, err);
