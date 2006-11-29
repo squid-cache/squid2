@@ -119,9 +119,7 @@ tmSaneValues(struct tm *tm)
 	return 0;
     if (tm->tm_mon < 0 || tm->tm_mon > 11)
 	return 0;
-    if (tm->tm_year < 70 || tm->tm_year > 120)
-	return 0;
-    return 1;
+    return mktime(tm) != -1;
 }
 
 static struct tm *
