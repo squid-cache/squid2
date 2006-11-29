@@ -2878,7 +2878,6 @@ clientCheckErrorMap(clientCheckHeaderStateData * state)
 static void
 clientCheckHeaderDone(clientCheckHeaderStateData * state)
 {
-    char *buf = state->buf;
     const char *body_buf = state->body_buf;
     ssize_t body_size = state->body_size;
     HttpReply *rep = state->http->reply;
