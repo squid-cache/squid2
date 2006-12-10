@@ -741,6 +741,10 @@ fwdReforward(FwdState * fwdState)
 	debug(17, 3) ("fwdReforward: No, ENTRY_FWD_HDR_WAIT isn't set\n");
 	return 0;
     }
+    if (fwdState->request->flags.pinned) {
+	debug(17, 3) ("fwdReforward: No, Connection oriented authentication is used\n");
+	return 0;
+    }
     if (fwdState->n_tries > 9)
 	return 0;
     if (fwdState->origin_tries > 1)
@@ -788,7 +792,8 @@ fwdStartPeer(peer * p, StoreEntry * e, request_t * r)
     fwdState->request = requestLink(r);
     fwdState->start = squid_curtime;
     storeLockObject(e);
-    EBIT_SET(e->flags, ENTRY_FWD_HDR_WAIT);
+    if (!fwdState->request->flags.pinned)
+	EBIT_SET(e->flags, ENTRY_FWD_HDR_WAIT);
     storeRegisterAbort(e, fwdAbort, fwdState);
     peerAddFwdServer(&peer, p, HIER_DIRECT);
     fwdStartComplete(peer, fwdState);
@@ -870,7 +875,8 @@ fwdStart(int fd, StoreEntry * e, request_t * r)
 #endif
 
     storeLockObject(e);
-    EBIT_SET(e->flags, ENTRY_FWD_HDR_WAIT);
+    if (!fwdState->request->flags.pinned)
+	EBIT_SET(e->flags, ENTRY_FWD_HDR_WAIT);
     storeRegisterAbort(e, fwdAbort, fwdState);
     peerSelect(r, e, fwdStartComplete, fwdState);
 }
