@@ -654,7 +654,10 @@ storeAddVaryReadOld(void *data, char *buf, ssize_t size)
 	    break;
 	assert(p <= (buf + size));
     }
-    if (p == state->buf && size == state->buf_size) {
+    state->buf_offset = l;
+    if (l && p != state->buf)
+	memmove(state->buf, p, l);
+    if (state->buf_offset == state->buf_size) {
 	/* Oops.. the buffer size is not sufficient. Grow */
 	if (state->buf_size < 65536) {
 	    debug(11, 2) ("storeAddVaryReadOld: Increasing entry buffer size to %d\n", (int) state->buf_size * 2);
@@ -666,9 +669,6 @@ storeAddVaryReadOld(void *data, char *buf, ssize_t size)
 	    return;
 	}
     }
-    state->buf_offset = l;
-    if (l)
-	memmove(state->buf, p, l);
     debug(11, 3) ("storeAddVaryReadOld: %p seen_offset=%" PRINTF_OFF_T " buf_offset=%d\n", data, state->seen_offset, (int) state->buf_offset);
     storeBufferFlush(state->e);
     storeClientCopy(state->sc, state->oe,
