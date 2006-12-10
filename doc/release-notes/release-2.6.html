@@ -340,14 +340,19 @@ redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd
 </P>
 <P>
 <DL>
-<DT><B>Building Squid on Windows:</B><DD><P>A reasonably recent release of Cygwin or MinGW is needed. Like other Unix/Linux environments, -devel version of libraries must be installed.<BR>
-Using MinGW some libraries must be downloaded separately:<BR><BR>
+<DT><B>Building Squid on Windows:</B><DD><P>A reasonably recent release of 
+<A HREF="http://www.cygwin.com/">Cygwin</A> or 
+<A HREF="http://www.mingw.org/">MinGW</A> is needed.<BR>
+The usage of the Cygwin environment is very similar of other Unix/Linux environments, and -devel version of libraries must be installed.<BR>
+For the MinGW environment, the packages MSYS, MinGW and msysDTK must be installed. Some additional libraries and tools must be downloaded separately:<BR><BR>
 OpenSSL: 
 <A HREF="http://www.slproweb.com/products/Win32OpenSSL.html">Shining Light Productions Win32 OpenSSL</A><BR>
 libcrypt: 
 <A HREF="http://sourceforge.net/projects/mingwrep/">MinGW packages repository</A><BR>
 db-1.85: 
-<A HREF="http://tinycobol.org/download.html">TinyCOBOL download area</A><BR><BR>
+<A HREF="http://tinycobol.org/download.html">TinyCOBOL download area</A><BR>
+uudecode: 
+<A HREF="http://unxutils.sourceforge.net/">Native Win32 ports of some GNU utilities</A><BR><BR>
 When running configure, --disable-wccp and --disable-wccpv2 options should always specified to avoid compile errors.<BR>
 <UL>
 <LI>New configure options:<BR>
@@ -364,10 +369,24 @@ When running configure, --disable-wccp and --disable-wccpv2 options should alway
 <LI>Unsupported configure options:<BR>
 <UL>
 <LI>--enable-coss-aio-ops: On Windows Posix AIO is not available<BR></LI>
+<LI>--with-large-files: No suitable build environment is available on both Cygwin and MinGW, but --enable-large-cache-files works fine<BR></LI>
+</UL>
+</LI>
+<LI>Recommended configure minimal options for Windows:<BR>
+<UL>
+<LI>--prefix=c:/squid --disable-wccp --disable-wccpv2 --enable-win32-service --enable-default-hostsfile=none</LI>
 </UL>
 </LI>
 </UL>
+<BR>
+Before build Squid with SSL support, some operations are needed (in the following example OpenSSL is installed in C:\OpenSSL and MinGW in C:\MinGW):
+<UL>
+<LI>Copy C:\OpenSSL\lib\MinGW content to C:\MinGW\lib<BR></LI>
+<LI>Copy C:\OpenSSL\include\openssl content to C:\MinGW\include\openssl<BR></LI>
+<LI>Rename C:\MinGW\lib\ssleay32.a to C:\MinGW\lib\libssleay32.a<BR></LI>
+</UL>
 </P>
+
 </DL>
 </P>
 <P>
