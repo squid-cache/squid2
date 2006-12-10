@@ -4231,7 +4231,7 @@ fi
 
     case "$host_os" in
     mingw|mingw32)
-	SSLLIB='-lssl -lcrypto -lgdi32'
+	SSLLIB='-lssleay32 -leay32 -lgdi32'
 	;;
     *)
 	SSLLIB='-lssl -lcrypto'
