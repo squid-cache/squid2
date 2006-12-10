@@ -219,11 +219,13 @@ struct statfs {
    long    f_spare[6]; /* spare for later */
 };
 
+#ifndef HAVE_GETTIMEOFDAY
 struct timezone 
   {
     int	tz_minuteswest;	/* minutes west of Greenwich */
     int	tz_dsttime;	/* type of dst correction */
   };
+#endif
 
 #define CHANGE_FD_SETSIZE 1
 #if CHANGE_FD_SETSIZE && SQUID_MAXFD > DEFAULT_FD_SETSIZE

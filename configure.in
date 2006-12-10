@@ -2307,6 +2307,7 @@ AC_CHECK_FUNCS(\
 	getpass \
 	getrusage \
 	getspnam \
+	gettimeofday \
 	kqueue \
 	lrand48 \
 	mallinfo \

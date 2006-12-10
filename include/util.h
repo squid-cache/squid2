@@ -134,7 +134,9 @@ extern int64_t WIN32_strtoll(const char *nptr, char **endptr, int base);
 #endif
 extern int chroot(const char *);
 extern int ftruncate(int, off_t);
+#ifndef HAVE_GETTIMEOFDAY
 extern int gettimeofday(struct timeval *, struct timezone *);
+#endif
 extern int inet_aton(const char *, struct in_addr *);
 extern int kill(pid_t, int);
 extern int statfs(const char *, struct statfs *);
