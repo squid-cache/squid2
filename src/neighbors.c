@@ -492,11 +492,6 @@ neighborsUdpPing(request_t * request,
 
 	p->stats.pings_sent++;
 	if (p->type == PEER_MULTICAST) {
-	    /*
-	     * set a bogus last_reply time so neighborUp() never
-	     * says a multicast peer is dead.
-	     */
-	    p->stats.last_reply = squid_curtime;
 	    mcast_exprep += p->mcast.n_replies_expected;
 	    mcast_timeout += (p->stats.rtt * p->mcast.n_replies_expected);
 	} else if (neighborUp(p)) {
@@ -518,7 +513,11 @@ neighborsUdpPing(request_t * request,
 	    }
 	}
 	p->stats.last_query = squid_curtime;
-	if (p->stats.probe_start == 0)
+	/*
+	 * keep probe_start == 0 for a multicast peer,
+	 * so neighborUp() never says this peer is dead.
+	 */
+	if ((p->type != PEER_MULTICAST) && (p->stats.probe_start == 0))
 	    p->stats.probe_start = squid_curtime;
     }
     if ((first_ping = first_ping->next) == NULL)
@@ -942,16 +941,16 @@ neighborUp(const peer * p)
 	return 0;
     if (p->monitor.state != PEER_ALIVE)
 	return 0;
-    if (p->options.no_query)
-	return 1;
-    if (p->stats.probe_start != 0 &&
-	squid_curtime - p->stats.probe_start > Config.Timeout.deadPeer)
-	return 0;
     /*
      * The peer can not be UP if we don't have any IP addresses
      * for it. 
      */
     if (0 == p->n_addresses)
+	return 0;
+    if (p->options.no_query)
+	return 1;
+    if (p->stats.probe_start != 0 &&
+	squid_curtime - p->stats.probe_start > Config.Timeout.deadPeer)
 	return 0;
     return 1;
 }
