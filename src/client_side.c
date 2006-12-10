@@ -3653,21 +3653,20 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 	    port = atoi(portstr);
 	}
 	http->flags.transparent = 1;
-	if (!host && !conn->transparent && clientNatLookup(conn) == 0) {
-	    conn->transparent = 1;
-	    if (Config.onoff.accel_no_pmtu_disc) {
+	if (Config.onoff.accel_no_pmtu_disc) {
 #if defined(IP_MTU_DISCOVER) && defined(IP_PMTUDISC_DONT)
-		int i = IP_PMTUDISC_DONT;
-		setsockopt(conn->fd, SOL_IP, IP_MTU_DISCOVER, &i, sizeof i);
+	    int i = IP_PMTUDISC_DONT;
+	    setsockopt(conn->fd, SOL_IP, IP_MTU_DISCOVER, &i, sizeof i);
 #else
-		static int reported = 0;
-		if (!reported) {
-		    debug(33, 1) ("Notice: httpd_accel_no_pmtu_disc not supported on your platform\n");
-		    reported = 1;
-		}
-#endif
+	    static int reported = 0;
+	    if (!reported) {
+		debug(33, 1) ("Notice: httpd_accel_no_pmtu_disc not supported on your platform\n");
+		reported = 1;
 	    }
+#endif
 	}
+	if (!host && !conn->transparent && clientNatLookup(conn) == 0)
+	    conn->transparent = 1;
 	if (!host && conn->transparent) {
 	    port = ntohs(conn->me.sin_port);
 	    if (!host)
