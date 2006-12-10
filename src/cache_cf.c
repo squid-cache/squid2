@@ -1605,6 +1605,10 @@ parse_peer(peer ** head)
     if ((token = strtok(NULL, w_space)) == NULL)
 	self_destruct();
     p->type = parseNeighborType(token);
+    if (p->type == PEER_MULTICAST) {
+	p->options.no_digest = 1;
+	p->options.no_netdb_exchange = 1;
+    }
     p->http_port = GetShort();
     if (!p->http_port)
 	self_destruct();
