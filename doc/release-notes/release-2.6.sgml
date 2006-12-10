@@ -317,6 +317,7 @@ Before build Squid with SSL support, some operations are needed (in the followin
 <itemize>
 <item>Copy C:\OpenSSL\lib\MinGW content to C:\MinGW\lib<newline>
 <item>Copy C:\OpenSSL\include\openssl content to C:\MinGW\include\openssl<newline>
+<item>Rename C:\MinGW\lib\ssleay32.a to C:\MinGW\lib\libssleay32.a<newline>
 </itemize>
 
 </descrip>
