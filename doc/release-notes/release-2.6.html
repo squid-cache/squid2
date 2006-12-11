@@ -42,6 +42,9 @@ Squid is a WWW Cache application developed by the Web Caching community.</EM>
 <P>
 <H2><A NAME="toc10">10.</A> <A HREF="#s10">Key changes squid-2.6.STABLE4 to 2.6.STABLE5</A></H2>
 
+<P>
+<H2><A NAME="toc11">11.</A> <A HREF="#s11">Key changes squid-2.6.STABLE5 to 2.6.STABLE6</A></H2>
+
 
 <HR>
 <H2><A NAME="s1">1.</A> <A HREF="#toc1">Key changes from squid 2.5</A></H2>
@@ -343,7 +346,7 @@ redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd
 <DT><B>Building Squid on Windows:</B><DD><P>A reasonably recent release of 
 <A HREF="http://www.cygwin.com/">Cygwin</A> or 
 <A HREF="http://www.mingw.org/">MinGW</A> is needed.<BR>
-The usage of the Cygwin environment is very similar of other Unix/Linux environments, and -devel version of libraries must be installed.<BR>
+The usage of the Cygwin environment is very similar to other Unix/Linux environments, and -devel version of libraries must be installed.<BR>
 For the MinGW environment, the packages MSYS, MinGW and msysDTK must be installed. Some additional libraries and tools must be downloaded separately:<BR><BR>
 OpenSSL: 
 <A HREF="http://www.slproweb.com/products/Win32OpenSSL.html">Shining Light Productions Win32 OpenSSL</A><BR>
@@ -517,10 +520,25 @@ DNS client complete.</LI>
 <LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1796">#1796</a>: Assertion error HttpHeader.c:914: "str"</LI>
 <LI>All comm loops now use the generic event framework</LI>
 <LI>a number of other minor and cosmetic bugfixes. See the list of 
-<A HREF="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE5.html">squid-2.6.STABLE4 changes</A> and the 
+<A HREF="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE5.html">squid-2.6.STABLE5 changes</A> and the 
 <A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
 </UL>
 </P>
 
+<H2><A NAME="s11">11.</A> <A HREF="#toc11">Key changes squid-2.6.STABLE5 to 2.6.STABLE6</A></H2>
+
+<P>
+<UL>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1805">#1805</a>: assertion failed: StatHist.c:195: "D[i] &gt;= 0"</LI>
+<LI>Add support for the weight= parameter to round-robin peers</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1584">#1584</a>: Unable to register with multiple WCCP2 routers</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=439">#439</a>: Multicast ICP peering is unstable and considers most peers dead</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1801">#1801</a>: NTLM authentication ends up in a loop if the server responds with a retriable error</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1641">#1641</a>: assertion failed: stmem.c:149: "size &gt; 0" while processing certain Vary objects</LI>
+<LI>a number of other minor and cosmetic bugfixes. See the list of 
+<A HREF="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE6.html">squid-2.6.STABLE6 changes</A> and the 
+<A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
+</UL>
+</P>
 </BODY>
 </HTML>

@@ -1,3 +1,35 @@
+Changes to squid-2.6.STABLE6 (Dec 11 2006)
+
+	- 	Bug #1817: Assertion failure assert(buflen >= copy_sz) in htcp.c htcpBuildAuth()
+	- Add client source port logformat tag >p
+	- Cleanup of transparent & accelerator mode request parsing to untangle the firewall dependencies a bit
+	- Bug #1799: Harmless 1 byte buffer overflow on long host names in /etc/hosts
+	- automake no longer recommends mkinstalldirs. Removed.
+	- Only use crypt() if it's available, allowing ncsa_auth to be built
+	  on platofms without crypt() support.
+	- Windows port documentation updates
+	- Bug #1818: Assertion failure assert(e->swap_dirn >= 0) in fs/coss/store_dir_coss.c storeCoss_DeleteStoreEntry
+	- Bug #1117: assertion failed: aufs/store_dir_aufs.c:642: "rb->flags.need_to_validate"
+	- Remove extra newline in redirect message sent by deny_info http://... aclname
+	- Bug #1805: assertion failed: StatHist.c:195: "D[i] >= 0"
+	- Clarify the external_acl_type helper format specification and some defaults
+	- Add support for the weight= parameter to round-robin peers
+	- Bug #1832: Error building squid-2.6.STABLE5 using --enable-truncate
+	- Convert snmpDebugOid to use a temporary String object instead of strcat
+	- Document that proxy_auth also accepts -i for case-insensitive operation
+	- Remove malloc/free of temporary buffer in time parsing routines.
+	- Reduce memory allocator pressure by not continually allocating client-side read buffers
+	- Accept large dates >2^31 on 64-bit platformst. Seen for example in the Google logo.
+	- Convert the connStateData->chr single link list to a normal dlink_list for clarity.
+	- Bug #1584: Unable to register with multiple WCCP2 routers
+	- Fix the WCCPv2 mask assignment code to not crash as the value assignments are built.
+	- Bug #439: Multicast ICP peering is unstable and considers most peers dead
+	- Bug #1801: NTLM authentication ends up in a loop if the server responds with a retriable error
+	- Bug #1839: Cosmetic debug message cleanup in peerHandleHtcpReply.
+	- Bug #1840: Disable digest and netdb queries to multicast peers
+	- Bug #1641: assertion failed: stmem.c:149: "size > 0" while processing certain Vary objects
+	- Fix build errors when using latest MinGW Windows environment
+
 Changes to squid-2.6.STABLE5 (Now 3 2006)
 
 	- Bug #1776: 2.6.STABLE4 aufs fails to compile if coss isn't enabled
