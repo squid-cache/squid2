@@ -1,6 +1,6 @@
-Changes to squid-2.6.STABLE6 (Dec 11 2006)
+Changes to squid-2.6.STABLE6 (Dec 12 2006)
 
-	- 	Bug #1817: Assertion failure assert(buflen >= copy_sz) in htcp.c htcpBuildAuth()
+	- Bug #1817: Assertion failure assert(buflen >= copy_sz) in htcp.c htcpBuildAuth()
 	- Add client source port logformat tag >p
 	- Cleanup of transparent & accelerator mode request parsing to untangle the firewall dependencies a bit
 	- Bug #1799: Harmless 1 byte buffer overflow on long host names in /etc/hosts
