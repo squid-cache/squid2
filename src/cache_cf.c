@@ -2806,6 +2806,8 @@ dump_generic_http_port(StoreEntry * e, const char *n, const http_port_list * s)
 	storeAppendPrintf(e, " vport");
     if (s->no_connection_auth)
 	storeAppendPrintf(e, " no-connection-auth");
+    if (s->tproxy)
+	storeAppendPrintf(e, " tproxy");
 }
 static void
 dump_http_port_list(StoreEntry * e, const char *n, const http_port_list * s)
