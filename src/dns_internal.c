@@ -39,8 +39,7 @@
  * #ifndef to exclude the internal DNS code from compile process when
  * using External DNS process.
  */
-#ifndef USE_DNSSERVERS
-#include "config.h"
+#if !USE_DNSSERVERS
 
 #if HAVE_ARPA_NAMESER_H
 #include <arpa/nameser.h>
