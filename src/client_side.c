@@ -4368,7 +4368,7 @@ clientNatLookup(ConnStateData * conn)
     }
     if (natfd < 0) {
 	if (squid_curtime - last_reported > 60) {
-	    debug(50, 1) ("parseHttpRequest: NAT open failed: %s\n",
+	    debug(50, 1) ("clientNatLookup: NAT open failed: %s\n",
 		xstrerror());
 	    last_reported = squid_curtime;
 	}
@@ -4394,7 +4394,7 @@ clientNatLookup(ConnStateData * conn)
     if (x < 0) {
 	if (errno != ESRCH) {
 	    if (squid_curtime - last_reported > 60) {
-		debug(50, 1) ("parseHttpRequest: NAT lookup failed: ioctl(SIOCGNATL)\n");
+		debug(50, 1) ("clientNatLookup: NAT lookup failed: ioctl(SIOCGNATL)\n");
 		last_reported = squid_curtime;
 	    }
 	    close(natfd);
@@ -4421,12 +4421,12 @@ clientNatLookup(ConnStateData * conn)
     /* If the call fails the address structure will be unchanged */
     if (getsockopt(conn->fd, SOL_IP, SO_ORIGINAL_DST, &conn->me, &sock_sz) != 0) {
 	if (squid_curtime - last_reported > 60) {
-	    debug(50, 1) ("parseHttpRequest: NF getsockopt(SO_ORIGINAL_DST) failed: %s\n", xstrerror());
+	    debug(50, 1) ("clientNatLookup: NF getsockopt(SO_ORIGINAL_DST) failed: %s\n", xstrerror());
 	    last_reported = squid_curtime;
 	}
 	return -1;
     }
-    debug(33, 5) ("parseHttpRequest: addr = %s", inet_ntoa(conn->me.sin_addr));
+    debug(33, 5) ("clientNatLookup: addr = %s", inet_ntoa(conn->me.sin_addr));
     if (orig_addr.s_addr != conn->me.sin_addr.s_addr)
 	return 0;
     else
@@ -4445,7 +4445,7 @@ clientNatLookup(ConnStateData * conn)
 	    commSetCloseOnExec(pffd);
     }
     if (pffd < 0) {
-	debug(50, 1) ("parseHttpRequest: PF open failed: %s\n",
+	debug(50, 1) ("clientNatLookup: PF open failed: %s\n",
 	    xstrerror());
 	return -1;
     }
@@ -4460,7 +4460,7 @@ clientNatLookup(ConnStateData * conn)
     if (ioctl(pffd, DIOCNATLOOK, &nl)) {
 	if (errno != ENOENT) {
 	    if (squid_curtime - last_reported > 60) {
-		debug(50, 1) ("parseHttpRequest: PF lookup failed: ioctl(DIOCNATLOOK)\n");
+		debug(50, 1) ("clientNatLookup: PF lookup failed: ioctl(DIOCNATLOOK)\n");
 		last_reported = squid_curtime;
 	    }
 	    close(pffd);
