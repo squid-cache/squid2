@@ -135,7 +135,6 @@ do_comm_select(int msec)
     tv.tv_usec = (msec % 1000) * 1000;
     statCounter.syscalls.selects++;
     num = select(Biggest_FD + 1, current_readfds, current_writefds, current_errfds, &tv);
-    statCounter.select_loops++;
 
     if (num < 0) {
 	getCurrentTime();
