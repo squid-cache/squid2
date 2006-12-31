@@ -84,8 +84,9 @@ DOC_START
 
 	options are:
 		transparent	Support for transparent proxies
-		vhost		Accelerator using Host directive
-		vport		Accelerator with IP virtual host support
+		vhost		Accelerator using the Host header for
+				virtual domain support.
+		vport		Accelerator with IP based virtual host support
 		vport=		As above, but uses specified port number
 				rather than the http_port number.
 		defaultsite=	Main web site name for accelerators.
