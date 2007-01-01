@@ -491,6 +491,12 @@ aclDestroyExternal(void **dataptr)
     cbdataFree(*dataptr);
 }
 
+static inline int
+externalAclOverload(external_acl * def)
+{
+    return def->helper->stats.queue_size > def->helper->n_running;
+}
+
 int
 aclMatchExternal(void *data, aclCheck_t * ch)
 {
@@ -543,7 +549,7 @@ aclMatchExternal(void *data, aclCheck_t * ch)
 	}
 	if (lookup_needed) {
 	    debug(82, 2) ("aclMatchExternal: %s(\"%s\") = lookup needed\n", acl->def->name, key);
-	    if (acl->def->helper->stats.queue_size <= acl->def->helper->n_running) {
+	    if (!externalAclOverload(acl->def)) {
 		ch->state[ACL_EXTERNAL] = ACL_LOOKUP_NEEDED;
 		return -1;
 	    } else {
@@ -1067,7 +1073,7 @@ externalAclLookup(aclCheck_t * ch, void *acl_data, EAH * callback, void *callbac
 	oldstate->queue = state;
     } else {
 	/* Check for queue overload */
-	if (def->helper->stats.queue_size >= def->helper->n_running) {
+	if (externalAclOverload(def)) {
 	    debug(82, 1) ("externalAclLookup: '%s' queue overload\n", def->name);
 	    cbdataFree(state);
 	    callback(callback_data, entry);
