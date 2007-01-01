@@ -247,10 +247,21 @@ authenticateAuthUserRequestMessage(auth_user_request_t * auth_user_request)
     return NULL;
 }
 
+static inline void
+authenticateAuthUserRemoveIpEntry(auth_user_t * auth_user, auth_user_ip_t * ipdata)
+{
+    /* remove the node */
+    dlinkDelete(&ipdata->node, &auth_user->ip_list);
+    cbdataFree(ipdata);
+    /* catch incipient underflow */
+    assert(auth_user->ipcount);
+    auth_user->ipcount--;
+}
+
 static void
 authenticateAuthUserRequestSetIp(auth_user_request_t * auth_user_request, struct in_addr ipaddr)
 {
-    auth_user_ip_t *ipdata, *tempnode;
+    auth_user_ip_t *ipdata, *next;
     auth_user_t *auth_user;
     char *ip1;
     int found = 0;
@@ -258,14 +269,14 @@ authenticateAuthUserRequestSetIp(auth_user_request_t * auth_user_request, struct
     if (!auth_user_request->auth_user)
 	return;
     auth_user = auth_user_request->auth_user;
-    ipdata = (auth_user_ip_t *) auth_user->ip_list.head;
+    next = (auth_user_ip_t *) auth_user->ip_list.head;
     /*
      * we walk the entire list to prevent the first item in the list
      * preventing old entries being flushed and locking a user out after
      * a timeout+reconfigure
      */
-    while (ipdata) {
-	tempnode = (auth_user_ip_t *) ipdata->node.next;
+    while ((ipdata = next) != NULL) {
+	next = (auth_user_ip_t *) ipdata->node.next;
 	/* walk the ip list */
 	if (ipdata->ipaddr.s_addr == ipaddr.s_addr) {
 	    /* This ip has already been seen. */
@@ -274,13 +285,8 @@ authenticateAuthUserRequestSetIp(auth_user_request_t * auth_user_request, struct
 	    ipdata->ip_expiretime = squid_curtime;
 	} else if (ipdata->ip_expiretime + Config.authenticateIpTTL < squid_curtime) {
 	    /* This IP has expired - remove from the seen list */
-	    dlinkDelete(&ipdata->node, &auth_user->ip_list);
-	    cbdataFree(ipdata);
-	    /* catch incipient underflow */
-	    assert(auth_user->ipcount);
-	    auth_user->ipcount--;
+	    authenticateAuthUserRemoveIpEntry(auth_user, ipdata);
 	}
-	ipdata = tempnode;
     }
 
     if (found)
@@ -310,12 +316,7 @@ authenticateAuthUserRequestRemoveIp(auth_user_request_t * auth_user_request, str
     while (ipdata) {
 	/* walk the ip list */
 	if (ipdata->ipaddr.s_addr == ipaddr.s_addr) {
-	    /* remove the node */
-	    dlinkDelete(&ipdata->node, &auth_user->ip_list);
-	    cbdataFree(ipdata);
-	    /* catch incipient underflow */
-	    assert(auth_user->ipcount);
-	    auth_user->ipcount--;
+	    authenticateAuthUserRemoveIpEntry(auth_user, ipdata);
 	    return;
 	}
 	ipdata = (auth_user_ip_t *) ipdata->node.next;
@@ -326,19 +327,13 @@ authenticateAuthUserRequestRemoveIp(auth_user_request_t * auth_user_request, str
 static void
 authenticateAuthUserClearIp(auth_user_t * auth_user)
 {
-    auth_user_ip_t *ipdata, *tempnode;
+    auth_user_ip_t *ipdata, *next;
     if (!auth_user)
 	return;
-    ipdata = (auth_user_ip_t *) auth_user->ip_list.head;
-    while (ipdata) {
-	tempnode = (auth_user_ip_t *) ipdata->node.next;
-	/* walk the ip list */
-	dlinkDelete(&ipdata->node, &auth_user->ip_list);
-	cbdataFree(ipdata);
-	/* catch incipient underflow */
-	assert(auth_user->ipcount);
-	auth_user->ipcount--;
-	ipdata = tempnode;
+    next = (auth_user_ip_t *) auth_user->ip_list.head;
+    while ((ipdata = next) != NULL) {
+	next = (auth_user_ip_t *) ipdata->node.next;
+	authenticateAuthUserRemoveIpEntry(auth_user, ipdata);
     }
     /* integrity check */
     assert(auth_user->ipcount == 0);
@@ -618,7 +613,7 @@ authenticateTryToAuthenticateAndSetAuthUser(auth_user_request_t ** auth_user_req
 	    *auth_user_request = t;
 	    authenticateAuthUserRequestLock(*auth_user_request);
 	}
-	if (!request->auth_user_request) {
+	if (!request->auth_user_request && t->lastReply == AUTH_AUTHENTICATED) {
 	    request->auth_user_request = t;
 	    authenticateAuthUserRequestLock(request->auth_user_request);
 	}
@@ -798,7 +793,7 @@ authenticateFixHeader(HttpReply * rep, auth_user_request_t * auth_user_request, 
     if ((auth_user_request != NULL) && (auth_user_request->auth_user->auth_module > 0)
 	&& (authscheme_list[auth_user_request->auth_user->auth_module - 1].AddHeader))
 	authscheme_list[auth_user_request->auth_user->auth_module - 1].AddHeader(auth_user_request, rep, accelerated);
-    if (auth_user_request != NULL)
+    if (auth_user_request != NULL && auth_user_request->lastReply != AUTH_AUTHENTICATED)
 	auth_user_request->lastReply = AUTH_ACL_CANNOT_AUTHENTICATE;
 }
 
