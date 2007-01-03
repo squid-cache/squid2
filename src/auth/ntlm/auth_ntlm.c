@@ -427,7 +427,7 @@ authenticateNTLMHandleReply(void *data, void *srv, char *reply)
 
     auth_user = auth_user_request->auth_user;
     assert(auth_user != NULL);
-    assert(auth_user->auth_type == AUTH_NEGOTIATE);
+    assert(auth_user->auth_type == AUTH_NTLM);
     ntlm_user = auth_user_request->auth_user->scheme_data;
 
     if (ntlm_request->authserver == NULL)
@@ -508,7 +508,7 @@ authenticateNTLMStart(auth_user_request_t * auth_user_request, RH * handler, voi
     assert(ntlm_request);
     assert(handler);
     assert(data);
-    assert(auth_user->auth_type == AUTH_NEGOTIATE);
+    assert(auth_user->auth_type == AUTH_NTLM);
     debug(29, 9) ("authenticateNTLMStart: auth state '%d'\n", ntlm_request->auth_state);
     sent_string = ntlm_request->client_blob;
 
@@ -581,7 +581,7 @@ authenticateDecodeNTLMAuth(auth_user_request_t * auth_user_request, const char *
     dlink_node *node;
     assert(auth_user_request->auth_user == NULL);
     auth_user_request->auth_user = authenticateAuthUserNew("ntlm");
-    auth_user_request->auth_user->auth_type = AUTH_NEGOTIATE;
+    auth_user_request->auth_user->auth_type = AUTH_NTLM;
     auth_user_request->auth_user->scheme_data = memPoolAlloc(ntlm_user_pool);
     auth_user_request->scheme_data = memPoolAlloc(ntlm_request_pool);
     memset(auth_user_request->scheme_data, '\0', sizeof(ntlm_request_t));
@@ -607,7 +607,7 @@ static int
 authNTLMAuthenticated(auth_user_request_t * auth_user_request)
 {
     ntlm_request_t *ntlm_request = auth_user_request->scheme_data;
-    if (ntlm_request->auth_state == AUTHENTICATE_STATE_FINISHED)
+    if (ntlm_request->auth_state == AUTHENTICATE_STATE_DONE)
 	return 1;
     debug(29, 9) ("User not fully authenticated.\n");
     return 0;
@@ -624,7 +624,7 @@ authenticateNTLMAuthenticateUser(auth_user_request_t * auth_user_request, reques
 
     auth_user = auth_user_request->auth_user;
     assert(auth_user);
-    assert(auth_user->auth_type == AUTH_NEGOTIATE);
+    assert(auth_user->auth_type == AUTH_NTLM);
     assert(auth_user->scheme_data != NULL);
     assert(auth_user_request->scheme_data != NULL);
     ntlm_user = auth_user->scheme_data;
@@ -661,7 +661,7 @@ authenticateNTLMAuthenticateUser(auth_user_request_t * auth_user_request, reques
 	ntlm_request->auth_state = AUTHENTICATE_STATE_INITIAL;
 	safe_free(ntlm_request->client_blob);
 	ntlm_request->client_blob = xstrdup(blob);
-	conn->auth_type = AUTH_NEGOTIATE;
+	conn->auth_type = AUTH_NTLM;
 	conn->auth_user_request = auth_user_request;
 	ntlm_request->conn = conn;
 	/* and lock for the connection duration */

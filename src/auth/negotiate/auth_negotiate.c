@@ -651,7 +651,7 @@ static int
 authNegotiateAuthenticated(auth_user_request_t * auth_user_request)
 {
     negotiate_request_t *negotiate_request = auth_user_request->scheme_data;
-    if (negotiate_request->auth_state == AUTHENTICATE_STATE_FINISHED)
+    if (negotiate_request->auth_state == AUTHENTICATE_STATE_DONE)
 	return 1;
     debug(29, 9) ("User not fully authenticated.\n");
     return 0;
