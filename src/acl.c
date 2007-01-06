@@ -1128,24 +1128,18 @@ aclParseAclLine(acl ** head)
 
 /* does name lookup, returns page_id */
 err_type
-aclGetDenyInfoPage(acl_deny_info_list ** head, const char *name)
+aclGetDenyInfoPage(acl_deny_info_list ** head, const char *name, int redirect_allowed)
 {
     acl_deny_info_list *A = NULL;
-    acl_name_list *L = NULL;
 
-    A = *head;
-    if (NULL == *head)		/* empty list */
-	return ERR_NONE;
-    while (A) {
-	L = A->acl_list;
-	if (NULL == L)		/* empty list should never happen, but in case */
+    for (A = *head; A; A = A->next) {
+	acl_name_list *L = NULL;
+	if (!redirect_allowed && strchr(A->err_page_name, ':'))
 	    continue;
-	while (L) {
+	for (L = A->acl_list; L; L = L->next) {
 	    if (!strcmp(name, L->name))
 		return A->err_page_id;
-	    L = L->next;
 	}
-	A = A->next;
     }
     return ERR_NONE;
 }

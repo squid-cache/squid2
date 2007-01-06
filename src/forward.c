@@ -823,7 +823,7 @@ fwdStart(int fd, StoreEntry * e, request_t * r)
 	answer = aclCheckFast(Config.accessList.miss, &ch);
 	if (answer == 0) {
 	    err_type page_id;
-	    page_id = aclGetDenyInfoPage(&Config.denyInfoList, AclMatchedName);
+	    page_id = aclGetDenyInfoPage(&Config.denyInfoList, AclMatchedName, 1);
 	    if (page_id == ERR_NONE)
 		page_id = ERR_FORWARDING_DENIED;
 	    err = errorCon(page_id, HTTP_FORBIDDEN, r);
