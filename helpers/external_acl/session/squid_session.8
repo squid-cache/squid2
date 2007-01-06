@@ -35,7 +35,7 @@ the first request.
 .P
 Configuration example using the default automatic mode
 .IP
-external_acl_type session ttl=300 negative_ttl=0 %LOGIN /usr/local/squid/libexec/squid_session
+external_acl_type session ttl=300 negative_ttl=0 children=1 concurrency=200 %LOGIN /usr/local/squid/libexec/squid_session
 .IP
 acl session external session
 .IP
