@@ -83,7 +83,8 @@ DOC_START
 	You may specify multiple socket addresses on multiple lines.
 
 	options are:
-		transparent	Support for transparent proxies
+		transparent	Support for transparent interception of
+				outgoing requests without browser settings
 		vhost		Accelerator using the Host header for
 				virtual domain support.
 		vport		Accelerator with IP based virtual host support
