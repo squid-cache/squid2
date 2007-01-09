@@ -52,7 +52,6 @@ struct _PeerMonitor {
 	char *buf;
     } running;
     char name[40];
-    char url[80];
 };
 
 CBDATA_TYPE(PeerMonitor);
@@ -127,10 +126,15 @@ static void
 peerMonitorRequest(void *data)
 {
     PeerMonitor *pm = data;
-    char *url = pm->url;
+    char *url;
     request_t *req;
 
     if (!cbdataValid(pm->peer)) {
+	cbdataFree(pm);
+	return;
+    }
+    url = pm->peer->monitor.url;
+    if (!url) {
 	cbdataFree(pm);
 	return;
     }
@@ -217,12 +221,6 @@ peerMonitorStart(peer * peer)
     pm->peer = peer;
     peer->monitor.data = pm;
     cbdataLock(pm->peer);
-    if (*url == '/') {
-	snprintf(pm->url, sizeof(pm->url), "http://%s:%d%s",
-	    pm->peer->host, pm->peer->http_port, url);
-    } else {
-	xstrncpy(pm->url, url, sizeof(pm->url));
-    }
     peerMonitorRequest(pm);
 }
 

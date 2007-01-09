@@ -1598,6 +1598,7 @@ parse_peer(peer ** head)
     p->weight = 1;
     p->stats.logged_state = PEER_ALIVE;
     p->monitor.state = PEER_ALIVE;
+    p->monitor.interval = 300;
     if ((token = strtok(NULL, w_space)) == NULL)
 	self_destruct();
     p->host = xstrdup(token);
@@ -1680,18 +1681,23 @@ parse_peer(peer ** head)
 	    if (token[5])
 		p->name = xstrdup(token + 5);
 	} else if (!strncasecmp(token, "monitorurl=", 11)) {
+	    char *url = token + 11;
 	    safe_free(p->monitor.url);
-	    if (token[11])
-		p->monitor.url = xstrdup(token + 11);
+	    if (*url == '/') {
+		int size = strlen("http://") + strlen(p->host) + 16 + strlen(url);
+		p->monitor.url = xmalloc(size);
+		snprintf(p->monitor.url, size, "http://%s:%d%s", p->host, p->http_port, url);
+	    } else {
+		p->monitor.url = xstrdup(url);
+	    }
 	} else if (!strncasecmp(token, "monitorsize=", 12)) {
+	    char *token2 = strchr(token + 12, ',');
+	    if (!token2)
+		token2 = strchr(token + 12, '-');
+	    if (token2)
+		*token2++ = '\0';
 	    p->monitor.min = xatoi(token + 12);
-	    p->monitor.max = -1;
-	    if (strchr(token + 12, ','))
-		token = strchr(token + 12, ',');
-	    else
-		token = strchr(token + 12, '-');
-	    if (token)
-		p->monitor.max = xatoi(token + 1);
+	    p->monitor.max = token2 ? xatoi(token2) : -1;
 	} else if (!strncasecmp(token, "monitorinterval=", 16)) {
 	    p->monitor.interval = xatoi(token + 16);
 	} else if (!strncasecmp(token, "monitortimeout=", 15)) {
