@@ -1114,6 +1114,11 @@ SquidShutdown(void *unused)
 #endif
     storeDirSync();		/* Flush log close */
     storeFsDone();
+    if (Config.pidFilename && strcmp(Config.pidFilename, "none") != 0) {
+	enter_suid();
+	safeunlink(Config.pidFilename, 0);
+	leave_suid();
+    }
 #if LEAK_CHECK_MODE
     configFreeMemory();
     storeFreeMemory();
@@ -1147,11 +1152,6 @@ SquidShutdown(void *unused)
 #if MEM_GEN_TRACE
     log_trace_done();
 #endif
-    if (Config.pidFilename && strcmp(Config.pidFilename, "none") != 0) {
-	enter_suid();
-	safeunlink(Config.pidFilename, 0);
-	leave_suid();
-    }
     debug(1, 1) ("Squid Cache (Version %s): Exiting normally.\n",
 	version_string);
     if (debug_log)
