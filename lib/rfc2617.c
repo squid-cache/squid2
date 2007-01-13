@@ -83,14 +83,20 @@ CvtBin(const HASHHEX Hex, HASH Bin)
 	j = Hex[i];
 	if (('0' <= j) && (j <= '9'))
 	    n = j - '0';
-	else
+	else if (('a' <= j) && (j <= 'f'))
 	    n = j - 'a' + 10;
+	else if (('A' <= j) && (j <= 'F'))
+	    n = j - 'A' + 10;
+	else
+	    continue;
 	if (i % 2 == 0)
 	    Bin[i / 2] = n << 4;
 	else
 	    Bin[i / 2] |= n;
     }
-    Bin[HASHLEN] = '\0';
+    for (; i <= HASHHEXLEN; i++) {
+	Bin[i] = '\0';
+    }
 }
 
 
