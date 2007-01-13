@@ -1,3 +1,24 @@
+Changes to squid-2.6.STABLE7 (Jan 13 2007)
+
+	- Windows port: Fix intermittent build error using Visual Studio
+	- Add missing tproxy info from the dump of http port configuration
+	- Bug #1853: Support for ARP ACL on NetBSD
+	- clientNatLookup(): fix wrong function name in debug messages
+	- Convert ncsa_auth man page from DOS to Unix text format.
+	- Bug #1858: digest_ldap_auth had some remains of old hash format
+	- Correct the select_loops counter when using select(). Was counted twice
+	- Clarify the http_port vhost option a bit
+	- Fix cache-control: max-stale without value or bad value
+	- Bug #1857: Segmentation fault on certain types of ftp:// requests
+	- Bug #1848: external_acl crashes with an infinite loop under high load
+	- Bug #1792: max_user_ip not working with NTLM authentication
+	- Bug #1865: deny_info redirection with authentication related acls
+	- Small example on how to use the squid_session helper
+	- Bug #1863: cache_peer monitorurl, monitorsize and monitorinterval not working properly
+	- Clarify the transparent http_port option a bit more
+	- Bug #1828: squid.conf docutemtation error for proxy_auth digest
+	- Bug #1867: squid.pid isn't removed on shutdown
+
 Changes to squid-2.6.STABLE6 (Dec 12 2006)
 
 	- Bug #1817: Assertion failure assert(buflen >= copy_sz) in htcp.c htcpBuildAuth()

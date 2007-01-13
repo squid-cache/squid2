@@ -2,10 +2,10 @@
 <HTML>
 <HEAD>
  <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.21">
- <TITLE>Squid 2.6 release notes</TITLE>
+ <TITLE>Squid 2.6.STABLE7 release notes</TITLE>
 </HEAD>
 <BODY>
-<H1>Squid 2.6 release notes</H1>
+<H1>Squid 2.6.STABLE7 release notes</H1>
 
 <H2>Squid Developers</H2>$Id$
 <HR>
@@ -44,6 +44,9 @@ Squid is a WWW Cache application developed by the Web Caching community.</EM>
 
 <P>
 <H2><A NAME="toc11">11.</A> <A HREF="#s11">Key changes squid-2.6.STABLE5 to 2.6.STABLE6</A></H2>
+
+<P>
+<H2><A NAME="toc12">12.</A> <A HREF="#s12">Key changes squid-2.6.STABLE6 to 2.6.STABLE7</A></H2>
 
 
 <HR>
@@ -143,7 +146,7 @@ membership check</LI>
 <DT><B>auth_param negotiate</B><DD><P>New Negotiate authentication scheme, the "next generation" scheme in the family of Microsoft authentication.</P>
 <DT><B>external_acl_type</B><DD><P>Many new format options %SRCPORT, %MYADDR, %MYPORT, %PATH, %USER_CERT, %ACL, %DATA and a few variants. Helper protocol defaults to the simpler "3.0" protocol, and there is support for a highly efficient protocol via the concurrency= option if supported by the helper.</P>
 <DT><B>refresh_pattern</B><DD><P>Several new HTTP override/ignore options</P>
-<DT><B>read_ahead_gap</B><DD><P>New directive to set the response buffer size.</P>
+<DT><B>read_ahead_gap</B><DD><P>New directive to set the response buffer size.  </P>
 <DT><B>collapsed_forwarding</B><DD><P>New directive to enable an alternative optimized forwarding path when there is very many concurrent requests for the same URL.</P>
 <DT><B>refresh_stale_hit</B><DD><P>New directive similar to collapsed_forwarding and activates an alternative optimized request processing when there is very many concurrent requests for the same recently expired URL.</P>
 <DT><B>acl urlgroup</B><DD><P>New acl class</P>
@@ -537,6 +540,20 @@ DNS client complete.</LI>
 <LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1641">#1641</a>: assertion failed: stmem.c:149: "size &gt; 0" while processing certain Vary objects</LI>
 <LI>a number of other minor and cosmetic bugfixes. See the list of 
 <A HREF="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE6.html">squid-2.6.STABLE6 changes</A> and the 
+<A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
+</UL>
+</P>
+
+<H2><A NAME="s12">12.</A> <A HREF="#toc12">Key changes squid-2.6.STABLE6 to 2.6.STABLE7</A></H2>
+
+<P>
+<UL>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1857">#1857</a>: Segmentation fault on certain types of ftp:// requests</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1848">#1848</a>: external_acl crashes with an infinite loop under high load</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1867">#1867</a>: squid.pid isn't removed on shutdown</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1792">#1792</a>: max_user_ip not working with ntlm_auth</LI>
+<LI>a number of other minor and cosmetic bugfixes. See the list of 
+<A HREF="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE7.html">squid-2.6.STABLE7 changes</A> and the 
 <A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
 </UL>
 </P>
