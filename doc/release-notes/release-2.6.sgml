@@ -67,6 +67,7 @@ membership check
 </itemize>
 <item>HTCP significantly cleaned up and added support for the CLR operation to purge contents from the cache
 <item>Support for parsing X-Forwarded-For headers allowing access controls to be based on the real client IP even if behind secondary proxies
+<item>Support for proxying of Microsoft Integrated Login (NTLM &amp; Negotiate schemes), enabling access to servers or proxies using such authentication methods.
 </itemize>
 
 <sect>Changes to squid.conf
@@ -137,7 +138,6 @@ membership check
 
 <itemize>
 <item>Bug #1420: 302 responses with an Expires header is always cached
-<item>Bug #1584: WCCPv2 unable to register with more than one router on Linux
 <item>Bug #1059: mime.conf and referenced icons must be within chroot
 <item>Bug #692: tcp_outgoing_address using an ident ACL does not work
 <item>Bug #581: acl max_user_ip and multiple authentication schemes
