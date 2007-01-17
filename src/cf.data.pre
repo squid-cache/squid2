@@ -83,23 +83,37 @@ DOC_START
 	You may specify multiple socket addresses on multiple lines.
 
 	options are:
+
 		transparent	Support for transparent interception of
 				outgoing requests without browser settings
+
+		accel		Accelerator mode. Also needs at least one
+				of vhost/vport/defaultsite.
+
+		defaultsite=	Main web site name for accelerators. Implies
+				accel.
+
 		vhost		Accelerator using the Host header for
-				virtual domain support.
-		vport		Accelerator with IP based virtual host support
+				virtual domain support. Implies accel.
+
+		vport		Accelerator with IP based virtual host support.
+				Implies accel.
+
 		vport=		As above, but uses specified port number
-				rather than the http_port number.
-		defaultsite=	Main web site name for accelerators.
+				rather than the http_port number. Implies accel.
+
 		urlgroup=	Default urlgroup to mark requests
 				with (see also acl urlgroup and
 				url_rewrite_program)
+
 		protocol=	Protocol to reconstruct accelerated
 				requests with. Defaults to http.
+
 		no-connection-auth
 				Prevent forwarding of Microsoft
 				connection oriented authentication
 				(NTLM, Negotiate and Kerberos)
+
 		tproxy		Support Linux TPROXY for spoofing
 				outgoing connections using the client
 				IP address.
@@ -135,8 +149,10 @@ DOC_START
 
 	Options:
 
+	   accel	Accelerator mode. Also needs defaultsite.
+
 	   defaultsite=	The name of the https site presented on
-			this port.
+			this port. Implies accel.
 
 	   urlgroup=	Default urlgroup to mark requests with (see
 			also acl urlgroup and url_rewrite_program)
@@ -596,7 +612,7 @@ DOC_START
 		     is not feasible.
 
 		     use 'ssl' to indicate that connections to this peer should
-		     bs SSL/TLS encrypted.
+		     be SSL/TLS encrypted.
 
 		     use 'sslcert=/path/to/ssl/certificate' to specify a client
 		     SSL certificate to use when connecting to this peer.
