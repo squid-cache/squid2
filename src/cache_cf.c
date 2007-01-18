@@ -2738,6 +2738,8 @@ parse_http_port_option(http_port_list * s, char *token)
     } else if (strncmp(token, "vport=", 6) == 0) {
 	s->vport = xatos(token + 6);
 	s->accel = 1;
+    } else if (strcmp(token, "accel") == 0) {
+	s->accel = 1;
     } else if (strcmp(token, "no-connection-auth") == 0) {
 	s->no_connection_auth = 1;
     } else if (strncmp(token, "urlgroup=", 9) == 0) {
@@ -2752,8 +2754,17 @@ parse_http_port_option(http_port_list * s, char *token)
     } else {
 	self_destruct();
     }
+}
+
+static void
+verify_http_port_options(http_port_list * s)
+{
     if (s->accel && s->transparent) {
 	debug(28, 0) ("Can't be both a transparent proxy and web server accelerator on the same port\n");
+	self_destruct();
+    }
+    if (s->accel && !s->vhost && !s->defaultsite && !s->vport) {
+	debug(28, 0) ("Accelerator mode requires at least one of vhost/vport/defaultsite\n");
 	self_destruct();
     }
 }
@@ -2790,6 +2801,7 @@ parse_http_port_list(http_port_list ** head)
     while ((token = strtok(NULL, w_space))) {
 	parse_http_port_option(s, token);
     }
+    verify_http_port_options(s);
     while (*head)
 	head = &(*head)->next;
     *head = s;
@@ -2802,14 +2814,22 @@ dump_generic_http_port(StoreEntry * e, const char *n, const http_port_list * s)
 	n,
 	inet_ntoa(s->s.sin_addr),
 	ntohs(s->s.sin_port));
-    if (s->defaultsite)
-	storeAppendPrintf(e, " defaultsite=%s", s->defaultsite);
     if (s->transparent)
 	storeAppendPrintf(e, " transparent");
+    if (s->accel)
+	storeAppendPrintf(e, " accel");
+    if (s->defaultsite)
+	storeAppendPrintf(e, " defaultsite=%s", s->defaultsite);
     if (s->vhost)
 	storeAppendPrintf(e, " vhost");
-    if (s->vport)
+    if (s->vport == ntohs(s->s.sin_port))
 	storeAppendPrintf(e, " vport");
+    else if (s->vport)
+	storeAppendPrintf(e, " vport=%d", s->vport);
+    if (s->urlgroup)
+	storeAppendPrintf(e, " urlgroup=%s", s->urlgroup);
+    if (s->protocol)
+	storeAppendPrintf(e, " protocol=%s", s->protocol);
     if (s->no_connection_auth)
 	storeAppendPrintf(e, " no-connection-auth");
 #if LINUX_TPROXY
@@ -2914,6 +2934,7 @@ parse_https_port_list(https_port_list ** head)
 	    parse_http_port_option(&s->http, token);
 	}
     }
+    verify_http_port_options(&s->http);
     while (*head)
 	head = (https_port_list **) (void *) (&(*head)->http.next);
     s->sslContext = sslCreateServerContext(s->cert, s->key, s->version, s->cipher, s->options, s->sslflags, s->clientca, s->cafile, s->capath, s->crlfile, s->dhfile, s->sslcontext);
