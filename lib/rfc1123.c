@@ -119,7 +119,7 @@ tmSaneValues(struct tm *tm)
 	return 0;
     if (tm->tm_mon < 0 || tm->tm_mon > 11)
 	return 0;
-    return mktime(tm) != -1;
+    return 1;
 }
 
 static struct tm *
@@ -219,14 +219,14 @@ parse_rfc1123(const char *str, int len)
     t = timegm(tm);
 #elif HAVE_TM_GMTOFF
     t = mktime(tm);
-    {
+    if (t != -1) {
 	struct tm *local = localtime(&t);
 	t += local->tm_gmtoff;
     }
 #else
     /* some systems do not have tm_gmtoff so we fake it */
     t = mktime(tm);
-    {
+    if (t != -1) {
 	time_t dst = 0;
 #if defined (_TIMEZONE)
 #elif defined (_timezone)
