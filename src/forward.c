@@ -106,8 +106,8 @@ fwdStateFree(FwdState * fwdState)
 	    fwdState->err = NULL;
 	} else {
 	    EBIT_CLR(e->flags, ENTRY_FWD_HDR_WAIT);
-	    storeComplete(e);
 	    storeReleaseRequest(e);
+	    storeComplete(e);
 	}
     }
     if (EBIT_TEST(e->flags, ENTRY_DEFER_READ))

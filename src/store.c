@@ -1308,6 +1308,7 @@ storeComplete(StoreEntry * e)
     if (e->mem_obj->request)
 	e->mem_obj->request->hier.store_complete_stop = current_time;
 #endif
+    e->mem_obj->refresh_timestamp = e->timestamp;
     /*
      * We used to call InvokeHandlers, then storeSwapOut.  However,
      * Madhukar Reddy <myreddy@persistence.com> reported that

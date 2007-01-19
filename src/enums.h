@@ -51,6 +51,7 @@ typedef enum {
 #if LOG_TCP_REDIRECTS
     LOG_TCP_REDIRECT,
 #endif
+    LOG_TCP_STALE_HIT,
     LOG_UDP_HIT,
     LOG_UDP_MISS,
     LOG_UDP_DENIED,

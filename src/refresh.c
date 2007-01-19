@@ -80,6 +80,7 @@ enum {
     STALE_EXPIRES,
     STALE_MAX_RULE,
     STALE_LMFACTOR_RULE,
+    STALE_WITHIN_DELTA,
     STALE_DEFAULT = 299
 };
 
@@ -220,7 +221,7 @@ refreshCheck(const StoreEntry * entry, request_t * request, time_t delta)
     const refresh_t *R;
     const char *uri = NULL;
     time_t age = 0;
-    time_t check_time = squid_curtime + delta;
+    time_t check_time = squid_curtime;
     int staleness;
     stale_flags sf;
     if (entry->mem_obj)
@@ -230,6 +231,8 @@ refreshCheck(const StoreEntry * entry, request_t * request, time_t delta)
 
     debug(22, 3) ("refreshCheck: '%s'\n", uri ? uri : "<none>");
 
+    if (delta > 0)
+	check_time += delta;
     if (check_time > entry->timestamp)
 	age = check_time - entry->timestamp;
     R = uri ? refreshLimits(uri) : refreshUncompiledPattern(".");
@@ -280,7 +283,7 @@ refreshCheck(const StoreEntry * entry, request_t * request, time_t delta)
 		    return STALE_EXCEEDS_REQUEST_MAX_AGE_VALUE;
 		}
 	    }
-	    if (EBIT_TEST(cc->mask, CC_MAX_STALE) && staleness > -1) {
+	    if (EBIT_TEST(cc->mask, CC_MAX_STALE) && staleness >= 0) {
 		if (cc->max_stale < 0) {
 		    /* max-stale directive without a value */
 		    debug(22, 3) ("refreshCheck: NO: max-stale wildcard\n");
@@ -292,7 +295,7 @@ refreshCheck(const StoreEntry * entry, request_t * request, time_t delta)
 	    }
 	}
     }
-    if (-1 == staleness) {
+    if (staleness < 0) {
 	if (sf.expires)
 	    return FRESH_EXPIRES;
 	assert(!sf.max);
@@ -305,6 +308,9 @@ refreshCheck(const StoreEntry * entry, request_t * request, time_t delta)
      * At this point the response is stale, unless one of
      * the override options kicks in.
      */
+    if (delta < 0 && staleness + delta < 0) {
+	return STALE_WITHIN_DELTA;
+    }
     if (sf.expires) {
 #if HTTP_VIOLATIONS
 	if (R->flags.override_expire && age < R->min) {
@@ -375,6 +381,8 @@ int
 refreshCheckHTTPStale(const StoreEntry * entry, request_t * request)
 {
     int reason = refreshCheck(entry, request, -Config.refresh_stale_window);
+    if (reason == STALE_WITHIN_DELTA)
+	return -1;
     return (reason < 200) ? 0 : 1;
 }
 

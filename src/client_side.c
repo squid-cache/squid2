@@ -1663,6 +1663,8 @@ isTcpHit(log_type code)
     /* this should be a bitmap for better optimization */
     if (code == LOG_TCP_HIT)
 	return 1;
+    if (code == LOG_TCP_STALE_HIT)
+	return 1;
     if (code == LOG_TCP_IMS_HIT)
 	return 1;
     if (code == LOG_TCP_REFRESH_FAIL_HIT)
@@ -2058,6 +2060,7 @@ clientCacheHit(void *data, char *buf, ssize_t size)
     MemObject *mem;
     request_t *r = http->request;
     int is_modified = -1;
+    int stale;
     debug(33, 3) ("clientCacheHit: %s, %d bytes\n", http->uri, (int) size);
     http->flags.hit = 0;
     if (http->entry == NULL) {
@@ -2171,10 +2174,6 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	}
 	return;
     }
-    if (Config.refresh_stale_window > 0 && e->mem_obj && e->mem_obj->refresh_timestamp + Config.refresh_stale_window > squid_curtime && !refreshCheckHTTPStale(e, r)) {
-	debug(33, 2) ("clientProcessHit: refresh_stale HIT\n");
-	goto hit;
-    }
     if (httpHeaderHas(&r->header, HDR_IF_MATCH)) {
 	String req_etags;
 	const char *rep_etag = httpHeaderGetStr(&e->mem_obj->reply->header, HDR_ETAG);
@@ -2192,14 +2191,74 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	stringClean(&req_etags);
 	if (!has_etag) {
 	    /* The entity tags does not match. This cannot be a
-	     * hit for this object. Qyery the origin.
+	     * hit for this object. Query the origin.
 	     */
 	    http->log_type = LOG_TCP_MISS;
 	    clientProcessMiss(http);
 	    return;
 	}
     }
-    if (!Config.onoff.offline && refreshCheckHTTP(e, r) && !http->flags.internal) {
+    if (httpHeaderHas(&r->header, HDR_IF_NONE_MATCH)) {
+	String req_etags;
+	const char *rep_etag = httpHeaderGetStr(&e->mem_obj->reply->header, HDR_ETAG);
+	int has_etag;
+	if (mem->reply->sline.status != HTTP_OK) {
+	    debug(33, 4) ("clientCacheHit: Reply code %d != 200\n",
+		mem->reply->sline.status);
+	    http->log_type = LOG_TCP_MISS;
+	    clientProcessMiss(http);
+	    return;
+	}
+	if (rep_etag) {
+	    req_etags = httpHeaderGetList(&http->request->header, HDR_IF_NONE_MATCH);
+	    has_etag = strListIsMember(&req_etags, rep_etag, ',');
+	    stringClean(&req_etags);
+	    if (has_etag) {
+		debug(33, 4) ("clientCacheHit: If-None-Match matches\n");
+		is_modified = 0;
+	    } else {
+		debug(33, 4) ("clientCacheHit: If-None-Match mismatch\n");
+		if (is_modified == -1)
+		    is_modified = 1;
+	    }
+	}
+    }
+    if (r->flags.ims) {
+	/*
+	 * Handle If-Modified-Since requests from the client
+	 */
+	if (mem->reply->sline.status != HTTP_OK) {
+	    debug(33, 4) ("clientCacheHit: Reply code %d != 200\n",
+		mem->reply->sline.status);
+	    http->log_type = LOG_TCP_MISS;
+	    clientProcessMiss(http);
+	    return;
+	}
+	if (modifiedSince(e, http->request)) {
+	    debug(33, 4) ("clientCacheHit: If-Modified-Since not modified\n");
+	    is_modified = 0;
+	} else {
+	    debug(33, 4) ("clientCacheHit: If-Modified-Since modified\n");
+	    if (is_modified == -1)
+		is_modified = 1;
+	}
+    }
+    stale = refreshCheckHTTPStale(e, r);
+    if (stale == 0) {
+	debug(33, 2) ("clientProcessHit: HIT\n");
+    } else if (stale == -1 && Config.refresh_stale_window > 0 && e->mem_obj->refresh_timestamp + Config.refresh_stale_window > squid_curtime) {
+	debug(33, 2) ("clientProcessHit: refresh_stale HIT\n");
+	http->log_type = LOG_TCP_STALE_HIT;
+	stale = 0;
+    } else if (stale && http->flags.internal) {
+	debug(33, 2) ("clientProcessHit: internal HIT\n");
+	stale = 0;
+    } else if (stale && Config.onoff.offline) {
+	debug(33, 2) ("clientProcessHit: offline HIT\n");
+	http->log_type = LOG_TCP_OFFLINE_HIT;
+	stale = 0;
+    }
+    if (stale) {
 	debug(33, 5) ("clientCacheHit: in refreshCheck() block\n");
 	/*
 	 * We hold a stale copy; it needs to be validated
@@ -2229,68 +2288,10 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	     */
 	    http->log_type = LOG_TCP_CLIENT_REFRESH_MISS;
 	    clientProcessMiss(http);
-	} else if (r->protocol == PROTO_HTTP) {
-	    /*
-	     * Object needs to be revalidated
-	     * XXX This could apply to FTP as well, if Last-Modified is known.
-	     */
-	    http->log_type = LOG_TCP_REFRESH_MISS;
-	    clientProcessExpired(http);
 	} else {
-	    /*
-	     * We don't know how to re-validate other protocols. Handle
-	     * them as if the object has expired.
-	     */
-	    http->log_type = LOG_TCP_MISS;
-	    clientProcessMiss(http);
+	    clientProcessExpired(http);
 	}
 	return;
-    }
-  hit:
-    if (httpHeaderHas(&r->header, HDR_IF_NONE_MATCH)) {
-	String req_etags;
-	const char *rep_etag = httpHeaderGetStr(&e->mem_obj->reply->header, HDR_ETAG);
-	int has_etag;
-	if (mem->reply->sline.status != HTTP_OK) {
-	    debug(33, 4) ("clientCacheHit: Reply code %d != 200\n",
-		mem->reply->sline.status);
-	    http->log_type = LOG_TCP_MISS;
-	    clientProcessMiss(http);
-	    return;
-	}
-	if (!rep_etag) {
-	    /* The cached object does not have a entity tag, but the client
-	     * obviously thinks there should be one... Query the origin to
-	     * be on the safe side.
-	     */
-	    http->log_type = LOG_TCP_MISS;
-	    clientProcessMiss(http);
-	    return;
-	}
-	req_etags = httpHeaderGetList(&http->request->header, HDR_IF_NONE_MATCH);
-	has_etag = strListIsMember(&req_etags, rep_etag, ',');
-	stringClean(&req_etags);
-	if (has_etag) {
-	    http->log_type = LOG_TCP_IMS_HIT;
-	    is_modified = 0;
-	}
-    }
-    if (is_modified != 0 && r->flags.ims) {
-	/*
-	 * Handle If-Modified-Since requests from the client
-	 */
-	if (mem->reply->sline.status != HTTP_OK) {
-	    debug(33, 4) ("clientCacheHit: Reply code %d != 200\n",
-		mem->reply->sline.status);
-	    http->log_type = LOG_TCP_MISS;
-	    clientProcessMiss(http);
-	    return;
-	} else if (modifiedSince(e, http->request)) {
-	    http->log_type = LOG_TCP_IMS_HIT;
-	    clientSendMoreHeaderData(data, buf, size);
-	    return;
-	}
-	is_modified = 0;
     }
     if (is_modified == 0) {
 	time_t timestamp = e->timestamp;
@@ -2317,10 +2318,8 @@ clientCacheHit(void *data, char *buf, ssize_t size)
      */
     if (e->store_status != STORE_OK)
 	http->log_type = LOG_TCP_MISS;
-    else if (e->mem_status == IN_MEMORY)
+    else if (http->log_type == LOG_TCP_HIT && e->mem_status == IN_MEMORY)
 	http->log_type = LOG_TCP_MEM_HIT;
-    else if (Config.onoff.offline)
-	http->log_type = LOG_TCP_OFFLINE_HIT;
     clientSendMoreHeaderData(data, buf, size);
 }
 
