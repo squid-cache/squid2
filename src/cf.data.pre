@@ -149,10 +149,16 @@ DOC_START
 
 	Options:
 
-	   accel	Accelerator mode. Also needs defaultsite.
+	   accel	Accelerator mode. Also needs at least one of
+	   	        defaultsite or vhost.
 
 	   defaultsite=	The name of the https site presented on
 			this port. Implies accel.
+
+	   vhost	Domain based virtual host support. Useful
+			in combination with a wildcard certificate or
+			other certificates valid for more than one domain.
+			Implies accel.
 
 	   urlgroup=	Default urlgroup to mark requests with (see
 			also acl urlgroup and url_rewrite_program)
