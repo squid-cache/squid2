@@ -983,12 +983,14 @@ clientHandleIMSReply(void *data, char *buf, ssize_t size)
 	    oldentry->mem_obj->request = requestLink(mem->request);
 	    unlink_request = 1;
 	}
-	/* Don't memcpy() the whole reply structure here.  For example,
-	 * www.thegist.com (Netscape/1.13) returns a content-length for
-	 * 304's which seems to be the length of the 304 HEADERS!!! and
-	 * not the body they refer to.  */
-	httpReplyUpdateOnNotModified(oldentry->mem_obj->reply, mem->reply);
-	storeTimestampsSet(oldentry);
+	if (mem->reply->sline.status == HTTP_NOT_MODIFIED) {
+	    /* Don't memcpy() the whole reply structure here.  For example,
+	     * www.thegist.com (Netscape/1.13) returns a content-length for
+	     * 304's which seems to be the length of the 304 HEADERS!!! and
+	     * not the body they refer to.  */
+	    httpReplyUpdateOnNotModified(oldentry->mem_obj->reply, mem->reply);
+	    storeTimestampsSet(oldentry);
+	}
 	storeClientUnregister(http->sc, entry, http);
 	http->sc = http->old_sc;
 	storeUnlockObject(entry);
