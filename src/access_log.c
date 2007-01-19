@@ -46,33 +46,6 @@ static struct sockaddr_in mcast_miss_to;
 static void mcast_encode(unsigned int *, size_t, const unsigned int *);
 #endif
 
-const char *log_tags[] =
-{
-    "NONE",
-    "TCP_HIT",
-    "TCP_MISS",
-    "TCP_REFRESH_HIT",
-    "TCP_REF_FAIL_HIT",
-    "TCP_REFRESH_MISS",
-    "TCP_CLIENT_REFRESH_MISS",
-    "TCP_IMS_HIT",
-    "TCP_SWAPFAIL_MISS",
-    "TCP_NEGATIVE_HIT",
-    "TCP_MEM_HIT",
-    "TCP_DENIED",
-    "TCP_OFFLINE_HIT",
-#if LOG_TCP_REDIRECTS
-    "TCP_REDIRECT",
-#endif
-    "UDP_HIT",
-    "UDP_MISS",
-    "UDP_DENIED",
-    "UDP_INVALID",
-    "UDP_MISS_NOFETCH",
-    "ICP_QUERY",
-    "LOG_TYPE_MAX"
-};
-
 #if FORW_VIA_DB
 typedef struct {
     hash_link hash;
@@ -1233,7 +1206,6 @@ void
 accessLogInit(void)
 {
     customlog *log;
-    assert(sizeof(log_tags) == (LOG_TYPE_MAX + 1) * sizeof(char *));
     for (log = Config.Log.accesslogs; log; log = log->next) {
 	if (log->type == CLF_NONE)
 	    continue;

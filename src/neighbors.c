@@ -799,7 +799,7 @@ neighborsUdpAck(const cache_key * key, icp_common_t * header, const struct socka
     StoreEntry *entry;
     MemObject *mem = NULL;
     peer_t ntype = PEER_NONE;
-    char *opcode_d;
+    const char *opcode_d;
     icp_opcode opcode = (icp_opcode) header->opcode;
 
     debug(15, 6) ("neighborsUdpAck: opcode %d '%s'\n",

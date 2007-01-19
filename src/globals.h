@@ -120,10 +120,10 @@ extern int store_swap_size;	/* 0 */
 extern unsigned long store_mem_size;	/* 0 */
 extern time_t hit_only_mode_until;	/* 0 */
 extern StatCounters statCounter;
-extern char *err_type_str[];
-extern char *icp_opcode_str[];
-extern char *swap_log_op_str[];
-extern char *lookup_t_str[];
+extern const char *err_type_str[];
+extern const char *icp_opcode_str[];
+extern const char *swap_log_op_str[];
+extern const char *lookup_t_str[];
 extern double request_failure_ratio;	/* 0.0 */
 extern double current_dtime;
 extern int store_hash_buckets;	/* 0 */
