@@ -67,13 +67,24 @@ membership check
 </itemize>
 <item>HTCP significantly cleaned up and added support for the CLR operation to purge contents from the cache
 <item>Support for parsing X-Forwarded-For headers allowing access controls to be based on the real client IP even if behind secondary proxies
-<item>Support for proxying of Microsoft Integrated Login (NTLM &amp; Negotiate schemes), enabling access to servers or proxies using such authentication methods.
+<item>Support for proxying of Microsoft Integrated Login (NTLM &amp; Negotiate) connection oriented authentication schemes, enabling access to servers or proxies using such authentication methods.
+<item>Support for the Linux TPROXY patch allowing Squid to masquerade using the clients original IP address
+<item>urlgroups, tagging URLs for redirection and access controls, and divides the cache allowing different users to get different results for the same URL.
+<item>Optional automatic monotoring of cache peers and configured origin servers
+<item>SSL client support, allowing both http->https gatewaying and SSL encrypted peers (both origin servers and proxies).
+<item>Full ETag/Vary based caching, allowing efficient caching of server driven content negotiation.
+<item>Customizable access log format
+<item>Selective access logging, and ability to log to more than access log possibly in different formats
+<item>New more efficient helper protocol allowing for multiple concurrent lookups to the same helper
+<item>Ability to rewrite Location headers (redirects sent by servers)
+<item>
 </itemize>
 
 <sect>Changes to squid.conf
 <p><descrip>
 <tag>http_port</tag>Now takes a list of options in addition to the port address, specifying the purpose of this http_port. Default is plain Internet proxy as usual.
 <tag>httpd_accel_* for transparent proxy</tag>Now implemented by the "transparent" http_port option
+<tag>httpd_accel_* for accelerator mode</tag>Nov implemented by other options. See individual directives below.
 <tag>httpd_accel_host</tag>Replaced by defaultsite http_port option and cache_peer originserver option.
 <tag>httpd_accel_port</tag>No longer needed. Server port defined by the cache_peer port.
 <tag>httpd_accel_uses_host_header</tag>Replaced by vhost http_port option
@@ -103,7 +114,8 @@ membership check
 <tag>auth_param negotiate</tag>New Negotiate authentication scheme, the "next generation" scheme in the family of Microsoft authentication.
 <tag>external_acl_type</tag>Many new format options %SRCPORT, %MYADDR, %MYPORT, %PATH, %USER_CERT, %ACL, %DATA and a few variants. Helper protocol defaults to the simpler "3.0" protocol, and there is support for a highly efficient protocol via the concurrency= option if supported by the helper.
 <tag>refresh_pattern</tag>Several new HTTP override/ignore options
-<tag>read_ahead_gap</tag>New directive to set the response buffer size.  <tag>collapsed_forwarding</tag>New directive to enable an alternative optimized forwarding path when there is very many concurrent requests for the same URL.
+<tag>read_ahead_gap</tag>New directive to set the response buffer size.
+<tag>collapsed_forwarding</tag>New directive to enable an alternative optimized forwarding path when there is very many concurrent requests for the same URL.
 <tag>refresh_stale_hit</tag>New directive similar to collapsed_forwarding and activates an alternative optimized request processing when there is very many concurrent requests for the same recently expired URL.
 <tag>acl urlgroup</tag>New acl class
 <tag>acl user_cert</tag>New acl class matching the user SSL certificate (https_port)
@@ -121,7 +133,8 @@ membership check
 <tag>minimum_expiry_time</tag>tune the magic 60 seconds limit of what is considered cachable when the object doesn't have any cache validators. (2.6.STABLE2)
 <tag>wccp2_rebuild_wait</tag>make Squid delay registering with a WCCP router until store rebuild have finished. Default on. (2.6.STABLE2)
 <tag>wccp2_weight</tag>Cache server load weigth in the cluster. (2.6.STABLE4)
-
+<tag>check_hostnames</tag>Control if Squid should check the sanity of host names before trying to look them up in DNS
+<tag>allow_underscores</tag>Control if _ is to be considered a valid character in hostnames or not
 </descrip>
 
 <sect>Known issues

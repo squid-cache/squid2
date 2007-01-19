@@ -111,7 +111,17 @@ membership check</LI>
 </LI>
 <LI>HTCP significantly cleaned up and added support for the CLR operation to purge contents from the cache</LI>
 <LI>Support for parsing X-Forwarded-For headers allowing access controls to be based on the real client IP even if behind secondary proxies</LI>
-<LI>Support for proxying of Microsoft Integrated Login (NTLM &amp; Negotiate schemes), enabling access to servers or proxies using such authentication methods.</LI>
+<LI>Support for proxying of Microsoft Integrated Login (NTLM &amp; Negotiate) connection oriented authentication schemes, enabling access to servers or proxies using such authentication methods.</LI>
+<LI>Support for the Linux TPROXY patch allowing Squid to masquerade using the clients original IP address</LI>
+<LI>urlgroups, tagging URLs for redirection and access controls, and divides the cache allowing different users to get different results for the same URL.</LI>
+<LI>Optional automatic monotoring of cache peers and configured origin servers</LI>
+<LI>SSL client support, allowing both http->https gatewaying and SSL encrypted peers (both origin servers and proxies).</LI>
+<LI>Full ETag/Vary based caching, allowing efficient caching of server driven content negotiation.</LI>
+<LI>Customizable access log format</LI>
+<LI>Selective access logging, and ability to log to more than access log possibly in different formats</LI>
+<LI>New more efficient helper protocol allowing for multiple concurrent lookups to the same helper</LI>
+<LI>Ability to rewrite Location headers (redirects sent by servers)</LI>
+<LI></LI>
 </UL>
 </P>
 
@@ -121,6 +131,7 @@ membership check</LI>
 <DL>
 <DT><B>http_port</B><DD><P>Now takes a list of options in addition to the port address, specifying the purpose of this http_port. Default is plain Internet proxy as usual.</P>
 <DT><B>httpd_accel_* for transparent proxy</B><DD><P>Now implemented by the "transparent" http_port option</P>
+<DT><B>httpd_accel_* for accelerator mode</B><DD><P>Nov implemented by other options. See individual directives below.</P>
 <DT><B>httpd_accel_host</B><DD><P>Replaced by defaultsite http_port option and cache_peer originserver option.</P>
 <DT><B>httpd_accel_port</B><DD><P>No longer needed. Server port defined by the cache_peer port.</P>
 <DT><B>httpd_accel_uses_host_header</B><DD><P>Replaced by vhost http_port option</P>
@@ -150,7 +161,7 @@ membership check</LI>
 <DT><B>auth_param negotiate</B><DD><P>New Negotiate authentication scheme, the "next generation" scheme in the family of Microsoft authentication.</P>
 <DT><B>external_acl_type</B><DD><P>Many new format options %SRCPORT, %MYADDR, %MYPORT, %PATH, %USER_CERT, %ACL, %DATA and a few variants. Helper protocol defaults to the simpler "3.0" protocol, and there is support for a highly efficient protocol via the concurrency= option if supported by the helper.</P>
 <DT><B>refresh_pattern</B><DD><P>Several new HTTP override/ignore options</P>
-<DT><B>read_ahead_gap</B><DD><P>New directive to set the response buffer size.  </P>
+<DT><B>read_ahead_gap</B><DD><P>New directive to set the response buffer size.</P>
 <DT><B>collapsed_forwarding</B><DD><P>New directive to enable an alternative optimized forwarding path when there is very many concurrent requests for the same URL.</P>
 <DT><B>refresh_stale_hit</B><DD><P>New directive similar to collapsed_forwarding and activates an alternative optimized request processing when there is very many concurrent requests for the same recently expired URL.</P>
 <DT><B>acl urlgroup</B><DD><P>New acl class</P>
@@ -169,7 +180,8 @@ membership check</LI>
 <DT><B>minimum_expiry_time</B><DD><P>tune the magic 60 seconds limit of what is considered cachable when the object doesn't have any cache validators. (2.6.STABLE2)</P>
 <DT><B>wccp2_rebuild_wait</B><DD><P>make Squid delay registering with a WCCP router until store rebuild have finished. Default on. (2.6.STABLE2)</P>
 <DT><B>wccp2_weight</B><DD><P>Cache server load weigth in the cluster. (2.6.STABLE4)</P>
-
+<DT><B>check_hostnames</B><DD><P>Control if Squid should check the sanity of host names before trying to look them up in DNS</P>
+<DT><B>allow_underscores</B><DD><P>Control if _ is to be considered a valid character in hostnames or not</P>
 </DL>
 </P>
 
