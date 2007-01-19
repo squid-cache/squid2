@@ -2,10 +2,10 @@
 <HTML>
 <HEAD>
  <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.21">
- <TITLE>Squid 2.6.STABLE7 release notes</TITLE>
+ <TITLE>Squid 2.6.STABLE8 release notes</TITLE>
 </HEAD>
 <BODY>
-<H1>Squid 2.6.STABLE7 release notes</H1>
+<H1>Squid 2.6.STABLE8 release notes</H1>
 
 <H2>Squid Developers</H2>$Id$
 <HR>
@@ -47,6 +47,9 @@ Squid is a WWW Cache application developed by the Web Caching community.</EM>
 
 <P>
 <H2><A NAME="toc12">12.</A> <A HREF="#s12">Key changes squid-2.6.STABLE6 to 2.6.STABLE7</A></H2>
+
+<P>
+<H2><A NAME="toc13">13.</A> <A HREF="#s13">Key changes squid-2.6.STABLE7 to 2.6.STABLE8</A></H2>
 
 
 <HR>
@@ -557,5 +560,20 @@ DNS client complete.</LI>
 <A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
 </UL>
 </P>
+
+<H2><A NAME="s13">13.</A> <A HREF="#toc13">Key changes squid-2.6.STABLE7 to 2.6.STABLE8</A></H2>
+
+<P>
+<UL>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1872">#1872</a>: Date parsing error causing objects to get unexpectedly cached</LI>
+<LI>Primitive support for HTTP/1.1 chunked encoding, working around broken servers sending chunked encoding in response to HTTP/1.0 requests.</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1783">#1783</a>: STALE: Entry's timestamp greater than check time. Clock going backwards?</LI>
+<LI>Don't update object timestamps on a failed revalidation.</LI>
+<LI>a number of other minor and cosmetic bugfixes. See the list of 
+<A HREF="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE7.html">squid-2.6.STABLE7 changes</A> and the 
+<A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
+</UL>
+</P>
+
 </BODY>
 </HTML>
