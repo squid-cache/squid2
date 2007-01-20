@@ -340,6 +340,7 @@ authenticateNegotiateFixErrorHeader(auth_user_request_t * auth_user_request, Htt
 	request->flags.must_keepalive = 1;
 	break;
     case AUTHENTICATE_STATE_FINISHED:
+    case AUTHENTICATE_STATE_DONE:
 	/* Special case when authentication finished, but not allowed by ACL */
 	if (negotiate_request->server_blob) {
 	    debug(29, 9) ("authenticateNegotiateFixErrorHeader: Sending type:%d header: 'Negotiate %s'\n", type, negotiate_request->server_blob);
@@ -347,6 +348,7 @@ authenticateNegotiateFixErrorHeader(auth_user_request_t * auth_user_request, Htt
 	    safe_free(negotiate_request->server_blob);
 	} else {
 	    debug(29, 9) ("authenticateNegotiateFixErrorHeader: Connection authenticated\n");
+	    httpHeaderPutStrf(&rep->header, type, "Negotiate");
 	}
 	break;
     default:
@@ -369,7 +371,7 @@ authNegotiateAddHeader(auth_user_request_t * auth_user_request, HttpReply * rep,
 
     type = accel ? HDR_WWW_AUTHENTICATE : HDR_PROXY_AUTHENTICATE;
 
-    debug(29, 9) ("authenticateNegotiateFixErrorHeader: Sending type:%d header: 'Negotiate %s'\n", type, negotiate_request->server_blob);
+    debug(29, 9) ("authenticateNegotiateAddHeader: Sending type:%d header: 'Negotiate %s'\n", type, negotiate_request->server_blob);
     httpHeaderPutStrf(&rep->header, type, "Negotiate %s", negotiate_request->server_blob);
     safe_free(negotiate_request->server_blob);
 }
