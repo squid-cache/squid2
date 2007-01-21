@@ -80,7 +80,6 @@ httpStateFree(int fd, void *data)
     requestUnlink(httpState->orig_request);
     httpState->request = NULL;
     httpState->orig_request = NULL;
-    stringClean(&httpState->chunkhdr);
     cbdataFree(httpState);
 }
 
@@ -410,14 +409,12 @@ httpMakeVaryMark(request_t * request, HttpReply * reply)
 }
 
 /* rewrite this later using new interfaces @?@ */
-static size_t
+static void
 httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 {
     StoreEntry *entry = httpState->entry;
     size_t hdr_len;
     size_t hdr_size;
-    size_t old_size;
-    size_t done;
     HttpReply *reply = entry->mem_obj->reply;
     Ctx ctx = ctx_enter(entry->mem_obj->url);
     debug(11, 3) ("httpProcessReplyHeader: key '%s'\n",
@@ -425,7 +422,6 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
     if (memBufIsNull(&httpState->reply_hdr))
 	memBufDefInit(&httpState->reply_hdr);
     assert(httpState->reply_hdr_state == 0);
-    old_size = httpState->reply_hdr.size;
     memBufAppend(&httpState->reply_hdr, buf, size);
     hdr_len = httpState->reply_hdr.size;
     if (hdr_len > 4 && strncmp(httpState->reply_hdr.buf, "HTTP/", 5)) {
@@ -435,19 +431,19 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 	httpBuildVersion(&reply->sline.version, 0, 9);
 	reply->sline.status = HTTP_INVALID_HEADER;
 	ctx_exit(ctx);
-	return 0;
+	return;
     }
     hdr_size = headersEnd(httpState->reply_hdr.buf, hdr_len);
     if (hdr_size)
 	hdr_len = hdr_size;
     if (hdr_len > Config.maxReplyHeaderSize) {
 	debug(11, 1) ("httpProcessReplyHeader: Too large reply header\n");
-	storeAppend(entry, httpState->reply_hdr.buf, httpState->reply_hdr.size);
-	memBufClean(&httpState->reply_hdr);
+	if (!memBufIsNull(&httpState->reply_hdr))
+	    memBufClean(&httpState->reply_hdr);
 	reply->sline.status = HTTP_HEADER_TOO_LARGE;
 	httpState->reply_hdr_state += 2;
 	ctx_exit(ctx);
-	return size;
+	return;
     }
     /* headers can be incomplete only if object still arriving */
     if (!hdr_size) {
@@ -455,7 +451,7 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 	    hdr_size = hdr_len;
 	else {
 	    ctx_exit(ctx);
-	    return size;	/* headers not complete */
+	    return;		/* headers not complete */
 	}
     }
     safe_free(entry->mem_obj->vary_headers);
@@ -471,48 +467,17 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
     /* Parse headers into reply structure */
     /* what happens if we fail to parse here? */
     httpReplyParse(reply, httpState->reply_hdr.buf, hdr_size);
-    storeAppend(entry, httpState->reply_hdr.buf, hdr_size);
-    done = hdr_size - old_size;
     if (reply->sline.status >= HTTP_INVALID_HEADER) {
 	debug(11, 3) ("httpProcessReplyHeader: Non-HTTP-compliant header: '%s'\n", httpState->reply_hdr.buf);
 	memBufClean(&httpState->reply_hdr);
 	ctx_exit(ctx);
-	return done;
+	return;
     }
     if (!peer_supports_connection_pinning(httpState))
 	httpState->orig_request->flags.no_connection_auth = 1;
     storeTimestampsSet(entry);
     /* Check if object is cacheable or not based on reply code */
     debug(11, 3) ("httpProcessReplyHeader: HTTP CODE: %d\n", reply->sline.status);
-    if (httpHeaderHas(&reply->header, HDR_TRANSFER_ENCODING)) {
-	String tr = httpHeaderGetList(&reply->header, HDR_TRANSFER_ENCODING);
-	const char *pos = NULL;
-	const char *item = NULL;
-	int ilen = 0;
-	if (strListGetItem(&tr, ',', &item, &ilen, &pos)) {
-	    if (ilen == 7 && strncasecmp(item, "chunked", ilen) == 0) {
-		httpState->flags.chunked = 1;
-		if (!strListGetItem(&tr, ',', &item, &ilen, &pos))
-		    item = NULL;
-	    }
-	    if (item) {
-		/* Can't handle other transfer-encodings */
-		debug(11, 1) ("Unexpected transfer encoding '%s'\n", strBuf(tr));
-		reply->sline.status = HTTP_INVALID_HEADER;
-		return done;
-	    }
-	}
-	stringClean(&tr);
-	if (httpState->flags.chunked && reply->content_length >= 0) {
-	    /* Can't have a content-length in chunked encoding */
-	    reply->sline.status = HTTP_INVALID_HEADER;
-	    return done;
-	}
-    }
-    if (!httpState->flags.chunked) {
-	/* non-chunked. Handle as one single big chunk (-1 if terminated by EOF) */
-	httpState->chunk_size = httpReplyBodySize(httpState->orig_request->method, reply);
-    }
     if (httpHeaderHas(&reply->header, HDR_VARY)
 #if X_ACCELERATOR_VARY
 	|| httpHeaderHas(&reply->header, HDR_X_ACCELERATOR_VARY)
@@ -523,7 +488,7 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 	    vary = httpMakeVaryMark(httpState->orig_request, reply);
 	if (!vary) {
 	    httpMakePrivate(entry);
-	    goto no_cache;	/* XXX Would be better if this was used by the swicht statement below */
+	    goto no_cache;
 	}
 	entry->mem_obj->vary_headers = xstrdup(vary);
 	if (strBuf(httpState->orig_request->vary_encoding))
@@ -578,7 +543,36 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 #if HEADERS_LOG
     headersLog(1, 0, httpState->request->method, reply);
 #endif
-    return done;
+}
+
+static int
+httpPconnTransferDone(HttpStateData * httpState)
+{
+    /* return 1 if we got the last of the data on a persistent connection */
+    MemObject *mem = httpState->entry->mem_obj;
+    HttpReply *reply = mem->reply;
+    squid_off_t clen;
+    debug(11, 3) ("httpPconnTransferDone: FD %d\n", httpState->fd);
+    debug(11, 5) ("httpPconnTransferDone: content_length=%" PRINTF_OFF_T "\n",
+	reply->content_length);
+    /* If we haven't seen the end of reply headers, we are not done */
+    if (httpState->reply_hdr_state < 2)
+	return 0;
+    clen = httpReplyBodySize(httpState->request->method, reply);
+    /* If the body size is unknown we must wait for EOF */
+    if (clen < 0)
+	return 0;
+    /* Barf if we got more than we asked for */
+    if (mem->inmem_hi > clen + reply->hdr_sz)
+	return -1;
+    /* If there is no message body, we can be persistent */
+    if (0 == clen)
+	return 1;
+    /* If the body size is known, we must wait until we've gotten all of it.  */
+    if (mem->inmem_hi < clen + reply->hdr_sz)
+	return 0;
+    /* We got it all */
+    return 1;
 }
 
 /* Small helper function to verify if connection pinning is supported or not
@@ -621,192 +615,6 @@ peer_supports_connection_pinning(HttpStateData * httpState)
     return rc;
 }
 
-static void
-httpAppendBody(HttpStateData * httpState, const char *buf, ssize_t len, int buffer_filled)
-{
-    StoreEntry *entry = httpState->entry;
-    const request_t *request = httpState->request;
-    const request_t *orig_request = httpState->orig_request;
-    struct in_addr *client_addr = NULL;
-    u_short client_port = 0;
-    int fd = httpState->fd;
-    int complete = httpState->eof;
-    int keep_alive = !httpState->eof;
-    while (len > 0) {
-	if (httpState->chunk_size > 0) {
-	    size_t size = len;
-	    if (size > httpState->chunk_size)
-		size = httpState->chunk_size;
-	    httpState->chunk_size -= size;
-	    storeAppend(httpState->entry, buf, size);
-	    buf += size;
-	    len -= size;
-	} else if (httpState->chunk_size < 0) {
-	    /* non-chunked without content-length */
-	    storeAppend(httpState->entry, buf, len);
-	    len = 0;
-	} else if (httpState->flags.chunked) {
-	    char *eol = memchr(buf, '\n', len);
-	    size_t size = eol - buf + 1;
-	    if (!eol)
-		size = len;
-	    stringAppend(&httpState->chunkhdr, buf, size);
-	    buf += size;
-	    len -= size;
-	    if (strLen(httpState->chunkhdr) > 256) {
-		debug(11, 1) ("Oversized chunk header on port %d, url %s\n", comm_local_port(fd), entry->mem_obj->url);
-		comm_close(fd);
-		return;
-	    }
-	    if (eol) {
-		if (!httpState->flags.trailer) {
-		    /* chunk header */
-		    char *end = NULL;
-		    int badchunk = 0;
-		    debug(11, 3) ("Chunk header '%s'\n", strBuf(httpState->chunkhdr));
-		    httpState->chunk_size = strto_off_t(strBuf(httpState->chunkhdr), &end, 16);
-		    if (end == strBuf(httpState->chunkhdr))
-			badchunk = 1;
-		    while (end && (*end == '\r' || *end == ' ' || *end == '\t'))
-			end++;
-		    if (httpState->chunk_size < 0 || !end || (*end != '\n' && *end == ';')) {
-			debug(11, 0) ("Invalid chunk header '%s'\n", strBuf(httpState->chunkhdr));
-			comm_close(fd);
-			return;
-		    }
-		    if (badchunk)
-			continue;	/* Skip blank lines */
-		    debug(11, 2) ("Chunk size %" PRINTF_OFF_T "\n", httpState->chunk_size);
-		    if (httpState->chunk_size == 0) {
-			debug(11, 3) ("Processing trailer\n");
-			httpState->flags.trailer = 1;
-		    }
-		} else {
-		    /* trailer */
-		    const char *p = strBuf(httpState->chunkhdr);
-		    while (*p == '\r')
-			p++;
-		    if (*p == '\n') {
-			complete = 1;
-			debug(11, 2) ("Chunked response complete\n");
-		    }
-		}
-		stringReset(&httpState->chunkhdr, NULL);
-	    }
-	} else {
-	    /* Don't know what to do with this data. Bail out */
-	    break;
-	}
-	if (EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
-	    /*
-	     * the above storeAppend() call could ABORT this entry,
-	     * in that case, the server FD should already be closed.
-	     * there's nothing for us to do.
-	     */
-	    return;
-	}
-    }
-    if (!httpState->chunk_size && !httpState->flags.chunked)
-	complete = 1;
-    if (!complete && len == 0) {
-	/* Wait for more data or EOF condition */
-	if (httpState->flags.keepalive_broken) {
-	    commSetTimeout(fd, 10, NULL, NULL);
-	} else {
-	    commSetTimeout(fd, Config.Timeout.read, NULL, NULL);
-	}
-	commSetSelect(fd, COMM_SELECT_READ, httpReadReply, httpState, 0);
-	return;
-    }
-    /* Is it a incomplete reply? */
-    if (httpState->chunk_size > 0) {
-	debug(11, 1) ("Short response on port %d. Expecting %" PRINTF_OFF_T " octets more\n", comm_local_port(fd), httpState->chunk_size);
-	comm_close(fd);
-	return;
-    }
-    /*
-     * Verify that the connection is clean
-     */
-    if (len == 0 && buffer_filled >= 0) {
-	char buf2[4];
-	statCounter.syscalls.sock.reads++;
-	len = FD_READ_METHOD(fd, buf2, sizeof(buf2));
-	if ((len < 0 && !ignoreErrno(errno)) || len == 0) {
-	    keep_alive = 0;
-	}
-    }
-    if (len > 0) {
-	debug(11, Config.onoff.relaxed_header_parser <= 0 || keep_alive ? 1 : 2)
-	    ("httpReadReply: Excess data from \"%s %s\"\n",
-	    RequestMethodStr[orig_request->method],
-	    storeUrl(entry));
-	comm_close(fd);
-	return;
-    }
-    /*
-     * Verified and done with the reply
-     */
-    fwdComplete(httpState->fwd);
-
-    /*
-     * If we didn't send a keep-alive request header, then this
-     * can not be a persistent connection.
-     */
-    if (!httpState->flags.keepalive)
-	keep_alive = 0;
-    /*
-     * If we haven't sent the whole request then this can not be a persistent
-     * connection.
-     */
-    if (!httpState->flags.request_sent) {
-	debug(11, 1) ("httpReadReply: Request not yet fully sent \"%s %s\"\n",
-	    RequestMethodStr[orig_request->method],
-	    storeUrl(entry));
-	keep_alive = 0;
-    }
-    /*
-     * What does the reply have to say about keep-alive?
-     */
-    if (!entry->mem_obj->reply->keep_alive)
-	keep_alive = 0;
-    if (keep_alive) {
-	int pinned = 0;
-#if LINUX_TPROXY
-	if (orig_request->flags.tproxy) {
-	    client_addr = &httpState->request->client_addr;
-	}
-#endif
-	/* yes we have to clear all these! */
-	commSetDefer(fd, NULL, NULL);
-	commSetTimeout(fd, -1, NULL, NULL);
-	commSetSelect(fd, COMM_SELECT_READ, NULL, NULL, 0);
-#if DELAY_POOLS
-	delayClearNoDelay(fd);
-#endif
-	comm_remove_close_handler(fd, httpStateFree, httpState);
-	fwdUnregister(fd, httpState->fwd);
-	if (request->flags.pinned) {
-	    pinned = 1;
-	} else if (request->flags.connection_auth && request->flags.auth_sent) {
-	    pinned = 1;
-	}
-	if (orig_request->pinned_connection && pinned) {
-	    clientPinConnection(orig_request->pinned_connection, fd, orig_request, httpState->peer, request->flags.connection_auth);
-	} else if (httpState->peer) {
-	    if (httpState->peer->options.originserver)
-		pconnPush(fd, httpState->peer->name, httpState->peer->http_port, httpState->orig_request->host, client_addr, client_port);
-	    else
-		pconnPush(fd, httpState->peer->name, httpState->peer->http_port, NULL, client_addr, client_port);
-	} else {
-	    pconnPush(fd, request->host, request->port, NULL, client_addr, client_port);
-	}
-	httpState->fd = -1;
-	httpStateFree(fd, httpState);
-    } else {
-	comm_close(fd);
-    }
-}
-
 /* This will be called when data is ready to be read from fd.  Read until
  * error or connection closed. */
 /* XXX this function is too long! */
@@ -814,17 +622,19 @@ static void
 httpReadReply(int fd, void *data)
 {
     HttpStateData *httpState = data;
-    LOCAL_ARRAY(char, buf, SQUID_TCP_SO_RCVBUF + 1);
+    LOCAL_ARRAY(char, buf, SQUID_TCP_SO_RCVBUF);
     StoreEntry *entry = httpState->entry;
-    ssize_t len;
+    const request_t *request = httpState->request;
+    const request_t *orig_request = httpState->orig_request;
+    int len;
     int bin;
     int clen;
-    int done = 0;
     size_t read_sz = SQUID_TCP_SO_RCVBUF;
+    struct in_addr *client_addr = NULL;
+    u_short client_port = 0;
 #if DELAY_POOLS
     delay_id delay_id;
 #endif
-    int buffer_filled;
 
     if (EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
 	comm_close(fd);
@@ -841,8 +651,7 @@ httpReadReply(int fd, void *data)
     errno = 0;
     statCounter.syscalls.sock.reads++;
     len = FD_READ_METHOD(fd, buf, read_sz);
-    buffer_filled = len == read_sz;
-    debug(11, 5) ("httpReadReply: FD %d: len %d.\n", fd, (int) len);
+    debug(11, 5) ("httpReadReply: FD %d: len %d.\n", fd, len);
     if (len > 0) {
 	fd_bytes(fd, len, FD_READ);
 #if DELAY_POOLS
@@ -854,7 +663,6 @@ httpReadReply(int fd, void *data)
 	for (clen = len - 1, bin = 0; clen; bin++)
 	    clen >>= 1;
 	IOStats.Http.read_hist[bin]++;
-	buf[len] = '\0';
     }
     if (!httpState->reply_hdr.size && len > 0 && fd_table[fd].uses > 1) {
 	/* Skip whitespace */
@@ -903,14 +711,13 @@ httpReadReply(int fd, void *data)
 	    fwdFail(httpState->fwd, errorCon(ERR_INVALID_RESP, HTTP_BAD_GATEWAY, httpState->fwd->request));
 	    httpState->fwd->flags.dont_retry = 1;
 	} else {
-	    httpAppendBody(httpState, NULL, 0, -1);	/* EOF */
-	    return;
+	    fwdComplete(httpState->fwd);
 	}
 	comm_close(fd);
 	return;
     } else {
 	if (httpState->reply_hdr_state < 2) {
-	    done = httpProcessReplyHeader(httpState, buf, len);
+	    httpProcessReplyHeader(httpState, buf, len);
 	    if (httpState->reply_hdr_state == 2) {
 		http_status s = entry->mem_obj->reply->sline.status;
 		if (s == HTTP_HEADER_TOO_LARGE) {
@@ -937,14 +744,121 @@ httpReadReply(int fd, void *data)
 		 */
 		if (!fwdReforwardableStatus(s))
 		    EBIT_CLR(entry->flags, ENTRY_FWD_HDR_WAIT);
-	    } else {
-		commSetTimeout(fd, Config.Timeout.read, NULL, NULL);
-		commSetSelect(fd, COMM_SELECT_READ, httpReadReply, httpState, 0);
-		return;
 	    }
 	}
-	httpAppendBody(httpState, buf + done, len - done, buffer_filled);
-	return;
+	storeAppend(entry, buf, len);
+	if (EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
+	    /*
+	     * the above storeAppend() call could ABORT this entry,
+	     * in that case, the server FD should already be closed.
+	     * there's nothing for us to do.
+	     */
+	    return;
+	}
+	switch (httpPconnTransferDone(httpState)) {
+	case 1:
+	    {
+		int keep_alive = 1;
+		/*
+		 * If we didn't send a keep-alive request header, then this
+		 * can not be a persistent connection.
+		 */
+		if (!httpState->flags.keepalive)
+		    keep_alive = 0;
+		/*
+		 * If we haven't sent the whole request then this can not be a persistent
+		 * connection.
+		 */
+		if (!httpState->flags.request_sent) {
+		    debug(11, 1) ("httpReadReply: Request not yet fully sent \"%s %s\"\n",
+			RequestMethodStr[orig_request->method],
+			storeUrl(entry));
+		    keep_alive = 0;
+		}
+		/*
+		 * What does the reply have to say about keep-alive?
+		 */
+		if (!entry->mem_obj->reply->keep_alive)
+		    keep_alive = 0;
+		/*
+		 * Verify that the connection is clean
+		 */
+		if (len == read_sz) {
+		    statCounter.syscalls.sock.reads++;
+		    len = FD_READ_METHOD(fd, buf, SQUID_TCP_SO_RCVBUF);
+		    if ((len < 0 && !ignoreErrno(errno)) || len == 0) {
+			keep_alive = 0;
+		    } else if (len > 0) {
+			debug(11, Config.onoff.relaxed_header_parser <= 0 || keep_alive ? 1 : 2)
+			    ("httpReadReply: Excess data from \"%s %s\"\n",
+			    RequestMethodStr[orig_request->method],
+			    storeUrl(entry));
+			storeAppend(entry, buf, len);
+			keep_alive = 0;
+		    }
+		}
+		if (keep_alive) {
+		    int pinned = 0;
+#if LINUX_TPROXY
+		    if (orig_request->flags.tproxy) {
+			client_addr = &httpState->request->client_addr;
+		    }
+#endif
+		    /* yes we have to clear all these! */
+		    commSetDefer(fd, NULL, NULL);
+		    commSetTimeout(fd, -1, NULL, NULL);
+		    commSetSelect(fd, COMM_SELECT_READ, NULL, NULL, 0);
+#if DELAY_POOLS
+		    delayClearNoDelay(fd);
+#endif
+		    comm_remove_close_handler(fd, httpStateFree, httpState);
+		    fwdUnregister(fd, httpState->fwd);
+		    if (request->flags.pinned) {
+			pinned = 1;
+		    } else if (request->flags.connection_auth && request->flags.auth_sent) {
+			pinned = 1;
+		    }
+		    if (orig_request->pinned_connection && pinned) {
+			clientPinConnection(orig_request->pinned_connection, fd, orig_request, httpState->peer, request->flags.connection_auth);
+		    } else if (httpState->peer) {
+			if (httpState->peer->options.originserver)
+			    pconnPush(fd, httpState->peer->name, httpState->peer->http_port, httpState->orig_request->host, client_addr, client_port);
+			else
+			    pconnPush(fd, httpState->peer->name, httpState->peer->http_port, NULL, client_addr, client_port);
+		    } else {
+			pconnPush(fd, request->host, request->port, NULL, client_addr, client_port);
+		    }
+		    fwdComplete(httpState->fwd);
+		    httpState->fd = -1;
+		    httpStateFree(fd, httpState);
+		} else {
+		    fwdComplete(httpState->fwd);
+		    comm_close(fd);
+		}
+	    }
+	    return;
+	case 0:
+	    /* Wait for more data or EOF condition */
+	    if (httpState->flags.keepalive_broken) {
+		commSetTimeout(fd, 10, NULL, NULL);
+	    } else {
+		commSetTimeout(fd, Config.Timeout.read, NULL, NULL);
+	    }
+	    commSetSelect(fd, COMM_SELECT_READ, httpReadReply, httpState, 0);
+	    return;
+	case -1:
+	    /* Server is nasty on us. Shut down */
+	    debug(11, Config.onoff.relaxed_header_parser <= 0 || entry->mem_obj->reply->keep_alive ? 1 : 2)
+		("httpReadReply: Excess data from \"%s %s\"\n",
+		RequestMethodStr[orig_request->method],
+		storeUrl(entry));
+	    fwdComplete(httpState->fwd);
+	    comm_close(fd);
+	    return;
+	default:
+	    fatal("Unexpected httpPconnTransferDone() status\n");
+	    break;
+	}
     }
 }
 
@@ -1056,7 +970,7 @@ httpBuildRequestHeader(request_t * request,
 	debug(11, 5) ("httpBuildRequestHeader: %s: %s\n",
 	    strBuf(e->name), strBuf(e->value));
 	if (!httpRequestHdrAllowed(e, &strConnection)) {
-	    debug(11, 2) ("'%s' header is a hop-by-hop connections header\n",
+	    debug(11, 2) ("'%s' header denied by anonymize_headers configuration\n",
 		strBuf(e->name));
 	    continue;
 	}
@@ -1145,18 +1059,8 @@ httpBuildRequestHeader(request_t * request,
 	    if (!Config.onoff.via)
 		httpHeaderAddEntry(hdr_out, httpHeaderEntryClone(e));
 	    break;
-	case HDR_CONNECTION:
-	case HDR_KEEP_ALIVE:
-	    /* case HDR_PROXY_AUTHORIZATION: is special and handled above */
-	case HDR_PROXY_AUTHENTICATE:
-	case HDR_TE:
-	case HDR_TRAILER:
-	case HDR_TRANSFER_ENCODING:
-	case HDR_UPGRADE:
 	case HDR_PROXY_CONNECTION:
-	case HDR_EXPECT:
-	    /* hop-by-hop headers. Don't forward */
-	    break;
+	case HDR_CONNECTION:
 	case HDR_CACHE_CONTROL:
 	    /* append these after the loop if needed */
 	    break;

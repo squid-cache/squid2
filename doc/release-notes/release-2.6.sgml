@@ -498,7 +498,6 @@ ScriptAlias /squid/cgi-bin/ "c:/squid/libexec/"
 	<item>Bug #1872: Date parsing error causing objects to get unexpectedly cached. Problem introduced in 2.6.STABLE6.
 	<item>Bug #1873: authenticateNTLMFixErrorHeader: state 4. NTLM &amp;
 	      Negotiate instability introduced in 2.6.STABLE6.
-	<item>Primitive support for HTTP/1.1 chunked encoding, working around broken servers sending chunked encoding in response to HTTP/1.0 requests.
 	<item>Bug #1783: STALE: Entry's timestamp greater than check time. Clock going backwards?
 	<item>Don't update object timestamps on a failed revalidation.
 	<item>a number of other minor and cosmetic bugfixes. See the list of <url

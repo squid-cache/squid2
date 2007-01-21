@@ -1093,8 +1093,6 @@ struct _http_state_flags {
     unsigned int request_sent:1;
     unsigned int front_end_https:2;
     unsigned int originpeer:1;
-    unsigned int chunked:1;
-    unsigned int trailer:1;
 };
 
 struct _HttpStateData {
@@ -1110,8 +1108,6 @@ struct _HttpStateData {
     FwdState *fwd;
     char *body_buf;
     int body_buf_sz;
-    squid_off_t chunk_size;
-    String chunkhdr;
 };
 
 struct _icpUdpData {
