@@ -315,10 +315,10 @@ peerDigestRequest(PeerDigest * pd)
     if (old_e) {
 	debug(72, 5) ("peerDigestRequest: found old entry\n");
 	storeLockObject(old_e);
-	storeCreateMemObject(old_e, url, url);
+	storeCreateMemObject(old_e, url);
 	fetch->old_sc = storeClientRegister(old_e, fetch);
     }
-    e = fetch->entry = storeCreateEntry(url, url, req->flags, req->method);
+    e = fetch->entry = storeCreateEntry(url, req->flags, req->method);
     assert(EBIT_TEST(e->flags, KEY_PRIVATE));
     fetch->sc = storeClientRegister(e, fetch);
     /* set lastmod to trigger IMS request if possible */

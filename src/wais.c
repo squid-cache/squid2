@@ -188,7 +188,7 @@ waisSendRequest(int fd, void *data)
 {
     WaisStateData *waisState = data;
     MemBuf mb;
-    const char *Method = RequestMethodStr[waisState->method];
+    const char *Method = RequestMethods[waisState->method].str;
     debug(24, 5) ("waisSendRequest: FD %d\n", fd);
     memBufDefInit(&mb);
     memBufPrintf(&mb, "%s %s HTTP/1.0\r\n", Method, waisState->url);
@@ -216,7 +216,7 @@ waisStart(FwdState * fwd)
     int fd = fwd->server_fd;
     const char *url = storeUrl(entry);
     method_t method = request->method;
-    debug(24, 3) ("waisStart: \"%s %s\"\n", RequestMethodStr[method], url);
+    debug(24, 3) ("waisStart: \"%s %s\"\n", RequestMethods[method].str, url);
     statCounter.server.all.requests++;
     statCounter.server.other.requests++;
     CBDATA_INIT_TYPE(WaisStateData);

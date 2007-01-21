@@ -263,6 +263,7 @@ extern void fd_init(void);
 extern void fd_close(int fd);
 extern void fd_open(int fd, unsigned int type, const char *);
 extern void fd_note(int fd, const char *);
+extern void fd_note_static(int fd, const char *);
 extern void fd_bytes(int fd, int len, unsigned int type);
 extern void fdFreeMemory(void);
 extern void fdDumpOpen(void);
@@ -406,6 +407,7 @@ extern const char *getStringPrefix(const char *str, const char *end);
 extern int httpHeaderParseInt(const char *start, int *val);
 extern int httpHeaderParseSize(const char *start, squid_off_t * sz);
 extern int httpHeaderReset(HttpHeader * hdr);
+extern void httpHeaderAddClone(HttpHeader * hdr, const HttpHeaderEntry * e);
 #if STDC_HEADERS
 extern void
 httpHeaderPutStrf(HttpHeader * hdr, http_hdr_type id, const char *fmt,...) PRINTF_FORMAT_ARG3;
@@ -470,7 +472,7 @@ extern void httpHdrMangleList(HttpHeader *, request_t *);
 
 /* Http Msg (currently in HttpReply.c @?@ ) */
 extern int httpMsgIsPersistent(http_version_t http_ver, const HttpHeader * hdr);
-extern int httpMsgIsolateHeaders(const char **parse_start, const char **blk_start, const char **blk_end);
+extern int httpMsgIsolateHeaders(const char **parse_start, int l, const char **blk_start, const char **blk_end);
 
 /* Http Reply */
 extern void httpReplyInitModule(void);
@@ -510,7 +512,6 @@ extern request_t *requestCreate(method_t, protocol_t, const char *urlpath);
 extern void requestDestroy(request_t *);
 extern request_t *requestLink(request_t *);
 extern void requestUnlink(request_t *);
-extern int httpRequestParseHeader(request_t * req, const char *parse_start);
 extern void httpRequestSwapOut(const request_t * req, StoreEntry * e);
 extern void httpRequestPackDebug(request_t * req, Packer * p);
 extern int httpRequestPrefixLen(const request_t * req);
@@ -896,12 +897,12 @@ extern char *stmemNodeGet(mem_node *);
 /*
  * store.c
  */
-extern StoreEntry *new_StoreEntry(int, const char *, const char *);
+extern StoreEntry *new_StoreEntry(int, const char *);
 extern StoreEntry *storeGet(const cache_key *);
 extern StoreEntry *storeGetPublic(const char *uri, const method_t method);
 extern StoreEntry *storeGetPublicByRequest(request_t * request);
 extern StoreEntry *storeGetPublicByRequestMethod(request_t * request, const method_t method);
-extern StoreEntry *storeCreateEntry(const char *, const char *, request_flags, method_t);
+extern StoreEntry *storeCreateEntry(const char *, request_flags, method_t);
 extern void storeSetPublicKey(StoreEntry *);
 extern void storeComplete(StoreEntry *);
 extern void storeInit(void);
@@ -924,7 +925,7 @@ extern void storeClientUnregisterAbort(StoreEntry * e);
 extern void storeMemObjectDump(MemObject * mem);
 extern void storeEntryDump(const StoreEntry * e, int debug_lvl);
 extern const char *storeUrl(const StoreEntry *);
-extern void storeCreateMemObject(StoreEntry *, const char *, const char *);
+extern void storeCreateMemObject(StoreEntry *, const char *);
 extern void storeCopyNotModifiedReplyHeaders(MemObject * O, MemObject * N);
 extern void storeBuffer(StoreEntry *);
 extern void storeBufferFlush(StoreEntry *);
@@ -1128,7 +1129,7 @@ extern void unlinkdUnlink(const char *);
 extern char *url_convert_hex(char *org_url, int allocate);
 extern char *url_escape(const char *url);
 extern protocol_t urlParseProtocol(const char *);
-extern method_t urlParseMethod(const char *);
+extern method_t urlParseMethod(const char *, int len);
 extern void urlInitialize(void);
 extern request_t *urlParse(method_t, char *);
 extern const char *urlCanonical(request_t *);
@@ -1139,9 +1140,9 @@ extern int urlCheckRequest(const request_t *);
 extern int urlDefaultPort(protocol_t p);
 extern char *urlCanonicalClean(const request_t *);
 extern char *urlHostname(const char *url);
-extern void parse_extension_method(const char *(*methods)[]);
-extern void free_extension_method(const char *(*_methods)[]);
-extern void dump_extension_method(StoreEntry * entry, const char *name, const char **methods);
+extern void parse_extension_method(rms_t * foo[]);
+extern void free_extension_method(rms_t * foo[]);
+extern void dump_extension_method(StoreEntry * entry, const char *name, rms_t * methods[]);
 
 extern void useragentOpenLog(void);
 extern void useragentRotateLog(void);
@@ -1415,6 +1416,16 @@ extern int errorMapStart(const errormap * map, request_t * req, HttpReply * repl
 /* ETag support */
 void storeLocateVaryDone(VaryData * data);
 void storeLocateVary(StoreEntry * e, int offset, const char *vary_data, String accept_encoding, STLVCB * callback, void *cbdata);
-void storeAddVary(const char *url, const char *log_url, const method_t method, const cache_key * key, const char *etag, const char *vary, const char *vary_headers, const char *accept_encoding);
+void storeAddVary(const char *url, const method_t method, const cache_key * key, const char *etag, const char *vary, const char *vary_headers, const char *accept_encoding);
+
+/* New HTTP message parsing support */
+extern void HttpMsgBufInit(HttpMsgBuf * hmsg, const char *buf, size_t size);
+extern void httpMsgBufDone(HttpMsgBuf * hmsg);
+extern int httpMsgParseRequestLine(HttpMsgBuf * hmsg);
+extern int httpMsgParseRequestHeader(request_t * req, HttpMsgBuf * hmsg);
+extern int httpMsgFindHeadersEnd(HttpMsgBuf * hmsg);
+
+extern const char *xinet_ntoa(const struct in_addr addr);
+
 
 #endif /* SQUID_PROTOS_H */

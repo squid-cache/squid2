@@ -124,7 +124,7 @@ redirectStart(clientHttpRequest * http, RH * handler, void *data)
 #endif
     if (!r->client_ident)
 	r->client_ident = dash_str;
-    r->method_s = RequestMethodStr[http->request->method];
+    r->method_s = RequestMethods[http->request->method].str;
     r->handler = handler;
     r->data = data;
     cbdataLock(r->data);

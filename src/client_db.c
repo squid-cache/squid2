@@ -53,7 +53,7 @@ clientdbAdd(struct in_addr addr)
 {
     ClientInfo *c;
     c = memAllocate(MEM_CLIENT_INFO);
-    c->hash.key = xstrdup(inet_ntoa(addr));
+    c->hash.key = xstrdup(xinet_ntoa(addr));
     c->addr = addr;
     hash_join(client_table, &c->hash);
     statCounter.client_http.clients++;
@@ -83,7 +83,7 @@ clientdbUpdate(struct in_addr addr, log_type ltype, protocol_t p, squid_off_t si
     ClientInfo *c;
     if (!Config.onoff.client_db)
 	return;
-    key = inet_ntoa(addr);
+    key = xinet_ntoa(addr);
     c = (ClientInfo *) hash_lookup(client_table, key);
     if (c == NULL)
 	c = clientdbAdd(addr);
@@ -119,7 +119,7 @@ clientdbEstablished(struct in_addr addr, int delta)
     ClientInfo *c;
     if (!Config.onoff.client_db)
 	return 0;
-    key = inet_ntoa(addr);
+    key = xinet_ntoa(addr);
     c = (ClientInfo *) hash_lookup(client_table, key);
     if (c == NULL)
 	c = clientdbAdd(addr);
@@ -140,7 +140,7 @@ clientdbCutoffDenied(struct in_addr addr)
     ClientInfo *c;
     if (!Config.onoff.client_db)
 	return 0;
-    key = inet_ntoa(addr);
+    key = xinet_ntoa(addr);
     c = (ClientInfo *) hash_lookup(client_table, key);
     if (c == NULL)
 	return 0;
@@ -305,7 +305,7 @@ client_entry(struct in_addr *current)
     ClientInfo *c = NULL;
     char *key;
     if (current) {
-	key = inet_ntoa(*current);
+	key = xinet_ntoa(*current);
 	hash_first(client_table);
 	while ((c = (ClientInfo *) hash_next(client_table))) {
 	    if (!strcmp(key, hashKeyStr(&c->hash)))

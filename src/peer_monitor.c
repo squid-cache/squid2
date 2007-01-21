@@ -151,7 +151,7 @@ peerMonitorRequest(void *data)
     if (pm->peer->login)
 	xstrncpy(req->login, pm->peer->login, MAX_LOGIN_SZ);
     pm->running.req = requestLink(req);
-    pm->running.e = storeCreateEntry(url, url, req->flags, req->method);
+    pm->running.e = storeCreateEntry(url, req->flags, req->method);
     pm->running.sc = storeClientRegister(pm->running.e, pm);
     pm->running.buf = memAllocate(MEM_4K_BUF);
     fwdStartPeer(pm->peer, pm->running.e, pm->running.req);

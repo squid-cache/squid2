@@ -350,7 +350,7 @@ storeDigestRewriteStart(void *datanotused)
     url = internalStoreUri("/squid-internal-periodic/", StoreDigestFileName);
     flags = null_request_flags;
     flags.cachable = 1;
-    e = storeCreateEntry(url, url, flags, METHOD_GET);
+    e = storeCreateEntry(url, flags, METHOD_GET);
     assert(e);
     sd_state.rewrite_lock = cbdataAlloc(generic_cbdata);
     sd_state.rewrite_lock->data = e;

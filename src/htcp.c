@@ -553,7 +553,7 @@ htcpUnpackSpecifier(char *buf, int sz)
     /*
      * Parse the request
      */
-    method = urlParseMethod(s->method);
+    method = urlParseMethod(s->method, strlen(s->method));
     s->request = urlParse(method == METHOD_NONE ? METHOD_GET : method, s->uri);
     return s;
 }
@@ -1178,7 +1178,7 @@ htcpQuery(StoreEntry * e, request_t * req, peer * p)
     stuff.f1 = 1;
     stuff.response = 0;
     stuff.msg_id = ++msg_id_counter;
-    stuff.S.method = (char *) RequestMethodStr[req->method];
+    stuff.S.method = (char *) RequestMethods[req->method].str;
     stuff.S.uri = (char *) storeUrl(e);
     stuff.S.version = vbuf;
     httpBuildRequestHeader(req, req, e, &hdr, flags);

@@ -58,11 +58,6 @@ storeLog(int tag, const StoreEntry * e)
 	return;
 #endif
     if (mem != NULL) {
-	if (mem->log_url == NULL) {
-	    debug(20, 1) ("storeLog: NULL log_url for %s\n", mem->url);
-	    storeMemObjectDump(mem);
-	    mem->log_url = xstrdup(mem->url);
-	}
 	reply = mem->reply;
 	/*
 	 * XXX Ok, where should we print the dir number here?
@@ -83,8 +78,8 @@ storeLog(int tag, const StoreEntry * e)
 	    strLen(reply->content_type) ? strBuf(reply->content_type) : "unknown",
 	    reply->content_length,
 	    mem->inmem_hi - mem->reply->hdr_sz,
-	    RequestMethodStr[mem->method],
-	    mem->log_url);
+	    RequestMethods[mem->method].str,
+	    rfc1738_escape_unescaped(mem->url));
     } else {
 	/* no mem object. Most RELEASE cases */
 	logfilePrintf(storelog, "%9ld.%03d %-7s %02d %08X %s   ?         ?         ?         ? ?/? ?/? ? ?\n",

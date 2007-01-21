@@ -257,9 +257,10 @@ statStoreEntry(MemBuf * mb, StoreEntry * e)
     struct _store_client *sc;
     dlink_node *node;
     memBufPrintf(mb, "KEY %s\n", storeKeyText(e->hash.key));
+    /* XXX should this url be escaped? */
     if (mem)
 	memBufPrintf(mb, "\t%s %s\n",
-	    RequestMethodStr[mem->method], mem->log_url);
+	    RequestMethods[mem->method].str, mem->url);
     memBufPrintf(mb, "\t%s\n", describeStatuses(e));
     memBufPrintf(mb, "\t%s\n", storeEntryFlags(e));
     memBufPrintf(mb, "\t%s\n", describeTimestamps(e));

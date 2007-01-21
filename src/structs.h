@@ -872,7 +872,8 @@ struct _fde {
     struct in_addr local_addr;
     unsigned char tos;
     char ipaddr[16];		/* dotted decimal address of peer */
-    char desc[FD_DESC_SZ];
+    const char *desc;
+    char descbuf[FD_DESC_SZ];
     struct {
 	unsigned int open:1;
 	unsigned int close_request:1;
@@ -1049,13 +1050,14 @@ struct _HttpHeaderFieldInfo {
 
 struct _HttpHeaderEntry {
     http_hdr_type id;
+    int active;
     String name;
     String value;
 };
 
 struct _HttpHeader {
     /* protected, do not use these, use interface functions instead */
-    Array entries;		/* parsed fields in raw format */
+    Array entries;		/* parsed entries in raw format */
     HttpHeaderMask mask;	/* bit set <=> entry present */
     http_hdr_owner_type owner;	/* request or reply */
     int len;			/* length when packed, not counting terminating '\0' */
@@ -1192,7 +1194,6 @@ struct _clientHttpRequest {
     store_client *sc;		/* The store_client we're using */
     store_client *old_sc;	/* ... for entry to be validated */
     char *uri;
-    char *log_uri;
     struct {
 	squid_off_t offset;
 	squid_off_t size;
@@ -1710,7 +1711,6 @@ struct _MemObject {
 	STABH *callback;
 	void *data;
     } abort;
-    char *log_url;
     RemovalPolicyNode repl;
     int id;
     squid_off_t object_sz;
@@ -2496,6 +2496,25 @@ struct _VaryData {
     char *key;
     char *etag;
     Array etags;
+};
+
+struct _HttpMsgBuf {
+    const char *buf;
+    size_t size;
+    /* offset of first/last byte of headers */
+    int h_start, h_end, h_len;
+    /* offset of first/last byte of request, including any padding */
+    int req_start, req_end, r_len;
+    int m_start, m_end, m_len;
+    int u_start, u_end, u_len;
+    int v_start, v_end, v_len;
+    int v_maj, v_min;
+};
+
+/* request method str stuff; should probably be a String type.. */
+struct rms {
+    char *str;
+    int len;
 };
 
 #endif /* SQUID_STRUCTS_H */

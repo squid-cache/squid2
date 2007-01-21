@@ -106,15 +106,6 @@ requestUnlink(request_t * request)
     requestDestroy(request);
 }
 
-int
-httpRequestParseHeader(request_t * req, const char *parse_start)
-{
-    const char *blk_start, *blk_end;
-    if (!httpMsgIsolateHeaders(&parse_start, &blk_start, &blk_end))
-	return 0;
-    return httpHeaderParse(&req->header, blk_start, blk_end);
-}
-
 /* packs request-line and headers, appends <crlf> terminator */
 static void
 httpRequestPack(const request_t * req, Packer * p)
@@ -122,7 +113,7 @@ httpRequestPack(const request_t * req, Packer * p)
     assert(req && p);
     /* pack request-line */
     packerPrintf(p, "%s %s HTTP/1.0\r\n",
-	RequestMethodStr[req->method], strBuf(req->urlpath));
+	RequestMethods[req->method].str, strBuf(req->urlpath));
     /* headers */
     httpHeaderPackInto(&req->header, p);
     /* trailer */
@@ -142,7 +133,7 @@ httpRequestPackDebug(request_t * req, Packer * p)
     packerPrintf(p, "\n");
     /* pack request-line */
     packerPrintf(p, "%s %s HTTP/%d.%d\r\n",
-	RequestMethodStr[req->method], urlCanonical(req), req->http_ver.major, req->http_ver.minor);
+	RequestMethods[req->method].str, urlCanonical(req), req->http_ver.major, req->http_ver.minor);
     /* headers */
     httpHeaderPackInto(&req->header, p);
     /* trailer */
@@ -176,7 +167,7 @@ int
 httpRequestPrefixLen(const request_t * req)
 {
     assert(req);
-    return strlen(RequestMethodStr[req->method]) + 1 +
+    return RequestMethods[req->method].len + 1 +
 	strLen(req->urlpath) + 1 +
 	4 + 1 + 3 + 2 +
 	req->header.len + 2;

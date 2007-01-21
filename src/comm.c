@@ -526,7 +526,7 @@ comm_connect_addr(int sock, const struct sockaddr_in *address)
 	status = COMM_INPROGRESS;
     else
 	return COMM_ERROR;
-    xstrncpy(F->ipaddr, inet_ntoa(address->sin_addr), 16);
+    xstrncpy(F->ipaddr, xinet_ntoa(address->sin_addr), 16);
     F->remote_port = ntohs(address->sin_port);
     if (status == COMM_OK) {
 	debug(5, 10) ("comm_connect_addr: FD %d connected to %s:%d\n",
@@ -572,7 +572,7 @@ comm_accept(int fd, struct sockaddr_in *pn, struct sockaddr_in *me)
     /* fdstat update */
     fd_open(sock, FD_SOCKET, "HTTP Request");
     F = &fd_table[sock];
-    xstrncpy(F->ipaddr, inet_ntoa(P.sin_addr), 16);
+    xstrncpy(F->ipaddr, xinet_ntoa(P.sin_addr), 16);
     F->remote_port = htons(P.sin_port);
     F->local_port = htons(M.sin_port);
     commSetNonBlocking(sock);
@@ -646,7 +646,7 @@ commLingerTimeout(int fd, void *unused)
 void
 comm_lingering_close(int fd)
 {
-    fd_note(fd, "lingering close");
+    fd_note_static(fd, "lingering close");
     commSetSelect(fd, COMM_SELECT_READ, NULL, NULL, 0);
     commSetSelect(fd, COMM_SELECT_WRITE, NULL, NULL, 0);
     commSetTimeout(fd, 10, commLingerTimeout, NULL);

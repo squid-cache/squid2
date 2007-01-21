@@ -1412,7 +1412,7 @@ storeCoss_AddStoreEntry(RebuildState * rb, const cache_key * key, StoreEntry * e
     rb->counts.objcount++;
     /* The Passed-in store entry is temporary; don't bloody use it directly! */
     assert(e->swap_dirn == SD->index);
-    ne = new_StoreEntry(STORE_ENTRY_WITHOUT_MEMOBJ, NULL, NULL);
+    ne = new_StoreEntry(STORE_ENTRY_WITHOUT_MEMOBJ, NULL);
     ne->store_status = STORE_OK;
     storeSetMemStatus(ne, NOT_IN_MEMORY);
     ne->swap_status = SWAPOUT_DONE;

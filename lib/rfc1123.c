@@ -253,8 +253,86 @@ parse_rfc1123(const char *str, int len)
     return t;
 }
 
+/* [ahc] Yes, this is english-centric. Sorry! */
+static char *days[] = { "Sun", "Mon", "Tues", "Wed", "Thu", "Fri", "Sat" };
+static char *months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+
+#define TBUFSZ 128
+/* [ahc] XXX I really should be making sure that we don't over-run the buffer! Grr. */
 const char *
 mkrfc1123(time_t t)
+{
+	static char buf[TBUFSZ];
+	char *s = buf;
+	char *src;
+	struct tm *gmt = gmtime(&t);
+	short y;
+	/* "%a, %d %b %Y %H:%M:%S GMT" */
+
+	/* Append day */
+	for (src = days[gmt->tm_wday]; *src != '\0'; src++, s++) {
+		*s = *src;
+	}
+
+	/* Append ", " */
+	*s++ = ',';
+	*s++ = ' ';
+
+	/* Append number day (two-digit, padded 0) */
+	*s++ = ((gmt->tm_mday / 10) % 10) + '0';
+	*s++ = (gmt->tm_mday % 10) + '0';
+
+	/* append space */
+	*s++ = ' ';
+
+	/* Append month abbreviation */
+	for (src = months[gmt->tm_mon]; *src != '\0'; src++, s++) {
+		*s = *src;
+	}
+
+	/* Space */
+	*s++ = ' ';
+
+	/* four-character year */
+	y = 1900 + gmt->tm_year;
+	*s++ = ((y / 1000) % 10) + '0';
+	*s++ = ((y / 100) % 10) + '0';
+	*s++ = ((y / 10) % 10) + '0';
+	*s++ = (y % 10) + '0';
+
+	/* Space */
+	*s++ = ' ';
+
+	/* Two-char hour */
+	*s++ = ((gmt->tm_hour / 10) % 10) + '0';
+	*s++ = (gmt->tm_hour % 10) + '0';
+
+	/* : */
+	*s++ = ':';
+
+	/* Two-char minute */
+	*s++ = ((gmt->tm_min / 10) % 10) + '0';
+	*s++ = (gmt->tm_min % 10) + '0';
+
+	/* : */
+	*s++ = ':';
+
+	/* Two char second */
+	*s++ = ((gmt->tm_sec / 10) % 10) + '0';
+	*s++ = (gmt->tm_sec % 10) + '0';
+
+	/* " GMT\0" */
+	*s++ = ' ';
+	*s++ = 'G';
+	*s++ = 'M';
+	*s++ = 'T';
+	*s++ = '\0';
+	/* Finito! */
+	return buf;
+}
+
+const char *
+mkrfc1123_old(time_t t)
 {
     static char buf[128];
 

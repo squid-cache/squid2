@@ -203,7 +203,7 @@ asnCacheStart(int as)
     assert(NULL != req);
     asState->request = requestLink(req);
     if ((e = storeGetPublic(asres, METHOD_GET)) == NULL) {
-	e = storeCreateEntry(asres, asres, null_request_flags, METHOD_GET);
+	e = storeCreateEntry(asres, null_request_flags, METHOD_GET);
 	asState->sc = storeClientRegister(e, asState);
 	fwdStart(-1, e, asState->request);
     } else {

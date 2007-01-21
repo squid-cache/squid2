@@ -698,7 +698,7 @@ authenticateDigestAuthenticateUser(auth_user_request_t * auth_user_request, requ
 	digest_user->HA1, SESSIONKEY);
     DigestCalcResponse(SESSIONKEY, authenticateDigestNonceNonceb64(digest_request->nonce),
 	digest_request->nc, digest_request->cnonce, digest_request->qop,
-	RequestMethodStr[request->method], digest_request->uri, HA2, Response);
+	RequestMethods[request->method].str, digest_request->uri, HA2, Response);
 
     debug(29, 9) ("\nResponse = '%s'\n"
 	"squid is = '%s'\n", digest_request->response, Response);
@@ -719,7 +719,7 @@ authenticateDigestAuthenticateUser(auth_user_request_t * auth_user_request, requ
 	     */
 	    DigestCalcResponse(SESSIONKEY, authenticateDigestNonceNonceb64(digest_request->nonce),
 		digest_request->nc, digest_request->cnonce, digest_request->qop,
-		RequestMethodStr[METHOD_GET], digest_request->uri, HA2, Response);
+		RequestMethods[METHOD_GET].str, digest_request->uri, HA2, Response);
 	    if (strcasecmp(digest_request->response, Response)) {
 		digest_request->flags.credentials_ok = 3;
 		safe_free(auth_user_request->message);

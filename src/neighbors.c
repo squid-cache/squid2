@@ -1162,7 +1162,7 @@ peerCountMcastPeersStart(void *data)
     assert(p->type == PEER_MULTICAST);
     p->mcast.flags.count_event_pending = 0;
     snprintf(url, MAX_URL, "http://%s/", inet_ntoa(p->in_addr.sin_addr));
-    fake = storeCreateEntry(url, url, null_request_flags, METHOD_GET);
+    fake = storeCreateEntry(url, null_request_flags, METHOD_GET);
     psstate = cbdataAlloc(ps_state);
     psstate->request = requestLink(urlParse(METHOD_GET, url));
     psstate->entry = fake;

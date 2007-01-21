@@ -427,10 +427,7 @@ mimeLoadIconFile(const char *icon)
     }
     flags = null_request_flags;
     flags.cachable = 1;
-    e = storeCreateEntry(url,
-	url,
-	flags,
-	METHOD_GET);
+    e = storeCreateEntry(url, flags, METHOD_GET);
     assert(e != NULL);
     EBIT_SET(e->flags, ENTRY_SPECIAL);
     storeSetPublicKey(e);

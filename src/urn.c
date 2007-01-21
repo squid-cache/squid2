@@ -137,7 +137,7 @@ urnStart(request_t * r, StoreEntry * e)
     }
     httpHeaderPutStr(&urlres_r->header, HDR_ACCEPT, "text/plain");
     if ((urlres_e = storeGetPublic(urlres, METHOD_GET)) == NULL) {
-	urlres_e = storeCreateEntry(urlres, urlres, null_request_flags, METHOD_GET);
+	urlres_e = storeCreateEntry(urlres, null_request_flags, METHOD_GET);
 	urnState->sc = storeClientRegister(urlres_e, urnState);
 	fwdStart(-1, urlres_e, urlres_r);
     } else {

@@ -738,7 +738,7 @@ httpAppendBody(HttpStateData * httpState, const char *buf, ssize_t len, int buff
     if (len > 0) {
 	debug(11, Config.onoff.relaxed_header_parser <= 0 || keep_alive ? 1 : 2)
 	    ("httpReadReply: Excess data from \"%s %s\"\n",
-	    RequestMethodStr[orig_request->method],
+	    RequestMethods[orig_request->method].str,
 	    storeUrl(entry));
 	comm_close(fd);
 	return;
@@ -760,7 +760,7 @@ httpAppendBody(HttpStateData * httpState, const char *buf, ssize_t len, int buff
      */
     if (!httpState->flags.request_sent) {
 	debug(11, 1) ("httpReadReply: Request not yet fully sent \"%s %s\"\n",
-	    RequestMethodStr[orig_request->method],
+	    RequestMethods[orig_request->method].str,
 	    storeUrl(entry));
 	keep_alive = 0;
     }
@@ -1066,7 +1066,7 @@ httpBuildRequestHeader(request_t * request,
 	     * authentication forwarding is explicitly enabled
 	     */
 	    if (flags.proxying && orig_request->peer_login && strcmp(orig_request->peer_login, "PASS") == 0) {
-		httpHeaderAddEntry(hdr_out, httpHeaderEntryClone(e));
+		httpHeaderAddClone(hdr_out, e);
 		if (request->flags.connection_proxy_auth)
 		    request->flags.pinned = 1;
 	    }
@@ -1075,7 +1075,7 @@ httpBuildRequestHeader(request_t * request,
 	    /* Pass on WWW authentication.
 	     */
 	    if (!flags.originpeer) {
-		httpHeaderAddEntry(hdr_out, httpHeaderEntryClone(e));
+		httpHeaderAddClone(hdr_out, e);
 		if (orig_request->flags.connection_auth)
 		    orig_request->flags.pinned = 1;
 	    } else {
@@ -1083,7 +1083,7 @@ httpBuildRequestHeader(request_t * request,
 		 * (see also below for proxy->server authentication)
 		 */
 		if (orig_request->peer_login && (strcmp(orig_request->peer_login, "PASS") == 0 || strcmp(orig_request->peer_login, "PROXYPASS") == 0)) {
-		    httpHeaderAddEntry(hdr_out, httpHeaderEntryClone(e));
+		    httpHeaderAddClone(hdr_out, e);
 		    if (orig_request->flags.connection_auth)
 			orig_request->flags.pinned = 1;
 		}
@@ -1099,7 +1099,7 @@ httpBuildRequestHeader(request_t * request,
 	    if (orig_request->peer_domain)
 		httpHeaderPutStr(hdr_out, HDR_HOST, orig_request->peer_domain);
 	    else if (request->flags.redirected && !Config.onoff.redir_rewrites_host)
-		httpHeaderAddEntry(hdr_out, httpHeaderEntryClone(e));
+		httpHeaderAddClone(hdr_out, e);
 	    else {
 		/* use port# only if not default */
 		if (orig_request->port == urlDefaultPort(orig_request->protocol)) {
@@ -1114,13 +1114,13 @@ httpBuildRequestHeader(request_t * request,
 	    /* append unless we added our own;
 	     * note: at most one client's ims header can pass through */
 	    if (!httpHeaderHas(hdr_out, HDR_IF_MODIFIED_SINCE))
-		httpHeaderAddEntry(hdr_out, httpHeaderEntryClone(e));
+		httpHeaderAddClone(hdr_out, e);
 	    break;
 	case HDR_IF_NONE_MATCH:
 	    /* append unless we added our own;
 	     * note: at most one client's ims header can pass through */
 	    if (!httpHeaderHas(hdr_out, HDR_IF_NONE_MATCH))
-		httpHeaderAddEntry(hdr_out, httpHeaderEntryClone(e));
+		httpHeaderAddClone(hdr_out, e);
 	    break;
 	case HDR_MAX_FORWARDS:
 	    if (orig_request->method == METHOD_TRACE) {
@@ -1132,18 +1132,18 @@ httpBuildRequestHeader(request_t * request,
 	    break;
 	case HDR_X_FORWARDED_FOR:
 	    if (!opt_forwarded_for)
-		httpHeaderAddEntry(hdr_out, httpHeaderEntryClone(e));
+		httpHeaderAddClone(hdr_out, e);
 	    break;
 	case HDR_RANGE:
 	case HDR_IF_RANGE:
 	case HDR_REQUEST_RANGE:
 	    if (!we_do_ranges)
-		httpHeaderAddEntry(hdr_out, httpHeaderEntryClone(e));
+		httpHeaderAddClone(hdr_out, e);
 	    break;
 	case HDR_VIA:
 	    /* If Via is disabled then forward any received header as-is */
 	    if (!Config.onoff.via)
-		httpHeaderAddEntry(hdr_out, httpHeaderEntryClone(e));
+		httpHeaderAddClone(hdr_out, e);
 	    break;
 	case HDR_CONNECTION:
 	case HDR_KEEP_ALIVE:
@@ -1162,11 +1162,11 @@ httpBuildRequestHeader(request_t * request,
 	    break;
 	case HDR_FRONT_END_HTTPS:
 	    if (!flags.front_end_https)
-		httpHeaderAddEntry(hdr_out, httpHeaderEntryClone(e));
+		httpHeaderAddClone(hdr_out, e);
 	    break;
 	default:
 	    /* pass on all other header fields */
-	    httpHeaderAddEntry(hdr_out, httpHeaderEntryClone(e));
+	    httpHeaderAddClone(hdr_out, e);
 	}
     }
 
@@ -1329,7 +1329,7 @@ httpBuildRequestPrefix(request_t * request,
 {
     const int offset = mb->size;
     memBufPrintf(mb, "%s %s HTTP/1.0\r\n",
-	RequestMethodStr[request->method],
+	RequestMethods[request->method].str,
 	strLen(request->urlpath) ? strBuf(request->urlpath) : "/");
     /* build and pack headers */
     {
@@ -1417,7 +1417,7 @@ httpStart(FwdState * fwd)
     request_t *proxy_req;
     request_t *orig_req = fwd->request;
     debug(11, 3) ("httpStart: \"%s %s\"\n",
-	RequestMethodStr[orig_req->method],
+	RequestMethods[orig_req->method].str,
 	storeUrl(fwd->entry));
     httpState = cbdataAlloc(HttpStateData);
     storeLockObject(fwd->entry);
