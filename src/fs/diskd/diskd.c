@@ -221,9 +221,12 @@ msg_handle(diomsg * r, int rl, diomsg * s)
 {
     char *buf = NULL;
     s->mtype = r->mtype;
-    s->callback_data = r->callback_data;
-    s->shm_offset = r->shm_offset;
     s->id = r->id;
+    s->seq_no = r->seq_no;	/* optional, debugging */
+    s->callback_data = r->callback_data;
+    s->size = 0;		/* optional, debugging */
+    s->offset = 0;		/* optional, debugging */
+    s->shm_offset = r->shm_offset;
     if (s->shm_offset > -1)
 	buf = shmbuf + s->shm_offset;
     switch (r->mtype) {
