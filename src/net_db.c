@@ -1008,7 +1008,7 @@ netdbExchangeStart(void *data)
     requestLink(ex->r);
     assert(NULL != ex->r);
     httpBuildVersion(&ex->r->http_ver, 1, 0);
-    ex->e = storeCreateEntry(uri, uri, null_request_flags, METHOD_GET);
+    ex->e = storeCreateEntry(uri, null_request_flags, METHOD_GET);
     ex->buf_sz = 4096;
     ex->buf = memAllocate(MEM_4K_BUF);
     assert(NULL != ex->e);
