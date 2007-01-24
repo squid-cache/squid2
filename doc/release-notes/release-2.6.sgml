@@ -507,5 +507,17 @@ ScriptAlias /squid/cgi-bin/ "c:/squid/libexec/"
 				name="ChangeLog"> file for details.
 </itemize>
 
+<sect>Key changes squid-2.6.STABLE8 to 2.6.STABLE9
+
+<p>
+<itemize>
+	<item>Bug #1878: If-Modified-Since broken in 2.6.STABLE8
+	<item>Bug #1877 diskd bug in storeDiskdIOCallback()
+	<item>See the list of <url
+		url="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE9.html"
+			name="squid-2.6.STABLE9 changes"> and the <url url="ChangeLog"
+				name="ChangeLog"> file for details.
+</itemize>
+
 </article>
 
