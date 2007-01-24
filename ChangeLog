@@ -1,3 +1,8 @@
+Changes to squid-2.6.STABLE9 (Jan 24 2007)
+
+	- Bug #1878: If-Modified-Since broken in 2.6.STABLE8
+	- Bug #1877 diskd bug in storeDiskdIOCallback()
+
 Changes to squid-2.6.STABLE8 (Jan 21 2007)
 
 	- Bug #1873: authenticateNTLMFixErrorHeader: state 4.
