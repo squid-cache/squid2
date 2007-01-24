@@ -472,7 +472,7 @@ static void
 storeDiskdIOCallback(storeIOState * sio, int errflag)
 {
     void *p = sio->callback_data;
-    debug(79, 3) ("storeUfsIOCallback: errflag=%d\n", errflag);
+    debug(79, 3) ("storeDiskdIOCallback: errflag=%d\n", errflag);
     if (cbdataValid(p))
 	sio->callback(p, errflag, sio);
     cbdataUnlock(p);
