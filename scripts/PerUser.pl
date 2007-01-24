@@ -12,14 +12,21 @@ use strict;
 use Squid::ParseLog;
 
 my %u;
+my $wh;
+
+$wh = "username";
+if (scalar @ARGV >= 1) {
+	$wh = $ARGV[0];
+	shift @ARGV;
+}
 
 while (<>) {
 	chomp;
 	my $l = Squid::ParseLog::parse($_);
-	if (! defined $u{$l->{"username"}}) {
-		$u{$l->{"username"}}->{"traffic"} = 0;
+	if (! defined $u{$l->{$wh}}) {
+		$u{$l->{$wh}}->{"traffic"} = 0;
 	}
-	$u{$l->{"username"}}->{"traffic"} += $l->{"size"};
+	$u{$l->{$wh}}->{"traffic"} += $l->{"size"};
 }
 
 foreach (keys %u) {
