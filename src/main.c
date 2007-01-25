@@ -1094,13 +1094,13 @@ SquidShutdown(void *unused)
     releaseServerSockets();
     commCloseAllSockets();
     authenticateShutdown();
-#if USE_UNLINKD
-    unlinkdClose();
-#endif
 #if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
     WIN32_svcstatusupdate(SERVICE_STOP_PENDING, 10000);
 #endif
     storeDirSync();		/* Flush pending object writes/unlinks */
+#if USE_UNLINKD
+    unlinkdClose();		/* after storeDirSync! */
+#endif
     storeDirWriteCleanLogs(0);
     PrintRusage();
     dumpMallocStats();
