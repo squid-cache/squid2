@@ -372,11 +372,11 @@ httpReplyParseStep(HttpReply * rep, const char *buf, int len)
 {
     const char *parse_start = buf;
     const char *blk_start, *blk_end;
+    int i;
+    const char *re;
     assert(rep);
     assert(parse_start);
     assert(rep->pstate < psParsed);
-    int i;
-    const char *re;
 
     /* For now we'll assume we need to parse the whole lot */
 
