@@ -245,6 +245,13 @@ urlDefaultPort(protocol_t p)
     }
 }
 
+/*
+ * This routine parses a URL. Its assumed that the URL is complete -
+ * ie, the end of the string is the end of the URL. Don't pass a partial
+ * URL here as this routine doesn't have any way of knowing whether
+ * its partial or not (ie, it handles the case of no trailing slash as
+ * being "end of host with implied path of /".
+ */
 request_t *
 urlParse(method_t method, char *url)
 {
@@ -295,10 +302,16 @@ urlParse(method_t method, char *url)
 	src += 3;
 
 	/* Then everything until first /; thats host (and port; which we'll look for here later) */
-	for (dst = host; i < l && *src != '/'; i++, src++, dst++) {
+	/* bug 1881: If we don't get a "/" then we imply it was there */
+	for (dst = host; i < l && *src != '/' && src != '\0'; i++, src++, dst++) {
 	    *dst = *src;
 	}
-	if (i >= l)
+	/* 
+	 * We can't check for "i >= l" here because we could be at the end of the line
+	 * and have a perfectly valid URL w/ no trailing '/'. In this case we assume we've
+	 * been -given- a valid URL and the path is just '/'.
+	 */
+	if (i > l)
 	    return NULL;
 	*dst = '\0';
 
@@ -309,6 +322,10 @@ urlParse(method_t method, char *url)
 	/* We -could- be at the end of the buffer here */
 	if (i > l)
 	    return NULL;
+	/* If the URL path is empty we set it to be "/" */
+	if (dst == urlpath) {
+	    *(dst++) = '/';
+	}
 	*dst = '\0';
 
 	protocol = urlParseProtocol(proto);
