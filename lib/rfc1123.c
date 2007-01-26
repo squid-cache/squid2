@@ -254,8 +254,8 @@ parse_rfc1123(const char *str, int len)
 }
 
 /* [ahc] Yes, this is english-centric. Sorry! */
-static char *days[] = { "Sun", "Mon", "Tues", "Wed", "Thu", "Fri", "Sat" };
-static char *months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+static const char *days[] = { "Sun", "Mon", "Tues", "Wed", "Thu", "Fri", "Sat" };
+static const char *months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
 #define TBUFSZ 128
 /* [ahc] XXX I really should be making sure that we don't over-run the buffer! Grr. */
@@ -264,7 +264,7 @@ mkrfc1123(time_t t)
 {
 	static char buf[TBUFSZ];
 	char *s = buf;
-	char *src;
+	const char *src;
 	struct tm *gmt = gmtime(&t);
 	short y;
 	/* "%a, %d %b %Y %H:%M:%S GMT" */
@@ -331,6 +331,7 @@ mkrfc1123(time_t t)
 	return buf;
 }
 
+#if UNUSED_CODE
 const char *
 mkrfc1123_old(time_t t)
 {
@@ -342,6 +343,7 @@ mkrfc1123_old(time_t t)
     strftime(buf, 127, RFC1123_STRFTIME, gmt);
     return buf;
 }
+#endif
 
 const char *
 mkhttpdlogtime(const time_t * t)
