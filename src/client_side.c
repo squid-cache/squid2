@@ -3493,7 +3493,7 @@ parseHttpRequest(ConnStateData * conn, HttpMsgBuf * hmsg, method_t * method_p, i
     LOCAL_ARRAY(char, urlbuf, MAX_URL);
     char *url = urlbuf;
     char *mstr = NULL;
-    char *req_hdr = NULL;
+    const char *req_hdr = NULL;
     http_version_t http_ver;
     size_t header_sz;		/* size of headers, not including first line */
     size_t prefix_sz;		/* size of whole request (req-line + headers) */

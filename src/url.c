@@ -703,7 +703,7 @@ urlExtMethodAdd(const char *mstr)
 }
 
 void
-parse_extension_method(rms_t * foo[])
+parse_extension_method(rms_t(*foo)[])
 {
     char *token;
     char *t = strtok(NULL, "");
@@ -713,7 +713,7 @@ parse_extension_method(rms_t * foo[])
 }
 
 void
-free_extension_method(rms_t * foo[])
+free_extension_method(rms_t(*foo)[])
 {
     method_t method;
     for (method = METHOD_EXT00; method < METHOD_ENUM_END; method++) {
@@ -728,7 +728,7 @@ free_extension_method(rms_t * foo[])
 }
 
 void
-dump_extension_method(StoreEntry * entry, const char *name, rms_t * methods[])
+dump_extension_method(StoreEntry * entry, const char *name, rms_t * methods)
 {
     method_t method;
     for (method = METHOD_EXT00; method < METHOD_ENUM_END; method++) {
