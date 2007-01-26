@@ -261,10 +261,10 @@ storeEntryDereferenced(StoreEntry * e)
 }
 
 void
-storeLockObject(StoreEntry * e)
+storeLockObjectDebug(StoreEntry * e, const char *file, const int line)
 {
     e->lock_count++;
-    debug(20, 3) ("storeLockObject: key '%s' count=%d\n",
+    debug(20, 3) ("storeLockObject: (%s:%d): key '%s' count=%d\n", file, line,
 	storeKeyText(e->hash.key), (int) e->lock_count);
     e->lastref = squid_curtime;
     storeEntryReferenced(e);
@@ -289,10 +289,10 @@ storeReleaseRequest(StoreEntry * e)
 /* unlock object, return -1 if object get released after unlock
  * otherwise lock_count */
 int
-storeUnlockObject(StoreEntry * e)
+storeUnlockObjectDebug(StoreEntry * e, const char *file, const int line)
 {
     e->lock_count--;
-    debug(20, 3) ("storeUnlockObject: key '%s' count=%d\n",
+    debug(20, 3) ("storeUnlockObject: (%s:%d): key '%s' count=%d\n", file, line,
 	storeKeyText(e->hash.key), e->lock_count);
     if (e->lock_count)
 	return (int) e->lock_count;
@@ -1371,14 +1371,17 @@ storeGetMemSpace(int size)
     pages_needed = (size / SM_PAGE_SIZE) + 1;
     if (memInUse(MEM_MEM_NODE) + pages_needed < store_pages_max)
 	return;
-    debug(20, 2) ("storeGetMemSpace: Starting, need %d pages\n", pages_needed);
+    debug(20, 3) ("storeGetMemSpace: Starting, need %d pages\n", pages_needed);
     /* XXX what to set as max_scan here? */
     walker = mem_policy->PurgeInit(mem_policy, 100000);
     while ((e = walker->Next(walker))) {
+	debug(20, 3) ("storeGetMemSpace: purging %p\n", e);
 	storePurgeMem(e);
 	released++;
-	if (memInUse(MEM_MEM_NODE) + pages_needed < store_pages_max)
+	if (memInUse(MEM_MEM_NODE) + pages_needed < store_pages_max) {
+	    debug(20, 3) ("storeGetMemSpace: we finally have enough free memory!\n");
 	    break;
+	}
     }
     walker->Done(walker);
     debug(20, 3) ("storeGetMemSpace stats:\n");
