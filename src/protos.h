@@ -506,6 +506,7 @@ extern time_t httpReplyExpires(const HttpReply * rep);
 extern int httpReplyHasCc(const HttpReply * rep, http_hdr_cc_type type);
 extern void httpRedirectReply(HttpReply *, http_status, const char *);
 extern squid_off_t httpReplyBodySize(method_t, const HttpReply *);
+extern HttpReply *httpReplyClone(HttpReply * src);
 
 /* Http Request */
 extern request_t *requestCreate(method_t, protocol_t, const char *urlpath);
@@ -956,6 +957,8 @@ extern void storeReplAdd(const char *, REMOVALPOLICYCREATE *);
 void storeDeferRead(StoreEntry *, int fd);
 void storeResumeRead(StoreEntry *);
 void storeResetDefer(StoreEntry *);
+extern int memHaveHeaders(const MemObject * mem);
+
 
 /* store_modules.c */
 extern void storeFsSetup(void);

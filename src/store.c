@@ -125,6 +125,19 @@ new_MemObject(const char *url)
     return mem;
 }
 
+int
+memHaveHeaders(const MemObject * mem)
+{
+    if (mem->reply == NULL)
+	return 0;
+    if (mem->reply->sline.status == 0)
+	return 0;
+    if (mem->reply->pstate != psParsed)
+	return 0;
+    return 1;
+}
+
+
 StoreEntry *
 new_StoreEntry(int mem_obj_flag, const char *url)
 {

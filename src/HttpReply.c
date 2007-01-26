@@ -349,6 +349,41 @@ httpReplyHdrCacheInit(HttpReply * rep)
     rep->expires = httpReplyHdrExpirationTime(rep);
 }
 
+HttpReply *
+httpReplyClone(HttpReply * src)
+{
+    HttpReply *dst = httpReplyCreate();
+
+    /* basic variables */
+    dst->hdr_sz = src->hdr_sz;
+    dst->content_length = src->content_length;
+    dst->date = src->date;
+    dst->last_modified = src->last_modified;
+    dst->expires = src->expires;
+
+    /* parser state */
+    dst->pstate = src->pstate;
+    /* status line */
+    dst->sline = src->sline;
+    /* header */
+    httpHeaderAppend(&dst->header, &src->header);
+    /* body, if applicable */
+    if (dst->body.mb.buf != NULL)
+	memBufAppend(&dst->body.mb, dst->body.mb.buf, dst->body.mb.size);
+
+    /*
+     * The next two are a bit .. special. I hate delving into the headers
+     * when we've already -done- that, but I'll worry about doing it
+     * faster later. Besides, there's too much other code to fix up.
+     */
+    /* cache control */
+    dst->cache_control = httpHeaderGetCc(&dst->header);
+    /* content range */
+    dst->content_range = httpHeaderGetContRange(&dst->header);
+
+    return dst;
+}
+
 /* sync this routine when you update HttpReply struct */
 static void
 httpReplyHdrCacheClean(HttpReply * rep)

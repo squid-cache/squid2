@@ -1994,12 +1994,39 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
     httpHdrMangleList(hdr, request);
 }
 
+/* Used exclusively by clientBuildReply() during failure cases only */
+static void
+clientUnwindReply(clientHttpRequest * http, HttpReply * rep)
+{
+    if (rep != NULL) {
+	httpReplyDestroy(rep);
+	rep = NULL;
+    }
+    /* This destroys the range request */
+    if (http->request->range)
+	clientBuildRangeHeader(http, rep);
+}
+
+/*
+ * This routine was historically called when we think we've got enough header
+ * data - ie, after the first read. The store would not be allowed to release
+ * data to be read until after all the headers were appended.
+ *
+ * So we, for now, just assume all the headers are here or they won't ever
+ * be.
+ */
 static HttpReply *
 clientBuildReply(clientHttpRequest * http, const char *buf, size_t size)
 {
-    HttpReply *rep = httpReplyCreate();
-    size_t k = headersEnd(buf, size);
-    if (k && httpReplyParse(rep, buf, k)) {
+    HttpReply *rep = NULL;
+    /* If we don't have a memobj / reply by now then we're stuffed */
+    if (http->sc->entry->mem_obj == NULL || http->sc->entry->mem_obj->reply == NULL) {
+	clientUnwindReply(http, NULL);
+	return NULL;
+    }
+    /* try to grab the already-parsed header */
+    rep = httpReplyClone(http->sc->entry->mem_obj->reply);
+    if (rep->sline.status == psParsed) {
 	/* enforce 1.0 reply version */
 	httpBuildVersion(&rep->sline.version, 1, 0);
 	/* do header conversions */
@@ -2010,13 +2037,8 @@ clientBuildReply(clientHttpRequest * http, const char *buf, size_t size)
 		HTTP_PARTIAL_CONTENT, NULL);
     } else {
 	/* parsing failure, get rid of the invalid reply */
-	httpReplyDestroy(rep);
-	rep = NULL;
-	/* if we were going to do ranges, backoff */
-	if (http->request->range) {
-	    /* this will fail and destroy request->range */
-	    clientBuildRangeHeader(http, rep);
-	}
+	clientUnwindReply(http, rep);
+	return NULL;
     }
     return rep;
 }
@@ -2084,7 +2106,7 @@ clientCacheHit(void *data, char *buf, ssize_t size)
     assert(size > 0);
     mem = e->mem_obj;
     assert(!EBIT_TEST(e->flags, ENTRY_ABORTED));
-    if (mem->reply->sline.status == 0) {
+    if (!memHaveHeaders(mem)) {
 	/*
 	 * we don't have full reply headers yet; either wait for more or
 	 * punt to clientProcessMiss.
