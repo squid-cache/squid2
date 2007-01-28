@@ -1273,6 +1273,8 @@ DOC_START
 		rv	Request protocol version
 		ea	Log string returned by external acl
 		<st	Reply size including HTTP headers
+		>st	Request size including HTTP headers
+		st	Request+Reply size including HTTP headers
 		%	a literal % character
 
 logformat squid  %ts.%03tu %6tr %>a %Ss/%03Hs %<st %rm %ru %un %Sh/%<A %mt

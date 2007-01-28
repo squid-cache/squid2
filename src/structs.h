@@ -1166,6 +1166,7 @@ struct _AccessLogEntry {
     struct {
 	struct in_addr caddr;
 	squid_off_t size;
+	size_t rq_size;
 	log_type code;
 	int msec;
 	const char *rfc931;

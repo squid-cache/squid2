@@ -300,7 +300,7 @@ typedef enum {
 /*LFT_REQUEST_QUERY, * // * this is not needed. see strip_query_terms */
     LFT_REQUEST_VERSION,
 
-/*LFT_REQUEST_SIZE_TOTAL, */
+    LFT_REQUEST_SIZE_TOTAL,
 /*LFT_REQUEST_SIZE_LINE, */
 /*LFT_REQUEST_SIZE_HEADERS, */
 /*LFT_REQUEST_SIZE_BODY, */
@@ -311,6 +311,8 @@ typedef enum {
 /*LFT_REPLY_SIZE_HEADERS, */
 /*LFT_REPLY_SIZE_BODY, */
 /*LFT_REPLY_SIZE_BODY_NO_TE, */
+
+    LFT_IO_SIZE_TOTAL,
 
     LFT_EXT_LOG,
 
@@ -402,19 +404,21 @@ struct logformat_token_table_entry logformat_token_table[] =
     {">v", LFT_REQUEST_VERSION},
     {"rv", LFT_REQUEST_VERSION},
 
-/*{ ">st", LFT_REQUEST_SIZE_TOTAL }, */
+    {">st", LFT_REQUEST_SIZE_TOTAL},
 /*{ ">sl", LFT_REQUEST_SIZE_LINE }, * / / * the request line "GET ... " */
 /*{ ">sh", LFT_REQUEST_SIZE_HEADERS }, */
 /*{ ">sb", LFT_REQUEST_SIZE_BODY }, */
 /*{ ">sB", LFT_REQUEST_SIZE_BODY_NO_TE }, */
-
-    {"ea", LFT_EXT_LOG},
 
     {"<st", LFT_REPLY_SIZE_TOTAL},
 /*{ "<sl", LFT_REPLY_SIZE_LINE }, * /   / * the reply line (protocol, code, text) */
 /*{ "<sh", LFT_REPLY_SIZE_HEADERS }, */
 /*{ "<sb", LFT_REPLY_SIZE_BODY }, */
 /*{ "<sB", LFT_REPLY_SIZE_BODY_NO_TE }, */
+
+    {"st", LFT_IO_SIZE_TOTAL},
+
+    {"ea", LFT_EXT_LOG},
 
     {"%", LFT_PERCENT},
 
@@ -633,7 +637,10 @@ accessLogCustom(AccessLogEntry * al, customlog * log)
 	    out = tmp;
 	    break;
 
-	    /*case LFT_REQUEST_SIZE_TOTAL: */
+	case LFT_REQUEST_SIZE_TOTAL:
+	    outint = al->cache.rq_size;
+	    doint = 1;
+	    break;
 	    /*case LFT_REQUEST_SIZE_LINE: */
 	    /*case LFT_REQUEST_SIZE_HEADERS: */
 	    /*case LFT_REQUEST_SIZE_BODY: */
@@ -648,6 +655,11 @@ accessLogCustom(AccessLogEntry * al, customlog * log)
 	    /*case LFT_REPLY_SIZE_HEADERS: */
 	    /*case LFT_REPLY_SIZE_BODY: */
 	    /*case LFT_REPLY_SIZE_BODY_NO_TE: */
+
+	case LFT_IO_SIZE_TOTAL:
+	    outint = al->cache.size + al->cache.rq_size;
+	    doint = 1;
+	    break;
 
 	case LFT_EXT_LOG:
 	    if (al->request)
