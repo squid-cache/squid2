@@ -431,6 +431,7 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
     if (hdr_len > 4 && strncmp(httpState->reply_hdr.buf, "HTTP/", 5)) {
 	debug(11, 3) ("httpProcessReplyHeader: Non-HTTP-compliant header: '%s'\n", httpState->reply_hdr.buf);
 	httpState->reply_hdr_state += 2;
+	httpState->chunk_size = -1;	/* Terminated by EOF */
 	memBufClean(&httpState->reply_hdr);
 	httpBuildVersion(&reply->sline.version, 0, 9);
 	reply->sline.status = HTTP_INVALID_HEADER;
