@@ -2680,20 +2680,29 @@ clientSendMoreHeaderData(void *data, char *buf, ssize_t size)
 	errorAppendEntry(http->entry, err);
 	return;
     }
-    body_size = size - rep->hdr_sz;
-    body_buf = buf + rep->hdr_sz;
-    assert(body_size >= 0);
+    /* 
+     * At this point we might have more data in the headers than this silly 4k read.
+     * So lets just ignore there being any body data in this particular read
+     * (as eventually we won't be issuing a read just to get header data) and issue
+     * our next read at the point just after the reply length in rep->hdr_sz.
+     * Hopefully this horrible hackery will go away once the store API has changed to
+     * seperate entity-data and reply-data. We'll then reinstance the "grab header data
+     * and body data, writing them out in one swift hit" logic which I've just disabled.
+     * - [ahc]
+     */
     http->range_iter.prefix_size = rep->hdr_sz;
-    debug(33, 3) ("clientSendMoreHeaderData: Appending %d bytes after %d bytes of headers\n",
-	(int) body_size, rep->hdr_sz);
     CBDATA_INIT_TYPE(clientCheckHeaderStateData);
     state = cbdataAlloc(clientCheckHeaderStateData);
     state->http = http;
     cbdataLock(http);
-    state->buf = buf;
-    state->size = size;
-    state->body_buf = body_buf;
-    state->body_size = body_size;
+    /* XXX is this state->buf used for anything? Do we free it at all? Wha? [ahc] */
+    state->buf = NULL;
+    state->size = 0;
+    state->body_buf = NULL;
+    state->body_size = 0;
+    assert(state->body_size >= 0);
+    debug(33, 3) ("clientSendMoreHeaderData: Appending %d bytes after %d bytes of headers\n",
+	(int) state->body_size, rep->hdr_sz);
     clientHttpLocationRewriteCheck(state);
 }
 
