@@ -2028,7 +2028,7 @@ clientBuildReply(clientHttpRequest * http, const char *buf, size_t size)
     }
     /* try to grab the already-parsed header */
     rep = httpReplyClone(http->sc->entry->mem_obj->reply);
-    if (rep->sline.status == psParsed) {
+    if (rep->pstate == psParsed) {
 	/* enforce 1.0 reply version */
 	httpBuildVersion(&rep->sline.version, 1, 0);
 	/* do header conversions */
