@@ -75,6 +75,8 @@ storeSwapInFileClosed(void *data, int errflag, storeIOState * sio)
 	sio, errflag);
     cbdataUnlock(sio);
     sc->swapin_sio = NULL;
+    if (errflag < 0)
+	storeRelease(sc->entry);
     if ((callback = sc->callback)) {
 	void *cbdata = sc->callback_data;
 	assert(errflag <= 0);
