@@ -223,10 +223,9 @@
 /*
  * Do NOT use IPC_UNIX_DGRAM here because you can't
  * send() more than 4096 bytes on a socketpair() socket
- * on FreeBSD
- * XXX There should be a configure test for this
+ * at least on FreeBSD
  */
-#if HAVE_SOCKETPAIR && defined (AF_UNIX) && !defined(_SQUID_FREEBSD_)
+#if HAVE_SOCKETPAIR && defined (AF_UNIX) && SUPPORTS_LARGE_AF_UNIX_DGRAM
 #define IPC_DGRAM IPC_UNIX_DGRAM
 #else
 #define IPC_DGRAM IPC_UDP_SOCKET
