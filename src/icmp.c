@@ -190,12 +190,7 @@ icmpOpen(void)
     int wfd;
     args[0] = "(pinger)";
     args[1] = NULL;
-    /*
-     * Do NOT use IPC_DGRAM (=IPC_UNIX_DGRAM) here because you can't
-     * send() more than 4096 bytes on a socketpair() socket (at
-     * least on FreeBSD).
-     */
-    pid = ipcCreate(IPC_UDP_SOCKET,
+    pid = ipcCreate(IPC_DGRAM,
 	Config.Program.pinger,
 	args,
 	"Pinger Socket",
