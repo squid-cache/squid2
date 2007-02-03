@@ -443,6 +443,9 @@ storeDiskdHandle(diomsg * M)
 	}
 	return;
     }
+    /* set errno passed from diskd.  makes debugging more meaningful */
+    if (M->status < 0)
+	errno = -M->status;
     switch (M->mtype) {
     case _MQD_OPEN:
 	storeDiskdOpenDone(M);
