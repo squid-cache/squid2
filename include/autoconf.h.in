@@ -755,6 +755,9 @@
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
+/* Supports large dgram sockets over AF_UNIX sockets */
+#undef SUPPORTS_LARGE_AF_UNIX_DGRAM
+
 /* Define this to include code which lets you specify access control elements
    based on ethernet hardware addresses. This code uses functions found in 4.4
    BSD derviations (e.g. FreeBSD, ?). */
