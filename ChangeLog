@@ -2,6 +2,18 @@
 	- Primitive support for HTTP/1.1 chunked encoding, working around
 	  broken servers
 
+Changes to squid-2.6.STABLE10 (not yet released>
+
+	- Upgrade HTTP/0.9 responses to our HTTP version (HTTP/1.0)
+	- various diskd bugfixes
+	- In the access.log hierarchy field log the unique peer name
+	  instead of the host name
+	- unlinkdClose() should be called after (not before) storeDirSync()
+	- CLEAN_BUF_SZ was defined, but never used anywhere
+	- logging HTTP-request size
+	- Fix icmp pinger communication on FreeBSD and other not supporing
+	  large dgram AF_UNIX sockets
+	- Release objects on swapin failure
 
 Changes to squid-2.6.STABLE9 (Jan 24 2007)
 
