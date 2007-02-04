@@ -1,3 +1,6 @@
+	- Optimization to only parse response headers once, reusing the
+	  already parsed headers when building the client reply.
+	- Simple perl library and script for processing access.log files
 	- General code tidyups of HTTP parser and related optimizations
 	- Primitive support for HTTP/1.1 chunked encoding, working around
 	  broken servers
