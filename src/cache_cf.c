@@ -1765,7 +1765,6 @@ parse_peer(peer ** head)
     if (p->weight < 1)
 	p->weight = 1;
     p->icp.version = ICP_VERSION_CURRENT;
-    p->tcp_up = PEER_TCP_MAGIC_COUNT;
     p->test_fd = -1;
 #if USE_CACHE_DIGESTS
     if (!p->options.no_digest) {
