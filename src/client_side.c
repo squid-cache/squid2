@@ -1971,7 +1971,7 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
     {
 	LOCAL_ARRAY(char, bbuf, MAX_URL + 32);
 	String strVia = httpHeaderGetList(hdr, HDR_VIA);
-	snprintf(bbuf, sizeof(bbuf), "%d.%d %s",
+	snprintf(bbuf, MAX_URL + 32, "%d.%d %s",
 	    rep->sline.version.major,
 	    rep->sline.version.minor, ThisCache);
 	strListAdd(&strVia, bbuf, ',');
