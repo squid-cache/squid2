@@ -254,7 +254,7 @@ parse_rfc1123(const char *str, int len)
 }
 
 /* [ahc] Yes, this is english-centric. Sorry! */
-static const char *days[] = { "Sun", "Mon", "Tues", "Wed", "Thu", "Fri", "Sat" };
+static const char *days[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
 static const char *months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
 #define TBUFSZ 128
