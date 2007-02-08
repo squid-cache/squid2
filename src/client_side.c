@@ -3823,7 +3823,6 @@ clientTryParseRequest(ConnStateData * conn)
 	 * happen if http == NULL and parser_return_code != 0 .. */
     }
     if (http) {
-
 	/* add to the client request queue */
 	dlinkAddTail(http, &http->node, &conn->reqs);
 	conn->nrequests++;
@@ -3862,6 +3861,16 @@ clientTryParseRequest(ConnStateData * conn)
 	    errorAppendEntry(http->entry, err);
 	    return -1;
 	}
+	/*
+	 * If we read past the end of this request, move the remaining
+	 * data to the beginning
+	 */
+	assert(conn->in.offset >= http->req_sz);
+	conn->in.offset -= http->req_sz;
+	debug(33, 5) ("removing %d bytes; conn->in.offset = %d\n", (int) http->req_sz, (int) conn->in.offset);
+	if (conn->in.offset > 0)
+	    xmemmove(conn->in.buf, conn->in.buf + http->req_sz, conn->in.offset);
+
 	if (!http->flags.internal && internalCheck(strBuf(request->urlpath))) {
 	    if (internalHostnameIs(request->host))
 		http->flags.internal = 1;
@@ -3944,7 +3953,7 @@ clientTryParseRequest(ConnStateData * conn)
 		    (ObjPackMethod) & httpRequestPackDebug);
 		debugObj(33, 1, "This request:\n", request, (ObjPackMethod) & httpRequestPackDebug);
 	    }
-	    return 0;
+	    return -2;
 	} else {
 	    clientCheckFollowXForwardedFor(http);
 	}
@@ -4061,22 +4070,12 @@ clientReadRequest(int fd, void *data)
 	}
     }
     /* Process next request */
+    ret = 0;
     while (cbdataValid(conn) && conn->in.offset > 0 && conn->body.size_left == 0) {
-	/* Ret tells us how many bytes to consume - 0 == didn't consume request, > 0 == consume, < 0 == error */
+	/* Ret tells us how many bytes was consumed - 0 == didn't consume request, > 0 == consumed, -1 == error, -2 == CONNECT request stole the connection */
 	ret = clientTryParseRequest(conn);
 	if (ret <= 0)
 	    break;
-	assert(ret > 0);
-	assert(conn->in.offset >= ret);
-	conn->in.offset -= ret;
-	debug(33, 5) ("removing %d bytes; conn->in.offset = %d\n", ret, (int) conn->in.offset);
-	/*
-	 * If we read past the end of this request, move the remaining
-	 * data to the beginning
-	 */
-	if (conn->in.offset > 0)
-	    xmemmove(conn->in.buf, conn->in.buf + ret, conn->in.offset);
-
     }				/* while offset > 0 && conn->body.size_left == 0 */
     if (!cbdataValid(conn)) {
 	cbdataUnlock(conn);
@@ -4092,7 +4091,8 @@ clientReadRequest(int fd, void *data)
 	    return;
 	}
     }
-    commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, conn, 0);
+    if (ret >= 0)
+	commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, conn, 0);
 }
 
 /* file_read like function, for reading body content */
