@@ -299,7 +299,7 @@ httpCachableReply(HttpStateData * httpState)
 	break;
 	/* Responses that only are cacheable if the server says so */
     case HTTP_MOVED_TEMPORARILY:
-	if (rep->expires > -1)
+	if (rep->expires > rep->date && rep->date > 0)
 	    return 1;
 	else
 	    return 0;

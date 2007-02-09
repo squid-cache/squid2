@@ -790,6 +790,16 @@ clientProcessExpired(void *data)
     int hit = 0;
     const char *etag;
     debug(33, 3) ("clientProcessExpired: '%s'\n", http->uri);
+    /* Can't validate non-200 responses */
+    if (http->entry->mem_obj->reply->sline.status != HTTP_OK) {
+	debug(33, 3) ("clientProcessExpired: not a 200 OK response. Fall back on cache miss\n");
+	clientProcessMiss(http);
+    }
+    /* Need either Last-Modified or ETag to build a conditional */
+    if (http->entry->lastmod < 0 && !httpHeaderHas(&http->entry->mem_obj->reply->header, HDR_ETAG)) {
+	debug(33, 3) ("clientProcessExpired: no validator present. Fall back on cache miss\n");
+	clientProcessMiss(http);
+    }
     /*
      * check if we are allowed to contact other servers
      * @?@: Instead of a 504 (Gateway Timeout) reply, we may want to return 
@@ -838,8 +848,6 @@ clientProcessExpired(void *data)
 #endif
     if (http->old_entry->lastmod > 0)
 	http->request->lastmod = http->old_entry->lastmod;
-    else if (http->old_entry->mem_obj && http->old_entry->mem_obj->reply)
-	http->request->lastmod = http->old_entry->mem_obj->reply->date;
     else
 	http->request->lastmod = -1;
     debug(33, 5) ("clientProcessExpired: lastmod %ld\n", (long int) entry->lastmod);
@@ -1032,8 +1040,6 @@ modifiedSince(StoreEntry * entry, request_t * request)
     MemObject *mem = entry->mem_obj;
     time_t mod_time = entry->lastmod;
     debug(33, 3) ("modifiedSince: '%s'\n", storeUrl(entry));
-    if (mod_time < 0)
-	mod_time = entry->timestamp;
     debug(33, 3) ("modifiedSince: mod_time = %ld\n", (long int) mod_time);
     if (mod_time < 0)
 	return 1;
@@ -2201,23 +2207,16 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	return;
     }
     if (httpHeaderHas(&r->header, HDR_IF_MATCH)) {
-	String req_etags;
 	const char *rep_etag = httpHeaderGetStr(&e->mem_obj->reply->header, HDR_ETAG);
-	int has_etag;
-	if (!rep_etag) {
-	    /* The cached object does not have a entity tag. This cannot
-	     * be a hit for the requested object.
-	     */
-	    http->log_type = LOG_TCP_MISS;
-	    clientProcessMiss(http);
-	    return;
+	int has_etag = 0;
+	if (rep_etag) {
+	    String req_etags = httpHeaderGetList(&http->request->header, HDR_IF_MATCH);
+	    has_etag = strListIsMember(&req_etags, rep_etag, ',');
+	    stringClean(&req_etags);
 	}
-	req_etags = httpHeaderGetList(&http->request->header, HDR_IF_MATCH);
-	has_etag = strListIsMember(&req_etags, rep_etag, ',');
-	stringClean(&req_etags);
 	if (!has_etag) {
-	    /* The entity tags does not match. This cannot be a
-	     * hit for this object. Query the origin.
+	    /* The entity tags does not match. This cannot be a hit for this object.
+	     * Query the origin to see what should be done.
 	     */
 	    http->log_type = LOG_TCP_MISS;
 	    clientProcessMiss(http);
@@ -2249,17 +2248,7 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	    }
 	}
     }
-    if (r->flags.ims) {
-	/*
-	 * Handle If-Modified-Since requests from the client
-	 */
-	if (mem->reply->sline.status != HTTP_OK) {
-	    debug(33, 4) ("clientCacheHit: Reply code %d != 200\n",
-		mem->reply->sline.status);
-	    http->log_type = LOG_TCP_MISS;
-	    clientProcessMiss(http);
-	    return;
-	}
+    if (r->flags.ims && mem->reply->sline.status == HTTP_OK) {
 	if (modifiedSince(e, http->request)) {
 	    debug(33, 4) ("clientCacheHit: If-Modified-Since modified\n");
 	    is_modified = 1;
@@ -2297,16 +2286,6 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	 * both have a stale version of the object.
 	 */
 	r->flags.need_validation = 1;
-#if 0
-	if (e->lastmod < 0) {
-	    /*
-	     * Previous reply didn't have a Last-Modified header,
-	     * we cannot revalidate it.
-	     */
-	    http->log_type = LOG_TCP_MISS;
-	    clientProcessMiss(http);
-	} else
-#endif
 	if (r->flags.nocache) {
 	    /*
 	     * This did not match a refresh pattern that overrides no-cache
