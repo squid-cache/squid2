@@ -709,6 +709,14 @@ httpAppendBody(HttpStateData * httpState, const char *buf, ssize_t len, int buff
 	}
     }
     storeBufferFlush(entry);
+    if (EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
+	/*
+	 * the above storeBufferFlush() call could ABORT this entry,
+	 * in that case, the server FD should already be closed.
+	 * there's nothing for us to do.
+	 */
+	return;
+    }
     if (!httpState->chunk_size && !httpState->flags.chunked)
 	complete = 1;
     if (!complete && len == 0) {
