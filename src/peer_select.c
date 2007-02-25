@@ -451,10 +451,8 @@ peerGetSomeDirect(ps_state * ps)
     if (ps->direct == DIRECT_NO)
 	return;
     if (ps->request->protocol == PROTO_WAIS)
-	/* Its not really DIRECT, now is it? */
-	peerAddFwdServer(&ps->servers, Config.Wais.peer, HIER_DIRECT);
-    else
-	peerAddFwdServer(&ps->servers, NULL, HIER_DIRECT);
+	return;			/* No server-side implemented, can't go direct */
+    peerAddFwdServer(&ps->servers, NULL, HIER_DIRECT);
 }
 
 static void

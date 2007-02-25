@@ -431,11 +431,6 @@ struct _SquidConfig {
     } Swap;
     squid_off_t memMaxSize;
     struct {
-	char *relayHost;
-	u_short relayPort;
-	peer *peer;
-    } Wais;
-    struct {
 	squid_off_t min;
 	int pct;
 	squid_off_t max;
@@ -1611,7 +1606,7 @@ struct _iostats {
 	int read_hist[16];
 	int writes;
 	int write_hist[16];
-    } Http, Ftp, Gopher, Wais;
+    } Http, Ftp, Gopher;
 };
 
 struct _mem_node {

@@ -237,7 +237,6 @@ squid_SOURCES = \
 	url.c \
 	urn.c \
 	useragent.c \
-	wais.c \
 	wccp.c \
 	wccp2.c \
 	whois.c \

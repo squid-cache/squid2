@@ -692,9 +692,6 @@ fwdDispatch(FwdState * fwdState)
 	case PROTO_FTP:
 	    ftpStart(fwdState);
 	    break;
-	case PROTO_WAIS:
-	    waisStart(fwdState);
-	    break;
 	case PROTO_CACHEOBJ:
 	case PROTO_INTERNAL:
 	case PROTO_URN:
@@ -703,6 +700,7 @@ fwdDispatch(FwdState * fwdState)
 	case PROTO_WHOIS:
 	    whoisStart(fwdState);
 	    break;
+	case PROTO_WAIS:	/* not implemented */
 	default:
 	    debug(17, 1) ("fwdDispatch: Cannot retrieve '%s'\n",
 		storeUrl(entry));

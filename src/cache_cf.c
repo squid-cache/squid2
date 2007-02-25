@@ -497,13 +497,6 @@ configDoConfigure(void)
     if (!Config.onoff.via)
 	debug(22, 1) ("WARNING: HTTP requires the use of Via\n");
 #endif
-    if (Config.Wais.relayHost) {
-	if (Config.Wais.peer)
-	    cbdataFree(Config.Wais.peer);
-	Config.Wais.peer = cbdataAlloc(peer);
-	Config.Wais.peer->host = xstrdup(Config.Wais.relayHost);
-	Config.Wais.peer->http_port = Config.Wais.relayPort;
-    }
     if (aclPurgeMethodInUse(Config.accessList.http))
 	Config2.onoff.enable_purge = 1;
     if (geteuid() == 0) {

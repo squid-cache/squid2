@@ -1607,8 +1607,6 @@ clientCachable(clientHttpRequest * http)
     if (req->protocol == PROTO_HTTP)
 	return httpCachable(method);
     /* FTP is always cachable */
-    if (req->protocol == PROTO_WAIS)
-	return 0;
     if (method == METHOD_CONNECT)
 	return 0;
     if (method == METHOD_TRACE)
@@ -1653,8 +1651,6 @@ clientHierarchical(clientHttpRequest * http)
 	return httpCachable(method);
     if (request->protocol == PROTO_GOPHER)
 	return gopherCachable(request);
-    if (request->protocol == PROTO_WAIS)
-	return 0;
     if (request->protocol == PROTO_CACHEOBJ)
 	return 0;
     return 1;

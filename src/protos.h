@@ -806,7 +806,6 @@ extern void reconfigure(int);
 
 extern void start_announce(void *unused);
 extern void sslStart(clientHttpRequest *, squid_off_t *, int *);
-extern void waisStart(FwdState *);
 
 /* ident.c */
 #if USE_IDENT

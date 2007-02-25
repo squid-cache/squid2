@@ -102,7 +102,7 @@ am__squid_SOURCES_DIST = access_log.c acl.c asn.c authenticate.c \
 	store_digest.c store_dir.c store_key_md5.c store_log.c \
 	store_rebuild.c store_swapin.c store_swapmeta.c \
 	store_swapout.c structs.h tools.c typedefs.h unlinkd.c url.c \
-	urn.c useragent.c wais.c wccp.c wccp2.c whois.c win32.c
+	urn.c useragent.c wccp.c wccp2.c whois.c win32.c
 @USE_EPOLL_FALSE@@USE_KQUEUE_FALSE@@USE_POLL_FALSE@@USE_SELECT_FALSE@@USE_SELECT_SIMPLE_FALSE@@USE_SELECT_WIN32_TRUE@am__objects_1 = comm_select_win32.$(OBJEXT)
 @USE_EPOLL_FALSE@@USE_KQUEUE_FALSE@@USE_POLL_FALSE@@USE_SELECT_SIMPLE_FALSE@@USE_SELECT_TRUE@am__objects_1 = comm_select.$(OBJEXT)
 @USE_EPOLL_FALSE@@USE_KQUEUE_FALSE@@USE_POLL_FALSE@@USE_SELECT_SIMPLE_TRUE@am__objects_1 = comm_select_simple.$(OBJEXT)
@@ -155,8 +155,8 @@ am_squid_OBJECTS = access_log.$(OBJEXT) acl.$(OBJEXT) asn.$(OBJEXT) \
 	store_rebuild.$(OBJEXT) store_swapin.$(OBJEXT) \
 	store_swapmeta.$(OBJEXT) store_swapout.$(OBJEXT) \
 	tools.$(OBJEXT) $(am__objects_9) url.$(OBJEXT) urn.$(OBJEXT) \
-	useragent.$(OBJEXT) wais.$(OBJEXT) wccp.$(OBJEXT) \
-	wccp2.$(OBJEXT) whois.$(OBJEXT) $(am__objects_10)
+	useragent.$(OBJEXT) wccp.$(OBJEXT) wccp2.$(OBJEXT) \
+	whois.$(OBJEXT) $(am__objects_10)
 nodist_squid_OBJECTS = repl_modules.$(OBJEXT) auth_modules.$(OBJEXT) \
 	store_modules.$(OBJEXT) globals.$(OBJEXT) \
 	string_arrays.$(OBJEXT)
@@ -535,7 +535,6 @@ squid_SOURCES = \
 	url.c \
 	urn.c \
 	useragent.c \
-	wais.c \
 	wccp.c \
 	wccp2.c \
 	whois.c \
@@ -844,7 +843,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/url.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/urn.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/useragent.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wais.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wccp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wccp2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/whois.Po@am__quote@
