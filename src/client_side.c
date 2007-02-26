@@ -1844,6 +1844,9 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
     /* remove Set-Cookie if a hit */
     if (http->flags.hit)
 	httpHeaderDelById(hdr, HDR_SET_COOKIE);
+    httpHeaderDelById(hdr, HDR_TRAILER);
+    httpHeaderDelById(hdr, HDR_TRANSFER_ENCODING);
+    httpHeaderDelById(hdr, HDR_UPGRADE);
     /* handle Connection header */
     if (httpHeaderHas(hdr, HDR_CONNECTION)) {
 	/* anything that matches Connection list member will be deleted */
@@ -1902,6 +1905,10 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
 	} else if (http->entry->timestamp < squid_curtime)
 	    httpHeaderPutInt(hdr, HDR_AGE,
 		squid_curtime - http->entry->timestamp);
+	if (!httpHeaderHas(hdr, HDR_CONTENT_LENGTH) && http->entry->mem_obj && http->entry->store_status == STORE_OK) {
+	    rep->content_length = contentLen(http->entry);
+	    httpHeaderPutSize(hdr, HDR_CONTENT_LENGTH, rep->content_length);
+	}
     }
     /* Filter unproxyable authentication types */
     if (http->log_type != LOG_TCP_DENIED &&
@@ -1969,7 +1976,7 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
     }
     /* Append Via */
     {
-	LOCAL_ARRAY(char, bbuf, MAX_URL + 32);
+	char bbuf[MAX_URL + 32];
 	String strVia = httpHeaderGetList(hdr, HDR_VIA);
 	snprintf(bbuf, MAX_URL + 32, "%d.%d %s",
 	    rep->sline.version.major,
@@ -3114,10 +3121,7 @@ clientWriteComplete(int fd, char *bufnotused, size_t size, int errflag, void *da
     } else if ((done = clientCheckTransferDone(http)) != 0 || size == 0) {
 	debug(33, 5) ("clientWriteComplete: FD %d transfer is DONE\n", fd);
 	/* We're finished case */
-	if (httpReplyBodySize(http->request->method, entry->mem_obj->reply) < 0) {
-	    debug(33, 5) ("clientWriteComplete: closing, content_length < 0\n");
-	    comm_close(fd);
-	} else if (!done) {
+	if (!done) {
 	    debug(33, 5) ("clientWriteComplete: closing, !done\n");
 	    comm_close(fd);
 	} else if (clientGotNotEnough(http)) {
@@ -3481,6 +3485,7 @@ parseHttpRequestAbort(ConnStateData * conn, const char *uri)
     http->uri = xstrdup(uri);
     http->log_uri = xstrndup(uri, MAX_URL);
     http->range_iter.boundary = StringNull;
+    httpBuildVersion(&http->http_ver, 1, 0);
     dlinkAdd(http, &http->active, &ClientActiveRequests);
     return http;
 }
@@ -4785,7 +4790,8 @@ clientGotNotEnough(clientHttpRequest * http)
 {
     squid_off_t cl = httpReplyBodySize(http->request->method, http->entry->mem_obj->reply);
     int hs = http->entry->mem_obj->reply->hdr_sz;
-    assert(cl >= 0);
+    if (cl < 0)
+	return 0;
     if (http->out.offset != cl + hs)
 	return 1;
     return 0;
