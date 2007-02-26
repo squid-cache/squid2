@@ -10,6 +10,16 @@ Changes to squid-2.6.STABLE10 (not yet released>
 	- Fix icmp pinger communication on FreeBSD and other not supporing
 	  large dgram AF_UNIX sockets
 	- Release objects on swapin failure
+	- Bug #1787: Objects stuck in cache if origin server clock in future
+	- Bug #1420: 302 responses with an Expires header is always cached
+	- Primitive support for HTTP/1.1 chunked encoding, working around
+	  broken servers
+	- Clean up relations between TCP probing and DNS checks of peers with
+	  no known addresses.
+	- Fix a minor HTML coding error in ftp directory listings with // in
+	  the path
+	- Bug #1875, #1420. Cleanup of refresh logics when dealing with
+	  non-refreshable content
 
 Changes to squid-2.6.STABLE9 (Jan 24 2007)
 
