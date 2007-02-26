@@ -89,7 +89,6 @@ typedef struct gopher_ds {
 } GopherStateData;
 
 static PF gopherStateFree;
-static void gopher_mime_content(MemBuf * mb, const char *name, const char *def);
 static void gopherMimeCreate(GopherStateData *);
 static void gopher_request_parse(const request_t * req,
     char *type_id,
@@ -100,9 +99,6 @@ static PF gopherTimeout;
 static PF gopherReadReply;
 static CWCB gopherSendComplete;
 static PF gopherSendRequest;
-
-static char def_gopher_bin[] = "www/unknown";
-static char def_gopher_text[] = "text/plain";
 
 static void
 gopherStateFree(int fdnotused, void *data)
@@ -122,71 +118,63 @@ gopherStateFree(int fdnotused, void *data)
 }
 
 
-/* figure out content type from file extension */
-static void
-gopher_mime_content(MemBuf * mb, const char *name, const char *def_ctype)
-{
-    char *ctype = mimeGetContentType(name);
-    char *cenc = mimeGetContentEncoding(name);
-    if (cenc)
-	memBufPrintf(mb, "Content-Encoding: %s\r\n", cenc);
-    memBufPrintf(mb, "Content-Type: %s\r\n",
-	ctype ? ctype : def_ctype);
-}
-
-
-
 /* create MIME Header for Gopher Data */
 static void
 gopherMimeCreate(GopherStateData * gopherState)
 {
-    MemBuf mb;
-
-    memBufDefInit(&mb);
-
-    memBufPrintf(&mb,
-	"HTTP/1.0 200 OK Gatewaying\r\n"
-	"Server: Squid/%s\r\n"
-	"Date: %s\r\n",
-	version_string, mkrfc1123(squid_curtime));
+    StoreEntry *e = gopherState->entry;
+    HttpReply *reply = e->mem_obj->reply;
+    const char *mime_type = NULL;
+    const char *mime_enc = NULL;
 
     switch (gopherState->type_id) {
-
     case GOPHER_DIRECTORY:
     case GOPHER_INDEX:
     case GOPHER_HTML:
     case GOPHER_WWW:
     case GOPHER_CSO:
-	memBufPrintf(&mb, "Content-Type: text/html\r\n");
+	mime_type = "text/html";
 	break;
     case GOPHER_GIF:
     case GOPHER_IMAGE:
     case GOPHER_PLUS_IMAGE:
-	memBufPrintf(&mb, "Content-Type: image/gif\r\n");
+	mime_type = "image/gif";
 	break;
     case GOPHER_SOUND:
     case GOPHER_PLUS_SOUND:
-	memBufPrintf(&mb, "Content-Type: audio/basic\r\n");
+	mime_type = "audio/basic";
 	break;
     case GOPHER_PLUS_MOVIE:
-	memBufPrintf(&mb, "Content-Type: video/mpeg\r\n");
+	mime_type = "video/mpeg";
 	break;
     case GOPHER_MACBINHEX:
+	mime_type = "application/macbinary";
+	break;
     case GOPHER_DOSBIN:
     case GOPHER_UUENCODED:
     case GOPHER_BIN:
-	/* Rightnow We have no idea what it is. */
-	gopher_mime_content(&mb, gopherState->request, def_gopher_bin);
-	break;
     case GOPHER_FILE:
     default:
-	gopher_mime_content(&mb, gopherState->request, def_gopher_text);
+	/* Rightnow We have no idea what it is. */
+	mime_type = mimeGetContentType(gopherState->request);
+	mime_enc = mimeGetContentEncoding(gopherState->request);
 	break;
     }
-    memBufPrintf(&mb, "\r\n");
+
+    storeBuffer(e);
+    httpReplyReset(reply);
     EBIT_CLR(gopherState->entry->flags, ENTRY_FWD_HDR_WAIT);
-    storeAppend(gopherState->entry, mb.buf, mb.size);
-    memBufClean(&mb);
+    httpReplySetHeaders(reply, HTTP_OK, "Gatewaying", mime_type, -1, -1, -1);
+    if (mime_enc)
+	httpHeaderPutStr(&reply->header, HDR_CONTENT_ENCODING, mime_enc);
+    httpReplySwapOut(reply, e);
+    reply->hdr_sz = e->mem_obj->inmem_hi;
+    storeTimestampsSet(e);
+    if (EBIT_TEST(e->flags, ENTRY_CACHABLE)) {
+	storeSetPublicKey(e);
+    } else {
+	storeRelease(e);
+    }
 }
 
 /* Parse a gopher request into components.  By Anawat. */
