@@ -251,19 +251,10 @@ cachemgrStart(int fd, request_t * request, StoreEntry * entry)
     assert(a != NULL);
     storeBuffer(entry);
     {
-	http_version_t version;
 	HttpReply *rep = entry->mem_obj->reply;
 	/* prove there are no previous reply headers around */
 	assert(0 == rep->sline.status);
-	httpBuildVersion(&version, 1, 0);
-	httpReplySetHeaders(rep,
-	    version,
-	    HTTP_OK,
-	    NULL,
-	    "text/plain",
-	    -1,			/* C-Len */
-	    squid_curtime,	/* LMT */
-	    squid_curtime);
+	httpReplySetHeaders(rep, HTTP_OK, NULL, "text/plain", -1, -1, squid_curtime);
 	httpReplySwapOut(rep, entry);
     }
     a->handler(entry);

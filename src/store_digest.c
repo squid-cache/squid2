@@ -368,7 +368,6 @@ static void
 storeDigestRewriteResume(void)
 {
     StoreEntry *e;
-    http_version_t version;
 
     assert(sd_state.rewrite_lock);
     assert(!sd_state.rebuild_lock);
@@ -379,10 +378,7 @@ storeDigestRewriteResume(void)
     storeSetPublicKey(e);
     /* fake reply */
     httpReplyReset(e->mem_obj->reply);
-    httpBuildVersion(&version, 1, 0);
-    httpReplySetHeaders(e->mem_obj->reply, version, 200, "Cache Digest OK",
-	"application/cache-digest", store_digest->mask_size + sizeof(sd_state.cblock),
-	squid_curtime, squid_curtime + Config.digest.rewrite_period);
+    httpReplySetHeaders(e->mem_obj->reply, 200, "Cache Digest OK", "application/cache-digest", store_digest->mask_size + sizeof(sd_state.cblock), squid_curtime, squid_curtime + Config.digest.rewrite_period);
     debug(71, 3) ("storeDigestRewrite: entry expires on %ld (%+d)\n",
 	(long int) e->mem_obj->reply->expires, (int) (e->mem_obj->reply->expires - squid_curtime));
     storeBuffer(e);

@@ -99,10 +99,8 @@ whoisReadReply(int fd, void *data)
     if (len > 0) {
 	if (0 == mem->inmem_hi) {
 	    http_reply *reply = mem->reply;
-	    http_version_t version;
 	    storeBuffer(entry);
-	    httpBuildVersion(&version, 1, 0);
-	    httpReplySetHeaders(reply, version, HTTP_OK, "Gatewaying", "text/plain", -1, -1, -2);
+	    httpReplySetHeaders(reply, HTTP_OK, "Gatewaying", "text/plain", -1, -1, -1);
 	    httpReplySwapOut(reply, entry);
 	}
 	fd_bytes(fd, len, FD_READ);

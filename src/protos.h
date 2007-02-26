@@ -490,7 +490,7 @@ extern MemBuf httpReplyPack(const HttpReply * rep);
 /* swap: create swap-based packer, pack, destroy packer and absorbs the reply if not the same as the object reply */
 extern void httpReplySwapOut(HttpReply * rep, StoreEntry * e);
 /* set commonly used info with one call */
-extern void httpReplySetHeaders(HttpReply * rep, http_version_t ver, http_status status,
+extern void httpReplySetHeaders(HttpReply * rep, http_status status,
     const char *reason, const char *ctype, squid_off_t clen, time_t lmt, time_t expires);
 /* do everything in one call: init, set, pack, clean, return MemBuf */
 extern MemBuf httpPackedReply(http_version_t ver, http_status status, const char *ctype,
@@ -692,7 +692,6 @@ extern int peerAllowedToUse(const peer *, request_t *);
 extern void netdbInit(void);
 extern void netdbHandlePingReply(const struct sockaddr_in *from, int hops, int rtt);
 extern void netdbPingSite(const char *hostname);
-extern void netdbDump(StoreEntry *);
 extern int netdbHops(struct in_addr);
 extern void netdbFreeMemory(void);
 extern int netdbHostHops(const char *host);

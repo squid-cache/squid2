@@ -44,7 +44,6 @@ internalStart(request_t * request, StoreEntry * entry)
 {
     ErrorState *err;
     const char *upath = strBuf(request->urlpath);
-    http_version_t version;
     debug(76, 3) ("internalStart: %s requesting '%s'\n",
 	inet_ntoa(request->client_addr), upath);
     if (0 == strcmp(upath, "/squid-internal-dynamic/netdb")) {
@@ -55,15 +54,7 @@ internalStart(request_t * request, StoreEntry * entry)
 #else
 	const char *msgbuf = "This cache does not suport Cache Digests.\n";
 #endif
-	httpBuildVersion(&version, 1, 0);
-	httpReplySetHeaders(entry->mem_obj->reply,
-	    version,
-	    HTTP_NOT_FOUND,
-	    "Not Found",
-	    "text/plain",
-	    strlen(msgbuf),
-	    squid_curtime,
-	    -2);
+	httpReplySetHeaders(entry->mem_obj->reply, HTTP_NOT_FOUND, "Not Found", "text/plain", strlen(msgbuf), squid_curtime, -1);
 	httpReplySwapOut(entry->mem_obj->reply, entry);
 	storeAppend(entry, msgbuf, strlen(msgbuf));
 	storeComplete(entry);

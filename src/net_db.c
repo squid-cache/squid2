@@ -70,6 +70,9 @@ static FREE netdbFreeNameEntry;
 static FREE netdbFreeNetdbEntry;
 static STCB netdbExchangeHandleReply;
 static void netdbExchangeDone(void *);
+#if USE_ICMP
+void netdbDump(StoreEntry * sentry);
+#endif
 
 /* We have to keep a local list of peer names.  The Peers structure
  * gets freed during a reconfigure.  We want this database to
@@ -747,10 +750,10 @@ netdbHops(struct in_addr addr)
     return 256;
 }
 
+#if USE_ICMP
 void
 netdbDump(StoreEntry * sentry)
 {
-#if USE_ICMP
     netdbEntry *n;
     netdbEntry **list;
     net_db_name *x;
@@ -797,18 +800,8 @@ netdbDump(StoreEntry * sentry)
 	}
     }
     xfree(list);
-#else
-    http_reply *reply = sentry->mem_obj->reply;
-    http_version_t version;
-    httpReplyReset(reply);
-    httpBuildVersion(&version, 1, 0);
-    httpReplySetHeaders(reply, version, HTTP_BAD_REQUEST, "Bad Request",
-	NULL, -1, squid_curtime, -2);
-    httpReplySwapOut(reply, sentry);
-    storeAppendPrintf(sentry,
-	"NETDB support not compiled into this Squid cache.\n");
-#endif
 }
+#endif
 
 int
 netdbHostHops(const char *host)
@@ -920,7 +913,6 @@ void
 netdbBinaryExchange(StoreEntry * s)
 {
     http_reply *reply = s->mem_obj->reply;
-    http_version_t version;
 #if USE_ICMP
     netdbEntry *n;
     int i;
@@ -930,9 +922,7 @@ netdbBinaryExchange(StoreEntry * s)
     struct in_addr addr;
     storeBuffer(s);
     httpReplyReset(reply);
-    httpBuildVersion(&version, 1, 0);
-    httpReplySetHeaders(reply, version, HTTP_OK, "OK",
-	NULL, -1, squid_curtime, -2);
+    httpReplySetHeaders(reply, HTTP_OK, "OK", NULL, -1, squid_curtime, -1);
     httpReplySwapOut(reply, s);
     rec_sz = 0;
     rec_sz += 1 + sizeof(addr.s_addr);
@@ -973,9 +963,7 @@ netdbBinaryExchange(StoreEntry * s)
     memFree(buf, MEM_4K_BUF);
 #else
     httpReplyReset(reply);
-    httpBuildVersion(&version, 1, 0);
-    httpReplySetHeaders(reply, version, HTTP_BAD_REQUEST, "Bad Request",
-	NULL, -1, squid_curtime, -2);
+    httpReplySetHeaders(reply, HTTP_BAD_REQUEST, "Bad Request", NULL, -1, -1, -1);
     httpReplySwapOut(reply, s);
     storeAppendPrintf(s, "NETDB support not compiled into this Squid cache.\n");
 #endif

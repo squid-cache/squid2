@@ -1072,7 +1072,6 @@ clientPurgeRequest(clientHttpRequest * http)
     ErrorState *err = NULL;
     HttpReply *r;
     http_status status = HTTP_NOT_FOUND;
-    http_version_t version;
     debug(33, 3) ("Config2.onoff.enable_purge = %d\n", Config2.onoff.enable_purge);
     if (!Config2.onoff.enable_purge) {
 	http->log_type = LOG_TCP_DENIED;
@@ -1153,8 +1152,7 @@ clientPurgeRequest(clientHttpRequest * http)
      */
     http->entry = clientCreateStoreEntry(http, http->request->method, null_request_flags);
     httpReplyReset(r = http->entry->mem_obj->reply);
-    httpBuildVersion(&version, 1, 0);
-    httpReplySetHeaders(r, version, status, NULL, NULL, 0, 0, -1);
+    httpReplySetHeaders(r, status, NULL, NULL, 0, -1, squid_curtime);
     httpReplySwapOut(r, http->entry);
     storeComplete(http->entry);
 }
@@ -3319,7 +3317,6 @@ clientProcessRequest(clientHttpRequest * http)
     char *url = http->uri;
     request_t *r = http->request;
     HttpReply *rep;
-    http_version_t version;
     debug(33, 4) ("clientProcessRequest: %s '%s'\n",
 	RequestMethods[r->method].str,
 	url);
@@ -3346,9 +3343,7 @@ clientProcessRequest(clientHttpRequest * http)
 	    storeReleaseRequest(http->entry);
 	    storeBuffer(http->entry);
 	    rep = httpReplyCreate();
-	    httpBuildVersion(&version, 1, 0);
-	    httpReplySetHeaders(rep, version, HTTP_OK, NULL, "text/plain",
-		httpRequestPrefixLen(r), 0, squid_curtime);
+	    httpReplySetHeaders(rep, HTTP_OK, NULL, "text/plain", httpRequestPrefixLen(r), -1, squid_curtime);
 	    httpReplySwapOut(rep, http->entry);
 	    httpReplyDestroy(rep);
 	    httpRequestSwapOut(r, http->entry);
