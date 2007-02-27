@@ -20,6 +20,8 @@ Changes to squid-2.6.STABLE10 (not yet released>
 	  the path
 	- Bug #1875, #1420. Cleanup of refresh logics when dealing with
 	  non-refreshable content
+	- Negotiate authentication fixed again. Broken since STABLE7 by the
+	  patch for Bug #1792.
 
 Changes to squid-2.6.STABLE9 (Jan 24 2007)
 
