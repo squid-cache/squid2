@@ -789,17 +789,8 @@ clientProcessExpired(void *data)
     StoreEntry *entry = NULL;
     int hit = 0;
     const char *etag;
+    const int can_revalidate = http->entry->mem_obj->reply->sline.status == HTTP_OK;
     debug(33, 3) ("clientProcessExpired: '%s'\n", http->uri);
-    /* Can't validate non-200 responses */
-    if (http->entry->mem_obj->reply->sline.status != HTTP_OK) {
-	debug(33, 3) ("clientProcessExpired: not a 200 OK response. Fall back on cache miss\n");
-	clientProcessMiss(http);
-    }
-    /* Need either Last-Modified or ETag to build a conditional */
-    if (http->entry->lastmod < 0 && !httpHeaderHas(&http->entry->mem_obj->reply->header, HDR_ETAG)) {
-	debug(33, 3) ("clientProcessExpired: no validator present. Fall back on cache miss\n");
-	clientProcessMiss(http);
-    }
     /*
      * check if we are allowed to contact other servers
      * @?@: Instead of a 504 (Gateway Timeout) reply, we may want to return 
@@ -846,16 +837,21 @@ clientProcessExpired(void *data)
     /* delay_id is already set on original store client */
     delaySetStoreClient(http->sc, delayClient(http));
 #endif
-    if (http->old_entry->lastmod > 0)
+    if (can_revalidate && http->old_entry->lastmod > 0) {
 	http->request->lastmod = http->old_entry->lastmod;
-    else
+	http->request->flags.cache_validation = 1;
+    } else
 	http->request->lastmod = -1;
     debug(33, 5) ("clientProcessExpired: lastmod %ld\n", (long int) entry->lastmod);
     http->entry = entry;
     http->out.offset = 0;
-    etag = httpHeaderGetStr(&http->old_entry->mem_obj->reply->header, HDR_ETAG);
-    if (etag)
-	http->request->etag = xstrdup(etag);
+    if (can_revalidate) {
+	etag = httpHeaderGetStr(&http->old_entry->mem_obj->reply->header, HDR_ETAG);
+	if (etag) {
+	    http->request->etag = xstrdup(etag);
+	    http->request->flags.cache_validation = 1;
+	}
+    }
     if (!hit)
 	fwdStart(http->conn->fd, http->entry, http->request);
     /* Register with storage manager to receive updates when data comes in. */
@@ -986,7 +982,7 @@ clientHandleIMSReply(void *data, char *buf, ssize_t size)
 	    oldentry->mem_obj->request = requestLink(mem->request);
 	    unlink_request = 1;
 	}
-	if (mem->reply->sline.status == HTTP_NOT_MODIFIED) {
+	if (mem->reply->sline.status == HTTP_NOT_MODIFIED && http->request->flags.cache_validation) {
 	    /* Don't memcpy() the whole reply structure here.  For example,
 	     * www.thegist.com (Netscape/1.13) returns a content-length for
 	     * 304's which seems to be the length of the 304 HEADERS!!! and

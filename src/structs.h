@@ -1832,6 +1832,7 @@ struct _request_flags {
     unsigned int tproxy:1;
 #endif
     unsigned int collapsed:1;	/* This request was collapsed. Don't trust the store entry to be valid */
+    unsigned int cache_validation:1;	/* This request is an internal cache validation */
 };
 
 struct _link_list {
