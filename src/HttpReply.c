@@ -224,9 +224,9 @@ httpReplySetHeaders(HttpReply * reply, http_status status, const char *reason,
     const char *ctype, squid_off_t clen, time_t lmt, time_t expires)
 {
     HttpHeader *hdr;
-    assert(reply);
     static const http_version_t ver =
     {1, 0};
+    assert(reply);
     httpStatusLineSet(&reply->sline, ver, status, reason);
     hdr = &reply->header;
     httpHeaderPutStr(hdr, HDR_SERVER, visible_appname_string);
