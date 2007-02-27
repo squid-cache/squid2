@@ -791,6 +791,7 @@ clientProcessExpired(void *data)
     StoreEntry *entry = NULL;
     int hit = 0;
     const char *etag;
+    const int can_revalidate = http->entry->mem_obj->reply->sline.status == HTTP_OK;
     debug(33, 3) ("clientProcessExpired: '%s'\n", http->uri);
     /*
      * check if we are allowed to contact other servers
@@ -841,18 +842,21 @@ clientProcessExpired(void *data)
     /* delay_id is already set on original store client */
     delaySetStoreClient(http->sc, delayClient(http));
 #endif
-    if (http->old_entry->lastmod > 0)
+    if (can_revalidate && http->old_entry->lastmod > 0) {
 	http->request->lastmod = http->old_entry->lastmod;
-    else if (http->old_entry->mem_obj && http->old_entry->mem_obj->reply)
-	http->request->lastmod = http->old_entry->mem_obj->reply->date;
-    else
+	http->request->flags.cache_validation = 1;
+    } else
 	http->request->lastmod = -1;
     debug(33, 5) ("clientProcessExpired: lastmod %ld\n", (long int) entry->lastmod);
     http->entry = entry;
     http->out.offset = 0;
-    etag = httpHeaderGetStr(&http->old_entry->mem_obj->reply->header, HDR_ETAG);
-    if (etag)
-	http->request->etag = xstrdup(etag);
+    if (can_revalidate) {
+	etag = httpHeaderGetStr(&http->old_entry->mem_obj->reply->header, HDR_ETAG);
+	if (etag) {
+	    http->request->etag = xstrdup(etag);
+	    http->request->flags.cache_validation = 1;
+	}
+    }
     if (!hit)
 	fwdStart(http->conn->fd, http->entry, http->request);
     /* Register with storage manager to receive updates when data comes in. */
@@ -879,6 +883,12 @@ clientGetsOldEntry(StoreEntry * new_entry, StoreEntry * old_entry, request_t * r
     if (status >= 500 && status < 600) {
 	debug(33, 3) ("clientGetsOldEntry: YES, failure reply=%d\n", status);
 	return 1;
+    }
+    /* If the reply is not to a cache validation conditional then
+     * we should forward it to the client */
+    if (!request->flags.cache_validation) {
+	debug(33, 5) ("clientGetsOldEntry: NO, not a cache validation\n");
+	return 0;
     }
     /* If the reply is anything but "Not Modified" then
      * we must forward it to the client */
@@ -1010,6 +1020,9 @@ clientHandleIMSReply(void *data, char *buf, ssize_t size)
 	    storeTimestampsSet(http->old_entry);
 	    http->log_type = LOG_TCP_REFRESH_HIT;
 	}
+	/* Get rid of the old entry if not a cache validation */
+	if (!http->request->flags.cache_validation)
+	    storeRelease(http->old_entry);
 	storeClientUnregister(http->old_sc, http->old_entry, http);
 	storeUnlockObject(http->old_entry);
 	recopy = 0;
@@ -1037,8 +1050,6 @@ modifiedSince(StoreEntry * entry, request_t * request)
     MemObject *mem = entry->mem_obj;
     time_t mod_time = entry->lastmod;
     debug(33, 3) ("modifiedSince: '%s'\n", storeUrl(entry));
-    if (mod_time < 0)
-	mod_time = entry->timestamp;
     debug(33, 3) ("modifiedSince: mod_time = %ld\n", (long int) mod_time);
     if (mod_time < 0)
 	return 1;
@@ -2186,23 +2197,16 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	return;
     }
     if (httpHeaderHas(&r->header, HDR_IF_MATCH)) {
-	String req_etags;
 	const char *rep_etag = httpHeaderGetStr(&e->mem_obj->reply->header, HDR_ETAG);
-	int has_etag;
-	if (!rep_etag) {
-	    /* The cached object does not have a entity tag. This cannot
-	     * be a hit for the requested object.
-	     */
-	    http->log_type = LOG_TCP_MISS;
-	    clientProcessMiss(http);
-	    return;
+	int has_etag = 0;
+	if (rep_etag) {
+	    String req_etags = httpHeaderGetList(&http->request->header, HDR_IF_MATCH);
+	    has_etag = strListIsMember(&req_etags, rep_etag, ',');
+	    stringClean(&req_etags);
 	}
-	req_etags = httpHeaderGetList(&http->request->header, HDR_IF_MATCH);
-	has_etag = strListIsMember(&req_etags, rep_etag, ',');
-	stringClean(&req_etags);
 	if (!has_etag) {
-	    /* The entity tags does not match. This cannot be a
-	     * hit for this object. Query the origin.
+	    /* The entity tags does not match. This cannot be a hit for this object.
+	     * Query the origin to see what should be done.
 	     */
 	    http->log_type = LOG_TCP_MISS;
 	    clientProcessMiss(http);
@@ -2234,17 +2238,7 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	    }
 	}
     }
-    if (r->flags.ims) {
-	/*
-	 * Handle If-Modified-Since requests from the client
-	 */
-	if (mem->reply->sline.status != HTTP_OK) {
-	    debug(33, 4) ("clientCacheHit: Reply code %d != 200\n",
-		mem->reply->sline.status);
-	    http->log_type = LOG_TCP_MISS;
-	    clientProcessMiss(http);
-	    return;
-	}
+    if (r->flags.ims && mem->reply->sline.status == HTTP_OK) {
 	if (modifiedSince(e, http->request)) {
 	    debug(33, 4) ("clientCacheHit: If-Modified-Since modified\n");
 	    is_modified = 1;
@@ -2282,16 +2276,6 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	 * both have a stale version of the object.
 	 */
 	r->flags.need_validation = 1;
-#if 0
-	if (e->lastmod < 0) {
-	    /*
-	     * Previous reply didn't have a Last-Modified header,
-	     * we cannot revalidate it.
-	     */
-	    http->log_type = LOG_TCP_MISS;
-	    clientProcessMiss(http);
-	} else
-#endif
 	if (r->flags.nocache) {
 	    /*
 	     * This did not match a refresh pattern that overrides no-cache
