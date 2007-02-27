@@ -1000,7 +1000,6 @@ clientHandleIMSReply(void *data, char *buf, ssize_t size)
 	http->sc = http->old_sc;
 	storeUnlockObject(entry);
 	entry = http->entry = oldentry;
-	entry->timestamp = squid_curtime;
 	if (unlink_request) {
 	    requestUnlink(entry->mem_obj->request);
 	    entry->mem_obj->request = NULL;
