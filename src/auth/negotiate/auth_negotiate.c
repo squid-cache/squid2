@@ -85,6 +85,7 @@ static MemPool *negotiate_request_pool = NULL;
 static auth_negotiate_config *negotiateConfig = NULL;
 
 static void authenticateNegotiateReleaseServer(negotiate_request_t * negotiate_request);
+static int authenticateNegotiatecmpUsername(negotiate_user_t * u1, negotiate_user_t * u2);
 /*
  *
  * Private Functions
@@ -104,12 +105,10 @@ authNegotiateDone(void)
 	helperStatefulFree(negotiateauthenticators);
     negotiateauthenticators = NULL;
     if (negotiate_request_pool) {
-	assert(memPoolInUseCount(negotiate_request_pool) == 0);
 	memPoolDestroy(negotiate_request_pool);
 	negotiate_request_pool = NULL;
     }
     if (negotiate_user_pool) {
-	assert(memPoolInUseCount(negotiate_user_pool) == 0);
 	memPoolDestroy(negotiate_user_pool);
 	negotiate_user_pool = NULL;
     }
@@ -215,8 +214,7 @@ authNegotiateInit(authScheme * scheme)
 	 * Negotiate when the client sends a second request on an Negotiate
 	 * connection before the authenticate challenge is sent. With
 	 * this patch, the client may fail to authenticate, but squid's
-	 * state will be preserved.  Caveats: this should be a post-parse
-	 * test, but that can wait for the modular parser to be integrated.
+	 * state will be preserved.
 	 */
 	if (negotiateConfig->authenticate && Config.onoff.pipeline_prefetch != 0) {
 	    debug(29, 1) ("pipeline prefetching incompatile with Negotiate authentication. Disabling pipeline_prefetch\n");
@@ -287,7 +285,6 @@ authenticateNegotiateDirection(auth_user_request_t * auth_user_request)
 	return 1;
     case AUTHENTICATE_STATE_FAILED:
 	return -2;
-    case AUTHENTICATE_STATE_FINISHED:	/* do nothing.. */
     case AUTHENTICATE_STATE_DONE:	/* do nothing.. */
 	return 0;
     case AUTHENTICATE_STATE_INITIAL:
@@ -306,8 +303,6 @@ static void
 authenticateNegotiateFixErrorHeader(auth_user_request_t * auth_user_request, HttpReply * rep, http_hdr_type type, request_t * request)
 {
     negotiate_request_t *negotiate_request;
-    if (!request->flags.proxy_keepalive)
-	return;
     if (!negotiateConfig->authenticate)
 	return;
     /* New request, no user details */
@@ -339,7 +334,6 @@ authenticateNegotiateFixErrorHeader(auth_user_request_t * auth_user_request, Htt
 	safe_free(negotiate_request->server_blob);
 	request->flags.must_keepalive = 1;
 	break;
-    case AUTHENTICATE_STATE_FINISHED:
     case AUTHENTICATE_STATE_DONE:
 	/* Special case when authentication finished, but not allowed by ACL */
 	if (negotiate_request->server_blob) {
@@ -488,6 +482,7 @@ authenticateNegotiateHandleReply(void *data, void *srv, char *reply)
 	auth_user_request->message = xstrdup("Authentication in progress");
 	debug(29, 4) ("authenticateNegotiateHandleReply: Need to challenge the client with a server blob '%s'\n", blob);
     } else if (strncasecmp(reply, "AF ", 3) == 0 && arg != NULL) {
+	auth_user_hash_pointer *usernamehash;
 	/* we're finished, release the helper */
 	if (arg)
 	    *arg++ = '\0';
@@ -498,8 +493,31 @@ authenticateNegotiateHandleReply(void *data, void *srv, char *reply)
 	safe_free(negotiate_request->server_blob);
 	negotiate_request->server_blob = xstrdup(blob);
 	debug(29, 4) ("authenticateNegotiateHandleReply: Successfully validated user via Negotiate. Username '%s'\n", arg);
+	/* this connection is authenticated */
+	debug(29, 4) ("authenticated user %s\n", negotiate_user->username);
+	/* see if this is an existing user with a different proxy_auth 
+	 * string */
+	usernamehash = hash_lookup(proxy_auth_username_cache, negotiate_user->username);
+	if (usernamehash) {
+	    while (usernamehash && (usernamehash->auth_user->auth_type != auth_user->auth_type || authenticateNegotiatecmpUsername(usernamehash->auth_user->scheme_data, negotiate_user) != 0))
+		usernamehash = usernamehash->next;
+	}
+	if (usernamehash) {
+	    /* we can't seamlessly recheck the username due to the 
+	     * challenge nature of the protocol. Just free the 
+	     * temporary auth_user */
+	    authenticateAuthUserMerge(auth_user, usernamehash->auth_user);
+	    auth_user = usernamehash->auth_user;
+	    auth_user_request->auth_user = auth_user;
+	} else {
+	    /* store user in hash's */
+	    authenticateUserNameCacheAdd(auth_user);
+	}
+	/* set these to now because this is either a new login from an 
+	 * existing user or a new user */
+	auth_user->expiretime = current_time.tv_sec;
 	authenticateNegotiateReleaseServer(negotiate_request);
-	negotiate_request->auth_state = AUTHENTICATE_STATE_FINISHED;
+	negotiate_request->auth_state = AUTHENTICATE_STATE_DONE;
     } else if (strncasecmp(reply, "NA ", 3) == 0 && arg != NULL) {
 	if (arg)
 	    *arg++ = '\0';
@@ -573,10 +591,11 @@ authenticateNegotiateStart(auth_user_request_t * auth_user_request, RH * handler
     r->data = data;
     r->auth_user_request = auth_user_request;
     authenticateAuthUserRequestLock(r->auth_user_request);
-    if (negotiate_request->auth_state == AUTHENTICATE_STATE_INITIAL)
+    if (negotiate_request->auth_state == AUTHENTICATE_STATE_INITIAL) {
 	snprintf(buf, 8192, "YR %s\n", sent_string);
-    else
+    } else {
 	snprintf(buf, 8192, "KK %s\n", sent_string);
+    }
     negotiate_request->waiting = 1;
     safe_free(negotiate_request->client_blob);
     helperStatefulSubmit(negotiateauthenticators, buf, authenticateNegotiateHandleReply, r, negotiate_request->authserver);
@@ -663,7 +682,6 @@ static void
 authenticateNegotiateAuthenticateUser(auth_user_request_t * auth_user_request, request_t * request, ConnStateData * conn, http_hdr_type type)
 {
     const char *proxy_auth, *blob;
-    auth_user_hash_pointer *usernamehash;
     auth_user_t *auth_user;
     negotiate_request_t *negotiate_request;
     negotiate_user_t *negotiate_user;
@@ -730,33 +748,6 @@ authenticateNegotiateAuthenticateUser(auth_user_request_t * auth_user_request, r
 	negotiate_request->client_blob = xstrdup(blob);
 	return;
 	break;
-    case AUTHENTICATE_STATE_FINISHED:
-	/* this connection is authenticated */
-	debug(29, 4) ("authenticated user %s\n", negotiate_user->username);
-	/* see if this is an existing user with a different proxy_auth 
-	 * string */
-	usernamehash = hash_lookup(proxy_auth_username_cache, negotiate_user->username);
-	if (usernamehash) {
-	    while (usernamehash && (usernamehash->auth_user->auth_type != auth_user->auth_type || authenticateNegotiatecmpUsername(usernamehash->auth_user->scheme_data, negotiate_user) != 0))
-		usernamehash = usernamehash->next;
-	}
-	if (usernamehash) {
-	    /* we can't seamlessly recheck the username due to the 
-	     * challenge nature of the protocol. Just free the 
-	     * temporary auth_user */
-	    authenticateAuthUserMerge(auth_user, usernamehash->auth_user);
-	    auth_user = usernamehash->auth_user;
-	    auth_user_request->auth_user = auth_user;
-	} else {
-	    /* store user in hash's */
-	    authenticateUserNameCacheAdd(auth_user);
-	}
-	/* set these to now because this is either a new login from an 
-	 * existing user or a new user */
-	auth_user->expiretime = current_time.tv_sec;
-	authenticateNegotiateReleaseServer(negotiate_request);
-	negotiate_request->auth_state = AUTHENTICATE_STATE_DONE;
-	return;
     case AUTHENTICATE_STATE_DONE:
 	fatal("authenticateNegotiateAuthenticateUser: unexpect auth state DONE! Report a bug to the squid developers.\n");
 	break;

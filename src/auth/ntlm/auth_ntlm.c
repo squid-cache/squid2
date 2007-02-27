@@ -84,6 +84,7 @@ static MemPool *ntlm_request_pool = NULL;
 static auth_ntlm_config *ntlmConfig = NULL;
 
 static void authenticateNTLMReleaseServer(ntlm_request_t * ntlm_request);
+static int authenticateNTLMcmpUsername(ntlm_user_t * u1, ntlm_user_t * u2);
 /*
  *
  * Private Functions
@@ -282,7 +283,6 @@ authenticateNTLMDirection(auth_user_request_t * auth_user_request)
 	return 1;
     case AUTHENTICATE_STATE_FAILED:
 	return -2;
-    case AUTHENTICATE_STATE_FINISHED:	/* do nothing.. */
     case AUTHENTICATE_STATE_DONE:	/* do nothing.. */
 	return 0;
     case AUTHENTICATE_STATE_INITIAL:
@@ -332,7 +332,6 @@ authenticateNTLMFixErrorHeader(auth_user_request_t * auth_user_request, HttpRepl
 	safe_free(ntlm_request->server_blob);
 	request->flags.must_keepalive = 1;
 	break;
-    case AUTHENTICATE_STATE_FINISHED:
     case AUTHENTICATE_STATE_DONE:
 	/* Special case when authentication finished, but not allowed by ACL */
 	debug(29, 9) ("authenticateNTLMFixErrorHeader: Sending type:%d header: 'NTLM'\n", type);
@@ -450,14 +449,38 @@ authenticateNTLMHandleReply(void *data, void *srv, char *reply)
 	auth_user_request->message = xstrdup("Authentication in progress");
 	debug(29, 4) ("authenticateNTLMHandleReply: Need to challenge the client with a server blob '%s'\n", blob);
     } else if (strncasecmp(reply, "AF ", 3) == 0) {
+	auth_user_hash_pointer *usernamehash;
 	/* we're finished, release the helper */
 	safe_free(ntlm_user->username);
 	ntlm_user->username = xstrdup(blob);
 	safe_free(auth_user_request->message);
 	auth_user_request->message = xstrdup("Login successful");
 	debug(29, 4) ("authenticateNTLMHandleReply: Successfully validated user via NTLM. Username '%s'\n", blob);
+	/* this connection is authenticated */
+	debug(29, 4) ("authenticated user %s\n", ntlm_user->username);
+	/* see if this is an existing user with a different proxy_auth 
+	 * string */
+	usernamehash = hash_lookup(proxy_auth_username_cache, ntlm_user->username);
+	if (usernamehash) {
+	    while (usernamehash && (usernamehash->auth_user->auth_type != auth_user->auth_type || authenticateNTLMcmpUsername(usernamehash->auth_user->scheme_data, ntlm_user) != 0))
+		usernamehash = usernamehash->next;
+	}
+	if (usernamehash) {
+	    /* we can't seamlessly recheck the username due to the 
+	     * challenge nature of the protocol. Just free the 
+	     * temporary auth_user */
+	    authenticateAuthUserMerge(auth_user, usernamehash->auth_user);
+	    auth_user = usernamehash->auth_user;
+	    auth_user_request->auth_user = auth_user;
+	} else {
+	    /* store user in hash's */
+	    authenticateUserNameCacheAdd(auth_user);
+	}
+	/* set these to now because this is either a new login from an 
+	 * existing user or a new user */
+	auth_user->expiretime = current_time.tv_sec;
 	authenticateNTLMReleaseServer(ntlm_request);
-	ntlm_request->auth_state = AUTHENTICATE_STATE_FINISHED;
+	ntlm_request->auth_state = AUTHENTICATE_STATE_DONE;
     } else if (strncasecmp(reply, "NA ", 3) == 0) {
 	safe_free(auth_user_request->message);
 	auth_user_request->message = xstrdup(blob);
@@ -618,7 +641,6 @@ static void
 authenticateNTLMAuthenticateUser(auth_user_request_t * auth_user_request, request_t * request, ConnStateData * conn, http_hdr_type type)
 {
     const char *proxy_auth, *blob;
-    auth_user_hash_pointer *usernamehash;
     auth_user_t *auth_user;
     ntlm_request_t *ntlm_request;
     ntlm_user_t *ntlm_user;
@@ -685,33 +707,6 @@ authenticateNTLMAuthenticateUser(auth_user_request_t * auth_user_request, reques
 	ntlm_request->client_blob = xstrdup(blob);
 	return;
 	break;
-    case AUTHENTICATE_STATE_FINISHED:
-	/* this connection is authenticated */
-	debug(29, 4) ("authenticated user %s\n", ntlm_user->username);
-	/* see if this is an existing user with a different proxy_auth 
-	 * string */
-	usernamehash = hash_lookup(proxy_auth_username_cache, ntlm_user->username);
-	if (usernamehash) {
-	    while (usernamehash && (usernamehash->auth_user->auth_type != auth_user->auth_type || authenticateNTLMcmpUsername(usernamehash->auth_user->scheme_data, ntlm_user) != 0))
-		usernamehash = usernamehash->next;
-	}
-	if (usernamehash) {
-	    /* we can't seamlessly recheck the username due to the 
-	     * challenge nature of the protocol. Just free the 
-	     * temporary auth_user */
-	    authenticateAuthUserMerge(auth_user, usernamehash->auth_user);
-	    auth_user = usernamehash->auth_user;
-	    auth_user_request->auth_user = auth_user;
-	} else {
-	    /* store user in hash's */
-	    authenticateUserNameCacheAdd(auth_user);
-	}
-	/* set these to now because this is either a new login from an 
-	 * existing user or a new user */
-	auth_user->expiretime = current_time.tv_sec;
-	authenticateNTLMReleaseServer(ntlm_request);
-	ntlm_request->auth_state = AUTHENTICATE_STATE_DONE;
-	return;
     case AUTHENTICATE_STATE_DONE:
 	fatal("authenticateNTLMAuthenticateUser: unexpect auth state DONE! Report a bug to the squid developers.\n");
 	break;
