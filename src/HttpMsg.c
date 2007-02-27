@@ -164,26 +164,19 @@ int
 httpMsgParseRequestLine(HttpMsgBuf * hmsg)
 {
     int i = 0;
-    int retcode = 0;
+    int retcode;
     int maj = -1, min = -1;
     int last_whitespace = -1, line_end = -1;
+    const char *t;
 
     /* Find \r\n - end of URL+Version (and the request) */
-    for (i = 0; i < hmsg->size; i++) {
-	if (hmsg->buf[i] == '\n') {
-	    break;
-	}
-	if (i < hmsg->size - 1 && hmsg->buf[i - 1] == '\r' && hmsg->buf[i] == '\n') {
-	    i++;
-	    break;
-	}
-    }
-    if (i == hmsg->size) {
+    t = memchr(hmsg->buf, '\n', hmsg->size);
+    if (!t) {
 	retcode = 0;
 	goto finish;
     }
     /* XXX this should point to the -end- of the \r\n, \n, etc. */
-    hmsg->req_end = i;
+    hmsg->req_end = t - hmsg->buf;
     i = 0;
 
     /* Find first non-whitespace - beginning of method */
@@ -199,7 +192,7 @@ httpMsgParseRequestLine(HttpMsgBuf * hmsg)
     /* Find first whitespace - end of method */
     for (; i < hmsg->req_end && (!isspace(hmsg->buf[i])); i++);
     if (i >= hmsg->req_end) {
-	retcode = 0;
+	retcode = -1;
 	goto finish;
     }
     hmsg->m_end = i - 1;
@@ -208,7 +201,7 @@ httpMsgParseRequestLine(HttpMsgBuf * hmsg)
     /* Find first non-whitespace - beginning of URL+Version */
     for (; i < hmsg->req_end && (isspace(hmsg->buf[i])); i++);
     if (i >= hmsg->req_end) {
-	retcode = 0;
+	retcode = -1;
 	goto finish;
     }
     hmsg->u_start = i;
@@ -220,8 +213,8 @@ httpMsgParseRequestLine(HttpMsgBuf * hmsg)
 	    line_end = i;
 	    break;
 	}
-	/* XXX could be off-by-one wrong! */
-	if (hmsg->buf[i] == '\r' && (i + 1) <= hmsg->req_end && hmsg->buf[i + 1] == '\n') {
+	/* we know for sure that there is at least a \n following.. */
+	if (hmsg->buf[i] == '\r' && hmsg->buf[i + 1] == '\n') {
 	    line_end = i;
 	    break;
 	}
@@ -231,7 +224,7 @@ httpMsgParseRequestLine(HttpMsgBuf * hmsg)
 	}
     }
     if (i > hmsg->req_end) {
-	retcode = 0;
+	retcode = -1;
 	goto finish;
     }
     /* At this point we don't need the 'i' value; so we'll recycle it for version parsing */
@@ -251,7 +244,7 @@ httpMsgParseRequestLine(HttpMsgBuf * hmsg)
 	/* XXX why <= vs < ? I do need to really re-audit all of this .. */
 	for (i = last_whitespace; i <= hmsg->req_end && isspace(hmsg->buf[i]); i++);
 	if (i > hmsg->req_end) {
-	    retcode = 0;
+	    retcode = -1;
 	    goto finish;
 	}
 	/* is it http/ ? if so, we try parsing. If not, the URL is the whole line; version is 0.9 */
@@ -272,7 +265,7 @@ httpMsgParseRequestLine(HttpMsgBuf * hmsg)
 		maj = maj + (hmsg->buf[i]) - '0';
 	    }
 	    if (i >= hmsg->req_end) {
-		retcode = 0;
+		retcode = -1;
 		goto finish;
 	    }
 	    /* next should be .; we -have- to have this as we have a whole line.. */
@@ -281,7 +274,7 @@ httpMsgParseRequestLine(HttpMsgBuf * hmsg)
 		goto finish;
 	    }
 	    if (i + 1 >= hmsg->req_end) {
-		retcode = 0;
+		retcode = -1;
 		goto finish;
 	    }
 	    /* next should be one or more digits */

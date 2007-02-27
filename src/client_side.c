@@ -3510,6 +3510,8 @@ parseHttpRequest(ConnStateData * conn, HttpMsgBuf * hmsg, method_t * method_p, i
 
     /* Parse the request line */
     ret = httpMsgParseRequestLine(hmsg);
+    if (ret == -1)
+	return parseHttpRequestAbort(conn, "error:invalid-request");
     if (ret == 0) {
 	debug(33, 5) ("Incomplete request, waiting for end of request line\n");
 	*status = 0;
