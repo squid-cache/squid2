@@ -879,6 +879,12 @@ clientGetsOldEntry(StoreEntry * new_entry, StoreEntry * old_entry, request_t * r
 	debug(33, 3) ("clientGetsOldEntry: YES, failure reply=%d\n", status);
 	return 1;
     }
+    /* If the reply is not to a cache validation conditional then
+     * we should forward it to the client */
+    if (!request->flags.cache_validation) {
+	debug(33, 5) ("clientGetsOldEntry: NO, not a cache validation\n");
+	return 0;
+    }
     /* If the reply is anything but "Not Modified" then
      * we must forward it to the client */
     if (HTTP_NOT_MODIFIED != status) {
@@ -982,7 +988,7 @@ clientHandleIMSReply(void *data, char *buf, ssize_t size)
 	    oldentry->mem_obj->request = requestLink(mem->request);
 	    unlink_request = 1;
 	}
-	if (mem->reply->sline.status == HTTP_NOT_MODIFIED && http->request->flags.cache_validation) {
+	if (mem->reply->sline.status == HTTP_NOT_MODIFIED) {
 	    /* Don't memcpy() the whole reply structure here.  For example,
 	     * www.thegist.com (Netscape/1.13) returns a content-length for
 	     * 304's which seems to be the length of the 304 HEADERS!!! and
@@ -1009,6 +1015,9 @@ clientHandleIMSReply(void *data, char *buf, ssize_t size)
 	    storeTimestampsSet(http->old_entry);
 	    http->log_type = LOG_TCP_REFRESH_HIT;
 	}
+	/* Get rid of the old entry if not a cache validation */
+	if (!http->request->flags.cache_validation)
+	    storeRelease(http->old_entry);
 	storeClientUnregister(http->old_sc, http->old_entry, http);
 	storeUnlockObject(http->old_entry);
 	recopy = 0;
