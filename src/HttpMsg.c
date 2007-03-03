@@ -180,7 +180,7 @@ httpMsgParseRequestLine(HttpMsgBuf * hmsg)
     i = 0;
 
     /* Find first non-whitespace - beginning of method */
-    for (; i < hmsg->req_end && (isspace(hmsg->buf[i])); i++);
+    for (; i < hmsg->req_end && (isspace((int) hmsg->buf[i])); i++);
     if (i >= hmsg->req_end) {
 	retcode = 0;
 	goto finish;
@@ -190,7 +190,7 @@ httpMsgParseRequestLine(HttpMsgBuf * hmsg)
     hmsg->r_len = hmsg->req_end - hmsg->req_start + 1;
 
     /* Find first whitespace - end of method */
-    for (; i < hmsg->req_end && (!isspace(hmsg->buf[i])); i++);
+    for (; i < hmsg->req_end && (!isspace((int) hmsg->buf[i])); i++);
     if (i >= hmsg->req_end) {
 	retcode = -1;
 	goto finish;
@@ -199,7 +199,7 @@ httpMsgParseRequestLine(HttpMsgBuf * hmsg)
     hmsg->m_len = hmsg->m_end - hmsg->m_start + 1;
 
     /* Find first non-whitespace - beginning of URL+Version */
-    for (; i < hmsg->req_end && (isspace(hmsg->buf[i])); i++);
+    for (; i < hmsg->req_end && (isspace((int) hmsg->buf[i])); i++);
     if (i >= hmsg->req_end) {
 	retcode = -1;
 	goto finish;
@@ -242,7 +242,7 @@ httpMsgParseRequestLine(HttpMsgBuf * hmsg)
     } else {
 	/* Find the first non-whitespace after last_whitespace */
 	/* XXX why <= vs < ? I do need to really re-audit all of this .. */
-	for (i = last_whitespace; i <= hmsg->req_end && isspace(hmsg->buf[i]); i++);
+	for (i = last_whitespace; i <= hmsg->req_end && isspace((int) hmsg->buf[i]); i++);
 	if (i > hmsg->req_end) {
 	    retcode = -1;
 	    goto finish;
@@ -260,7 +260,7 @@ httpMsgParseRequestLine(HttpMsgBuf * hmsg)
 
 	    /* next should be 1 or more digits */
 	    maj = 0;
-	    for (; i < hmsg->req_end && (isdigit(hmsg->buf[i])); i++) {
+	    for (; i < hmsg->req_end && (isdigit((int) hmsg->buf[i])); i++) {
 		maj = maj * 10;
 		maj = maj + (hmsg->buf[i]) - '0';
 	    }
@@ -280,7 +280,7 @@ httpMsgParseRequestLine(HttpMsgBuf * hmsg)
 	    /* next should be one or more digits */
 	    i++;
 	    min = 0;
-	    for (; i < hmsg->req_end && (isdigit(hmsg->buf[i])); i++) {
+	    for (; i < hmsg->req_end && (isdigit((int) hmsg->buf[i])); i++) {
 		min = min * 10;
 		min = min + (hmsg->buf[i]) - '0';
 	    }
