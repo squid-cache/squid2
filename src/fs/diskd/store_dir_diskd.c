@@ -789,7 +789,7 @@ storeDiskdDirRebuildFromSwapLog(void *data)
 	    }
 	} else if (s.op == SWAP_LOG_DEL) {
 	    /* Delete unless we already have a newer copy */
-	    if ((e = storeGet(s.key)) != NULL && s.lastref > e->lastref) {
+	    if ((e = storeGet(s.key)) != NULL && s.lastref >= e->lastref) {
 		/*
 		 * Make sure we don't unlink the file, it might be
 		 * in use by a subsequent entry.  Also note that
@@ -962,7 +962,7 @@ storeDiskdDirRebuildFromSwapLogOld(void *data)
 	    }
 	} else if (s.op == SWAP_LOG_DEL) {
 	    /* Delete unless we already have a newer copy */
-	    if ((e = storeGet(s.key)) != NULL && s.lastref > e->lastref) {
+	    if ((e = storeGet(s.key)) != NULL && s.lastref >= e->lastref) {
 		/*
 		 * Make sure we don't unlink the file, it might be
 		 * in use by a subsequent entry.  Also note that
