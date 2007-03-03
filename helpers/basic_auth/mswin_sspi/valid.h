@@ -76,7 +76,7 @@ extern const char *errormsg;
 #include <unistd.h>
 static char *__foo;
 #define debug(X...) if (debug_enabled) { \
-                    fprintf(stderr,"nt_auth[%d](%s:%d): ", getpid(), \
+                    fprintf(stderr,"mswin_auth[%d](%s:%d): ", getpid(), \
                     ((__foo=strrchr(__FILE__,'/'))==NULL?__FILE__:__foo+1),\
                     __LINE__);\
                     fprintf(stderr,X); }
@@ -93,7 +93,7 @@ debug(char *format,...)
 	va_list args;
 
 	va_start(args, format);
-	fprintf(stderr, "nt_auth[%d]: ", getpid());
+	fprintf(stderr, "mswin_auth[%d]: ", getpid());
 	vfprintf(stderr, format, args);
 	va_end(args);
     }

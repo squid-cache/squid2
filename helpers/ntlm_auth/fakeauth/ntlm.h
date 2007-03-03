@@ -121,7 +121,7 @@ extern int fail_debug_enabled;
 #include <unistd.h>
 static const char *__foo;
 #define debug(X...) if (debug_enabled) { \
-                    fprintf(stderr,"ntlm-auth[%ld](%s:%d): ", (long)getpid(), \
+                    fprintf(stderr,"fakeauth_auth[%ld](%s:%d): ", (long)getpid(), \
                     ((__foo=strrchr(__FILE__,'/'))==NULL?__FILE__:__foo+1),\
                     __LINE__);\
                     fprintf(stderr,X); }
@@ -142,7 +142,7 @@ debug(char *format,...)
 	va_list args;
 
 	va_start(args, format);
-	fprintf(stderr, "ntlm-auth[%ld]: ", (long)getpid());
+	fprintf(stderr, "fakeauth_auth[%ld]: ", (long)getpid());
 	vfprintf(stderr, format, args);
 	va_end(args);
 #if FAIL_DEBUG
