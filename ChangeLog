@@ -8,7 +8,7 @@
 	- Fix gopher to build a proper parsed HTTP reply instead of hardcoding
 	  a custom HTTP stream.
 
-Changes to squid-2.6.STABLE10 (Mar  4 2007>
+Changes to squid-2.6.STABLE10 (Mar  4 2007)
 
 	- Upgrade HTTP/0.9 responses to our HTTP version (HTTP/1.0)
 	- various diskd bugfixes
