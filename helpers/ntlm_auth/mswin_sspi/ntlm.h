@@ -52,7 +52,7 @@ extern int fail_debug_enabled;
 #include <unistd.h>
 static char *__foo;
 #define debug(X...) if (debug_enabled) { \
-                    fprintf(stderr,"ntlm-auth[%d](%s:%d): ", getpid(), \
+                    fprintf(stderr,"mswin_ntlm_auth[%d](%s:%d): ", getpid(), \
                     ((__foo=strrchr(__FILE__,'/'))==NULL?__FILE__:__foo+1),\
                     __LINE__);\
                     fprintf(stderr,X); }
@@ -73,7 +73,7 @@ debug(char *format,...)
 	va_list args;
 
 	va_start(args, format);
-	fprintf(stderr, "ntlm-auth[%d]: ", getpid());
+	fprintf(stderr, "mswin_ntlm_auth[%d]: ", getpid());
 	vfprintf(stderr, format, args);
 	va_end(args);
 #if FAIL_DEBUG
