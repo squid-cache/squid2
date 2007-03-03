@@ -1,4 +1,4 @@
-Changes to squid-2.6.STABLE10 (not yet released>
+Changes to squid-2.6.STABLE10 (Mar  4 2007)
 
 	- Upgrade HTTP/0.9 responses to our HTTP version (HTTP/1.0)
 	- various diskd bugfixes
@@ -22,6 +22,11 @@ Changes to squid-2.6.STABLE10 (not yet released>
 	  non-refreshable content
 	- Negotiate authentication fixed again. Broken since STABLE7 by the
 	  patch for Bug #1792.
+	- Bug #1892: COSS tries to shut down the same directory twice on exit
+	- Bug #1908: store*DirRebuildFromSwapLog() ignores some SWAP_LOG_DEL
+	  entries
+	- Added support for Subversion HTTP request methods MKACTIVITY,
+	  CHECKOUT and MERGE.
 
 Changes to squid-2.6.STABLE9 (Jan 24 2007)
 
