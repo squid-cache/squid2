@@ -418,6 +418,9 @@ enum {
     METHOD_UNSUBSCRIBE,
     METHOD_POLL,
     METHOD_REPORT,
+    METHOD_MKACTIVITY,
+    METHOD_CHECKOUT,
+    METHOD_MERGE,
     /* Extension methods must be last, Add any new methods before this line */
     METHOD_EXT00,
     METHOD_EXT01,
