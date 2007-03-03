@@ -51,6 +51,12 @@ Squid is a WWW Cache application developed by the Web Caching community.</EM>
 <P>
 <H2><A NAME="toc13">13.</A> <A HREF="#s13">Key changes squid-2.6.STABLE7 to 2.6.STABLE8</A></H2>
 
+<P>
+<H2><A NAME="toc14">14.</A> <A HREF="#s14">Key changes squid-2.6.STABLE8 to 2.6.STABLE9</A></H2>
+
+<P>
+<H2><A NAME="toc15">15.</A> <A HREF="#s15">Key changes squid-2.6.STABLE9 to 2.6.STABLE10</A></H2>
+
 
 <HR>
 <H2><A NAME="s1">1.</A> <A HREF="#toc1">Key changes from squid 2.5</A></H2>
@@ -585,6 +591,35 @@ Negotiate instability introduced in 2.6.STABLE6.</LI>
 <LI>Don't update object timestamps on a failed revalidation.</LI>
 <LI>a number of other minor and cosmetic bugfixes. See the list of 
 <A HREF="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE8.html">squid-2.6.STABLE8 changes</A> and the 
+<A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
+</UL>
+</P>
+
+<H2><A NAME="s14">14.</A> <A HREF="#toc14">Key changes squid-2.6.STABLE8 to 2.6.STABLE9</A></H2>
+
+<P>
+<UL>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1878">#1878</a>: If-Modified-Since broken in 2.6.STABLE8</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1877">#1877</a> diskd bug in storeDiskdIOCallback()</LI>
+<LI>See the list of 
+<A HREF="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE9.html">squid-2.6.STABLE9 changes</A> and the 
+<A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
+</UL>
+</P>
+
+<H2><A NAME="s15">15.</A> <A HREF="#toc15">Key changes squid-2.6.STABLE9 to 2.6.STABLE10</A></H2>
+
+<P>
+<UL>
+<LI>Upgrade HTTP/0.9 responses to our HTTP version (HTTP/1.0)</LI>
+<LI>various diskd bugfixes</LI>
+<LI>In the access.log hierarchy field log the unique peer name
+instead of the host name</LI>
+<LI>logging format for HTTP-request size</LI>
+<LI>Primitive support for HTTP/1.1 chunked encoding, working around
+broken servers</LI>
+<LI>a number of other minor and cosmetic bugfixes. See the list of 
+<A HREF="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE10.html">squid-2.6.STABLE10 changes</A> and the 
 <A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
 </UL>
 </P>
