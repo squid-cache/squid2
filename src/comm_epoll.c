@@ -158,8 +158,6 @@ do_comm_select(int msec)
 {
     int i;
     int num;
-    int fd;
-    struct epoll_event *cevents;
 
     if (epoll_fds == 0) {
 	assert(shutting_down);
@@ -180,9 +178,8 @@ do_comm_select(int msec)
     if (num == 0)
 	return COMM_TIMEOUT;
 
-    for (i = 0, cevents = events; i < num; i++, cevents++) {
-	fd = cevents->data.fd;
-	comm_call_handlers(fd, cevents->events & ~EPOLLOUT, cevents->events & ~EPOLLIN);
+    for (i = 0; i < num; i++) {
+	comm_call_handlers(events[i].data.fd, events[i].events & ~EPOLLOUT, events[i].events & ~EPOLLIN);
     }
 
     return COMM_OK;
