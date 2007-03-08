@@ -752,11 +752,17 @@ helperHandleRead(int fd, void *data)
 	    t[-1] = '\0';
 	*t++ = '\0';
 	if (hlp->concurrency) {
+	    errno = 0;
 	    i = strtol(msg, &msg, 10);
+	    if (errno)
+		i = -1;
 	    while (*msg && isspace((int) *msg))
 		msg++;
 	}
-	r = srv->requests[i];
+	if (i >= 0 && i < hlp->concurrency)
+	    r = srv->requests[i];
+	else
+	    r = NULL;
 	if (r) {
 	    srv->requests[i] = NULL;
 	    if (cbdataValid(r->data))
