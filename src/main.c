@@ -1013,6 +1013,7 @@ watch_child(char *argv[])
 	    argv[0] = xstrdup("(squid)");
 	    execvp(prog, argv);
 	    syslog(LOG_ALERT, "execvp failed: %s", xstrerror());
+	    exit(1);
 	}
 	/* parent */
 	openlog(appname, LOG_PID | LOG_NDELAY | LOG_CONS, LOG_LOCAL4);
