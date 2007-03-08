@@ -2022,7 +2022,7 @@ clientUnwindReply(clientHttpRequest * http, HttpReply * rep)
  * be.
  */
 static HttpReply *
-clientBuildReply(clientHttpRequest * http, const char *buf, size_t size)
+clientBuildReply(clientHttpRequest * http)
 {
     HttpReply *rep = NULL;
     /* If we don't have a memobj / reply by now then we're stuffed */
@@ -2567,24 +2567,14 @@ clientAlwaysAllowResponse(http_status sline)
     }
 }
 
-typedef struct {
-    clientHttpRequest *http;
-    char *buf;
-    ssize_t size;
-    const char *body_buf;
-    ssize_t body_size;
-} clientCheckHeaderStateData;
-
-CBDATA_TYPE(clientCheckHeaderStateData);
-
-static void clientHttpLocationRewriteCheck(clientCheckHeaderStateData * state);
+static void clientHttpLocationRewriteCheck(clientHttpRequest * http);
 static void clientHttpLocationRewriteCheckDone(int answer, void *data);
-static void clientHttpLocationRewrite(clientCheckHeaderStateData * state);
+static void clientHttpLocationRewrite(clientHttpRequest * http);
 static void clientHttpLocationRewriteDone(void *data, char *reply);
-static void clientHttpReplyAccessCheck(clientCheckHeaderStateData * state);
+static void clientHttpReplyAccessCheck(clientHttpRequest * http);
 static void clientHttpReplyAccessCheckDone(int answer, void *data);
-static void clientCheckErrorMap(clientCheckHeaderStateData * state);
-static void clientCheckHeaderDone(clientCheckHeaderStateData * state);
+static void clientCheckErrorMap(clientHttpRequest * http);
+static void clientCheckHeaderDone(clientHttpRequest * http);
 
 /*
  * accepts chunk of a http message in buf, parses prefix, filters headers and
@@ -2593,7 +2583,6 @@ static void clientCheckHeaderDone(clientCheckHeaderStateData * state);
 static void
 clientSendMoreHeaderData(void *data, char *buf, ssize_t size)
 {
-    clientCheckHeaderStateData *state;
     clientHttpRequest *http = data;
     StoreEntry *entry = http->entry;
     ConnStateData *conn = http->conn;
@@ -2628,7 +2617,7 @@ clientSendMoreHeaderData(void *data, char *buf, ssize_t size)
 	return;
     }
     assert(http->out.offset == 0);
-    rep = http->reply = clientBuildReply(http, buf, size);
+    rep = http->reply = clientBuildReply(http);
     if (!rep) {
 	/* Forward as HTTP/0.9 body with no reply */
 	MemBuf mb;
@@ -2666,87 +2655,55 @@ clientSendMoreHeaderData(void *data, char *buf, ssize_t size)
      * - [ahc]
      */
     http->range_iter.prefix_size = rep->hdr_sz;
-    CBDATA_INIT_TYPE(clientCheckHeaderStateData);
-    state = cbdataAlloc(clientCheckHeaderStateData);
-    state->http = http;
-    cbdataLock(http);
-    /* XXX is this state->buf used for anything? Do we free it at all? Wha? [ahc] */
-    state->buf = NULL;
-    state->size = 0;
-    state->body_buf = NULL;
-    state->body_size = 0;
-    assert(state->body_size >= 0);
-    debug(33, 3) ("clientSendMoreHeaderData: Appending %d bytes after %d bytes of headers\n",
-	(int) state->body_size, rep->hdr_sz);
-    clientHttpLocationRewriteCheck(state);
+    debug(33, 3) ("clientSendMoreHeaderData: %d bytes of headers\n", rep->hdr_sz);
+    clientHttpLocationRewriteCheck(http);
 }
 
 static void
-clientHttpLocationRewriteCheck(clientCheckHeaderStateData * state)
+clientHttpLocationRewriteCheck(clientHttpRequest * http)
 {
-    HttpReply *rep = state->http->reply;
+    HttpReply *rep = http->reply;
     aclCheck_t *ch;
-    if (!cbdataValid(state->http)) {
-	/* oops.. */
-	clientCheckHeaderDone(state);
-	return;
-    }
     if (!Config.Program.location_rewrite.command || !httpHeaderHas(&rep->header, HDR_LOCATION)) {
-	clientHttpLocationRewriteDone(state, NULL);
+	clientHttpLocationRewriteDone(http, NULL);
 	return;
     }
     if (Config.accessList.location_rewrite) {
-	ch = clientAclChecklistCreate(Config.accessList.location_rewrite, state->http);
-	ch->reply = state->http->reply;
-	aclNBCheck(ch, clientHttpLocationRewriteCheckDone, state);
+	ch = clientAclChecklistCreate(Config.accessList.location_rewrite, http);
+	ch->reply = http->reply;
+	aclNBCheck(ch, clientHttpLocationRewriteCheckDone, http);
     } else {
-	clientHttpLocationRewriteCheckDone(ACCESS_ALLOWED, state);
+	clientHttpLocationRewriteCheckDone(ACCESS_ALLOWED, http);
     }
 }
 
 static void
 clientHttpLocationRewriteCheckDone(int answer, void *data)
 {
-    clientCheckHeaderStateData *state = data;
-    if (!cbdataValid(state->http)) {
-	/* oops.. */
-	clientCheckHeaderDone(state);
-	return;
-    }
+    clientHttpRequest *http = data;
     if (answer == ACCESS_ALLOWED) {
-	clientHttpLocationRewrite(state);
+	clientHttpLocationRewrite(http);
     } else {
-	clientHttpLocationRewriteDone(state, NULL);
+	clientHttpLocationRewriteDone(http, NULL);
     }
 }
 
 static void
-clientHttpLocationRewrite(clientCheckHeaderStateData * state)
+clientHttpLocationRewrite(clientHttpRequest * http)
 {
-    HttpReply *rep = state->http->reply;
-    if (!cbdataValid(state->http)) {
-	/* oops.. */
-	clientCheckHeaderDone(state);
-	return;
-    }
+    HttpReply *rep = http->reply;
     if (!httpHeaderHas(&rep->header, HDR_LOCATION))
-	clientHttpLocationRewriteDone(state, NULL);
+	clientHttpLocationRewriteDone(http, NULL);
     else
-	locationRewriteStart(rep, state->http, clientHttpLocationRewriteDone, state);
+	locationRewriteStart(rep, http, clientHttpLocationRewriteDone, http);
 }
 
 static void
 clientHttpLocationRewriteDone(void *data, char *reply)
 {
-    clientCheckHeaderStateData *state = data;
-    clientHttpRequest *http = state->http;
+    clientHttpRequest *http = data;
     HttpReply *rep = http->reply;
     ConnStateData *conn = http->conn;
-    if (!cbdataValid(http)) {
-	/* oops.. */
-	clientCheckHeaderDone(state);
-	return;
-    }
     if (reply && *reply) {
 	httpHeaderDelById(&rep->header, HDR_LOCATION);
 	if (*reply == '/') {
@@ -2761,24 +2718,19 @@ clientHttpLocationRewriteDone(void *data, char *reply)
 	    httpHeaderPutStr(&rep->header, HDR_LOCATION, reply);
 	}
     }
-    clientHttpReplyAccessCheck(state);
+    clientHttpReplyAccessCheck(http);
 }
 
 static void
-clientHttpReplyAccessCheck(clientCheckHeaderStateData * state)
+clientHttpReplyAccessCheck(clientHttpRequest * http)
 {
     aclCheck_t *ch;
-    if (!cbdataValid(state->http)) {
-	/* oops.. */
-	clientCheckHeaderDone(state);
-	return;
-    }
-    if (Config.accessList.reply && state->http->log_type != LOG_TCP_DENIED && !clientAlwaysAllowResponse(state->http->reply->sline.status)) {
-	ch = clientAclChecklistCreate(Config.accessList.reply, state->http);
-	ch->reply = state->http->reply;
-	aclNBCheck(ch, clientHttpReplyAccessCheckDone, state);
+    if (Config.accessList.reply && http->log_type != LOG_TCP_DENIED && !clientAlwaysAllowResponse(http->reply->sline.status)) {
+	ch = clientAclChecklistCreate(Config.accessList.reply, http);
+	ch->reply = http->reply;
+	aclNBCheck(ch, clientHttpReplyAccessCheckDone, http);
     } else {
-	clientHttpReplyAccessCheckDone(ACCESS_ALLOWED, state);
+	clientHttpReplyAccessCheckDone(ACCESS_ALLOWED, http);
     }
 }
 
@@ -2797,13 +2749,7 @@ clientHttpReplyAccessCheck(clientCheckHeaderStateData * state)
 static void
 clientHttpReplyAccessCheckDone(int answer, void *data)
 {
-    clientCheckHeaderStateData *state = data;
-    clientHttpRequest *http = state->http;
-    if (!cbdataValid(state->http)) {
-	/* oops.. */
-	clientCheckHeaderDone(state);
-	return;
-    }
+    clientHttpRequest *http = data;
     debug(33, 2) ("The reply for %s %s is %s, because it matched '%s'\n",
 	RequestMethods[http->request->method].str, http->uri,
 	answer ? "ALLOWED" : "DENIED",
@@ -2824,20 +2770,14 @@ clientHttpReplyAccessCheckDone(int answer, void *data)
 	errorAppendEntry(http->entry, err);
 	return;
     }
-    clientCheckErrorMap(state);
+    clientCheckErrorMap(http);
 }
 
 static void
 clientCheckErrorMapDone(StoreEntry * e, int body_offset, squid_off_t content_length, void *data)
 {
-    clientCheckHeaderStateData *state = data;
-    if (!cbdataValid(state->http)) {
-	/* oops.. */
-	clientCheckHeaderDone(state);
-	return;
-    }
+    clientHttpRequest *http = data;
     if (e) {
-	clientHttpRequest *http = state->http;
 	/* Get rid of the old request entry */
 	storeClientUnregister(http->sc, http->entry, http);
 	storeUnlockObject(http->entry);
@@ -2846,56 +2786,42 @@ clientCheckErrorMapDone(StoreEntry * e, int body_offset, squid_off_t content_len
 	storeLockObject(e);
 	http->sc = storeClientRegister(http->entry, http);
 	/* Adjust the header size */
-	state->http->reply->hdr_sz = body_offset;
+	http->reply->hdr_sz = body_offset;
 	/* Clean up any old body content */
-	httpBodyClean(&state->http->reply->body);
-	state->body_buf = NULL;
-	state->body_size = 0;
+	httpBodyClean(&http->reply->body);
 	/* And finally, adjust content-length to the new value */
-	httpHeaderDelById(&state->http->reply->header, HDR_CONTENT_LENGTH);
+	httpHeaderDelById(&http->reply->header, HDR_CONTENT_LENGTH);
 	if (content_length >= 0) {
-	    httpHeaderPutSize(&state->http->reply->header, HDR_CONTENT_LENGTH, content_length);
+	    httpHeaderPutSize(&http->reply->header, HDR_CONTENT_LENGTH, content_length);
 	}
     }
-    clientCheckHeaderDone(state);
+    clientCheckHeaderDone(http);
 }
+
 static void
-clientCheckErrorMap(clientCheckHeaderStateData * state)
+clientCheckErrorMap(clientHttpRequest * http)
 {
-    clientHttpRequest *http = state->http;
-    HttpReply *rep = state->http->reply;
-    if (!cbdataValid(http)) {
-	/* oops.. */
-	clientCheckHeaderDone(state);
-	return;
-    }
+    HttpReply *rep = http->reply;
     if (rep->sline.status < 100 || rep->sline.status >= 400) {
 	request_t *request = http->orig_request;
 	/* XXX The NULL is meant to pass ACL name, but the ACL name is not
 	 * known here (AclMatchedName is no longer valid)
 	 */
-	if (errorMapStart(Config.errorMapList, request, rep, NULL, clientCheckErrorMapDone, state))
+	if (errorMapStart(Config.errorMapList, request, rep, NULL, clientCheckErrorMapDone, http))
 	    return;
     }
-    clientCheckHeaderDone(state);
+    clientCheckHeaderDone(http);
 }
 
 static void
-clientCheckHeaderDone(clientCheckHeaderStateData * state)
+clientCheckHeaderDone(clientHttpRequest * http)
 {
-    const char *body_buf = state->body_buf;
-    ssize_t body_size = state->body_size;
-    HttpReply *rep = state->http->reply;
-    clientHttpRequest *http = state->http;
+    HttpReply *rep = http->reply;
     MemBuf mb;
-    cbdataFree(state);
-    if (!cbdataValid(http))
-	goto aborted;
     /* reset range iterator */
     http->range_iter.pos = HttpHdrRangeInitPos;
     if (http->request->method == METHOD_HEAD) {
 	/* do not forward body for HEAD replies */
-	body_size = 0;
 	http->flags.done_copying = 1;
     }
     /* init mb; put status line and headers  */
@@ -2913,18 +2839,11 @@ clientCheckHeaderDone(clientCheckHeaderStateData * state)
 	assert(http->request->method == METHOD_GET);
 	/* clientPackMoreRanges() updates http->out.offset */
 	/* force the end of the transfer if we are done */
-	if (!clientPackMoreRanges(http, body_buf, body_size, &mb))
+	if (!clientPackMoreRanges(http, "", 0, &mb))
 	    http->flags.done_copying = 1;
-    } else if (body_buf && body_size) {
-	http->out.offset += body_size;
-	memBufAppend(&mb, body_buf, body_size);
     }
     /* write */
     comm_write_mbuf(http->conn->fd, mb, clientWriteComplete, http);
-    /* clean up */
-  aborted:
-    cbdataUnlock(http);
-    http = NULL;
 }
 
 
