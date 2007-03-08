@@ -2100,12 +2100,7 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	/* swap in failure */
 	debug(33, 3) ("clientCacheHit: swapin failure for %s\n", http->uri);
 	http->log_type = LOG_TCP_SWAPFAIL_MISS;
-	if ((e = http->entry)) {
-	    http->entry = NULL;
-	    storeClientUnregister(http->sc, e, http);
-	    http->sc = NULL;
-	    storeUnlockObject(e);
-	}
+	storeUnlockObject(e);
 	clientProcessMiss(http);
 	return;
     }
@@ -2113,24 +2108,8 @@ clientCacheHit(void *data, char *buf, ssize_t size)
     mem = e->mem_obj;
     assert(!EBIT_TEST(e->flags, ENTRY_ABORTED));
     if (!memHaveHeaders(mem)) {
-	/*
-	 * we don't have full reply headers yet; either wait for more or
-	 * punt to clientProcessMiss.
-	 */
-	if (e->mem_status == IN_MEMORY || e->store_status == STORE_OK) {
-	    clientProcessMiss(http);
-	} else if (size == CLIENT_SOCK_SZ && http->out.offset == 0) {
-	    clientProcessMiss(http);
-	} else {
-	    debug(33, 3) ("clientCacheHit: waiting for HTTP reply headers\n");
-	    storeClientCopy(http->sc, e,
-		http->out.offset + size,
-		http->out.offset,
-		CLIENT_SOCK_SZ,
-		buf,
-		clientCacheHit,
-		http);
-	}
+	debug(33, 1) ("clientCacheHit: No reply headers in '%s'?\n", e->mem_obj->url);
+	clientProcessMiss(http);
 	return;
     }
     /*
@@ -2619,18 +2598,14 @@ clientSendMoreHeaderData(void *data, char *buf, ssize_t size)
     assert(http->out.offset == 0);
     rep = http->reply = clientBuildReply(http);
     if (!rep) {
-	/* Forward as HTTP/0.9 body with no reply */
-	MemBuf mb;
-	memBufDefInit(&mb);
-	memBufAppend(&mb, buf, size);
-	http->out.offset += size;
-	comm_write_mbuf(http->conn->fd, mb, clientWriteComplete, http);
+	ErrorState *err = errorCon(ERR_INVALID_RESP, HTTP_BAD_GATEWAY, http->orig_request);
+	storeClientUnregister(http->sc, http->entry, http);
+	http->sc = NULL;
+	storeUnlockObject(http->entry);
+	http->entry = clientCreateStoreEntry(http, http->request->method,
+	    null_request_flags);
+	errorAppendEntry(http->entry, err);
 	return;
-    }
-    if (Config.onoff.log_mime_hdrs) {
-	safe_free(http->al.headers.reply);
-	http->al.headers.reply = xcalloc(rep->hdr_sz + 1, 1);
-	xstrncpy(http->al.headers.reply, buf, rep->hdr_sz);
     }
     clientMaxBodySize(http->request, http, rep);
     if (http->log_type != LOG_TCP_DENIED && clientReplyBodyTooLarge(http, rep->content_length)) {
@@ -2829,6 +2804,11 @@ clientCheckHeaderDone(clientHttpRequest * http)
 	mb = httpReplyPack(rep);
     else
 	memBufDefInit(&mb);
+    if (Config.onoff.log_mime_hdrs) {
+	http->al.headers.reply = xmalloc(mb.size + 1);
+	xstrncpy(http->al.headers.reply, mb.buf, mb.size);
+	http->al.headers.reply[mb.size] = '\0';
+    }
     http->out.offset += rep->hdr_sz;
 #if HEADERS_LOG
     headersLog(0, 0, http->request->method, rep);
@@ -2842,7 +2822,7 @@ clientCheckHeaderDone(clientHttpRequest * http)
 	if (!clientPackMoreRanges(http, "", 0, &mb))
 	    http->flags.done_copying = 1;
     }
-    /* write */
+    /* write headers and initial body */
     comm_write_mbuf(http->conn->fd, mb, clientWriteComplete, http);
 }
 
@@ -2920,7 +2900,7 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 	http->out.offset += size;
 	memBufAppend(&mb, buf, size);
     }
-    /* write */
+    /* write body */
     comm_write_mbuf(fd, mb, clientWriteComplete, http);
 }
 
