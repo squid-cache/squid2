@@ -315,10 +315,14 @@ getStringPrefix(const char *str, const char *end)
 int
 httpHeaderParseInt(const char *start, int *value)
 {
+    char *end;
+    long v;
     assert(value);
-    *value = atoi(start);
-    if (!*value && !xisdigit(*start)) {
+    errno = 0;
+    v = *value = strtol(start, &end, 10);
+    if (start == end || errno != 0 || v != *value) {
 	debug(66, 2) ("failed to parse an int header field near '%s'\n", start);
+	*value = -1;
 	return 0;
     }
     return 1;
@@ -327,14 +331,16 @@ httpHeaderParseInt(const char *start, int *value)
 int
 httpHeaderParseSize(const char *start, squid_off_t * value)
 {
-    squid_off_t v;
     char *end;
-    int res;
-    v = strto_off_t(start, &end, 10);
-    res = start != end;
+    errno = 0;
     assert(value);
-    *value = res ? v : 0;
-    return res;
+    *value = strto_off_t(start, &end, 10);
+    if (start == end || errno != 0) {
+	debug(66, 2) ("failed to parse an int header field near '%s'\n", start);
+	*value = -1;
+	return 0;
+    }
+    return 1;
 }
 
 
