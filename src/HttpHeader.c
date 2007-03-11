@@ -508,7 +508,7 @@ httpHeaderParse(HttpHeader * hdr, const char *header_start, const char *header_e
 		    httpHeaderEntryDestroy(e);
 		    continue;
 		}
-	    } else {
+	    } else if (e2) {
 		debug(55, Config.onoff.relaxed_header_parser <= 0 ? 1 : 2)
 		    ("NOTICE: found double content-length header\n");
 		if (Config.onoff.relaxed_header_parser) {
