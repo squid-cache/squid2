@@ -754,7 +754,7 @@ helperHandleRead(int fd, void *data)
 	if (hlp->concurrency) {
 	    errno = 0;
 	    i = strtol(msg, &msg, 10);
-	    if (errno)
+	    if (msg == srv->rbuf || errno)
 		i = -1;
 	    while (*msg && isspace((int) *msg))
 		msg++;
