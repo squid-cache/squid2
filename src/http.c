@@ -721,7 +721,7 @@ httpAppendBody(HttpStateData * httpState, const char *buf, ssize_t len, int buff
     }
     /* Is it a incomplete reply? */
     if (httpState->chunk_size > 0) {
-	debug(11, 1) ("Short response on port %d. Expecting %" PRINTF_OFF_T " octets more\n", comm_local_port(fd), httpState->chunk_size);
+	debug(11, 2) ("Short response from '%s' on port %d. Expecting %" PRINTF_OFF_T " octets more\n", storeUrl(entry), comm_local_port(fd), httpState->chunk_size);
 	comm_close(fd);
 	return;
     }
