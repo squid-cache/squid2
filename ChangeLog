@@ -5,15 +5,19 @@
 	- Kill the psuedo-support for wais. Was never really implemented.
 	- Clean up use of httpReplySetHeaders to be consistent across the
 	  code, and remove the unneeded http_version argument.
-	- Windos port fixes
+	- Windows port fixes
 	- Fix bswap16 & bwsap32 error on NetBSD
+	- Strengthen the HTTP protocol parser further wrt integer errors
+
+Changes to squid-2.6.STABLE11 (not yet released)
+
+	- Bug #1915: assertion failed: client_side.c:4055: "buf != NULL ||
+	  !conn->body.request"
+	- Handle garbage helper responses better in concurrent protocol format
 	- Fix kqueue when overflowing the changes queue
 	- Make sure the child worker process commits suicide if it could
 	  not start up
 	- Don't log short responses at debug level 1
-	- Handle garbage helper responses better in concurrent protocol format
-	- Strengthen the HTTP protocol parser further wrt integer errors
-	- Bug #1915: assertion failed: client_side.c:4055: "buf != NULL || !conn->body.request"
 
 Changes to squid-2.6.STABLE10 (Mar  4 2007)
 

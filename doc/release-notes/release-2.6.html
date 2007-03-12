@@ -2,10 +2,10 @@
 <HTML>
 <HEAD>
  <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.21">
- <TITLE>Squid 2.6.STABLE10 release notes</TITLE>
+ <TITLE>Squid 2.6.STABLE11 release notes</TITLE>
 </HEAD>
 <BODY>
-<H1>Squid 2.6.STABLE10 release notes</H1>
+<H1>Squid 2.6.STABLE11 release notes</H1>
 
 <H2>Squid Developers</H2>$Id$
 <HR>
@@ -57,6 +57,9 @@ Squid is a WWW Cache application developed by the Web Caching community.</EM>
 <P>
 <H2><A NAME="toc15">15.</A> <A HREF="#s15">Key changes squid-2.6.STABLE9 to 2.6.STABLE10</A></H2>
 
+<P>
+<H2><A NAME="toc16">16.</A> <A HREF="#s16">Key changes squid-2.6.STABLE10 to 2.6.STABLE11</A></H2>
+
 
 <HR>
 <H2><A NAME="s1">1.</A> <A HREF="#toc1">Key changes from squid 2.5</A></H2>
@@ -67,10 +70,10 @@ Squid is a WWW Cache application developed by the Web Caching community.</EM>
 and transparent proxy requests to make it easier to configure transparent and 
 acceleration functionality.  The default behaviour is to function as a standard 
 HTTP proxy on each port that Squid is configured to listen on, but in addition 
-in this release the keywords "accelerated" and "transparent" can be specified 
+in this release the keywords "accel" and "transparent" can be specified 
 after each port to indicate to Squid the functionality that is to be enabled on 
 that port.  This means that the old config directives relating to httpd_accel_* 
-are now deprecated.</LI>
+are now deprecated. See below for more details about these options.</LI>
 <LI>WCCPv2 support multiple cache engines registering with multiple WCCP 
 routers and switches.  WCCPv2 is preferred over WCCPv1 for performance and 
 flexibility reasons if your router or switch is able to support it (all recent 
@@ -137,7 +140,7 @@ membership check</LI>
 <DL>
 <DT><B>http_port</B><DD><P>Now takes a list of options in addition to the port address, specifying the purpose of this http_port. Default is plain Internet proxy as usual.</P>
 <DT><B>httpd_accel_* for transparent proxy</B><DD><P>Now implemented by the "transparent" http_port option</P>
-<DT><B>httpd_accel_* for accelerator mode</B><DD><P>Nov implemented by other options. See individual directives below.</P>
+<DT><B>httpd_accel_* for accelerator mode</B><DD><P>Now implemented by other options and the http_port accel option. See individual directives below.</P>
 <DT><B>httpd_accel_host</B><DD><P>Replaced by defaultsite http_port option and cache_peer originserver option.</P>
 <DT><B>httpd_accel_port</B><DD><P>No longer needed. Server port defined by the cache_peer port.</P>
 <DT><B>httpd_accel_uses_host_header</B><DD><P>Replaced by vhost http_port option</P>
@@ -623,6 +626,23 @@ broken servers</LI>
 <A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
 </UL>
 </P>
+
+<H2><A NAME="s16">16.</A> <A HREF="#toc16">Key changes squid-2.6.STABLE10 to 2.6.STABLE11</A></H2>
+
+<P>
+<UL>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1915">#1915</a>: assertion failed: client_side.c:4055: "buf != NULL ||
+!conn-&gt;body.request"</LI>
+<LI>Handle garbage helper responses better in concurrent protocol format</LI>
+<LI>Fix kqueue when overflowing the changes queue</LI>
+<LI>Make sure the child worker process commits suicide if it could not start up</LI>
+<LI>Don't log short responses at debug level 1</LI>
+<LI>See also the list of 
+<A HREF="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE11.html">squid-2.6.STABLE11 changes</A> and the 
+<A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
+</UL>
+</P>
+
 
 </BODY>
 </HTML>
