@@ -18,10 +18,10 @@ Squid is a WWW Cache application developed by the Web Caching community.
 and transparent proxy requests to make it easier to configure transparent and 
 acceleration functionality.  The default behaviour is to function as a standard 
 HTTP proxy on each port that Squid is configured to listen on, but in addition 
-in this release the keywords "accelerated" and "transparent" can be specified 
+in this release the keywords "accel" and "transparent" can be specified 
 after each port to indicate to Squid the functionality that is to be enabled on 
 that port.  This means that the old config directives relating to httpd_accel_* 
-are now deprecated.
+are now deprecated. See below for more details about these options.
 <item>WCCPv2 support multiple cache engines registering with multiple WCCP 
 routers and switches.  WCCPv2 is preferred over WCCPv1 for performance and 
 flexibility reasons if your router or switch is able to support it (all recent 
@@ -84,7 +84,7 @@ membership check
 <p><descrip>
 <tag>http_port</tag>Now takes a list of options in addition to the port address, specifying the purpose of this http_port. Default is plain Internet proxy as usual.
 <tag>httpd_accel_* for transparent proxy</tag>Now implemented by the "transparent" http_port option
-<tag>httpd_accel_* for accelerator mode</tag>Nov implemented by other options. See individual directives below.
+<tag>httpd_accel_* for accelerator mode</tag>Now implemented by other options and the http_port accel option. See individual directives below.
 <tag>httpd_accel_host</tag>Replaced by defaultsite http_port option and cache_peer originserver option.
 <tag>httpd_accel_port</tag>No longer needed. Server port defined by the cache_peer port.
 <tag>httpd_accel_uses_host_header</tag>Replaced by vhost http_port option
