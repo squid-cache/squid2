@@ -6,7 +6,6 @@
 	- Clean up use of httpReplySetHeaders to be consistent across the
 	  code, and remove the unneeded http_version argument.
 	- Windows port fixes
-	- Fix bswap16 & bwsap32 error on NetBSD
 	- Strengthen the HTTP protocol parser further wrt integer errors
 
 Changes to squid-2.6.STABLE11 (not yet released)
@@ -18,6 +17,7 @@ Changes to squid-2.6.STABLE11 (not yet released)
 	- Make sure the child worker process commits suicide if it could
 	  not start up
 	- Don't log short responses at debug level 1
+	- Fix bswap16 & bwsap32 error on NetBSD
 
 Changes to squid-2.6.STABLE10 (Mar  4 2007)
 
