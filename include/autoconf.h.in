@@ -76,12 +76,6 @@
 /* Define to 1 if you have the <bstring.h> header file. */
 #undef HAVE_BSTRING_H
 
-/* Define to 1 if you have the `bswap_16' function. */
-#undef HAVE_BSWAP_16
-
-/* Define to 1 if you have the `bswap_32' function. */
-#undef HAVE_BSWAP_32
-
 /* Define to 1 if you have the <byteswap.h> header file. */
 #undef HAVE_BYTESWAP_H
 
