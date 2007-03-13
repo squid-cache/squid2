@@ -2354,8 +2354,6 @@ AC_CHECK_FUNCS(\
 	syslog \
 	timegm \
 	vsnprintf \
-	bswap_16 \
-	bswap_32 \
 )
 
 SAVED_LIBS="$LIBS"
