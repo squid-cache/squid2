@@ -759,7 +759,7 @@ helperHandleRead(int fd, void *data)
 	    while (*msg && isspace((int) *msg))
 		msg++;
 	}
-	if (i >= 0 && i < hlp->concurrency)
+	if ((!hlp->concurrency) || (i >= 0 && i < hlp->concurrency))
 	    r = srv->requests[i];
 	else
 	    r = NULL;
