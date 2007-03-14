@@ -317,14 +317,6 @@ delayClient(clientHttpRequest * http)
     r = http->request;
 
     memset(&ch, '\0', sizeof(ch));
-#if FOLLOW_X_FORWARDED_FOR
-    if (Config.onoff.delay_pool_uses_indirect_client) {
-	ch.src_addr = r->indirect_client_addr;
-    } else
-#endif /* FOLLOW_X_FORWARDED_FOR */
-	ch.src_addr = r->client_addr;
-    ch.my_addr = r->my_addr;
-    ch.my_port = r->my_port;
     ch.conn = http->conn;
     ch.request = r;
     if (r->client_addr.s_addr == INADDR_BROADCAST) {

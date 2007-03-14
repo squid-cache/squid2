@@ -2481,7 +2481,7 @@ clientMaxBodySize(request_t * request, clientHttpRequest * http, HttpReply * rep
     while (bs) {
 	checklist = clientAclChecklistCreate(bs->access_list, http);
 	checklist->reply = reply;
-	if (1 != aclCheckFast(bs->access_list, checklist)) {
+	if (aclCheckFast(bs->access_list, checklist)) {
 	    /* deny - skip this entry */
 	    bs = (body_size *) bs->node.next;
 	} else {

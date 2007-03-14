@@ -56,8 +56,10 @@ char *log_quote(const char *header);
 extern aclCheck_t *aclChecklistCreate(const struct _acl_access *,
     request_t *,
     const char *ident);
+void aclChecklistCacheInit(aclCheck_t * checklist);
 extern void aclNBCheck(aclCheck_t *, PF *, void *);
 extern int aclCheckFast(const struct _acl_access *A, aclCheck_t *);
+int aclCheckFastRequest(const acl_access * A, request_t * request);
 extern void aclChecklistFree(aclCheck_t *);
 extern int aclMatchAclList(const acl_list * list, aclCheck_t * checklist);
 extern void aclDestroyAccessList(struct _acl_access **list);

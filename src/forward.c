@@ -402,6 +402,7 @@ aclMapAddr(acl_address * head, aclCheck_t * ch)
 {
     acl_address *l;
     struct in_addr addr;
+    aclChecklistCacheInit(ch);
     for (l = head; l; l = l->next) {
 	if (aclMatchAclList(l->acl_list, ch))
 	    return l->addr;
@@ -414,6 +415,7 @@ static int
 aclMapTOS(acl_tos * head, aclCheck_t * ch)
 {
     acl_tos *l;
+    aclChecklistCacheInit(ch);
     for (l = head; l; l = l->next) {
 	if (aclMatchAclList(l->acl_list, ch))
 	    return l->tos;
@@ -427,9 +429,6 @@ getOutgoingAddr(request_t * request)
     aclCheck_t ch;
     memset(&ch, '\0', sizeof(aclCheck_t));
     if (request) {
-	ch.src_addr = request->client_addr;
-	ch.my_addr = request->my_addr;
-	ch.my_port = request->my_port;
 	ch.request = request;
     }
     return aclMapAddr(Config.accessList.outgoing_address, &ch);
@@ -441,9 +440,6 @@ getOutgoingTOS(request_t * request)
     aclCheck_t ch;
     memset(&ch, '\0', sizeof(aclCheck_t));
     if (request) {
-	ch.src_addr = request->client_addr;
-	ch.my_addr = request->my_addr;
-	ch.my_port = request->my_port;
 	ch.request = request;
     }
     return aclMapTOS(Config.accessList.outgoing_tos, &ch);
@@ -801,7 +797,6 @@ void
 fwdStart(int fd, StoreEntry * e, request_t * r)
 {
     FwdState *fwdState;
-    aclCheck_t ch;
     int answer;
     ErrorState *err;
     /*
@@ -813,12 +808,7 @@ fwdStart(int fd, StoreEntry * e, request_t * r)
 	/*      
 	 * Check if this host is allowed to fetch MISSES from us (miss_access)
 	 */
-	memset(&ch, '\0', sizeof(aclCheck_t));
-	ch.src_addr = r->client_addr;
-	ch.my_addr = r->my_addr;
-	ch.my_port = r->my_port;
-	ch.request = r;
-	answer = aclCheckFast(Config.accessList.miss, &ch);
+	answer = aclCheckFastRequest(Config.accessList.miss, r);
 	if (answer == 0) {
 	    err_type page_id;
 	    page_id = aclGetDenyInfoPage(&Config.denyInfoList, AclMatchedName, 1);

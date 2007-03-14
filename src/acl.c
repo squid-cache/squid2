@@ -2115,6 +2115,7 @@ aclCheckFast(const acl_access * A, aclCheck_t * checklist)
     allow_t allow = ACCESS_DENIED;
     int answer;
     debug(28, 5) ("aclCheckFast: list: %p\n", A);
+    aclChecklistCacheInit(checklist);
     while (A) {
 	allow = A->allow;
 	answer = aclMatchAclList(A->acl_list, checklist);
@@ -2129,6 +2130,15 @@ aclCheckFast(const acl_access * A, aclCheck_t * checklist)
     debug(28, 5) ("aclCheckFast: no matches, returning: %d\n", allow == ACCESS_DENIED);
     aclCheckCleanup(checklist);
     return allow == ACCESS_DENIED;
+}
+
+int
+aclCheckFastRequest(const acl_access * A, request_t * request)
+{
+    aclCheck_t ch;
+    memset(&ch, 0, sizeof(ch));
+    ch.request = request;
+    return aclCheckFast(A, &ch);
 }
 
 static void
@@ -2366,6 +2376,32 @@ aclLookupExternalDone(void *data, void *result)
     aclCheck(checklist);
 }
 
+/* Fills in common derived fields */
+void
+aclChecklistCacheInit(aclCheck_t * checklist)
+{
+    request_t *request = checklist->request;
+    if (request != NULL && checklist->src_addr.s_addr == 0) {
+#if FOLLOW_X_FORWARDED_FOR
+	if (Config.onoff.acl_uses_indirect_client) {
+	    checklist->src_addr = request->indirect_client_addr;
+	} else
+#endif /* FOLLOW_X_FORWARDED_FOR */
+	    checklist->src_addr = request->client_addr;
+	checklist->my_addr = request->my_addr;
+	checklist->my_port = request->my_port;
+#if 0 && USE_IDENT
+	/*
+	 * this is currently broken because 'request->user_ident' has been
+	 * moved to conn->rfc931 and we don't have access to the parent
+	 * ConnStateData here.
+	 */
+	if (request->user_ident[0])
+	    xstrncpy(checklist.rfc931, request->user_ident, USER_IDENT_SZ);
+#endif
+    }
+}
+
 aclCheck_t *
 aclChecklistCreate(const acl_access * A, request_t * request, const char *ident)
 {
@@ -2378,17 +2414,8 @@ aclChecklistCreate(const acl_access * A, request_t * request, const char *ident)
      * pointer, so lock it.
      */
     cbdataLock(A);
-    if (request != NULL) {
+    if (request)
 	checklist->request = requestLink(request);
-#if FOLLOW_X_FORWARDED_FOR
-	if (Config.onoff.acl_uses_indirect_client) {
-	    checklist->src_addr = request->indirect_client_addr;
-	} else
-#endif /* FOLLOW_X_FORWARDED_FOR */
-	    checklist->src_addr = request->client_addr;
-	checklist->my_addr = request->my_addr;
-	checklist->my_port = request->my_port;
-    }
     for (i = 0; i < ACL_ENUM_MAX; i++)
 	checklist->state[i] = ACL_LOOKUP_NONE;
 #if USE_IDENT
@@ -2405,6 +2432,7 @@ aclNBCheck(aclCheck_t * checklist, PF * callback, void *callback_data)
     checklist->callback = callback;
     checklist->callback_data = callback_data;
     cbdataLock(callback_data);
+    aclChecklistCacheInit(checklist);
     aclCheck(checklist);
 }
 

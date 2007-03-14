@@ -1504,15 +1504,12 @@ static void
 httpSendRequestEntryDone(int fd, void *data)
 {
     HttpStateData *httpState = data;
-    aclCheck_t ch;
     debug(11, 5) ("httpSendRequestEntryDone: FD %d\n",
 	fd);
-    memset(&ch, '\0', sizeof(ch));
-    ch.request = httpState->request;
     if (!Config.accessList.brokenPosts) {
 	debug(11, 5) ("httpSendRequestEntryDone: No brokenPosts list\n");
 	httpSendComplete(fd, NULL, 0, 0, data);
-    } else if (!aclCheckFast(Config.accessList.brokenPosts, &ch)) {
+    } else if (!aclCheckFastRequest(Config.accessList.brokenPosts, httpState->request)) {
 	debug(11, 5) ("httpSendRequestEntryDone: didn't match brokenPosts\n");
 	httpSendComplete(fd, NULL, 0, 0, data);
     } else {

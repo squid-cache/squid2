@@ -443,7 +443,6 @@ httpHdrMangle(HttpHeaderEntry * e, request_t * request)
 
     /* check with anonymizer tables */
     header_mangler *hm;
-    aclCheck_t *checklist;
     assert(e);
     if (e->id == HDR_OTHER) {
 	for (hm = Config.header_access[HDR_OTHER].next; hm; hm = hm->next) {
@@ -456,9 +455,7 @@ httpHdrMangle(HttpHeaderEntry * e, request_t * request)
 	hm = &Config.header_access[e->id];
     if (!hm->access_list)
 	return 1;
-    checklist = aclChecklistCreate(hm->access_list, request, NULL);
-    if (1 == aclCheckFast(hm->access_list, checklist)) {
-	/* aclCheckFast returns 1 for allow. */
+    if (aclCheckFastRequest(hm->access_list, request)) {
 	retval = 1;
     } else if (NULL == hm->replacement) {
 	/* It was denied, and we don't have any replacement */
@@ -471,7 +468,6 @@ httpHdrMangle(HttpHeaderEntry * e, request_t * request)
 	stringReset(&e->value, hm->replacement);
 	retval = -1;
     }
-    aclChecklistFree(checklist);
 
     return retval != 0;
 }
