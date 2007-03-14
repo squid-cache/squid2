@@ -463,7 +463,7 @@ statFiledescriptors(StoreEntry * sentry)
 	    i,
 #endif
 	    fdTypeStr[f->type],
-	    f->timeout_handler ? (int) (f->timeout - squid_curtime) / 60 : 0,
+	    f->timeout_handler ? (int) (f->timeout - squid_curtime) : 0,
 	    f->bytes_read,
 	    f->read_handler ? '*' : ' ',
 	    f->bytes_written,
