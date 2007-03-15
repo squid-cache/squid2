@@ -1717,7 +1717,7 @@ storeRegisterAbort(StoreEntry * e, STABH * cb, void *data)
 }
 
 void
-storeClientUnregisterAbort(StoreEntry * e)
+storeUnregisterAbort(StoreEntry * e)
 {
     MemObject *mem = e->mem_obj;
     assert(mem);
