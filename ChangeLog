@@ -8,7 +8,7 @@
 	- Windows port fixes
 	- Strengthen the HTTP protocol parser further wrt integer errors
 
-Changes to squid-2.6.STABLE11 (not yet released)
+Changes to squid-2.6.STABLE11 (Mar 17 2007)
 
 	- Bug #1915: assertion failed: client_side.c:4055: "buf != NULL ||
 	  !conn->body.request"
