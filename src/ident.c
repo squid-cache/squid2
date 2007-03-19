@@ -232,7 +232,8 @@ identStart(struct sockaddr_in *me, struct sockaddr_in *my_peer, IDCB * callback,
 	inet_ntoa(state->my_peer.sin_addr),
 	IDENT_PORT,
 	identConnectDone,
-	state);
+	state,
+	NULL);
 }
 
 void

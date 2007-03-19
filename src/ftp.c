@@ -1847,7 +1847,7 @@ ftpReadPasv(FtpStateData * ftpState)
     safe_free(ftpState->ctrl.last_reply);
     ftpState->ctrl.last_command = xstrdup("Connect to server data port");
     debug(9, 5) ("ftpReadPasv: connecting to %s, port %d\n", ftpState->data.host, ftpState->data.port);
-    commConnectStart(fd, ipaddr, port, ftpPasvCallback, ftpState);
+    commConnectStart(fd, ipaddr, port, ftpPasvCallback, ftpState, NULL);
 }
 
 static void

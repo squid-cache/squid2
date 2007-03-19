@@ -742,7 +742,8 @@ idnsRetryTcp(idns_query * q)
 	inet_ntoa(nameservers[ns].S.sin_addr),
 	ntohs(nameservers[ns].S.sin_port),
 	idnsSendTcpQuery,
-	q
+	q,
+	NULL
 	);
 }
 

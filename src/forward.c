@@ -338,8 +338,11 @@ fwdConnectDone(int server_fd, int status, void *data)
 	 * Only set the dont_retry flag if the DNS lookup fails on
 	 * a direct connection.  If DNS lookup fails when trying
 	 * a neighbor cache, we may want to retry another option.
+	 *
+	 * If this is a transparent connection, we will retry using the client's
+	 * DNS lookup
 	 */
-	if (NULL == fs->peer)
+	if ((NULL == fs->peer) && !fwdState->request->flags.transparent)
 	    fwdState->flags.dont_retry = 1;
 	debug(17, 4) ("fwdConnectDone: Unknown host: %s\n",
 	    request->host);
@@ -518,6 +521,9 @@ fwdConnectStart(void *data)
     if (fd == -1)
 	fd = pconnPop(name, port, domain, NULL, 0);
     if (fd != -1) {
+	/* Don't cache if the returned fd does not have valid DNS */
+	if (fd_table[fd].flags.dnsfailed)
+	    storeRelease(fwdState->entry);
 	if (fwdCheckRetriable(fwdState)) {
 	    debug(17, 3) ("fwdConnectStart: reusing pconn FD %d\n", fd);
 	    fwdState->server_fd = fd;
@@ -614,7 +620,18 @@ fwdConnectStart(void *data)
 #endif
 	hierarchyNote(&fwdState->request->hier, fs->code, fwdState->request->host);
     }
-    commConnectStart(fd, host, port, fwdConnectDone, fwdState);
+
+    /*
+     * If we are retrying a transparent connection that is not being sent to a
+     * peer, then don't cache, and use the IP that the client's DNS lookup
+     * returned
+     */
+    if (fwdState->request->flags.transparent && fwdState->n_tries && (NULL == fs->peer)) {
+	storeRelease(fwdState->entry);
+	commConnectStart(fd, host, port, fwdConnectDone, fwdState, &fwdState->request->my_addr);
+    } else {
+	commConnectStart(fd, host, port, fwdConnectDone, fwdState, NULL);
+    }
 }
 
 static void

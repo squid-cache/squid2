@@ -646,5 +646,6 @@ sslPeerSelectComplete(FwdServer * fs, void *data)
 	sslState->host,
 	sslState->port,
 	sslConnectDone,
-	sslState);
+	sslState,
+	NULL);
 }

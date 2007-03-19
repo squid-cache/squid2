@@ -609,7 +609,6 @@ clientRedirectDone(void *data, char *result)
 #endif /* FOLLOW_X_FORWARDED_FOR */
 	new_request->my_addr = old_request->my_addr;
 	new_request->my_port = old_request->my_port;
-	new_request->client_port = old_request->client_port;
 	new_request->flags = old_request->flags;
 	new_request->flags.redirected = 1;
 	if (old_request->auth_user_request) {
@@ -3530,7 +3529,7 @@ parseHttpRequest(ConnStateData * conn, HttpMsgBuf * hmsg, method_t * method_p, i
 	    }
 #endif
 	}
-	if (!host && !conn->transparent && clientNatLookup(conn) == 0)
+	if (conn->port->transparent && clientNatLookup(conn) == 0)
 	    conn->transparent = 1;
 	if (!host && conn->transparent) {
 	    port = ntohs(conn->me.sin_port);
@@ -3774,13 +3773,12 @@ clientTryParseRequest(ConnStateData * conn)
 	    HDR_CONTENT_LENGTH);
 	request->flags.internal = http->flags.internal;
 	request->client_addr = conn->peer.sin_addr;
-	request->client_port = conn->peer.sin_port;
+	request->client_port = ntohs(conn->peer.sin_port);
 #if FOLLOW_X_FORWARDED_FOR
 	request->indirect_client_addr = request->client_addr;
 #endif /* FOLLOW_X_FORWARDED_FOR */
 	request->my_addr = conn->me.sin_addr;
 	request->my_port = ntohs(conn->me.sin_port);
-	request->client_port = ntohs(conn->peer.sin_port);
 	request->http_ver = http->http_ver;
 	if (!urlCheckRequest(request) ||
 	    httpHeaderHas(&request->header, HDR_TRANSFER_ENCODING)) {

@@ -268,7 +268,7 @@ comm_listen(int sock)
 }
 
 void
-commConnectStart(int fd, const char *host, u_short port, CNCB * callback, void *data)
+commConnectStart(int fd, const char *host, u_short port, CNCB * callback, void *data, struct in_addr *addr)
 {
     ConnectStateData *cs;
     debug(5, 3) ("commConnectStart: FD %d, %s:%d\n", fd, host, (int) port);
@@ -278,6 +278,12 @@ commConnectStart(int fd, const char *host, u_short port, CNCB * callback, void *
     cs->port = port;
     cs->callback = callback;
     cs->data = data;
+    if (addr != NULL) {
+	cs->in_addr = *addr;
+	cs->addrcount = 1;
+    } else {
+	cs->addrcount = 0;
+    }
     cbdataLock(cs->data);
     comm_add_close_handler(fd, commConnectFree, cs);
     ipcache_nbgethostbyname(host, commConnectDnsHandle, cs);
@@ -288,13 +294,20 @@ commConnectDnsHandle(const ipcache_addrs * ia, void *data)
 {
     ConnectStateData *cs = data;
     if (ia == NULL) {
-	debug(5, 3) ("commConnectDnsHandle: Unknown host: %s\n", cs->host);
-	if (!dns_error_message) {
-	    dns_error_message = "Unknown DNS error";
-	    debug(5, 1) ("commConnectDnsHandle: Bad dns_error_message\n");
+	/* If we've been given a default IP, use it */
+	if (cs->addrcount > 0) {
+	    fd_table[cs->fd].flags.dnsfailed = 1;
+	    cs->connstart = squid_curtime;
+	    commConnectHandle(cs->fd, cs);
+	} else {
+	    debug(5, 3) ("commConnectDnsHandle: Unknown host: %s\n", cs->host);
+	    if (!dns_error_message) {
+		dns_error_message = "Unknown DNS error";
+		debug(5, 1) ("commConnectDnsHandle: Bad dns_error_message\n");
+	    }
+	    assert(dns_error_message != NULL);
+	    commConnectCallback(cs, COMM_ERR_DNS);
 	}
-	assert(dns_error_message != NULL);
-	commConnectCallback(cs, COMM_ERR_DNS);
 	return;
     }
     assert(ia->cur < ia->count);
