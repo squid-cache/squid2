@@ -3339,7 +3339,6 @@ clientProcessRequest(clientHttpRequest * http)
 	    httpReplySetHeaders(rep, version, HTTP_OK, NULL, "text/plain",
 		httpRequestPrefixLen(r), 0, squid_curtime);
 	    httpReplySwapOut(rep, http->entry);
-	    httpReplyDestroy(rep);
 	    httpRequestSwapOut(r, http->entry);
 	    storeComplete(http->entry);
 	    return;
