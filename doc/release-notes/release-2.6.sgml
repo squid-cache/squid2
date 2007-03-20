@@ -1,6 +1,6 @@
 <!doctype linuxdoc system>
 <article>
-<title>Squid 2.6.STABLE11 release notes</title>
+<title>Squid 2.6.STABLE12 release notes</title>
 <author>Squid Developers</author>
 <date>$Id$</date>
 
@@ -546,12 +546,23 @@ ScriptAlias /squid/cgi-bin/ "c:/squid/libexec/"
 	<item>Fix kqueue when overflowing the changes queue
 	<item>Make sure the child worker process commits suicide if it could not start up
 	<item>Don't log short responses at debug level 1
+	<item>Fix collapsed_forwarding for non-GET requests
 	<item>See also the list of <url
 		url="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE11.html"
 			name="squid-2.6.STABLE11 changes"> and the <url url="ChangeLog"
 				name="ChangeLog"> file for details.
 </itemize>
 
+<sect>Key changes squid-2.6.STABLE11 to 2.6.STABLE12
+
+<p>
+<itemize>
+	<item>Assertion error on TRACE
+	<item>See also the list of <url
+		url="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE12.html"
+			name="squid-2.6.STABLE12 changes"> and the <url url="ChangeLog"
+				name="ChangeLog"> file for details.
+</itemize>
 
 </article>
 

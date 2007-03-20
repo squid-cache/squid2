@@ -1,3 +1,7 @@
+Changes to squid-2.6.STABLE12 (Mar 20 2007)
+
+	- Assertion error on TRACE
+
 Changes to squid-2.6.STABLE11 (Mar 17 2007)
 
 	- Bug #1915: assertion failed: client_side.c:4055: "buf != NULL ||
