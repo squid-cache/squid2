@@ -633,6 +633,7 @@ httpAppendBody(HttpStateData * httpState, const char *buf, ssize_t len, int buff
     int fd = httpState->fd;
     int complete = httpState->eof;
     int keep_alive = !httpState->eof;
+    storeBuffer(entry);
     while (len > 0) {
 	if (httpState->chunk_size > 0) {
 	    size_t size = len;
@@ -706,6 +707,15 @@ httpAppendBody(HttpStateData * httpState, const char *buf, ssize_t len, int buff
 	     */
 	    return;
 	}
+    }
+    storeBufferFlush(entry);
+    if (EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
+	/*
+	 * the above storeBufferFlush() call could ABORT this entry,
+	 * in that case, the server FD should already be closed.
+	 * there's nothing for us to do.
+	 */
+	return;
     }
     if (!httpState->chunk_size && !httpState->flags.chunked)
 	complete = 1;
@@ -912,6 +922,12 @@ httpReadReply(int fd, void *data)
 	return;
     } else {
 	if (httpState->reply_hdr_state < 2) {
+	    /* Temporarily buffer the entry. Main purpose is to ensure it gets
+	     * flushed to the client side when the headers is complete as
+	     * ENTRY_HDR_WAIT may delay the callback. It's flushed by
+	     * httpAppendBody().
+	     */
+	    storeBuffer(entry);
 	    done = httpProcessReplyHeader(httpState, buf, len);
 	    if (httpState->reply_hdr_state == 2) {
 		http_status s = entry->mem_obj->reply->sline.status;
