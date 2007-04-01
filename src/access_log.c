@@ -799,7 +799,7 @@ accessLogGetNewLogFormatToken(logformat_token * lt, char *def, enum log_quote *q
 	lt->zero = 1;
 	cur++;
     }
-    if (isdigit((int) *cur))
+    if (xisdigit(*cur))
 	lt->width = strtol(cur, &cur, 10);
     if (*cur == '.')
 	lt->precision = strtol(cur + 1, &cur, 10);

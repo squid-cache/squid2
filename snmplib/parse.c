@@ -490,7 +490,7 @@ get_token(register FILE *fp, register char *token)
     *cp = 0;
     ch = last;
     /* skip all white space */
-    while (isspace(ch) && ch != -1) {
+    while (xisspace(ch) && ch != -1) {
 	ch = getc(fp);
 	if (ch == '\n')
 	    Line++;
@@ -506,10 +506,10 @@ get_token(register FILE *fp, register char *token)
     do {
 	if (ch == '\n')
 	    Line++;
-	if (isspace(ch) || ch == '(' || ch == ')' ||
+	if (xisspace(ch) || ch == '(' || ch == ')' ||
 	    ch == '{' || ch == '}' || ch == ',' ||
 	    ch == '"') {
-	    if (!isspace(ch) && *token == 0) {
+	    if (!xisspace(ch) && *token == 0) {
 		hash += ch;
 		*cp++ = ch;
 		last = ' ';

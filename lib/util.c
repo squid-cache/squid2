@@ -643,7 +643,7 @@ Tolower(char *q)
 {
     char *s = q;
     while (*s) {
-	*s = tolower((unsigned char) *s);
+	*s = xtolower(*s);
 	s++;
     }
 }

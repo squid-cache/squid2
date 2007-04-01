@@ -1211,7 +1211,7 @@ strwordtok(char *buf, char **t)
 	p = (unsigned char *) *t;
     if (!p)
 	goto error;
-    while (*p && isspace(*p))
+    while (*p && xisspace(*p))
 	p++;
     if (!*p)
 	goto error;
@@ -1240,7 +1240,7 @@ strwordtok(char *buf, char **t)
 	    p++;
 	    break;
 	default:
-	    if (!quoted && isspace(*p)) {
+	    if (!quoted && xisspace(*p)) {
 		p++;
 		goto done;
 	    }
