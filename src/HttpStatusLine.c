@@ -97,7 +97,7 @@ httpStatusLineParse(HttpStatusLine * sline, const char *start, const char *end)
     /* Format: HTTP/x.x <space> <status code> <space> <reason-phrase> CRLF */
     s = start;
     maj = 0;
-    for (s = start; s < end && isdigit((int) *s); s++) {
+    for (s = start; s < end && xisdigit(*s); s++) {
 	maj = maj * 10;
 	maj = maj + *s - '0';
     }
@@ -113,7 +113,7 @@ httpStatusLineParse(HttpStatusLine * sline, const char *start, const char *end)
     s++;
     /* next should be minor number */
     min = 0;
-    for (; s < end && isdigit((int) *s); s++) {
+    for (; s < end && xisdigit(*s); s++) {
 	min = min * 10;
 	min = min + *s - '0';
     }
@@ -127,7 +127,7 @@ httpStatusLineParse(HttpStatusLine * sline, const char *start, const char *end)
     s++;
     /* next should be status start */
     status = 0;
-    for (; s < end && isdigit((int) *s); s++) {
+    for (; s < end && xisdigit(*s); s++) {
 	status = status * 10;
 	status = status + *s - '0';
     }
