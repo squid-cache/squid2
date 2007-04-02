@@ -418,12 +418,13 @@ httpReplyParseStep(HttpReply * rep, const char *buf, int len)
     /* For now we'll assume we need to parse the whole lot */
 
     /* Find end of start line */
-    for (re = buf, i = 0; i < len && *re != '\r' && *re != '\n'; re++, i++);
-    if (i >= len)
+    re = memchr(buf, '\n', len);
+    if (!re)
 	return httpReplyParseError(rep);
 
-    /* s points to first \r or \n - so find the first character after */
-    for (; i < len && (*re == '\r' || *re == '\n'); re++, i++);
+    /* Skip \n */
+    re++;
+    i = re - buf;
     if (i >= len)
 	return httpReplyParseError(rep);
 
