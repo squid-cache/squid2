@@ -563,7 +563,7 @@ comm_accept(int fd, struct sockaddr_in *pn, struct sockaddr_in *me)
     Slen = sizeof(P);
     statCounter.syscalls.sock.accepts++;
     if ((sock = accept(fd, (struct sockaddr *) &P, &Slen)) < 0) {
-	if (ignoreErrno(errno)) {
+	if (ignoreErrno(errno) || errno == ECONNREFUSED) {
 	    debug(5, 5) ("comm_accept: FD %d: %s\n", fd, xstrerror());
 	    return COMM_NOMESSAGE;
 	} else if (ENFILE == errno || EMFILE == errno) {
