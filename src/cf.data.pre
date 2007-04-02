@@ -118,6 +118,10 @@ DOC_START
 				outgoing connections using the client
 				IP address.
 
+		act-as-origin	Act is if this Squid is the origin server.
+				This currently means generate own Date: and
+				Expires: headers. Implies accel.
+
 	If you run Squid on a dual-homed machine with an internal
 	and an external interface we recommend you to specify the
 	internal address:port in http_port. This way Squid will only be

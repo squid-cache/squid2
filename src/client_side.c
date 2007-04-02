@@ -1898,9 +1898,17 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
 	if (EBIT_TEST(http->entry->flags, ENTRY_SPECIAL)) {
 	    httpHeaderDelById(hdr, HDR_DATE);
 	    httpHeaderInsertTime(hdr, 0, HDR_DATE, squid_curtime);
-	} else if (http->entry->timestamp < squid_curtime)
+	} else if (http->conn->port->act_as_origin) {
+	    httpHeaderDelById(hdr, HDR_DATE);
+	    httpHeaderInsertTime(hdr, 0, HDR_DATE, squid_curtime);
+	    if (http->entry->expires > 0) {
+		httpHeaderDelById(hdr, HDR_EXPIRES);
+		httpHeaderInsertTime(hdr, 1, HDR_EXPIRES, squid_curtime + http->entry->expires - http->entry->timestamp);
+	    }
+	} else if (http->entry->timestamp < squid_curtime) {
 	    httpHeaderPutInt(hdr, HDR_AGE,
 		squid_curtime - http->entry->timestamp);
+	}
 	if (!httpHeaderHas(hdr, HDR_CONTENT_LENGTH) && http->entry->mem_obj && http->entry->store_status == STORE_OK) {
 	    rep->content_length = contentLen(http->entry);
 	    httpHeaderPutSize(hdr, HDR_CONTENT_LENGTH, rep->content_length);

@@ -371,6 +371,7 @@ struct _http_port_list {
 #if LINUX_TPROXY
     unsigned int tproxy;
 #endif
+    unsigned int act_as_origin;	/* Fake Date: headers in accelerator mode */
 };
 
 #if USE_SSL

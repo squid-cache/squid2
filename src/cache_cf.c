@@ -2743,6 +2743,9 @@ parse_http_port_option(http_port_list * s, char *token)
 	s->tproxy = 1;
 	need_linux_tproxy = 1;
 #endif
+    } else if (strcmp(token, "act-as-origin") == 0) {
+	s->act_as_origin = 1;
+	s->accel = 1;
     } else {
 	self_destruct();
     }
