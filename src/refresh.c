@@ -344,23 +344,22 @@ refreshIsCachable(const StoreEntry * entry)
      * immediately, and which can't be refreshed.
      */
     int reason = refreshCheck(entry, NULL, Config.minimum_expiry_time);
+    int can_revalidate = 0;
     refreshCounts[rcStore].total++;
     refreshCounts[rcStore].status[reason]++;
     if (reason < 200)
 	/* Does not need refresh. This is certainly cachable */
 	return 1;
-    if (entry->lastmod < 0)
-	/* Last modified is needed to do a refresh */
+    if (entry->lastmod > 0)
+	can_revalidate = 1;
+    if (entry->mem_obj && entry->mem_obj->reply) {
+	if (httpHeaderHas(&entry->mem_obj->reply->header, HDR_ETAG))
+	    can_revalidate = 1;
+    }
+    /* Last modified is needed to do a refresh */
+    if (!can_revalidate)
 	return 0;
-    if (entry->mem_obj == NULL)
-	/* no mem_obj? */
-	return 1;
-    if (entry->mem_obj->reply == NULL)
-	/* no reply? */
-	return 1;
-    if (entry->mem_obj->reply->content_length == 0)
-	/* No use refreshing (caching?) 0 byte objects */
-	return 0;
+
     /* This seems to be refreshable. Cache it */
     return 1;
 }
