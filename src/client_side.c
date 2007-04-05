@@ -1899,9 +1899,14 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
 	    httpHeaderDelById(hdr, HDR_DATE);
 	    httpHeaderInsertTime(hdr, 0, HDR_DATE, squid_curtime);
 	} else if (http->conn->port->act_as_origin) {
+	    HttpHeaderEntry *h = httpHeaderFindEntry(hdr, HDR_DATE);
+	    if (h)
+		httpHeaderPutExt(hdr, "X-Origin-Date", strBuf(h->value));
 	    httpHeaderDelById(hdr, HDR_DATE);
 	    httpHeaderInsertTime(hdr, 0, HDR_DATE, squid_curtime);
-	    if (http->entry->expires > 0) {
+	    h = httpHeaderFindEntry(hdr, HDR_EXPIRES);
+	    if (h) {
+		httpHeaderPutExt(hdr, "X-Origin-Expires", strBuf(h->value));
 		httpHeaderDelById(hdr, HDR_EXPIRES);
 		httpHeaderInsertTime(hdr, 1, HDR_EXPIRES, squid_curtime + http->entry->expires - http->entry->timestamp);
 	    }
