@@ -1629,6 +1629,7 @@ dump_wccp2_service(StoreEntry * e, const char *label, void *v)
 	if (srv->wccp2_security_type == WCCP2_MD5_SECURITY) {
 	    storeAppendPrintf(e, " %s", srv->wccp_password);
 	}
+	storeAppendPrintf(e, "\n");
 	srv = srv->next;
     }
 }
