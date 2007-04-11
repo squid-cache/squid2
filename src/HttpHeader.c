@@ -502,7 +502,13 @@ httpHeaderParse(HttpHeader * hdr, const char *header_start, const char *header_e
 		if (!Config.onoff.relaxed_header_parser) {
 		    httpHeaderEntryDestroy(e);
 		    return httpHeaderReset(hdr);
-		} else if (l1 > l2) {
+		}
+		if (!httpHeaderParseSize(strBuf(e2->value), &l2)) {
+		    debug(55, 1) ("WARNING: Unparseable content-length '%s'\n", strBuf(e->value));
+		    httpHeaderEntryDestroy(e);
+		    return httpHeaderReset(hdr);
+		}
+		if (l1 > l2) {
 		    httpHeaderDelById(hdr, e2->id);
 		} else {
 		    httpHeaderEntryDestroy(e);
