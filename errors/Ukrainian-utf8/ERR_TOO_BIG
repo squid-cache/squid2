@@ -1,0 +1,28 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<HTML><HEAD><META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
+<TITLE>ПОМИЛКА: Запитане URL не може бути отримано</TITLE>
+<STYLE type="text/css"><!--BODY{background-color:#ffffff;font-family:verdana,sans-serif}PRE{font-family:sans-serif}--></STYLE>
+</HEAD><BODY>
+<H1>ПОМИЛКА</H1>
+<H2>Запитане URL не може бути отримано</H2>
+<HR noshade size="1px">
+<P>
+Під час отримання URL:
+<A HREF="%U">%U</A>
+<P>
+Сталася наступна помилка:
+<UL>
+<LI>
+<STRONG>
+Запит або відповідь є дуже великою.
+</STRONG>
+<P>
+Якщо Ви робите POST чи PUT запит, тоді тіло Вашого запиту
+(річ, яку ви намагаєтеся передати) є дуже великим.  Якщо Ви робите
+GET запит, тоді тіло відповіді (те що ви хочете 
+отримати)  є дуже великим.   Ці обмеження на розміри були встановлені
+Вашим постачальником послуг інтернету, що відповідає за цей кеш сервер.  Будь-ласка
+зконтактуйте з ним якщо Ви думаєте що це помилка.
+</UL>
+<P>
+Ваш кеш адміністратор <A HREF="mailto:%w">%w</A>.
