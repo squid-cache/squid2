@@ -1752,6 +1752,7 @@ struct _SwapDir {
     int max_size;
     char *path;
     int index;			/* This entry's index into the swapDirs array */
+    squid_off_t min_objsize;
     squid_off_t max_objsize;
     RemovalPolicy *repl;
     int removals;
