@@ -319,6 +319,7 @@ fwdInitiateSSL(FwdState * fwdState)
     fd_table[fd].ssl = ssl;
     fd_table[fd].read_method = &ssl_read_method;
     fd_table[fd].write_method = &ssl_write_method;
+    fd_note(fd, "Negotiating SSL");
     fwdNegotiateSSL(fd, fwdState);
 }
 #endif
@@ -360,10 +361,6 @@ fwdConnectDone(int server_fd, int status, void *data)
 	comm_close(server_fd);
     } else {
 	debug(17, 3) ("fwdConnectDone: FD %d: '%s'\n", server_fd, storeUrl(fwdState->entry));
-	fd_note(server_fd, storeUrl(fwdState->entry));
-	fd_table[server_fd].uses++;
-	if (fd_table[server_fd].uses == 1 && fs->peer)
-	    peerConnectSucceded(fs->peer);
 #if USE_SSL
 	if ((fs->peer && fs->peer->use_ssl) ||
 	    (!fs->peer && request->protocol == PROTO_HTTPS)) {
@@ -537,7 +534,7 @@ fwdConnectStart(void *data)
 		hierarchyNote(&fwdState->request->hier, fs->code, fd_table[fd].ipaddr);
 	    else
 		hierarchyNote(&fwdState->request->hier, fs->code, name);
-	    fwdConnectDone(fd, COMM_OK, fwdState);
+	    fwdDispatch(fwdState);
 	    return;
 	} else {
 	    /* Discard the persistent connection to not cause
@@ -666,6 +663,7 @@ fwdDispatch(FwdState * fwdState)
     StoreEntry *entry = fwdState->entry;
     ErrorState *err;
     int server_fd = fwdState->server_fd;
+    FwdServer *fs = fwdState->servers;
     debug(17, 3) ("fwdDispatch: FD %d: Fetching '%s %s'\n",
 	fwdState->client_fd,
 	RequestMethods[request->method].str,
@@ -680,6 +678,10 @@ fwdDispatch(FwdState * fwdState)
     assert(entry->ping_status != PING_WAITING);
     assert(entry->lock_count);
     EBIT_SET(entry->flags, ENTRY_DISPATCHED);
+    fd_note(server_fd, storeUrl(fwdState->entry));
+    fd_table[server_fd].uses++;
+    if (fd_table[server_fd].uses == 1 && fs->peer)
+	peerConnectSucceded(fs->peer);
     netdbPingSite(request->host);
     entry->mem_obj->refresh_timestamp = squid_curtime;
     if (fwdState->servers && (p = fwdState->servers->peer)) {
