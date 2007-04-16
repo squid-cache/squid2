@@ -1201,7 +1201,7 @@ DOC_START
 
 	Common options:
 
-	read-only, this cache_dir is read only.
+	no-store, no new objects should be stored to this cache_dir
 
 	min-size=n, refers to the min object size this storedir will accept.
 	It's used to restrict a storedir to only store large objects

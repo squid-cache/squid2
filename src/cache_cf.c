@@ -72,7 +72,8 @@ static void free_access_log(customlog ** definitions);
 
 static struct cache_dir_option common_cachedir_options[] =
 {
-    {"read-only", parse_cachedir_option_readonly, dump_cachedir_option_readonly},
+    {"no-store", parse_cachedir_option_readonly, dump_cachedir_option_readonly},
+    {"read-only", parse_cachedir_option_readonly, NULL},
     {"min-size", parse_cachedir_option_minsize, dump_cachedir_option_minsize},
     {"max-size", parse_cachedir_option_maxsize, dump_cachedir_option_maxsize},
     {NULL, NULL}
@@ -1239,7 +1240,8 @@ dump_cachedir_options(StoreEntry * entry, struct cache_dir_option *options, Swap
     if (!options)
 	return;
     for (option = options; option->name; option++)
-	option->dump(entry, option->name, sd);
+	if (option->dump)
+	    option->dump(entry, option->name, sd);
 }
 
 static void
@@ -1530,7 +1532,7 @@ parse_cachedir_options(SwapDir * sd, struct cache_dir_option *options, int recon
     if (reconfiguring) {
 	if (old_read_only != sd->flags.read_only) {
 	    debug(3, 1) ("Cache dir '%s' now %s\n",
-		sd->path, sd->flags.read_only ? "Read-Only" : "Read-Write");
+		sd->path, sd->flags.read_only ? "No-Store" : "Read-Write");
 	}
     }
 }
