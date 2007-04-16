@@ -2834,7 +2834,16 @@ clientCheckHeaderDone(clientHttpRequest * http)
 	    http->flags.done_copying = 1;
     }
     /* write headers and initial body */
-    comm_write_mbuf(http->conn->fd, mb, clientWriteComplete, http);
+    if (mb.size > 0) {
+	comm_write_mbuf(http->conn->fd, mb, clientWriteComplete, http);
+    } else {
+	storeClientCopy(http->sc, http->entry,
+	    http->out.offset,
+	    http->out.offset,
+	    CLIENT_SOCK_SZ, http->readbuf,
+	    clientSendMoreData,
+	    http);
+    }
 }
 
 
