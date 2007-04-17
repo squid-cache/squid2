@@ -1,0 +1,34 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<HTML><HEAD><META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1251">
+<TITLE>ПОМИЛКА: Доступ до керування кешем заборонено</TITLE>
+<STYLE type="text/css"><!--BODY{background-color:#ffffff;font-family:verdana,sans-serif}PRE{font-family:sans-serif}--></STYLE>
+</HEAD>
+<BODY>
+<H1>ПОМИЛКА</H1>
+<H2>Доступ до керування кешем заборонено</H2>
+<HR noshade size="1px">
+<P>
+Під час отримання URL:
+<A HREF="%U">%U</A>
+<P>
+Сталася наступна помилка:
+<UL>
+<LI>
+<STRONG>
+Доступ до керування кешем заборонено.
+</STRONG>
+</UL>
+</P>
+
+<P>Вибачте, Ви не можете запитати наступну адресу :
+<PRE>    %U</PRE>
+з системи керування кешем до тих пір, поки не пройдете автентифікацію.
+</P>
+
+<P>
+Для цього Вам необхідно Netscape версії 2.0 чи вище, або Microsoft
+Internet Explorer 3.0, чи будь-який інший HTTP/1.1 сумісний бравзер. Будь-ласка сконтактуйтесь
+з <A HREF="mailto:%w">адміністратором кешу</a>, якщо у Вас виникли проблеми
+з автентифікацією, якщо ж <em>Ви</em> адміністратор,
+прочитайте документацію по інтерфейсу керування кешем і продивіться
+лог-файл на предмет більш детальних повідомлень про помилку.</P>
