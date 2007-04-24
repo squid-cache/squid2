@@ -550,6 +550,8 @@ fwdConnectStart(void *data)
     outgoing = getOutgoingAddr(fwdState->request);
     tos = getOutgoingTOS(fwdState->request);
 
+    fwdState->request->out_ip = outgoing;
+
     debug(17, 3) ("fwdConnectStart: got addr %s, tos %d\n",
 	inet_ntoa(outgoing), tos);
     fd = comm_openex(SOCK_STREAM,
@@ -682,6 +684,7 @@ fwdDispatch(FwdState * fwdState)
     fd_table[server_fd].uses++;
     if (fd_table[server_fd].uses == 1 && fs->peer)
 	peerConnectSucceded(fs->peer);
+    fwdState->request->out_ip = fd_table[server_fd].local_addr;
     netdbPingSite(request->host);
     entry->mem_obj->refresh_timestamp = squid_curtime;
     if (fwdState->servers && (p = fwdState->servers->peer)) {

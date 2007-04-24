@@ -1162,6 +1162,7 @@ struct _AccessLogEntry {
     } icp;
     struct {
 	struct in_addr caddr;
+	struct in_addr out_ip;
 	squid_off_t size;
 	size_t rq_size;
 	log_type code;
@@ -1906,6 +1907,7 @@ struct _request_t {
     char *peer_domain;		/* Configured peer forceddomain */
     BODY_HANDLER *body_reader;
     void *body_reader_data;
+    struct in_addr out_ip;
     String extacl_log;		/* String to be used for access.log purposes */
     const char *extacl_user;	/* User name returned by extacl lookup */
     const char *extacl_passwd;	/* Password returned by extacl lookup */

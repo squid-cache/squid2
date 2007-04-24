@@ -256,6 +256,7 @@ typedef enum {
 
 /*LFT_SERVER_IP_ADDRESS, */
     LFT_SERVER_IP_OR_PEER_NAME,
+    LFT_OUTGOING_IP,
 /*LFT_SERVER_PORT, */
 
     LFT_LOCAL_IP,
@@ -363,6 +364,7 @@ struct logformat_token_table_entry logformat_token_table[] =
 /*{ "<a", LFT_SERVER_IP_ADDRESS }, */
 /*{ "<p", LFT_SERVER_PORT }, */
     {"<A", LFT_SERVER_IP_OR_PEER_NAME},
+    {"oa", LFT_OUTGOING_IP},
 
     {"la", LFT_LOCAL_IP},
     {"lp", LFT_LOCAL_PORT},
@@ -473,6 +475,9 @@ accessLogCustom(AccessLogEntry * al, customlog * log)
 
 	case LFT_SERVER_IP_OR_PEER_NAME:
 	    out = al->hier.host;
+	    break;
+	case LFT_OUTGOING_IP:
+	    out = xstrdup(inet_ntoa(al->cache.out_ip));
 	    break;
 
 	    /* case LFT_SERVER_PORT: */

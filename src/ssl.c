@@ -490,6 +490,8 @@ sslStart(clientHttpRequest * http, squid_off_t * size_ptr, int *status_ptr)
     int fd = http->conn->fd;
     request_t *request = http->request;
     char *url = http->uri;
+    struct in_addr outgoing;
+    unsigned long tos;
     /*
      * client_addr == no_addr indicates this is an "internal" request
      * from peer_digest.c, asn.c, netdb.c, etc and should always
@@ -511,13 +513,15 @@ sslStart(clientHttpRequest * http, squid_off_t * size_ptr, int *status_ptr)
 	RequestMethods[request->method].str, url);
     statCounter.server.all.requests++;
     statCounter.server.other.requests++;
+    outgoing = getOutgoingAddr(request);
+    tos = getOutgoingTOS(request);
     /* Create socket. */
     sock = comm_openex(SOCK_STREAM,
 	IPPROTO_TCP,
-	getOutgoingAddr(request),
+	outgoing,
 	0,
 	COMM_NONBLOCKING,
-	getOutgoingTOS(request),
+	tos,
 	url);
     if (sock == COMM_ERROR) {
 	debug(26, 4) ("sslStart: Failed because we're out of sockets.\n");
@@ -543,6 +547,7 @@ sslStart(clientHttpRequest * http, squid_off_t * size_ptr, int *status_ptr)
     sslState->client.buf = xmalloc(SQUID_TCP_SO_RCVBUF);
     /* Copy any pending data from the client connection */
     sslState->client.len = http->conn->in.offset;
+    sslState->request->out_ip = outgoing;
     if (sslState->client.len > 0) {
 	if (sslState->client.len > SQUID_TCP_SO_RCVBUF) {
 	    safe_free(sslState->client.buf);
