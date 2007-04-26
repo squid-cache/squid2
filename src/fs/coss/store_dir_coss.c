@@ -1076,9 +1076,9 @@ storeCossDirPick(void)
 		} else if (choosenext) {
 		    last_coss_pick_index = i;
 		    return SD;
-		} else if (last_coss_pick_index == i) {
-		    choosenext = 1;
 		}
+	    } else if (last_coss_pick_index == i) {
+		choosenext = 1;
 	    }
 	}
     }
