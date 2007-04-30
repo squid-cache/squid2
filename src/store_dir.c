@@ -44,6 +44,9 @@
 #if HAVE_SYS_VFS_H
 #include <sys/vfs.h>
 #endif
+#if HAVE_SYS_STATFS_H
+#include <sys/statfs.h>
+#endif
 
 static int storeDirValidSwapDirSize(int, squid_off_t);
 static STDIRSELECT storeDirSelectSwapDirRoundRobin;

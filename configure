@@ -7298,6 +7298,7 @@ fi
 
 
 
+
 for ac_header in sys/types.h \
 	stddef.h \
 	limits.h \
@@ -7355,6 +7356,7 @@ for ac_header in sys/types.h \
 	sys/poll.h \
 	sys/select.h \
 	sys/stat.h \
+	sys/statfs.h \
 	sys/statvfs.h \
 	syscall.h \
 	sys/syscall.h \

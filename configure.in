@@ -1625,6 +1625,7 @@ AC_CHECK_HEADERS(
 	sys/poll.h \
 	sys/select.h \
 	sys/stat.h \
+	sys/statfs.h \
 	sys/statvfs.h \
 	syscall.h \
 	sys/syscall.h \
