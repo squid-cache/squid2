@@ -47,6 +47,10 @@ if (echo $VERSION | grep PRE) || (echo $VERSION | grep STABLE); then
 	else
 		cvs -q rdiff -u -r SQUID_`echo $VERSION | tr .- __` -r $tag $module >>${PACKAGE}-${VERSION}-${date}.diff
 	fi
+elif [ -f STABLE_BRANCH ]; then
+	stable=`cat STABLE_BRANCH`
+	echo "Differences from ${stable} to ${PACKAGE}-${VERSION}-${date}" >${PACKAGE}-${VERSION}-${date}.diff
+	cvs -q rdiff -u -r $stable -r $tag $module >>${PACKAGE}-${VERSION}-${date}.diff
 fi
 
 cd $startdir
