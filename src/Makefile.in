@@ -162,7 +162,6 @@ nodist_squid_OBJECTS = repl_modules.$(OBJEXT) auth_modules.$(OBJEXT) \
 	string_arrays.$(OBJEXT)
 squid_OBJECTS = $(am_squid_OBJECTS) $(nodist_squid_OBJECTS)
 am__DEPENDENCIES_1 =
-squid_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am_unlinkd_OBJECTS =
 unlinkd_OBJECTS = $(am_unlinkd_OBJECTS)
 unlinkd_DEPENDENCIES = unlinkd-daemon.o
@@ -564,6 +563,12 @@ squid_LDADD = \
 	-lmiscutil \
 	@XTRA_LIBS@ \
 	$(MINGWEXLIB)
+
+squid_DEPENDENCIES = \
+	$(REPL_OBJS) \
+	$(STORE_OBJS) \
+	$(AUTH_OBJS) \
+	$(SNMPLIB)
 
 unlinkd_SOURCES = 
 unlinkd_LDADD = unlinkd-daemon.o

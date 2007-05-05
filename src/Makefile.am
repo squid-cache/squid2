@@ -267,6 +267,12 @@ squid_LDADD = \
 	@XTRA_LIBS@ \
 	$(MINGWEXLIB)
 
+squid_DEPENDENCIES = \
+	$(REPL_OBJS) \
+	$(STORE_OBJS) \
+	$(AUTH_OBJS) \
+	$(SNMPLIB)
+
 unlinkd_SOURCES = 
 unlinkd_LDADD = unlinkd-daemon.o
 unlinkd-daemon.o: unlinkd.c
