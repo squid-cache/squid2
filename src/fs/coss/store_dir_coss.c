@@ -1260,7 +1260,7 @@ storeDirCoss_ParseStripeBuffer(RebuildState * rb)
     int j = 0;
     int bl = 0;
     int tmp;
-    squid_off_t *l, len;
+    squid_off_t *l, len = 0;
     int blocksize = cs->blksz_mask + 1;
     StoreEntry tmpe;
     cache_key key[MD5_DIGEST_CHARS];
