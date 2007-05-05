@@ -22,7 +22,7 @@
 	- Simple perl library and script for processing access.log files
 	- General code tidyups of HTTP parser and related optimizations
 
-Changes to squid-2.6.STABLE13 (not yet released)
+Changes to squid-2.6.STABLE13 (8 May 2007)
 
 	- Make sure reply headers gets sent even if there is no body available
 	  yet, fixing RealMedia streaming over HTTP issues.
@@ -42,11 +42,11 @@ Changes to squid-2.6.STABLE13 (not yet released)
 	- in_port_t is not portable, use unsigned short instead
 	- Fix fs / auth / snmp dependencies
 
-Changes to squid-2.6.STABLE12 (Mar 20 2007)
+Changes to squid-2.6.STABLE12 (20 Mar 2007)
 
 	- Assertion error on TRACE
 
-Changes to squid-2.6.STABLE11 (Mar 17 2007)
+Changes to squid-2.6.STABLE11 (17 Mar 2007)
 
 	- Bug #1915: assertion failed: client_side.c:4055: "buf != NULL ||
 	  !conn->body.request"
@@ -58,7 +58,7 @@ Changes to squid-2.6.STABLE11 (Mar 17 2007)
 	- Fix bswap16 & bwsap32 error on NetBSD
 	- Fix collapsed_forwarding for non-GET requests
 
-Changes to squid-2.6.STABLE10 (Mar  4 2007)
+Changes to squid-2.6.STABLE10 (4 Mar 2007)
 
 	- Upgrade HTTP/0.9 responses to our HTTP version (HTTP/1.0)
 	- various diskd bugfixes
@@ -89,12 +89,12 @@ Changes to squid-2.6.STABLE10 (Mar  4 2007)
 	- Added support for Subversion HTTP request methods MKACTIVITY,
 	  CHECKOUT and MERGE.
 
-Changes to squid-2.6.STABLE9 (Jan 24 2007)
+Changes to squid-2.6.STABLE9 (24 Jan 2007)
 
 	- Bug #1878: If-Modified-Since broken in 2.6.STABLE8
 	- Bug #1877 diskd bug in storeDiskdIOCallback()
 
-Changes to squid-2.6.STABLE8 (Jan 21 2007)
+Changes to squid-2.6.STABLE8 (21 Jan 2007)
 
 	- Bug #1873: authenticateNTLMFixErrorHeader: state 4.
 	- Document the https_port vhost option, useful in combination with
@@ -113,7 +113,7 @@ Changes to squid-2.6.STABLE8 (Jan 21 2007)
 	- Fix how ftp://user@host URLs is rendered when Squid is built with
 	  leak checking enabled
 
-Changes to squid-2.6.STABLE7 (Jan 13 2007)
+Changes to squid-2.6.STABLE7 (13 Jan 2007)
 
 	- Windows port: Fix intermittent build error using Visual Studio
 	- Add missing tproxy info from the dump of http port configuration
@@ -134,7 +134,7 @@ Changes to squid-2.6.STABLE7 (Jan 13 2007)
 	- Bug #1828: squid.conf docutemtation error for proxy_auth digest
 	- Bug #1867: squid.pid isn't removed on shutdown
 
-Changes to squid-2.6.STABLE6 (Dec 12 2006)
+Changes to squid-2.6.STABLE6 (12 Dec 2006)
 
 	- Bug #1817: Assertion failure assert(buflen >= copy_sz) in htcp.c htcpBuildAuth()
 	- Add client source port logformat tag >p
@@ -166,7 +166,7 @@ Changes to squid-2.6.STABLE6 (Dec 12 2006)
 	- Bug #1641: assertion failed: stmem.c:149: "size > 0" while processing certain Vary objects
 	- Fix build errors when using latest MinGW Windows environment
 
-Changes to squid-2.6.STABLE5 (Now 3 2006)
+Changes to squid-2.6.STABLE5 (3 Now 2006)
 
 	- Bug #1776: 2.6.STABLE4 aufs fails to compile if coss isn't enabled
 	- COSS improvements and cleanups
@@ -196,7 +196,7 @@ Changes to squid-2.6.STABLE5 (Now 3 2006)
 	- Added a basic comm_select_simple comm loop only requiring minimal POSIX compliance.
 	- Safeguard from kb_t counter overflows on 32-bit platforms
 
-Changes to squid-2.6.STABLE4 (Sep 23 2006)
+Changes to squid-2.6.STABLE4 (23 Sep 2006)
 
 	- Bug #1736: Missing Italian translation of ERR_TOO_BIG error page
 	- Windows port enhancement: added native exception handler with signal emulation
@@ -235,7 +235,7 @@ Changes to squid-2.6.STABLE4 (Sep 23 2006)
 	- Cosmetic cleanup to not dump stacktraces on configuration errors
 
 
-Changes to squid-2.6.STABLE3 (Aug 18 2006)
+Changes to squid-2.6.STABLE3 (18 Aug 2006)
 
 	- Bug #1577: assertion failed "fm->max_n_files <= (1 << 24)" on
 	  very large cache_dir.  Limit number of objects stored to slightly
