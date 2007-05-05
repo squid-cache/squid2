@@ -1,12 +1,46 @@
+	- Portability: statfs() may reqire #include <sys/statfs.h>
+	- new logformat tag for logging the outgoing IP address
+	  (tcp_outgoing_address)
+	- Rename cache_dir option read-only to no-store
+	- Bug #1130: min-size option for cache_dir
+	- act-as-origin http_port option, making Squid act as if it was
+	  the origin server
+	- Always use xisxxxx() Squid defined macros instead of ctype
+	  functions.
+	- Use the client's DNS lookup if our DNS lookup fails on
+	  transparent requests
+	- Clean up X-Forwarded-For acl_uses_indirect_client to make most
+	  acls behave
+	- Change cachemgr filedescriptors timeout column to seconds
+	- Strengthen the HTTP protocol parser further wrt integer errors
+	- Simplified epoll comm loop
+	- Clean up use of httpReplySetHeaders to be consistent across the
+	  code, and remove the unneeded http_version argument.
+	- Kill the psuedo-support for wais. Was never really implemented.
 	- Optimization to only parse response headers once, reusing the
 	  already parsed headers when building the client reply.
 	- Simple perl library and script for processing access.log files
 	- General code tidyups of HTTP parser and related optimizations
-	- Kill the psuedo-support for wais. Was never really implemented.
-	- Clean up use of httpReplySetHeaders to be consistent across the
-	  code, and remove the unneeded http_version argument.
-	- Windows port fixes
-	- Strengthen the HTTP protocol parser further wrt integer errors
+
+Changes to squid-2.6.STABLE13 (not yet released)
+
+	- Make sure reply headers gets sent even if there is no body available
+	  yet, fixing RealMedia streaming over HTTP issues.
+	- Undo an accidental name change of storeUnregisterAbort.
+	- Kill an ancient malplaced storeUnregisterAbort call from ftp.c
+	- Bug #1814: SSL memory leak on persistent SSL connections
+	- Don't log ECONNREFUSED/ECONNABORTED accept failures in cache.log
+	- Cosmetic fix: added missing newline in WCCPv2 configuration dump.
+	- Ukrainan error messages
+	- Convert various error pages from DOS to UNIX text format
+	- Bug #1820: COSS assertion failure t->length == MD5_DIGEST_CHARS
+	- Clarify the max-conn=n cache_peer option syntax slightly
+	- Bug #1892: COSS segfault on shutdown
+	- Windows port: fix undefined ECONNABORTED
+	- Make refreshIsCachable handle ETag as a cache validator, not
+	  only last-modified
+	- in_port_t is not portable, use unsigned short instead
+	- Fix fs / auth / snmp dependencies
 
 Changes to squid-2.6.STABLE12 (Mar 20 2007)
 
