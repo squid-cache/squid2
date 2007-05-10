@@ -1,4 +1,4 @@
-Changes to squid-2.6.STABLE13 (8 May 2007)
+Changes to squid-2.6.STABLE13 (11 May 2007)
 
 	- Make sure reply headers gets sent even if there is no body available
 	  yet, fixing RealMedia streaming over HTTP issues.
