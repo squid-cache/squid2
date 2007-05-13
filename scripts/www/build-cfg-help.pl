@@ -92,7 +92,12 @@ while (<>) {
 		$loc = "";
 		$comment = "";
 		$default_if_none = "";
-		unshift @names, $name;
+		my ($r) = {};
+		@{$r->{"aliases"}} = split(/ /, $1);
+		$r->{"name"} = $name = $r->{"aliases"}[0];
+		# names should only have one entry!
+		shift @{$r->{"aliases"}};
+		unshift @names, $r;
 		print "DEBUG: new section: $name\n";
 	} elsif ($_ =~ /^COMMENT: (.*)$/) {
 		$comment = $1;
@@ -133,3 +138,14 @@ if ($name ne "") {
 }
 
 # and now, the index file!
+foreach (@names)
+{
+	my ($n) = $_->{"name"};
+	print "name: $n\n";
+	if (defined $_->{"aliases"}) {
+		foreach (@{$_->{"aliases"}}) {
+			print "  alias: $_\n";
+		}
+	}
+
+}
