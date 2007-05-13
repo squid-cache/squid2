@@ -57,6 +57,10 @@ my ($comment);
 my $version = "2.HEAD";
 my $verbose = '';
 my $path = "/tmp";
+my $format = "splithtml";
+my $pagetemplate;
+
+my ($index) = new IO::File;
 
 my $top = $0;
 $top =~ s%[^/]*$%%;
@@ -64,8 +68,15 @@ $top =~ s%[^/]*$%%;
 GetOptions(
 	'verbose' => \$verbose, 'v' => \$verbose,
 	'out=s' => \$path,
-	'version=s' => \$version
+	'version=s' => \$version,
+	'format=s' => \$format
 	);
+
+if ($format eq "splithtml") {
+    $pagetemplate = "template.html";
+} elsif ($format eq "singlehtml") {
+    $pagetemplate = "template_single.html";
+}
 
 # XXX should implement this!
 sub uriescape($)
@@ -88,23 +99,44 @@ sub htmlescape($)
 	return $line;
 }
 
+sub section_link($)
+{
+    return uriescape($_[0]).".html" if $format eq "splithtml";
+    return "#".$_[0] if $format eq "singlehtml";
+}
+
+sub toc_link($)
+{
+    return "index.html#toc_".uriescape($_[0]) if $format eq "splithtml";
+    return "#toc_".uriescape($_[0]) if $format eq "singlehtml";
+}
+
 #
 # Yes, we could just read the template file in once..!
 #
 sub generate_page($$)
 {
 	my ($template, $data) = @_;
+	my $fh;
+	my $fh_open = 0;
 	# XXX should make sure the config option is a valid unix filename!
-	my ($fn) = filename($data->{'name'});
+	if ($format eq "splithtml") {
+	    my ($fn) = filename($data->{'name'});
+	    $fh = new IO::File;
+	    $fh->open($fn, "w") || die "Couldn't open $fn: $!\n";
+	    $fh_open = 1;
+	} else {
+	    $fh = $index;
+	}
 
-	my ($fh) = new IO::File;
+
 	my ($th) = new IO::File;
-	$fh->open($fn, "w") || die "Couldn't open $fn: $!\n";
 	$th->open($template, "r") || die "Couldn't open $template: $!\n";
 
 	# add in the local variables
 	$data->{"title"} = $data->{"name"};
 	$data->{"ldoc"} = $data->{"doc"};
+	$data->{"toc_link"} = toc_link($data->{"name"});
 	if (exists $data->{"aliases"}) {
 		$data->{"aliaslist"} = join(", ", @{$data->{"aliases"}});
 	}
@@ -117,14 +149,17 @@ sub generate_page($$)
 		s/%(.*?)%/htmlescape($data->{$1})/ge;
 		print $fh $_;
 	}
+	close $th;
+	undef $th;
 
-	close $fh;
-	undef $fh;
+	if ($fh_open) {
+	    close $fh;
+	    undef $fh;
+	}
 }
 
-my ($index) = new IO::File;
-
-$index->open(filename("index"), "w") || die "Couldn't open ".filename("index").": $!\n";
+$index->open(filename("index"), "w") || die "Couldn't open ".filename("index").": $!\n" if ($format eq "splithtml");
+$index->open($path, "w") || die "Couldn't open ".filename("index").": $!\n" if ($format eq "singlehtml");
 print $index <<EOF
 <html>
   <head>
@@ -147,7 +182,7 @@ sub start_option($)
 	print $index "<ul>\n";
 	$in_options = 1;
     }
-    print $index '    <li><a href="' . uriescape($name) . '.html" name="' . htmlescape($name) . '">' . htmlescape($name) . "</a></li>\n";
+    print $index '    <li><a href="' . htmlescape(section_link($name)) . '" name="toc_' . htmlescape($name) . '">' . htmlescape($name) . "</a></li>\n";
 }
 sub end_options()
 {
@@ -228,53 +263,65 @@ while (<>) {
 	}
 }
 end_options;
-print $index <<EOF
-    </ul>
-  <p><a href="index_all.html">Alphabetic index</a></p>
-  </body>
-</html>
-EOF
-;
-$index->close;
-undef $index;
+print $index "</ul>\n";
+print $index "<p><a href=\"index_all.html\">Alphabetic index</a></p>\n" if $format eq "splithtml";
+print $index "<p><a href=\"#index\">Alphabetic index</a></p>\n" if $format eq "singlehtml";
+print $index "<hr/>\n" if $format eq "singlehtml";
 
 # and now, build the option pages
 my (@names) = keys %option;
 foreach $name (@names) {
-	generate_page("${top}template.html", $option{$name});
+	generate_page("${top}${pagetemplate}", $option{$name});
 }
+
 # and now, the alpabetic index file!
-my ($fh) = new IO::File;
+my $fh;
+my $fh_open = 0;
 
-my ($indexname) = filename("index_all");
-$fh->open($indexname, "w") || die "Couldn't open $indexname for writing: $!\n";
-
-print $fh <<EOF
+if ($format eq "splithtml") {
+    $fh = new IO::File;
+    my ($indexname) = filename("index_all");
+    $fh->open($indexname, "w") || die "Couldn't open $indexname for writing: $!\n";
+    $fh_open = 1;
+    print $fh <<EOF
 <html>
   <head>
     <title>Squid $version configuration file index</title>
   </head>
-  <p>| <a href="index.html">Back up to the index</a> |</p>
-
-  <p>Alphabetic index of all options</p>
-
   <body>
-    <ul>
+  <p>| <a href="index.html">Table of contents</a> |</p>
+
+  <H1>Alphabetic index of all options</H1>
 EOF
 ;
+} elsif ($format eq "singlehtml") {
+    $fh = $index;
+    print $fh "<h2><a name=\"index\">Alphabetic index of all options</a></h2>\n";
+}
 
+print $fh "<ul>\n";
 
 foreach $name (sort keys %all_names) {
 	my ($data) = $all_names{$name};
 	print $fh '    <li><a href="' . uriescape($data->{'name'}) . '.html">' . htmlescape($name) . "</a></li>\n";
 }
 
+print $fh "</ul>\n";
+if ($fh_open) {
 print $fh <<EOF
-    </ul>
-  <p>| <a href="index.html">Back up to the index</a> |</p>
+  <p>| <a href="index.html">Table of contents</a> |</p>
   </body>
 </html>
 EOF
 ;
 $fh->close;
+}
 undef $fh;
+
+print $index <<EOF
+  </body>
+</html>
+EOF
+;
+$index->close;
+undef $index;
