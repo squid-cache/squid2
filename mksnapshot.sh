@@ -74,3 +74,11 @@ EOF
 fi
 cp -p $tmpdir/ChangeLog ${PACKAGE}-${VERSION}-${date}-ChangeLog.txt
 echo ${PACKAGE}-${VERSION}-${date}-ChangeLog.txt >>${tag}.out
+
+if [ -x $tmpdir/scripts/www/build-cfg-help.pl ]; then
+	make -C $tmpdir/src cf.data
+	mkdir -p $tmpdir/doc/cfgman
+	$tmpdir/scripts/www/build-cfg-help.pl -o $tmpdir/doc/cfgman $tmpdir/src/cf.data
+	sh -c "cd $tmpdir/doc/cfgman && tar -zcf $PWD/${PACKAGE}-${VERSION}-${date}-cfgman.tar.gz *"
+	echo ${PACKAGE}-${VERSION}-${date}-cfgman.tar.gz >>${tag}.out
+fi
