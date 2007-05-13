@@ -3831,6 +3831,55 @@ DOC_START
 	The default behavior is to not bind to any specific address.
 DOC_END
 
+COMMENT_START
+ Options relating to Persistent Connection handling
+
+ Also see "pconn_timeout" in the TIMEOUTS section
+ -----------------------------------------------------------------------------
+COMMENT_END
+
+NAME: client_persistent_connections
+TYPE: onoff
+LOC: Config.onoff.client_pconns
+DEFAULT: on
+DOC_NONE
+
+NAME: server_persistent_connections
+TYPE: onoff
+LOC: Config.onoff.server_pconns
+DEFAULT: on
+DOC_START
+	Persistent connection support for clients and servers.  By
+	default, Squid uses persistent connections (when allowed)
+	with its clients and servers.  You can use these options to
+	disable persistent connections with clients and/or servers.
+DOC_END
+
+NAME: persistent_connection_after_error
+TYPE: onoff
+LOC: Config.onoff.error_pconns
+DEFAULT: off
+DOC_START
+	With this directive the use of persistent connections after
+	HTTP errors can be disabled. Useful if you have clients
+	who fail to handle errors on persistent connections proper.
+DOC_END
+
+NAME: detect_broken_pconn
+TYPE: onoff
+LOC: Config.onoff.detect_broken_server_pconns
+DEFAULT: off
+DOC_START
+	Some servers have been found to incorrectly signal the use
+	of HTTP/1.0 persistent connections even on replies not
+	compatible, causing significant delays. This server problem
+	has mostly been seen on redirects.
+
+	By enabling this directive Squid attempts to detect such
+	broken replies and automatically assume the reply is finished
+	after 10 seconds timeout.
+DOC_END
+
 
 
 COMMENT_START
@@ -4902,48 +4951,6 @@ DOC_START
 	initializing.  This means, for example, that if you use a HTTP
 	port less than 1024 and try to reconfigure, you will get an
 	error.
-DOC_END
-
-NAME: client_persistent_connections
-TYPE: onoff
-LOC: Config.onoff.client_pconns
-DEFAULT: on
-DOC_NONE
-
-NAME: server_persistent_connections
-TYPE: onoff
-LOC: Config.onoff.server_pconns
-DEFAULT: on
-DOC_START
-	Persistent connection support for clients and servers.  By
-	default, Squid uses persistent connections (when allowed)
-	with its clients and servers.  You can use these options to
-	disable persistent connections with clients and/or servers.
-DOC_END
-
-NAME: persistent_connection_after_error
-TYPE: onoff
-LOC: Config.onoff.error_pconns
-DEFAULT: off
-DOC_START
-	With this directive the use of persistent connections after
-	HTTP errors can be disabled. Useful if you have clients
-	who fail to handle errors on persistent connections proper.
-DOC_END
-
-NAME: detect_broken_pconn
-TYPE: onoff
-LOC: Config.onoff.detect_broken_server_pconns
-DEFAULT: off
-DOC_START
-	Some servers have been found to incorrectly signal the use
-	of HTTP/1.0 persistent connections even on replies not
-	compatible, causing significant delays. This server problem
-	has mostly been seen on redirects.
-
-	By enabling this directive Squid attempts to detect such
-	broken replies and automatically assume the reply is finished
-	after 10 seconds timeout.
 DOC_END
 
 NAME: balance_on_multiple_ip
