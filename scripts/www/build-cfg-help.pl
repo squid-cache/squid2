@@ -39,18 +39,38 @@ use IO::File;
 # bits, which we can use in the top-level index page. Nifty!
 #
 
+# XXX NAME: can actually have multiple entries on it; we should generate
+# XXX a configuration index entry for each, linking back to the one entry.
+# XXX I'll probably just choose the first entry in the list.
+
 # 
 # This code is ugly, but meh. We'll keep reading, line by line, and appending
 # lines into 'state' variables until the next NAME comes up. We'll then
 # shuffle everything off to a function to generate the page.
 
 my ($state) = "";
+my ($path) = "/tmp";
 my ($name, $doc, $nin, @nocomment, $type, $default, $ifdef, $comment, $loc);
 my ($default_if_none);
+my (@names);
 
+#
+# Yes yes global variables suck. Rewrite it if you must.
+#
 sub generate_page()
 {
+	# XXX should make sure the config option is a valid unix filename!
+	my ($fn) = $path . "/" . $name . ".html";
 
+	my ($fh) = new IO::File;
+	$fh->open($fn, "w") || die "Couldn't open $fn: $!\n";
+
+	print $fh "name: $name\n";
+	print $fh "default value: $default\n";
+	print $fh "default if none: $default_if_none\n";
+
+	close $fh;
+	undef $fh;
 }
 
 while (<>) {
@@ -58,7 +78,7 @@ while (<>) {
 	next if (/^$/);
 	if ($_ =~ /^NAME: (.*)$/) {
 		# If we have a name already; shuffle the data off and blank
-		if ($name ne "") {
+		if (defined $name && $name ne "") {
 			generate_page();
 		}
 		$name = $1;
@@ -72,6 +92,7 @@ while (<>) {
 		$loc = "";
 		$comment = "";
 		$default_if_none = "";
+		unshift @names, $name;
 		print "DEBUG: new section: $name\n";
 	} elsif ($_ =~ /^COMMENT: (.*)$/) {
 		$comment = $1;
