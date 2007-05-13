@@ -81,4 +81,6 @@ if [ -x $tmpdir/scripts/www/build-cfg-help.pl ]; then
 	$tmpdir/scripts/www/build-cfg-help.pl -o $tmpdir/doc/cfgman $tmpdir/src/cf.data
 	sh -c "cd $tmpdir/doc/cfgman && tar -zcf $PWD/${PACKAGE}-${VERSION}-${date}-cfgman.tar.gz *"
 	echo ${PACKAGE}-${VERSION}-${date}-cfgman.tar.gz >>${tag}.out
+	$tmpdir/scripts/www/build-cfg-help.pl -o ${PACKAGE}-${VERSION}-${date}-cfgman.html $tmpdir/src/cf.data
+	echo ${PACKAGE}-${VERSION}-${date}-cfgman.html >>${tag}.out
 fi
