@@ -65,7 +65,8 @@ sub uriescape($)
 sub htmlescape($)
 {
 	my ($line) = @_;
-	return $line =~ s/([^\w\s])/sprintf ("&#%d;", ord ($1))/ge;
+	$line =~ s/([^\w\s])/sprintf ("&#%d;", ord ($1))/ge;
+	return $line;
 }
 my $verbose = '';
 my $path = "/tmp";
@@ -94,7 +95,7 @@ sub generate_page($$)
 
 	while (<$th>) {
 		# Do variable substitution
-		s/%(.*?)%/$data->{$1}/ge;
+		s/%(.*?)%/htmlescape($data->{$1})/ge;
 		print $fh $_;
 	}
 
@@ -104,7 +105,7 @@ sub generate_page($$)
 
 while (<>) {
 	chomp;
-	next if (/^$/);
+#	next if (/^$/);
 	if ($_ =~ /^NAME: (.*)$/) {
 		# If we have a name already; shuffle the data off and blank
 		if (defined $name && $name ne "") {
@@ -147,7 +148,7 @@ while (<>) {
 		$data{"doc"} .= $_ . "\n";
 	} elsif ($state eq "nocomment") {
 		$data{"nocomment"} .= $_;
-	} else {
+	} elsif ($_ ne "") {
 		print "DEBUG: unknown line '$_'\n";
 	}
 }
@@ -175,10 +176,10 @@ EOF
 
 foreach (@names) {
 	my ($n) = $_->{"name"};
-	print $fh '    <li><a href="' . uriescape($n) . '.html">' . $n . "</a></li>\n";
+	print $fh '    <li><a href="' . uriescape($n) . '.html">' . htmlescape($n) . "</a></li>\n";
 	if (defined $_->{"aliases"}) {
 		foreach (@{$_->{"aliases"}}) {
-			print $fh '    <li><a href="' . uriescape($n) . '.html">' . $_ . "</a></li>\n";
+			print $fh '    <li><a href="' . uriescape($n) . '.html">' . htmlescape($_) . "</a></li>\n";
 		}
 	}
 }
