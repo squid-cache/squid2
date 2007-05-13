@@ -51,28 +51,35 @@ use Getopt::Long;
 
 
 my ($state) = "";
-my ($path) = "/tmp";
-my ($name, $doc, $nin, @nocomment, $type, $default, $ifdef, $comment, $loc);
-my ($default_if_none);
+my ($name);
 my (@names);
+my (%data);
+
+sub htmlescape($)
+{
+	my ($line) = @_;
+	return $line =~ s/([^\w\s])/sprintf ("&#%d;", ord ($1))/ge;
+}
 my $verbose = '';
+my $path = "/tmp";
 
 GetOptions('verbose' => \$verbose, 'v' => \$verbose, 'out=s' => \$path);
 
 #
 # Yes yes global variables suck. Rewrite it if you must.
 #
-sub generate_page()
+sub generate_page($)
 {
+	my ($data) = @_;
 	# XXX should make sure the config option is a valid unix filename!
 	my ($fn) = $path . "/" . $name . ".html";
 
 	my ($fh) = new IO::File;
 	$fh->open($fn, "w") || die "Couldn't open $fn: $!\n";
 
-	print $fh "name: $name\n";
-	print $fh "default value: $default\n";
-	print $fh "default if none: $default_if_none\n";
+	my ($ldoc) = $data->{"doc"};
+
+	print $ldoc;
 
 	close $fh;
 	undef $fh;
@@ -84,35 +91,29 @@ while (<>) {
 	if ($_ =~ /^NAME: (.*)$/) {
 		# If we have a name already; shuffle the data off and blank
 		if (defined $name && $name ne "") {
-			generate_page();
+			generate_page(\%data);
 		}
-		$name = $1;
-		$doc = "";
-		$nin = "";
-		undef @nocomment;
-		$nin = 0;
-		$type = "";
-		$default = "";
-		$ifdef = "";
-		$loc = "";
-		$comment = "";
-		$default_if_none = "";
+
+		undef %data;
+		$data{"nin"} = 0;
+		$data{"nocomment"} = [];
+
 		my ($r) = {};
 		@{$r->{"aliases"}} = split(/ /, $1);
-		$r->{"name"} = $name = $r->{"aliases"}[0];
+		$name = $r->{"name"} = $data{"name"} = $r->{"aliases"}[0];
 		# names should only have one entry!
 		shift @{$r->{"aliases"}};
 		unshift @names, $r;
 		print "DEBUG: new section: $name\n";
 	} elsif ($_ =~ /^COMMENT: (.*)$/) {
-		$comment = $1;
+		$data{"comment"} = $1;
 	} elsif ($_ =~ /^TYPE: (.*)$/) {
-		$type = $1;
+		$data{"type"} = $1;
 	} elsif ($_ =~ /^DEFAULT: (.*)$/) {
-		$default = $1;
+		$data{"default"} = $1;
 	} elsif ($_ =~ /^LOC:(.*)$/) {
-		$loc = $1;
-		$loc =~ s/^[\s\t]*//;
+		$data{"loc"} = $1;
+		$data{"loc"} =~ s/^[\s\t]*//;
 	} elsif ($_ =~ /^DOC_START$/) {
 		$state = "doc";
 	} elsif ($_ =~ /^DOC_END$/) {
@@ -122,16 +123,16 @@ while (<>) {
 	} elsif ($_ =~ /^NOCOMMENT_START$/) {
 		$state = "nocomment";
 	} elsif ($_ =~ /^DEFAULT_IF_NONE: (.*)$/) {
-		$default_if_none = $1;
+		$data{"default_if_none"} = $1;
 	} elsif ($_ =~ /^NOCOMMENT_END$/) {
-		$nin++;
+		$data{"nin"} ++;
 		$state = "";
 	} elsif ($_ =~ /^IFDEF: (.*)$/) {
-		$ifdef = $1;
+		$data{"ifdef"} = $1;
 	} elsif ($state eq "doc") {
-		$doc .= $_ . "\n";
+		$data{"doc"} .= $_ . "\n";
 	} elsif ($state eq "nocomment") {
-		$nocomment[$nin] .= $_ . "\n";
+		$data{"nocomment"}->[$data{"nin"}] .= $_ . "\n";
 	} else {
 		print "DEBUG: unknown line '$_'\n";
 	}
@@ -139,7 +140,7 @@ while (<>) {
 
 # print last section
 if ($name ne "") {
-	generate_page();
+	generate_page(\%data);
 }
 
 # and now, the index file!
