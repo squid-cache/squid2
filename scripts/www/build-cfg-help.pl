@@ -51,9 +51,19 @@ use Getopt::Long;
 
 
 my ($state) = "";
-my ($name);
-my (@names);
-my (%data);
+my (%option);
+my (%all_names);
+my ($comment);
+
+my $version = "2.HEAD";
+my $verbose = '';
+my $path = "/tmp";
+
+GetOptions(
+	'verbose' => \$verbose, 'v' => \$verbose,
+	'out=s' => \$path,
+	'version=s' => \$version
+	);
 
 # XXX should implement this!
 sub uriescape($)
@@ -62,16 +72,19 @@ sub uriescape($)
 	return $line;
 }
 
+sub filename($)
+{
+	my ($name) = @_;
+	return $path . "/" . $name . ".html";
+}
+
 sub htmlescape($)
 {
 	my ($line) = @_;
+	return "" if !defined $line;
 	$line =~ s/([^\w\s])/sprintf ("&#%d;", ord ($1))/ge;
 	return $line;
 }
-my $verbose = '';
-my $path = "/tmp";
-
-GetOptions('verbose' => \$verbose, 'v' => \$verbose, 'out=s' => \$path);
 
 #
 # Yes, we could just read the template file in once..!
@@ -80,7 +93,7 @@ sub generate_page($$)
 {
 	my ($template, $data) = @_;
 	# XXX should make sure the config option is a valid unix filename!
-	my ($fn) = $path . "/" . $name . ".html";
+	my ($fn) = filename($data->{'name'});
 
 	my ($fh) = new IO::File;
 	my ($th) = new IO::File;
@@ -91,7 +104,7 @@ sub generate_page($$)
 	$data->{"title"} = $data->{"name"};
 	$data->{"ldoc"} = $data->{"doc"};
 	if (exists $data->{"aliases"}) {
-		$data->{"aliaslist"} = join(", ", $data->{"aliases"});
+		$data->{"aliaslist"} = join(", ", @{$data->{"aliases"}});
 	}
 	# XXX can't do this and then HTML escape..
 	# $data->{"ldoc"} =~ s/\n\n/<\/p>\n<p>\n/;
@@ -107,90 +120,156 @@ sub generate_page($$)
 	undef $fh;
 }
 
+my ($index) = new IO::File;
+
+$index->open(filename("index"), "w") || die "Couldn't open ".filename("index").": $!\n";
+print $index <<EOF
+<html>
+  <head>
+    <title>Squid $version configuration file</title>
+  </head>
+
+  <body>
+EOF
+;
+
+
+my ($name, $data);
+my (@chained);
+
+my $in_options = 0;
+sub start_option($)
+{
+    my ($name) = @_;
+    if (!$in_options) {
+	print $index "<ul>\n";
+	$in_options = 1;
+    }
+    print $index '    <li><a href="' . uriescape($name) . '.html" name="' . htmlescape($name) . '">' . htmlescape($name) . "</a></li>\n";
+}
+sub end_options()
+{
+    return if !$in_options;
+    print $index "</ul>\n";
+    $in_options = 0;
+}
 while (<>) {
 	chomp;
-#	next if (/^$/);
+	last if (/^EOF$/);
 	if ($_ =~ /^NAME: (.*)$/) {
-		# If we have a name already; shuffle the data off and blank
-		if (defined $name && $name ne "") {
-			generate_page("template.html", \%data);
+		my (@aliases) = split(/ /, $1);
+		$data = {};
+		foreach (@aliases) {
+		    $all_names{$_} = $data;
 		}
 
-		undef %data;
-		$data{"doc"} = "";
-		my ($r) = {};
-		@{$r->{"aliases"}} = split(/ /, $1);
-		$name = $r->{"name"} = $data{"name"} = $r->{"aliases"}[0];
-		# names should only have one entry!
-		shift @{$r->{"aliases"}};
-		unshift @names, $r;
-		print "DEBUG: new section: $name\n";
+		$name = shift @aliases;
+
+		$option{$name} = $data;
+		$data->{'name'} = $name;
+		$data->{'aliases'} = \@aliases;
+
+		start_option($name);
+		print "DEBUG: new option: $name\n" if $verbose;
 	} elsif ($_ =~ /^COMMENT: (.*)$/) {
-		$data{"comment"} = $1;
+		$data->{"comment"} = $1;
 	} elsif ($_ =~ /^TYPE: (.*)$/) {
-		$data{"type"} = $1;
+		$data->{"type"} = $1;
 	} elsif ($_ =~ /^DEFAULT: (.*)$/) {
-		$data{"default"} = $1;
+		if ($1 eq "none") {
+		    $data->{"default"} = "$1";
+		} else {
+		    $data->{"default"} = "$name $1";
+		}
 	} elsif ($_ =~ /^LOC:(.*)$/) {
-		$data{"loc"} = $1;
-		$data{"loc"} =~ s/^[\s\t]*//;
+		$data->{"loc"} = $1;
+		$data->{"loc"} =~ s/^[\s\t]*//;
 	} elsif ($_ =~ /^DOC_START$/) {
 		$state = "doc";
 	} elsif ($_ =~ /^DOC_END$/) {
 		$state = "";
+		my $othername;
+		foreach $othername (@chained) {
+		    $option{$othername}{'doc'} = $data->{'doc'};
+		}
+		undef @chained;
 	} elsif ($_ =~ /^DOC_NONE$/) {
-		$state = "";
+		push(@chained, $name);
 	} elsif ($_ =~ /^NOCOMMENT_START$/) {
 		$state = "nocomment";
 	} elsif ($_ =~ /^DEFAULT_IF_NONE: (.*)$/) {
-		$data{"default_if_none"} = $1;
+		$data->{"default_if_none"} = $1;
 	} elsif ($_ =~ /^NOCOMMENT_END$/) {
 		$state = "";
 	} elsif ($_ =~ /^IFDEF: (.*)$/) {
-		$data{"ifdef"} = $1;
-	} elsif ($state eq "doc") {
-		$data{"doc"} .= $_ . "\n";
+		$data->{"ifdef"} = $1;
+	} elsif ($_ =~ /^#/ && $state eq "doc") {
+		$data->{"config"} .= $_ . "\n";
 	} elsif ($state eq "nocomment") {
-		$data{"nocomment"} .= $_ . "\n";
+		$data->{"config"} .= $_ . "\n";
+	} elsif ($state eq "doc") {
+		$data->{"doc"} .= $_ . "\n";
+	} elsif ($_ =~ /^COMMENT_START$/) {
+		end_options;
+		$state = "comment";
+		$comment = "";
+	} elsif ($_ =~ /^COMMENT_END$/) {
+		print $index "<pre>\n";
+		print $index $comment;
+		print $index "</pre>\n";
+	} elsif ($state eq "comment") {
+		$comment .= $_ . "\n";
+	} elsif (/^#/) {
+		next;
 	} elsif ($_ ne "") {
-		print "DEBUG: unknown line '$_'\n";
+		print "NOTICE: unknown line '$_'\n";
 	}
 }
+end_options;
+print $index <<EOF
+    </ul>
+  <p><a href="index_all.html">Alphabetic index</a></p>
+  </body>
+</html>
+EOF
+;
+$index->close;
+undef $index;
 
-# print last section
-if ($name ne "") {
-	generate_page("template.html", \%data);
+# and now, build the option pages
+my (@names) = keys %option;
+foreach $name (@names) {
+	generate_page("template.html", $option{$name});
 }
-
-# and now, the index file!
+# and now, the alpabetic index file!
 my ($fh) = new IO::File;
 
-$fh->open($path . "/index.html", "w") || die "Couldn't open $path/index.html for writing: $!\n";
+my ($indexname) = filename("index_all");
+$fh->open($indexname, "w") || die "Couldn't open $indexname for writing: $!\n";
 
 print $fh <<EOF
 <html>
   <head>
-    <title>Squid configuration file</title>
+    <title>Squid $version configuration file index</title>
   </head>
+  <p>| <a href="index.html">Back up to the index</a> |</p>
+
+  <p>Alphabetic index of all options</p>
 
   <body>
     <ul>
 EOF
 ;
 
-foreach (@names) {
-	my ($n) = $_->{"name"};
-	print $fh '    <li><a href="' . uriescape($n) . '.html">' . htmlescape($n) . "</a></li>\n";
-	# Uncomment these lines if you'd like the aliases to also be generated
-#	if (defined $_->{"aliases"}) {
-#		foreach (@{$_->{"aliases"}}) {
-#			print $fh '    <li>(deprecated) <a href="' . uriescape($n) . '.html">' . htmlescape($_) . "</a></li>\n";
-#		}
-#	}
+
+foreach $name (sort keys %all_names) {
+	my ($data) = $all_names{$name};
+	print $fh '    <li><a href="' . uriescape($data->{'name'}) . '.html">' . htmlescape($name) . "</a></li>\n";
 }
 
 print $fh <<EOF
     </ul>
+  <p>| <a href="index.html">Back up to the index</a> |</p>
   </body>
 </html>
 EOF
