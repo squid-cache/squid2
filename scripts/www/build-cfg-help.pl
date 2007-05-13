@@ -90,7 +90,8 @@ sub generate_page($$)
 	# add in the local variables
 	$data->{"title"} = $data->{"name"};
 	$data->{"ldoc"} = $data->{"doc"};
-	$data->{"ldoc"} =~ s/\n\n/<\/p>\n<p>\n/;
+	# XXX can't do this and then HTML escape..
+	# $data->{"ldoc"} =~ s/\n\n/<\/p>\n<p>\n/;
 	# XXX and the end-of-line formatting to turn single \n's into <BR>\n's.
 
 	while (<$th>) {
