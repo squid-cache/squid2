@@ -55,6 +55,13 @@ my ($name);
 my (@names);
 my (%data);
 
+# XXX should implement this!
+sub uriescape($)
+{
+	my ($line) = @_;
+	return $line;
+}
+
 sub htmlescape($)
 {
 	my ($line) = @_;
@@ -66,20 +73,30 @@ my $path = "/tmp";
 GetOptions('verbose' => \$verbose, 'v' => \$verbose, 'out=s' => \$path);
 
 #
-# Yes yes global variables suck. Rewrite it if you must.
+# Yes, we could just read the template file in once..!
 #
-sub generate_page($)
+sub generate_page($$)
 {
-	my ($data) = @_;
+	my ($template, $data) = @_;
 	# XXX should make sure the config option is a valid unix filename!
 	my ($fn) = $path . "/" . $name . ".html";
 
 	my ($fh) = new IO::File;
+	my ($th) = new IO::File;
 	$fh->open($fn, "w") || die "Couldn't open $fn: $!\n";
+	$th->open($template, "r") || die "Couldn't open $template: $!\n";
 
-	my ($ldoc) = $data->{"doc"};
+	# add in the local variables
+	$data->{"title"} = $data->{"name"};
+	$data->{"ldoc"} = $data->{"doc"};
+	$data->{"ldoc"} =~ s/\n\n/<\/p>\n<p>\n/;
+	# XXX and the end-of-line formatting to turn single \n's into <BR>\n's.
 
-	print $ldoc;
+	while (<$th>) {
+		# Do variable substitution
+		s/%(.*?)%/$data->{$1}/ge;
+		print $fh $_;
+	}
 
 	close $fh;
 	undef $fh;
@@ -91,13 +108,11 @@ while (<>) {
 	if ($_ =~ /^NAME: (.*)$/) {
 		# If we have a name already; shuffle the data off and blank
 		if (defined $name && $name ne "") {
-			generate_page(\%data);
+			generate_page("template.html", \%data);
 		}
 
 		undef %data;
-		$data{"nin"} = 0;
-		$data{"nocomment"} = [];
-
+		$data{"doc"} = "";
 		my ($r) = {};
 		@{$r->{"aliases"}} = split(/ /, $1);
 		$name = $r->{"name"} = $data{"name"} = $r->{"aliases"}[0];
@@ -125,14 +140,13 @@ while (<>) {
 	} elsif ($_ =~ /^DEFAULT_IF_NONE: (.*)$/) {
 		$data{"default_if_none"} = $1;
 	} elsif ($_ =~ /^NOCOMMENT_END$/) {
-		$data{"nin"} ++;
 		$state = "";
 	} elsif ($_ =~ /^IFDEF: (.*)$/) {
 		$data{"ifdef"} = $1;
 	} elsif ($state eq "doc") {
 		$data{"doc"} .= $_ . "\n";
 	} elsif ($state eq "nocomment") {
-		$data{"nocomment"}->[$data{"nin"}] .= $_ . "\n";
+		$data{"nocomment"} .= $_;
 	} else {
 		print "DEBUG: unknown line '$_'\n";
 	}
@@ -140,18 +154,40 @@ while (<>) {
 
 # print last section
 if ($name ne "") {
-	generate_page(\%data);
+	generate_page("template.html", \%data);
 }
 
 # and now, the index file!
-foreach (@names)
-{
+my ($fh) = new IO::File;
+
+$fh->open($path . "/index.html", "w") || die "Couldn't open $path/index.html for writing: $!\n";
+
+print $fh <<EOF
+<html>
+  <head>
+    <title>Squid configuration file</title>
+  </head>
+
+  <body>
+    <ul>
+EOF
+;
+
+foreach (@names) {
 	my ($n) = $_->{"name"};
-	print "name: $n\n";
+	print $fh '    <li><a href="' . uriescape($n) . '.html">' . $n . "</a></li>\n";
 	if (defined $_->{"aliases"}) {
 		foreach (@{$_->{"aliases"}}) {
-			print "  alias: $_\n";
+			print $fh '    <li><a href="' . uriescape($n) . '.html">' . $_ . "</a></li>\n";
 		}
 	}
-
 }
+
+print $fh <<EOF
+    </ul>
+  </body>
+</html>
+EOF
+;
+$fh->close;
+undef $fh;
