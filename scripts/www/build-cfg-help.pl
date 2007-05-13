@@ -148,7 +148,7 @@ while (<>) {
 	} elsif ($state eq "doc") {
 		$data{"doc"} .= $_ . "\n";
 	} elsif ($state eq "nocomment") {
-		$data{"nocomment"} .= $_;
+		$data{"nocomment"} .= $_ . "\n";
 	} elsif ($_ ne "") {
 		print "DEBUG: unknown line '$_'\n";
 	}
