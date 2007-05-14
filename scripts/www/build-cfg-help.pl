@@ -168,6 +168,7 @@ print $index <<EOF
     <title>Squid $version configuration file</title>
     <meta name="keywords" content="squid squid.conf config configure" />
     <meta name="description" content="Squid $version" />
+    <link href="/default.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
     <div id="header">
@@ -176,6 +177,8 @@ print $index <<EOF
             <h2>Optimising Web Delivery</h2>
 	</div>
     </div>
+<div id="content">
+	<div id="colOne">
 EOF
 ;
 
@@ -340,6 +343,7 @@ $fh->close;
 undef $fh;
 
 print $index <<EOF
+  </div></div>
   </body>
 </html>
 EOF
