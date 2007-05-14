@@ -3632,7 +3632,7 @@ DOC_END
 
 COMMENT_START
 
- Configuration options relating to WCCPv1 and WCCPv2.
+ WCCPv1 AND WCCPv2 CONFIGURATION OPTIONS
  -----------------------------------------------------------------------------
 
 COMMENT_END
@@ -3832,7 +3832,7 @@ DOC_START
 DOC_END
 
 COMMENT_START
- Options relating to Persistent Connection handling
+ PERSISTENT CONNECTION HANDLING
 
  Also see "pconn_timeout" in the TIMEOUTS section
  -----------------------------------------------------------------------------
@@ -3878,6 +3878,77 @@ DOC_START
 	By enabling this directive Squid attempts to detect such
 	broken replies and automatically assume the reply is finished
 	after 10 seconds timeout.
+DOC_END
+
+COMMENT_START
+ CACHE DIGEST OPTIONS
+ -----------------------------------------------------------------------------
+COMMENT_END
+
+NAME: digest_generation
+IFDEF: USE_CACHE_DIGESTS
+TYPE: onoff
+LOC: Config.onoff.digest_generation
+DEFAULT: on
+DOC_START
+	This controls whether the server will generate a Cache Digest
+	of its contents.  By default, Cache Digest generation is
+	enabled if Squid is compiled with USE_CACHE_DIGESTS defined.
+DOC_END
+
+NAME: digest_bits_per_entry
+IFDEF: USE_CACHE_DIGESTS
+TYPE: int
+LOC: Config.digest.bits_per_entry
+DEFAULT: 5
+DOC_START
+	This is the number of bits of the server's Cache Digest which
+	will be associated with the Digest entry for a given HTTP
+	Method and URL (public key) combination.  The default is 5.
+DOC_END
+
+NAME: digest_rebuild_period
+IFDEF: USE_CACHE_DIGESTS
+COMMENT: (seconds)
+TYPE: time_t
+LOC: Config.digest.rebuild_period
+DEFAULT: 1 hour
+DOC_START
+	This is the number of seconds between Cache Digest rebuilds.
+DOC_END
+
+NAME: digest_rewrite_period
+COMMENT: (seconds)
+IFDEF: USE_CACHE_DIGESTS
+TYPE: time_t
+LOC: Config.digest.rewrite_period
+DEFAULT: 1 hour
+DOC_START
+	This is the number of seconds between Cache Digest writes to
+	disk.
+DOC_END
+
+NAME: digest_swapout_chunk_size
+COMMENT: (bytes)
+TYPE: b_size_t
+IFDEF: USE_CACHE_DIGESTS
+LOC: Config.digest.swapout_chunk_size
+DEFAULT: 4096 bytes
+DOC_START
+	This is the number of bytes of the Cache Digest to write to
+	disk at a time.  It defaults to 4096 bytes (4KB), the Squid
+	default swap page.
+DOC_END
+
+NAME: digest_rebuild_chunk_percentage
+COMMENT: (percent, 0-100)
+IFDEF: USE_CACHE_DIGESTS
+TYPE: int
+LOC: Config.digest.rebuild_chunk_percentage
+DEFAULT: 10
+DOC_START
+	This is the percentage of the Cache Digest to be scanned at a
+	time.  By default it is set to 10% of the Cache Digest.
 DOC_END
 
 
@@ -4873,72 +4944,6 @@ DOC_START
 	don't match, Squid ignores the response and writes a warning
 	message to cache.log.  You can allow responses from unknown
 	nameservers by setting this option to 'off'.
-DOC_END
-
-NAME: digest_generation
-IFDEF: USE_CACHE_DIGESTS
-TYPE: onoff
-LOC: Config.onoff.digest_generation
-DEFAULT: on
-DOC_START
-	This controls whether the server will generate a Cache Digest
-	of its contents.  By default, Cache Digest generation is
-	enabled if Squid is compiled with USE_CACHE_DIGESTS defined.
-DOC_END
-
-NAME: digest_bits_per_entry
-IFDEF: USE_CACHE_DIGESTS
-TYPE: int
-LOC: Config.digest.bits_per_entry
-DEFAULT: 5
-DOC_START
-	This is the number of bits of the server's Cache Digest which
-	will be associated with the Digest entry for a given HTTP
-	Method and URL (public key) combination.  The default is 5.
-DOC_END
-
-NAME: digest_rebuild_period
-IFDEF: USE_CACHE_DIGESTS
-COMMENT: (seconds)
-TYPE: time_t
-LOC: Config.digest.rebuild_period
-DEFAULT: 1 hour
-DOC_START
-	This is the number of seconds between Cache Digest rebuilds.
-DOC_END
-
-NAME: digest_rewrite_period
-COMMENT: (seconds)
-IFDEF: USE_CACHE_DIGESTS
-TYPE: time_t
-LOC: Config.digest.rewrite_period
-DEFAULT: 1 hour
-DOC_START
-	This is the number of seconds between Cache Digest writes to
-	disk.
-DOC_END
-
-NAME: digest_swapout_chunk_size
-COMMENT: (bytes)
-TYPE: b_size_t
-IFDEF: USE_CACHE_DIGESTS
-LOC: Config.digest.swapout_chunk_size
-DEFAULT: 4096 bytes
-DOC_START
-	This is the number of bytes of the Cache Digest to write to
-	disk at a time.  It defaults to 4096 bytes (4KB), the Squid
-	default swap page.
-DOC_END
-
-NAME: digest_rebuild_chunk_percentage
-COMMENT: (percent, 0-100)
-IFDEF: USE_CACHE_DIGESTS
-TYPE: int
-LOC: Config.digest.rebuild_chunk_percentage
-DEFAULT: 10
-DOC_START
-	This is the percentage of the Cache Digest to be scanned at a
-	time.  By default it is set to 10% of the Cache Digest.
 DOC_END
 
 NAME: chroot
