@@ -1,39 +1,53 @@
-<html>
-  <head>
-    <title>Configuration File: %title%</title>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>Squid %version% Configuration File: %title%</title>
+    <meta name="keywords" content="squid squid.conf config configure %name%" />
+    <meta name="description" content="Squid %version%  %name% " />
+</head>
+
+<body>
+    <div id="header">
+        <div id="logo">
+            <h1><a href="http://www.squid-cache.org/"><span>Squid-</span>Cache.org</a></h1>
+            <h2>Optimising Web Delivery</h2>
+	</div>
+    </div>
+
   </head>
 
   <body>
 
-  | <a href="%toc_link%">Back up to the index</a> |<br>
+  <p>|&nbsp;<a href="%toc_link%">Back up to the index</a>&nbsp;|</p>
 
-  <h1>Option: %name%</h1>
-
-  <pre>
+  <table summary="%name%">
+    <tr>
+      <td>Option Name:</th><td><a name="%name%">%name%</a></td>
+    </tr>
+    <tr>
+      <td>Also Known As:</th><td>%aliaslist%</td>
+    </tr>
+    <tr>
+      <th>Requires:</th><td>%ifdef%</td>
+    </tr>
+    <tr>
+      <th>Default Value:</th><td>%default%</td>
+    </tr>
+    <tr>
+      <th>Suggested Config:</th><td>%config%</td>
+    </tr>
+    <tr>
+      <td colspan="2">
+        <pre>
 %ldoc%
-  </pre>
+        </pre>
+      </td>
+    </tr>
+    <tr class="spacer"><td>&nbsp;</td></tr>
+  </table>
 
-  <h2>Aliases</h2>
-  <p>
-%aliaslist%
-  </p>
-
-  <h2>Default Values</h2>
-
-  <p>
-%default%
-  </p>
-
-  <h2>Compile-time option</h2>
-  <p>
-%ifdef%
-  </p>
-
-  <h2>Suggested Base Configuration</h2>
-
-  <pre>
-%config%
-  </pre>
+  <p>|&nbsp;<a href="%toc_link%">Back up to the index</a>&nbsp;|</p>
 
   </body>
 </html>

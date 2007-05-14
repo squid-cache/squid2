@@ -161,12 +161,21 @@ sub generate_page($$)
 $index->open(filename("index"), "w") || die "Couldn't open ".filename("index").": $!\n" if ($format eq "splithtml");
 $index->open($path, "w") || die "Couldn't open ".filename("index").": $!\n" if ($format eq "singlehtml");
 print $index <<EOF
-<html>
-  <head>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
     <title>Squid $version configuration file</title>
-  </head>
-
-  <body>
+    <meta name="keywords" content="squid squid.conf config configure" />
+    <meta name="description" content="Squid $version" />
+</head>
+<body>
+    <div id="header">
+        <div id="logo">
+            <h1><a href="http://www.squid-cache.org/"><span>Squid-</span>Cache.org</a></h1>
+            <h2>Optimising Web Delivery</h2>
+	</div>
+    </div>
 EOF
 ;
 
@@ -196,6 +205,7 @@ while (<>) {
 	if ($_ =~ /^NAME: (.*)$/) {
 		my (@aliases) = split(/ /, $1);
 		$data = {};
+		$data->{'version'} = $version;
 		foreach (@aliases) {
 		    $all_names{$_} = $data;
 		}
@@ -266,7 +276,7 @@ end_options;
 print $index "</ul>\n";
 print $index "<p><a href=\"index_all.html\">Alphabetic index</a></p>\n" if $format eq "splithtml";
 print $index "<p><a href=\"#index\">Alphabetic index</a></p>\n" if $format eq "singlehtml";
-print $index "<hr/>\n" if $format eq "singlehtml";
+print $index "<hr />\n" if $format eq "singlehtml";
 
 # and now, build the option pages
 my (@names) = keys %option;
@@ -284,14 +294,25 @@ if ($format eq "splithtml") {
     $fh->open($indexname, "w") || die "Couldn't open $indexname for writing: $!\n";
     $fh_open = 1;
     print $fh <<EOF
-<html>
-  <head>
-    <title>Squid $version configuration file index</title>
-  </head>
-  <body>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>Squid $version configuration file</title>
+    <meta name="keywords" content="squid squid.conf config configure" />
+    <meta name="description" content="Squid $version" />
+</head>
+<body>
+    <div id="header">
+        <div id="logo">
+            <h1><a href="http://www.squid-cache.org/"><span>Squid-</span>Cache.org</a></h1>
+            <h2>Optimising Web Delivery</h2>
+	</div>
+    </div>
+
   <p>| <a href="index.html">Table of contents</a> |</p>
 
-  <H1>Alphabetic index of all options</H1>
+  <h1>Alphabetic index of all options</h1>
 EOF
 ;
 } elsif ($format eq "singlehtml") {

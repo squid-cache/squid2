@@ -1,27 +1,27 @@
+
   <h2>Option: <a href="%toc_link%" name="%name%">%name%</a></h2>
-
-  <pre>
+  <table summary="%name%">
+    <tr>
+      <td>Option Name:</th><td><a name="%name%">%name%</a></td>
+    </tr>
+    <tr>
+      <td>Also Known As:</th><td>%aliaslist%</td>
+    </tr>
+    <tr>
+      <th>Compile Requires:</th><td>%ifdef%</td>
+    </tr>
+    <tr>
+      <th>Default Value:</th><td>%default%</td>
+    </tr>
+    <tr>
+      <th>Suggested Config:</th><td>%config%</td>
+    </tr>
+    <tr>
+      <td colspan="2">
+        <pre>
 %ldoc%
-  </pre>
-
-  <h3>Aliases</h3>
-  <p>
-%aliaslist%
-  </p>
-
-  <h3>Default Values</h3>
-
-  <p>
-%default%
-  </p>
-
-  <h3>Compile-time option</h3>
-  <p>
-%ifdef%
-  </p>
-
-  <h3>Suggested Base Configuration</h3>
-
-  <pre>
-%config%
-  </pre>
+        </pre>
+      </td>
+    </tr>
+    <tr class="spacer"><td>&nbsp;</td></tr>
+  </table>
