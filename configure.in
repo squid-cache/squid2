@@ -3183,6 +3183,7 @@ AC_OUTPUT([\
 	helpers/ntlm_auth/SMB/smbval/Makefile \
 	helpers/negotiate_auth/Makefile \
 	helpers/negotiate_auth/mswin_sspi/Makefile \
+	helpers/negotiate_auth/squid_kerb_auth/Makefile \
 	helpers/external_acl/Makefile \
 	helpers/external_acl/ip_user/Makefile \
 	helpers/external_acl/ldap_group/Makefile \

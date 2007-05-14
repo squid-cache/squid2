@@ -238,7 +238,7 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-DIST_SUBDIRS = mswin_sspi
+DIST_SUBDIRS = mswin_sspi squid_kerb_auth
 SUBDIRS = @NEGOTIATE_AUTH_HELPERS@
 all: all-recursive
 
