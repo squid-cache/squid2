@@ -111,6 +111,11 @@ sub toc_link($)
     return "#toc_".uriescape($_[0]) if $format eq "singlehtml";
 }
 
+sub alpha_link($)
+{
+    return "index_all.html#toc_".uriescape($_[0]);
+}
+
 #
 # Yes, we could just read the template file in once..!
 #
@@ -137,6 +142,7 @@ sub generate_page($$)
 	$data->{"title"} = $data->{"name"};
 	$data->{"ldoc"} = $data->{"doc"};
 	$data->{"toc_link"} = toc_link($data->{"name"});
+	$data->{"alpha_link"} = alpha_link($data->{"name"});
 	if (exists $data->{"aliases"}) {
 		$data->{"aliaslist"} = join(", ", @{$data->{"aliases"}});
 	}
@@ -168,17 +174,8 @@ print $index <<EOF
     <title>Squid $version configuration file</title>
     <meta name="keywords" content="squid squid.conf config configure" />
     <meta name="description" content="Squid $version" />
-    <link href="/default.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
-    <div id="header">
-        <div id="logo">
-            <h1><a href="http://www.squid-cache.org/"><span>Squid-</span>Cache.org</a></h1>
-            <h2>Optimising Web Delivery</h2>
-	</div>
-    </div>
-<div id="content">
-	<div id="colOne">
 EOF
 ;
 
@@ -327,7 +324,7 @@ print $fh "<ul>\n";
 
 foreach $name (sort keys %all_names) {
 	my ($data) = $all_names{$name};
-	print $fh '    <li><a href="' . uriescape($data->{'name'}) . '.html">' . htmlescape($name) . "</a></li>\n";
+	print $fh '    <li><a href="' . uriescape($data->{'name'}) . '.html" name="toc_' . htmlescape($name) . '">' . htmlescape($name) . "</a></li>\n";
 }
 
 print $fh "</ul>\n";
@@ -343,7 +340,6 @@ $fh->close;
 undef $fh;
 
 print $index <<EOF
-  </div></div>
   </body>
 </html>
 EOF
