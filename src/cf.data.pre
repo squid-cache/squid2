@@ -1280,6 +1280,7 @@ DOC_START
 		mt	MIME content type
 		rm	Request method (GET/POST etc)
 		ru	Request URL
+		rp	Request URL-Path excluding hostname
 		rv	Request protocol version
 		ea	Log string returned by external acl
 		<st	Reply size including HTTP headers
