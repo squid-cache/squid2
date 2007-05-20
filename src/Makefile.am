@@ -88,6 +88,9 @@ endif
 if USE_KQUEUE
 COMMLOOP_SOURCE = comm_kqueue.c
 endif
+if USE_DEVPOLL
+COMMLOOP_SOURCE = comm_devpoll.c
+endif
 
 SUBDIRS		= fs repl auth
 
@@ -132,6 +135,7 @@ EXTRA_squid_SOURCES = \
 	comm_select_win32.c \
 	comm_select_simple.c \
 	comm_kqueue.c \
+	comm_devpoll.c \
 	comm_generic.c \
 	ipc.c \
 	ipc_win32.c \

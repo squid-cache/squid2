@@ -94,6 +94,17 @@ comm_select_status(StoreEntry * sentry)
 }
 
 void
+commClose(int fd)
+{
+}
+
+void
+commClose(int fd)
+{
+    commSetEvents(fd, 0, 0);
+}
+
+void
 commSetEvents(int fd, int need_read, int need_write)
 {
     if (need_read && !FD_ISSET(fd, global_readfds)) {

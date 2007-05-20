@@ -89,6 +89,17 @@ comm_select_status(StoreEntry * sentry)
 }
 
 void
+commOpen(int fd)
+{
+}
+
+void
+commClose(int fd)
+{
+    commSetEvents(fd, 0, 0);
+}
+
+void
 commSetEvents(int fd, int need_read, int need_write)
 {
     struct kevent *kep;
