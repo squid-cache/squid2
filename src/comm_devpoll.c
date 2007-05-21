@@ -37,9 +37,6 @@
 
 #include <sys/devpoll.h>
 
-#define	STATE_READ		1
-#define	STATE_WRITE		2
-
 
 static int devpoll_fd;
 static struct timespec zero_timespec;
@@ -54,7 +51,6 @@ static struct timespec zero_timespec;
 
 struct _devpoll_state {
     char state;
-    int offset;
 };
 
 struct _devpoll_events {
@@ -95,33 +91,18 @@ do_select_init()
 }
 
 static void
-comm_submit_updates()
+comm_update_fd(int fd, int events)
 {
+    struct pollfd pfd[1];
     int i;
 
-    if (ds_events.ds_used == 0)
-	return;
-    debug(5, 5) ("comm_submit_updates: have %d updates to submit..\n", ds_events.ds_used);
-    i = write(devpoll_fd, ds_events.events, ds_events.ds_used * sizeof(struct pollfd));
-    debug(5, 5) ("comm_submit_updates: .. and wrote %d bytes\n", i);
-    /* Could we handle "partial" writes? */
-    assert(i == (sizeof(struct pollfd) * ds_events.ds_used));
-    ds_events.ds_used = 0;
-    /* XXX bzero the array after? */
-}
+    pfd[0].fd = fd;
+    pfd[0].events = events;
+    pfd[0].revents = 0;
 
-static void
-comm_add_update(int fd, int events)
-{
-    debug(5, 5) ("comm_add_update: FD %d: added (%d) %s %s %s\n", fd, events, (events & POLLIN) ? "POLLIN" : "", (events & POLLOUT) ? "POLLOUT" : "", (events & POLLREMOVE) ? "POLLREMOVE" : "");
-    int i = ds_events.ds_used;
-    ds_events.events[i].fd = fd;
-    ds_events.events[i].events = events;
-    ds_events.events[i].revents = 0;
-    ds_events.ds_used++;
+    i = write(devpoll_fd, &pfd, sizeof(struct pollfd));
+    assert(i == sizeof(struct pollfd));
 
-    if (ds_events.ds_used == ds_events.ds_size)
-	comm_submit_updates();
 }
 
 void
@@ -149,30 +130,19 @@ void
 commOpen(int fd)
 {
     devpoll_state[fd].state = 0;
-    devpoll_state[fd].offset = 0;
 }
 
 void
 commClose(int fd)
 {
-    int o;
-    /*
-     * Is there a pending event in the array for this
-     * particular FD? Delete if so.
-     */
-    o = devpoll_state[fd].offset;
-    if (devpoll_state[fd].offset <= ds_events.ds_used && fd == ds_events.events[devpoll_state[fd].offset].fd) {
-	ds_events.events[devpoll_state[fd].offset].events = 0;
-	ds_events.events[devpoll_state[fd].offset].fd = 0;
-    }
+    comm_update_fd(fd, POLLREMOVE);
 }
 
 void
 commSetEvents(int fd, int need_read, int need_write)
 {
-    int st_new = (need_read ? STATE_READ : 0) | (need_write ? STATE_WRITE : 0);
+    int st_new = (need_read ? POLLIN : 0) | (need_write ? POLLOUT : 0);
     int st_change;
-    int events = 0;
 
     debug(5, 5) ("commSetEvents(fd=%d, read=%d, write=%d)\n", fd, need_read, need_write);
 
@@ -180,21 +150,11 @@ commSetEvents(int fd, int need_read, int need_write)
     if (!st_change)
 	return;
 
-    if (need_read)
-	events |= POLLIN;
-    if (need_write)
-	events |= POLLOUT;
-    if (events == 0)
-	events |= POLLREMOVE;
-
-    /* Is the existing poll entry ours? If so, then update it */
-    if (devpoll_state[fd].offset < ds_events.ds_used && fd == ds_events.events[devpoll_state[fd].offset].fd) {
-	/* Just update it */
-	ds_events.events[devpoll_state[fd].offset].events = events;
-    } else {
-	/* Nope, new one required */
-	comm_add_update(fd, events);
-    }
+    if (st_new)
+	comm_update_fd(fd, st_new);
+    else
+	comm_update_fd(fd, POLLREMOVE);
+    devpoll_state[fd].state = st_new;
 }
 
 static int
@@ -205,13 +165,12 @@ do_comm_select(int msec)
 
     statCounter.syscalls.polls++;
 
-    comm_submit_updates();
-
     do_poll.dp_timeout = msec;
     do_poll.dp_nfds = dpoll_nfds;
     /* dp_fds is already allocated */
 
     num = ioctl(devpoll_fd, DP_POLL, &do_poll);
+    debug(5, 5) ("do_comm_select: ioctl() returned %d fds\n", num);
 
     if (num < 0) {
 	getCurrentTime();
