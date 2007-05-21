@@ -83,8 +83,8 @@ pinger_LDADD = $(LDADD)
 pinger_DEPENDENCIES =
 am__squid_SOURCES_DIST = access_log.c acl.c asn.c authenticate.c \
 	cache_cf.c CacheDigest.c cache_manager.c carp.c cbdata.c \
-	client_db.c client_side.c comm.c comm_epoll.c comm_kqueue.c \
-	comm_poll.c comm_select_simple.c comm_select.c \
+	client_db.c client_side.c comm.c comm_devpoll.c comm_epoll.c \
+	comm_kqueue.c comm_poll.c comm_select_simple.c comm_select.c \
 	comm_select_win32.c debug.c defines.h delay_pools.c disk.c \
 	dns_internal.c dns.c enums.h errorpage.c event.c errormap.c \
 	external_acl.c fd.c filemap.c forward.c fqdncache.c ftp.c \
@@ -103,13 +103,14 @@ am__squid_SOURCES_DIST = access_log.c acl.c asn.c authenticate.c \
 	store_rebuild.c store_swapin.c store_swapmeta.c \
 	store_swapout.c structs.h tools.c typedefs.h unlinkd.c url.c \
 	urn.c useragent.c wccp.c wccp2.c whois.c win32.c
-@USE_EPOLL_FALSE@@USE_KQUEUE_FALSE@@USE_POLL_FALSE@@USE_SELECT_FALSE@@USE_SELECT_SIMPLE_FALSE@@USE_SELECT_WIN32_TRUE@am__objects_1 = comm_select_win32.$(OBJEXT)
-@USE_EPOLL_FALSE@@USE_KQUEUE_FALSE@@USE_POLL_FALSE@@USE_SELECT_SIMPLE_FALSE@@USE_SELECT_TRUE@am__objects_1 = comm_select.$(OBJEXT)
-@USE_EPOLL_FALSE@@USE_KQUEUE_FALSE@@USE_POLL_FALSE@@USE_SELECT_SIMPLE_TRUE@am__objects_1 = comm_select_simple.$(OBJEXT)
-@USE_EPOLL_FALSE@@USE_KQUEUE_FALSE@@USE_POLL_TRUE@am__objects_1 = comm_poll.$(OBJEXT)
-@USE_EPOLL_FALSE@@USE_KQUEUE_TRUE@am__objects_1 =  \
-@USE_EPOLL_FALSE@@USE_KQUEUE_TRUE@	comm_kqueue.$(OBJEXT)
-@USE_EPOLL_TRUE@am__objects_1 = comm_epoll.$(OBJEXT)
+@USE_DEVPOLL_FALSE@@USE_EPOLL_FALSE@@USE_KQUEUE_FALSE@@USE_POLL_FALSE@@USE_SELECT_FALSE@@USE_SELECT_SIMPLE_FALSE@@USE_SELECT_WIN32_TRUE@am__objects_1 = comm_select_win32.$(OBJEXT)
+@USE_DEVPOLL_FALSE@@USE_EPOLL_FALSE@@USE_KQUEUE_FALSE@@USE_POLL_FALSE@@USE_SELECT_SIMPLE_FALSE@@USE_SELECT_TRUE@am__objects_1 = comm_select.$(OBJEXT)
+@USE_DEVPOLL_FALSE@@USE_EPOLL_FALSE@@USE_KQUEUE_FALSE@@USE_POLL_FALSE@@USE_SELECT_SIMPLE_TRUE@am__objects_1 = comm_select_simple.$(OBJEXT)
+@USE_DEVPOLL_FALSE@@USE_EPOLL_FALSE@@USE_KQUEUE_FALSE@@USE_POLL_TRUE@am__objects_1 = comm_poll.$(OBJEXT)
+@USE_DEVPOLL_FALSE@@USE_EPOLL_FALSE@@USE_KQUEUE_TRUE@am__objects_1 = comm_kqueue.$(OBJEXT)
+@USE_DEVPOLL_FALSE@@USE_EPOLL_TRUE@am__objects_1 =  \
+@USE_DEVPOLL_FALSE@@USE_EPOLL_TRUE@	comm_epoll.$(OBJEXT)
+@USE_DEVPOLL_TRUE@am__objects_1 = comm_devpoll.$(OBJEXT)
 @USE_DELAY_POOLS_TRUE@am__objects_2 = delay_pools.$(OBJEXT)
 @USE_DNSSERVER_FALSE@am__objects_3 = dns_internal.$(OBJEXT)
 @USE_DNSSERVER_TRUE@am__objects_3 = dns.$(OBJEXT)
@@ -316,6 +317,8 @@ USE_AIOPS_WIN32_FALSE = @USE_AIOPS_WIN32_FALSE@
 USE_AIOPS_WIN32_TRUE = @USE_AIOPS_WIN32_TRUE@
 USE_DELAY_POOLS_FALSE = @USE_DELAY_POOLS_FALSE@
 USE_DELAY_POOLS_TRUE = @USE_DELAY_POOLS_TRUE@
+USE_DEVPOLL_FALSE = @USE_DEVPOLL_FALSE@
+USE_DEVPOLL_TRUE = @USE_DEVPOLL_TRUE@
 USE_DNSSERVER_FALSE = @USE_DNSSERVER_FALSE@
 USE_DNSSERVER_TRUE = @USE_DNSSERVER_TRUE@
 USE_EPOLL_FALSE = @USE_EPOLL_FALSE@
@@ -400,6 +403,7 @@ target_alias = @target_alias@
 @ENABLE_MINGW32SPECIFIC_TRUE@MINGWEXLIB = -lmingwex
 @ENABLE_MINGW32SPECIFIC_FALSE@IPC_SOURCE = ipc.c
 @ENABLE_MINGW32SPECIFIC_TRUE@IPC_SOURCE = ipc_win32.c
+@USE_DEVPOLL_TRUE@COMMLOOP_SOURCE = comm_devpoll.c
 @USE_EPOLL_TRUE@COMMLOOP_SOURCE = comm_epoll.c
 @USE_KQUEUE_TRUE@COMMLOOP_SOURCE = comm_kqueue.c
 @USE_POLL_TRUE@COMMLOOP_SOURCE = comm_poll.c
@@ -429,6 +433,7 @@ EXTRA_squid_SOURCES = \
 	comm_select_win32.c \
 	comm_select_simple.c \
 	comm_kqueue.c \
+	comm_devpoll.c \
 	comm_generic.c \
 	ipc.c \
 	ipc_win32.c \
@@ -768,6 +773,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/client_db.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/client_side.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/comm.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/comm_devpoll.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/comm_epoll.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/comm_generic.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/comm_kqueue.Po@am__quote@
