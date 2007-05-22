@@ -2176,6 +2176,7 @@ DOC_START
 	  %IDENT	Ident user name
 	  %SRC		Client IP
 	  %SRCPORT	Client source port
+	  %URI		Requested URI
 	  %DST		Requested host
 	  %PROTO	Requested protocol
 	  %PORT		Requested port

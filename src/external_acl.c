@@ -112,6 +112,7 @@ struct _external_acl_format {
 	EXT_ACL_SRCPORT,
 	EXT_ACL_MYADDR,
 	EXT_ACL_MYPORT,
+	EXT_ACL_URI,
 	EXT_ACL_DST,
 	EXT_ACL_PROTO,
 	EXT_ACL_PORT,
@@ -287,6 +288,8 @@ parse_externalAclHelper(external_acl ** list)
 	    format->type = EXT_ACL_MYADDR;
 	else if (strcmp(token, "%MYPORT") == 0)
 	    format->type = EXT_ACL_MYPORT;
+	else if (strcmp(token, "%URI") == 0)
+	    format->type = EXT_ACL_URI;
 	else if (strcmp(token, "%DST") == 0)
 	    format->type = EXT_ACL_DST;
 	else if (strcmp(token, "%PROTO") == 0)
@@ -383,6 +386,7 @@ dump_externalAclHelper(StoreEntry * sentry, const char *name, const external_acl
 		DUMP_EXT_ACL_TYPE(SRCPORT);
 		DUMP_EXT_ACL_TYPE(MYADDR);
 		DUMP_EXT_ACL_TYPE(MYPORT);
+		DUMP_EXT_ACL_TYPE(URI);
 		DUMP_EXT_ACL_TYPE(DST);
 		DUMP_EXT_ACL_TYPE(PROTO);
 		DUMP_EXT_ACL_TYPE(PORT);
@@ -651,6 +655,9 @@ makeExternalAclKey(aclCheck_t * ch, external_acl_data * acl_data)
 	case EXT_ACL_MYPORT:
 	    snprintf(buf, sizeof(buf), "%d", request->my_port);
 	    str = buf;
+	    break;
+	case EXT_ACL_URI:
+	    str = urlCanonical(request);
 	    break;
 	case EXT_ACL_DST:
 	    str = request->host;
