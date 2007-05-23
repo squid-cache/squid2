@@ -27,6 +27,9 @@
 #include <netdb.h>
 #include <unistd.h>
 
+#include "base64.h"
+#include "spnegohelp.h"
+
 #ifndef MAXHOSTNAMELEN
 #define MAXHOSTNAMELEN HOST_NAME_MAX
 #endif
@@ -41,42 +44,7 @@
 
 #include <krb5.h>
 
-#include "base64.h"
-#include "spnegohelp.h"
-
 static const unsigned char ntlmProtocol [] = {'N', 'T', 'L', 'M', 'S', 'S', 'P', 0};
-
-#if UNUSED_CODE
-static const char *
-get_gss_error(OM_uint32 error_status )
-{
-  OM_uint32 maj_stat, min_stat;
-  OM_uint32 msg_ctx = 0;
-  gss_buffer_desc status_string;
-  char buf[1024];
-  size_t len;
-
-  len = 0;
-  do {
-    maj_stat = gss_display_status (&min_stat,
-				   error_status,
-				   GSS_C_MECH_CODE,
-				   GSS_C_NO_OID,
-				   &msg_ctx,
-				   &status_string);
-    if (sizeof(buf) > len + status_string.length + 1) {
-      /*
-	sprintf(buf, "%s:", (char*) status_string.value);
-      */
-      sprintf(buf+len, "%s:", (char*) status_string.value);
-      len += status_string.length;
-    }
-    gss_release_buffer(&min_stat, &status_string);
-  } while (!GSS_ERROR(maj_stat) && msg_ctx != 0);
-
-  return(strdup(buf));
-}
-#endif
 
 char *gethost_name() {
   char      hostname[MAXHOSTNAMELEN];
@@ -181,11 +149,11 @@ int main(int argc, char * const argv[])
   char *token = NULL;
   char *service_principal = NULL;
   OM_uint32 major_status, minor_status;
-  gss_name_t 		my_gss_name = GSS_C_NO_NAME;
-  gss_cred_id_t 	my_gss_creds = GSS_C_NO_CREDENTIAL;
-  gss_ctx_id_t 	gss_context = GSS_C_NO_CONTEXT;
-  gss_cred_id_t 	delegated_cred = GSS_C_NO_CREDENTIAL;
+  gss_ctx_id_t 		gss_context = GSS_C_NO_CONTEXT;
   gss_name_t 		client_name = GSS_C_NO_NAME;
+  gss_name_t 		server_name = GSS_C_NO_NAME;
+  gss_cred_id_t 	server_creds = GSS_C_NO_CREDENTIAL;
+  gss_cred_id_t 	delegated_cred = GSS_C_NO_CREDENTIAL;
   gss_buffer_desc 	service = GSS_C_EMPTY_BUFFER;
   gss_buffer_desc 	input_token = GSS_C_EMPTY_BUFFER;
   gss_buffer_desc 	output_token = GSS_C_EMPTY_BUFFER;
@@ -223,7 +191,7 @@ int main(int argc, char * const argv[])
   } else {
     host_name=gethost_name();
     if ( !host_name ) {
-      fprintf(stderr, "%s: Local hostname could not be determined. Please specify the principal\n", argv[0]);
+      fprintf(stderr, "%s: Local hostname could not be determined. Please specify the service principal\n", argv[0]);
       exit(-1);
     }
     service.value = malloc(strlen(service_name)+strlen(host_name)+2);
@@ -276,32 +244,33 @@ int main(int argc, char * const argv[])
     }
 
     if ( !strncmp(buf, "QQ", 2) ) {
-      if (input_token.value)
-        gss_release_buffer(&minor_status, &input_token);
-      if (output_token.value)
-        gss_release_buffer(&minor_status, &output_token);
-      if (my_gss_creds)
-        gss_release_cred(&minor_status, &my_gss_creds);
-      if (delegated_cred)
-        gss_release_cred(&minor_status, &delegated_cred);
-      if (my_gss_name)
-        gss_release_name(&minor_status, &my_gss_name);
-      if (client_name)
-        gss_release_name(&minor_status, &client_name);
+      gss_release_buffer(&minor_status, &input_token);
+      gss_release_buffer(&minor_status, &output_token);
+      gss_release_buffer(&minor_status, &service);
+      gss_release_cred(&minor_status, &server_creds);
+      gss_release_cred(&minor_status, &delegated_cred);
+      gss_release_name(&minor_status, &server_name);
+      gss_release_name(&minor_status, &client_name);
+      gss_delete_sec_context(&minor_status, &gss_context, NULL);
       if (kerberosToken) {
 	/* Allocated by parseNegTokenInit, but no matching free function exists.. */
-        free((char *)kerberosToken);
+        if (!spnego_flag)
+          free((char *)kerberosToken);
         kerberosToken=NULL;
       }
-      if (spnegoToken) {
+      if (spnego_flag) {
 	/* Allocated by makeNegTokenTarg, but no matching free function exists.. */
-        if (spnego_flag)
+        if (spnegoToken) 
 	  free((char *)spnegoToken);
-        spnegoToken=NULL;
+      	spnegoToken=NULL;
       }
       if (token) {
         free(token);
         token=NULL;
+      }
+      if (host_name) {
+        free(host_name);
+        host_name=NULL;
       }
       exit(0);
     }
@@ -312,8 +281,11 @@ int main(int argc, char * const argv[])
       fprintf(stdout, "NA Invalid request\n");
       continue;
     }
-    if ( !strncmp(buf, "YR", 2) )
+    if ( !strncmp(buf, "YR", 2) ){
+      if (gss_context != GSS_C_NO_CONTEXT )
+        gss_delete_sec_context(&minor_status, &gss_context, NULL);
       gss_context = GSS_C_NO_CONTEXT;
+    }
 
     if (strlen(buf) <= 3) {
       if (debug)
@@ -322,10 +294,11 @@ int main(int argc, char * const argv[])
       continue;
     }
         
-    input_token.length = base64decode_len(buf+3);
+    input_token.length = base64_decode_len(buf+3);
     input_token.value = malloc(input_token.length);
 
-    input_token.length = base64decode(input_token.value, buf+3);
+    base64_decode(input_token.value,buf+3,input_token.length);
+
  
 #ifndef HAVE_SPNEGO
     if (( rc=parseNegTokenInit (input_token.value,
@@ -353,14 +326,7 @@ int main(int argc, char * const argv[])
     } else {
       gss_release_buffer(&minor_status, &input_token);
       input_token.length=kerberosTokenLength;
-      input_token.value = malloc(input_token.length);
-      if (input_token.value == NULL) {
-	if (debug)
-	  fprintf(stderr, "Not enough memory\n");
-	fprintf(stdout, "NA Not enough memory\n");
-	goto cleanup;
-      }
-      memcpy(input_token.value,kerberosToken,input_token.length);
+      input_token.value=(void *)kerberosToken;
       spnego_flag=1;
     }
 #else
@@ -376,29 +342,29 @@ int main(int argc, char * const argv[])
     if ( service_principal ) {
       if ( strcasecmp(service_principal,"GSS_C_NO_NAME") ){
         major_status = gss_import_name(&minor_status, &service,
-  				       (gss_OID) GSS_C_NULL_OID, &my_gss_name);
+  				       (gss_OID) GSS_C_NULL_OID, &server_name);
        
       } else {
-        my_gss_name = GSS_C_NO_NAME;
+        server_name = GSS_C_NO_NAME;
         major_status = GSS_S_COMPLETE;
       }
     } else {
       major_status = gss_import_name(&minor_status, &service,
-  				     gss_nt_service_name, &my_gss_name);
+  				     gss_nt_service_name, &server_name);
     }
 
     if ( check_gss_err(major_status,minor_status,"gss_import_name()",debug) )
       goto cleanup;
 
-    major_status = gss_acquire_cred(&minor_status, my_gss_name, GSS_C_INDEFINITE,
-				    GSS_C_NO_OID_SET, GSS_C_ACCEPT, &my_gss_creds,
+    major_status = gss_acquire_cred(&minor_status, server_name, GSS_C_INDEFINITE,
+				    GSS_C_NO_OID_SET, GSS_C_ACCEPT, &server_creds,
 				    NULL, NULL);
     if (check_gss_err(major_status,minor_status,"gss_acquire_cred()",debug) )
       goto cleanup;
 
     major_status = gss_accept_sec_context(&minor_status,
 					  &gss_context,
-					  my_gss_creds,
+					  server_creds,
 					  &input_token,
 					  GSS_C_NO_CHANNEL_BINDINGS,
 					  &client_name,
@@ -429,7 +395,7 @@ int main(int argc, char * const argv[])
       spnegoToken = output_token.value;
       spnegoTokenLength = output_token.length;
 #endif
-      token = malloc(base64encode_len(spnegoTokenLength));
+      token = malloc(base64_encode_len(spnegoTokenLength));
       if (token == NULL) {
 	if (debug)
 	  fprintf(stderr, "Not enough memory\n");
@@ -437,7 +403,7 @@ int main(int argc, char * const argv[])
         goto cleanup;
       }
 
-      base64encode(token, (const char *)spnegoToken, spnegoTokenLength);
+      base64_encode(token,(const char *)spnegoToken,base64_encode_len(spnegoTokenLength),spnegoTokenLength);
 
       if (check_gss_err(major_status,minor_status,"gss_accept_sec_context()",debug) )
 	goto cleanup;
@@ -447,6 +413,7 @@ int main(int argc, char * const argv[])
 	fprintf(stdout, "TT %s\n",token);
         goto cleanup;
       }
+      gss_release_buffer(&minor_status, &output_token);
       major_status = gss_display_name(&minor_status, client_name, &output_token,
 				      NULL);
 
@@ -465,6 +432,7 @@ int main(int argc, char * const argv[])
 	fprintf(stdout, "NA No token to return to continue\n");
 	goto cleanup;
       }
+      gss_release_buffer(&minor_status, &output_token);
       major_status = gss_display_name(&minor_status, client_name, &output_token,
 				      NULL);
 
@@ -473,31 +441,27 @@ int main(int argc, char * const argv[])
       /* 
        *  Return dummy token AA. May need an extra return tag then AF
        */
-      fprintf(stdout, "AF %s %s\n","AA",(char *)output_token.value);
+      fprintf(stdout, "AF %s %s\n","AA==",(char *)output_token.value);
       if (debug)
-	fprintf(stderr, "AF %s %s\n","AA",(char *)output_token.value);
-    cleanup:
-      if (input_token.value) 
-	gss_release_buffer(&minor_status, &input_token);
-      if (output_token.value) 
-	gss_release_buffer(&minor_status, &output_token);
-      if (my_gss_creds) 
-	gss_release_cred(&minor_status, &my_gss_creds);
-      if (delegated_cred) 
-	gss_release_cred(&minor_status, &delegated_cred);
-      if (my_gss_name) 
-	gss_release_name(&minor_status, &my_gss_name);
-      if (client_name) 
-	gss_release_name(&minor_status, &client_name);
+	fprintf(stderr, "AF %s %s\n","AA==",(char *)output_token.value);
+
+cleanup:
+      gss_release_buffer(&minor_status, &input_token);
+      gss_release_buffer(&minor_status, &output_token);
+      gss_release_cred(&minor_status, &server_creds);
+      gss_release_cred(&minor_status, &delegated_cred);
+      gss_release_name(&minor_status, &server_name);
+      gss_release_name(&minor_status, &client_name);
       if (kerberosToken) {
 	/* Allocated by parseNegTokenInit, but no matching free function exists.. */
-        free((char *)kerberosToken);
+	if (!spnego_flag)
+           free((char *)kerberosToken);
       	kerberosToken=NULL;
       }
-      if (spnegoToken) {
+      if (spnego_flag) {
 	/* Allocated by makeNegTokenTarg, but no matching free function exists.. */
-	if (spnego_flag)
-	    free((char *)spnegoToken);
+        if (spnegoToken)
+	  free((char *)spnegoToken);
       	spnegoToken=NULL;
       }
       if (token) {

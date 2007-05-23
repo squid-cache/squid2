@@ -23,14 +23,18 @@ squid_auth_kerb requires either MIT or Heimdal Kerberos libraries and header fil
 
 2 Building and Installation
 
-# Have newer Kerberos libraries with SPNEGO support
+# Linux:
+# -D__LITTLE_ENDIAN__
+# Solaris:
+# -D__BIG_ENDIAN__
+#
 #DEFINE_SPNEGO=-DHAVE_SPNEGO
 #HEIMDAL
-# DEFINE="-DHEIMDAL $DEFINE_SPNEGO"
+# DEFINE="-DHEIMDAL $DEFINE_SPNEGO -D__LITTLE_ENDIAN__"
 # INCLUDE=-I/usr/include/heimdal -Ispnegohelp
 # LIBS="-lgssapi -lkrb5 -lcom_err -lasn1 -lroken"
 #MIT
-  DEFINE="$DEFINE_SPNEGO"
+  DEFINE="$DEFINE_SPNEGO -D__LITTLE_ENDIAN__"
   INCLUDE=-Ispnegohelp
   LIBS="-lgssapi_krb5 -lkrb5 -lcom_err"
 #
@@ -72,7 +76,7 @@ export KRB5_CONFIG
 
 4 Miscellaneous
 
-If squid_kerb_auth doesn't determine for same reason the right service principal you can provide 
+If squid_kerb_auth doesn't determine for some reason the right service principal you can provide 
 it with -s HTTP/fqdn.
 
 If you serve multiple Kerberos realms add a HTTP/fqdn@REALM service principal per realm to the 

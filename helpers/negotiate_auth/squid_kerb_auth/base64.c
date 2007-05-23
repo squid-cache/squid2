@@ -1,149 +1,153 @@
 /*
- *
- * Markus Moeller modified the following code from Apache 2.0 
- *
- */
-/* Copyright 2000-2004 The Apache Software Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Markus Moeller has modified the following code from Squid
  */
 
-static unsigned char os_toascii[256];
-static const char basis_64[] =
-"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "base64.h"
 
-static const unsigned char pr2six[256] =
-  {
-    /* ASCII table */
-    64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
-    64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
-    64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 62, 64, 64, 64, 63,
-    52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 64, 64, 64, 64, 64, 64,
-    64,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,
-    15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 64, 64, 64, 64, 64,
-    64, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
-    41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 64, 64, 64, 64, 64,
-    64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
-    64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
-    64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
-    64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
-    64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
-    64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
-    64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
-    64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64
-  };
 
-int base64encode_len(int len)
+static void base64_init(void);
+
+static int base64_initialized = 0;
+#define BASE64_VALUE_SZ 256
+int base64_value[BASE64_VALUE_SZ];
+const char base64_code[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+
+static void
+base64_init(void)
 {
-  return ((len + 2) / 3 * 4) + 1;
+    int i;
+
+    for (i = 0; i < BASE64_VALUE_SZ; i++)
+	base64_value[i] = -1;
+
+    for (i = 0; i < 64; i++)
+	base64_value[(int) base64_code[i]] = i;
+    base64_value['='] = 0;
+
+    base64_initialized = 1;
 }
 
-int base64encode(char *encoded, const char *string, int len)
+void base64_decode(char* result, const char *data, int result_size)
 {
-  int i;
-  char *p;
-
-  p = encoded;
-  for (i = 0; i < len - 2; i += 3) {
-    *p++ = basis_64[(os_toascii[string[i]] >> 2) & 0x3F];
-    *p++ = basis_64[((os_toascii[string[i]] & 0x3) << 4) |
-		    ((int) (os_toascii[string[i + 1]] & 0xF0) >> 4)];
-    *p++ = basis_64[((os_toascii[string[i + 1]] & 0xF) << 2) |
-		    ((int) (os_toascii[string[i + 2]] & 0xC0) >> 6)];
-    *p++ = basis_64[os_toascii[string[i + 2]] & 0x3F];
-  }
-  if (i < len) {
-    *p++ = basis_64[(os_toascii[string[i]] >> 2) & 0x3F];
-    if (i == (len - 1)) {
-      *p++ = basis_64[((os_toascii[string[i]] & 0x3) << 4)];
-      *p++ = '=';
+    int j;
+    int c;
+    long val;
+    if (!data)
+	return;
+    if (!base64_initialized)
+	base64_init();
+    val = c = 0;
+    
+    for (j = 0; *data ;data++) {
+	unsigned int k = ((unsigned char) *data) % BASE64_VALUE_SZ;
+	if (base64_value[k] < 0)
+	    continue;
+	val <<= 6;
+	val += base64_value[k];
+	if (++c < 4)
+	    continue;
+	/* One quantum of four encoding characters/24 bit */
+        if (j >= result_size)
+          break;
+	result[j++] = val >> 16;	/* High 8 bits */
+        if (j >= result_size)
+          break;
+	result[j++] = (val >> 8) & 0xff;	/* Mid 8 bits */
+        if (j >= result_size)
+          break;
+	result[j++] = val & 0xff;	/* Low 8 bits */
+	val = c = 0;
     }
-    else {
-      *p++ = basis_64[((os_toascii[string[i]] & 0x3) << 4) |
-		      ((int) (os_toascii[string[i + 1]] & 0xF0) >> 4)];
-      *p++ = basis_64[((os_toascii[string[i + 1]] & 0xF) << 2)];
+    return;
+}
+
+/* adopted from http://ftp.sunet.se/pub2/gnu/vm/base64-encode.c with adjustments */
+void base64_encode(char* result, const char *data, int result_size, int data_size)
+{
+    int bits = 0;
+    int char_count = 0;
+    int out_cnt = 0;
+    int c;
+
+    if (!data)
+	return;
+
+    if (!base64_initialized)
+	base64_init();
+
+    while (data_size--) {
+        int c = (unsigned char) *data++;
+	bits += c;
+	char_count++;
+	if (char_count == 3) {
+            if (out_cnt >= result_size)
+              break;
+	    result[out_cnt++] = base64_code[bits >> 18];
+            if (out_cnt >= result_size)
+              break;
+	    result[out_cnt++] = base64_code[(bits >> 12) & 0x3f];
+            if (out_cnt >= result_size)
+              break;
+	    result[out_cnt++] = base64_code[(bits >> 6) & 0x3f];
+            if (out_cnt >= result_size)
+              break;
+	    result[out_cnt++] = base64_code[bits & 0x3f];
+	    bits = 0;
+	    char_count = 0;
+	} else {
+	    bits <<= 8;
+	}
     }
-    *p++ = '=';
-  }
-
-  *p++ = '\0';
-  return p - encoded;
+    if (char_count != 0) {
+	bits <<= 16 - (8 * char_count);
+        if (out_cnt >= result_size)
+          goto end;
+	result[out_cnt++] = base64_code[bits >> 18];
+        if (out_cnt >= result_size)
+          goto end;
+	result[out_cnt++] = base64_code[(bits >> 12) & 0x3f];
+	if (char_count == 1) {
+            if (out_cnt >= result_size)
+              goto end;
+	    result[out_cnt++] = '=';
+            if (out_cnt >= result_size)
+              goto end;
+	    result[out_cnt++] = '=';
+	} else {
+            if (out_cnt >= result_size)
+              goto end;
+	    result[out_cnt++] = base64_code[(bits >> 6) & 0x3f];
+            if (out_cnt >= result_size)
+              goto end;
+	    result[out_cnt++] = '=';
+	}
+    }
+end:
+    if (out_cnt >= result_size) {
+       result[result_size-1] = '\0';	/* terminate */
+    } else {
+       result[out_cnt] = '\0';	/* terminate */
+    }
+    return;
 }
 
-int base64decode_len(const char *bufcoded)
+int base64_encode_len(int len)
 {
-  int nbytesdecoded;
-  register const unsigned char *bufin;
-  register int nprbytes;
-
-  bufin = (const unsigned char *) bufcoded;
-  while (pr2six[*(bufin++)] <= 63);
-
-  nprbytes = (bufin - (const unsigned char *) bufcoded) - 1;
-  nbytesdecoded = ((nprbytes + 3) / 4) * 3;
-
-  return nbytesdecoded + 1;
+  return ((len+2)/3*4)+1;
 }
 
-int base64decode_binary(unsigned char *bufplain,
-			const char *bufcoded)
+int base64_decode_len(const char *data)
 {
-  int nbytesdecoded;
-  register const unsigned char *bufin;
-  register unsigned char *bufout;
-  register int nprbytes;
+  int i,j;
 
-  bufin = (const unsigned char *) bufcoded;
-  while (pr2six[*(bufin++)] <= 63);
-  nprbytes = (bufin - (const unsigned char *) bufcoded) - 1;
-  nbytesdecoded = ((nprbytes + 3) / 4) * 3;
-
-  bufout = (unsigned char *) bufplain;
-  bufin = (const unsigned char *) bufcoded;
-
-  while (nprbytes > 4) {
-    *(bufout++) =
-      (unsigned char) (pr2six[*bufin] << 2 | pr2six[bufin[1]] >> 4);
-    *(bufout++) =
-      (unsigned char) (pr2six[bufin[1]] << 4 | pr2six[bufin[2]] >> 2);
-    *(bufout++) =
-      (unsigned char) (pr2six[bufin[2]] << 6 | pr2six[bufin[3]]);
-    bufin += 4;
-    nprbytes -= 4;
+  j=0;
+  for (i=strlen(data)-1;i>=0;i--) {
+   if (data[i] == '=') j++;
+   if (data[i] != '=') break;
   }
-
-  /* Note: (nprbytes == 1) would be an error, so just ingore that case */
-  if (nprbytes > 1) {
-    *(bufout++) =
-      (unsigned char) (pr2six[*bufin] << 2 | pr2six[bufin[1]] >> 4);
-  }
-  if (nprbytes > 2) {
-    *(bufout++) =
-      (unsigned char) (pr2six[bufin[1]] << 4 | pr2six[bufin[2]] >> 2);
-  }
-  if (nprbytes > 3) {
-    *(bufout++) =
-      (unsigned char) (pr2six[bufin[2]] << 6 | pr2six[bufin[3]]);
-  }
-  nbytesdecoded -= (4 - nprbytes) & 3;
-  return nbytesdecoded;
-}
-
-int base64decode(char *bufplain, const char *bufcoded)
-{
-  int len;
-
-  len = base64decode_binary((unsigned char *) bufplain, bufcoded);
-  bufplain[len] = '\0';
-  return len;
+  return strlen(data)/4*3-j;
 }

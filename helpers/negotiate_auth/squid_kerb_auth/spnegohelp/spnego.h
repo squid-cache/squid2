@@ -238,7 +238,9 @@ int spnegoGetMechListMIC( SPNEGO_TOKEN_HANDLE hSpnegoToken, unsigned char* pbMIC
 }
 #endif
 #ifdef DEBUG
-  #define LOG(x) printf x
+#include <stdio.h>
+  #define PRERR(...) fprintf(stderr, __VA_ARGS__)
+  #define LOG(x) PRERR x
 #else
   #define LOG(x)
 #endif
