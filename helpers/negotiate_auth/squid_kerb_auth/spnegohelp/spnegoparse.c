@@ -1629,8 +1629,8 @@ int IsValidContextFlags( unsigned char ucContextFlags )
 {
    // Mask out our valid bits.  If there is anything leftover, this
    // is not a valid value for Context Flags
-   LOG(("IsValidContextFlags returned %d\n",(( ucContextFlags & ~SPNEGO_NEGINIT_CONTEXT_MASK ) == 0));
-   return ( ( ucContextFlags & ~SPNEGO_NEGINIT_CONTEXT_MASK ) == 0 ));
+   LOG(("IsValidContextFlags returned %d\n",(( ucContextFlags & ~SPNEGO_NEGINIT_CONTEXT_MASK ) == 0)));
+   return ( ( ucContextFlags & ~SPNEGO_NEGINIT_CONTEXT_MASK ) == 0 );
 }
 
 /////////////////////////////////////////////////////////////////////////////

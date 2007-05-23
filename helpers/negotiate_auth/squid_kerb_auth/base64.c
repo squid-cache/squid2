@@ -71,7 +71,6 @@ void base64_encode(char* result, const char *data, int result_size, int data_siz
     int bits = 0;
     int char_count = 0;
     int out_cnt = 0;
-    int c;
 
     if (!data)
 	return;
