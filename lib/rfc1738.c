@@ -136,7 +136,7 @@ rfc1738_do_escape(const char *url, int encode_reserved)
 	 * allocated - KA */
 
 	if (do_escape == 1) {
-	    (void) sprintf(q, "%%%02x", (unsigned char) *p);
+	    (void) sprintf(q, "%%%02X", (unsigned char) *p);
 	    q += sizeof(char) * 2;
 	} else {
 	    *q = *p;
