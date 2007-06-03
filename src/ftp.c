@@ -1033,7 +1033,7 @@ ftpCheckUrlpath(FtpStateData * ftpState)
     const char *t;
     if ((t = strRChr(request->urlpath, ';')) != NULL) {
 	if (strncasecmp(t + 1, "type=", 5) == 0) {
-	    ftpState->typecode = (char) toupper((int) *(t + 6));
+	    ftpState->typecode = (char) xtoupper(*(t + 6));
 	    strCutPtr(request->urlpath, t);
 	}
     }

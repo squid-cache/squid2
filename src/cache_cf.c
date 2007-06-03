@@ -2280,7 +2280,7 @@ parse_eol(char *volatile *var)
     safe_free(*var);
     if (token == NULL)
 	self_destruct();
-    while (*token && isspace(*token))
+    while (*token && xisspace(*token))
 	token++;
     if (!*token)
 	self_destruct();
