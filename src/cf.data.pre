@@ -3483,6 +3483,481 @@ DOC_START
 	sporadically hang or never complete requests set this to on.
 DOC_END
 
+
+COMMENT_START
+ DELAY POOL PARAMETERS (all require DELAY_POOLS compilation option)
+ -----------------------------------------------------------------------------
+COMMENT_END
+
+NAME: delay_pools
+TYPE: delay_pool_count
+DEFAULT: 0
+IFDEF: DELAY_POOLS
+LOC: Config.Delay
+DOC_START
+	This represents the number of delay pools to be used.  For example,
+	if you have one class 2 delay pool and one class 3 delays pool, you
+	have a total of 2 delay pools.
+DOC_END
+
+NAME: delay_class
+TYPE: delay_pool_class
+DEFAULT: none
+IFDEF: DELAY_POOLS
+LOC: Config.Delay
+DOC_START
+	This defines the class of each delay pool.  There must be exactly one
+	delay_class line for each delay pool.  For example, to define two
+	delay pools, one of class 2 and one of class 3, the settings above
+	and here would be:
+
+Example:
+ delay_pools 2      # 2 delay pools
+ delay_class 1 2    # pool 1 is a class 2 pool
+ delay_class 2 3    # pool 2 is a class 3 pool
+
+	The delay pool classes are:
+
+		class 1		Everything is limited by a single aggregate
+				bucket.
+
+		class 2 	Everything is limited by a single aggregate
+				bucket as well as an "individual" bucket chosen
+				from bits 25 through 32 of the IP address.
+
+		class 3		Everything is limited by a single aggregate
+				bucket as well as a "network" bucket chosen
+				from bits 17 through 24 of the IP address and a
+				"individual" bucket chosen from bits 17 through
+				32 of the IP address.
+
+	NOTE: If an IP address is a.b.c.d
+		-> bits 25 through 32 are "d"
+		-> bits 17 through 24 are "c"
+		-> bits 17 through 32 are "c * 256 + d"
+DOC_END
+
+NAME: delay_access
+TYPE: delay_pool_access
+DEFAULT: none
+IFDEF: DELAY_POOLS
+LOC: Config.Delay
+DOC_START
+	This is used to determine which delay pool a request falls into.
+
+	delay_access is sorted per pool and the matching starts with pool 1,
+	then pool 2, ..., and finally pool N. The first delay pool where the
+	request is allowed is selected for the request. If it does not allow
+	the request to any pool then the request is not delayed (default).
+
+	For example, if you want some_big_clients in delay
+	pool 1 and lotsa_little_clients in delay pool 2:
+
+Example:
+ delay_access 1 allow some_big_clients
+ delay_access 1 deny all
+ delay_access 2 allow lotsa_little_clients
+ delay_access 2 deny all
+DOC_END
+
+NAME: delay_parameters
+TYPE: delay_pool_rates
+DEFAULT: none
+IFDEF: DELAY_POOLS
+LOC: Config.Delay
+DOC_START
+	This defines the parameters for a delay pool.  Each delay pool has
+	a number of "buckets" associated with it, as explained in the
+	description of delay_class.  For a class 1 delay pool, the syntax is:
+
+delay_parameters pool aggregate
+
+	For a class 2 delay pool:
+
+delay_parameters pool aggregate individual
+
+	For a class 3 delay pool:
+
+delay_parameters pool aggregate network individual
+
+	The variables here are:
+
+		pool		a pool number - ie, a number between 1 and the
+				number specified in delay_pools as used in
+				delay_class lines.
+
+		aggregate	the "delay parameters" for the aggregate bucket
+				(class 1, 2, 3).
+
+		individual	the "delay parameters" for the individual
+				buckets (class 2, 3).
+
+		network		the "delay parameters" for the network buckets
+				(class 3).
+
+	A pair of delay parameters is written restore/maximum, where restore is
+	the number of bytes (not bits - modem and network speeds are usually
+	quoted in bits) per second placed into the bucket, and maximum is the
+	maximum number of bytes which can be in the bucket at any time.
+
+	For example, if delay pool number 1 is a class 2 delay pool as in the
+	above example, and is being used to strictly limit each host to 64kbps
+	(plus overheads), with no overall limit, the line is:
+
+delay_parameters 1 -1/-1 8000/8000
+
+	Note that the figure -1 is used to represent "unlimited".
+
+	And, if delay pool number 2 is a class 3 delay pool as in the above
+	example, and you want to limit it to a total of 256kbps (strict limit)
+	with each 8-bit network permitted 64kbps (strict limit) and each
+	individual host permitted 4800bps with a bucket maximum size of 64kb
+	to permit a decent web page to be downloaded at a decent speed
+	(if the network is not being limited due to overuse) but slow down
+	large downloads more significantly:
+
+delay_parameters 2 32000/32000 8000/8000 600/8000
+
+	There must be one delay_parameters line for each delay pool.
+DOC_END
+
+NAME: delay_initial_bucket_level
+COMMENT: (percent, 0-100)
+TYPE: ushort
+DEFAULT: 50
+IFDEF: DELAY_POOLS
+LOC: Config.Delay.initial
+DOC_START
+	The initial bucket percentage is used to determine how much is put
+	in each bucket when squid starts, is reconfigured, or first notices
+	a host accessing it (in class 2 and class 3, individual hosts and
+	networks only have buckets associated with them once they have been
+	"seen" by squid).
+DOC_END
+
+COMMENT_START
+
+ WCCPv1 AND WCCPv2 CONFIGURATION OPTIONS
+ -----------------------------------------------------------------------------
+
+COMMENT_END
+
+NAME: wccp_router
+TYPE: address
+LOC: Config.Wccp.router
+DEFAULT: 0.0.0.0
+IFDEF: USE_WCCP
+DOC_NONE
+NAME: wccp2_router
+TYPE: sockaddr_in_list
+LOC: Config.Wccp2.router
+DEFAULT: none
+IFDEF: USE_WCCPv2
+DOC_START
+	Use this option to define your WCCP ``home'' router for
+	Squid.
+
+	wccp_router supports a single WCCP(v1) router
+
+	wccp2_router supports multiple WCCPv2 routers
+
+	only one of the two may be used at the same time and defines
+	which version of WCCP to use.
+DOC_END
+
+NAME: wccp_version
+TYPE: int
+LOC: Config.Wccp.version
+DEFAULT: 4
+IFDEF: USE_WCCP
+DOC_START
+	This directive is only relevant if you need to set up WCCP(v1)
+	to some very old and end-of-life Cisco routers. In all other
+	setups it must be left unset or at the default setting.
+	It defines an internal version in the WCCP(v1) protocol,
+	with version 4 being the officially documented protocol.
+
+	According to some users, Cisco IOS 11.2 and earlier only
+	support WCCP version 3.  If you're using that or an earlier
+	version of IOS, you may need to change this value to 3, otherwise
+	do not specify this parameter.
+DOC_END
+
+NAME: wccp2_rebuild_wait
+TYPE: onoff
+LOC: Config.Wccp2.rebuildwait
+DEFAULT: on
+IFDEF: USE_WCCPv2
+DOC_START
+	If this is enabled Squid will wait for the cache dir rebuild to finish
+	before sending the first wccp2 HereIAm packet
+DOC_END
+
+NAME: wccp2_forwarding_method
+TYPE: int
+LOC: Config.Wccp2.forwarding_method
+DEFAULT: 1
+IFDEF: USE_WCCPv2
+DOC_START
+	WCCP2 allows the setting of forwarding methods between the 
+	router/switch and the cache.  Valid values are as follows:
+
+	1 - GRE encapsulation (forward the packet in a GRE/WCCP tunnel)
+	2 - L2 redirect (forward the packet using Layer 2/MAC rewriting)
+
+	Currently (as of IOS 12.4) cisco routers only support GRE.
+	Cisco switches only support the L2 redirect assignment method.
+DOC_END
+
+NAME: wccp2_return_method
+TYPE: int
+LOC: Config.Wccp2.return_method
+DEFAULT: 1
+IFDEF: USE_WCCPv2
+DOC_START
+	WCCP2 allows the setting of return methods between the 
+	router/switch and the cache for packets that the cache
+	decides not to handle.  Valid values are as follows:
+
+	1 - GRE encapsulation (forward the packet in a GRE/WCCP tunnel)
+	2 - L2 redirect (forward the packet using Layer 2/MAC rewriting)
+
+	Currently (as of IOS 12.4) cisco routers only support GRE.
+	Cisco switches only support the L2 redirect assignment.
+
+	If the "ip wccp redirect exclude in" command has been 
+	enabled on the cache interface, then it is still safe for
+	the proxy server to use a l2 redirect method even if this
+	option is set to GRE.
+DOC_END
+
+NAME: wccp2_assignment_method
+TYPE: int
+LOC: Config.Wccp2.assignment_method
+DEFAULT: 1
+IFDEF: USE_WCCPv2
+DOC_START
+	WCCP2 allows the setting of methods to assign the WCCP hash
+	Valid values are as follows:
+
+	1 - Hash assignment
+	2 - Mask assignment
+
+	As a general rule, cisco routers support the hash assignment method
+	and cisco switches support the mask assignment method.
+DOC_END
+
+NAME: wccp2_service
+TYPE: wccp2_service
+LOC: Config.Wccp2.info
+DEFAULT: none
+DEFAULT_IF_NONE: standard 0
+IFDEF: USE_WCCPv2
+DOC_START
+	WCCP2 allows for multiple traffic services. There are two
+	types: "standard" and "dynamic". The standard type defines
+	one service id - http (id 0). The dynamic service ids can be from
+	51 to 255 inclusive.  In order to use a dynamic service id
+	one must define the type of traffic to be redirected; this is done
+	using the wccp2_service_info option.
+
+	The "standard" type does not require a wccp2_service_info option,
+	just specifying the service id will suffice.
+
+	MD5 service authentication can be enabled by adding
+	"password=<password>" to the end of this service declaration.
+
+	Examples:
+
+	wccp2_service standard 0	# for the 'web-cache' standard service
+	wccp2_service dynamic 80	# a dynamic service type which will be
+					# fleshed out with subsequent options.
+	wccp2_service standard 0 password=foo
+
+DOC_END
+
+NAME: wccp2_service_info
+TYPE: wccp2_service_info
+LOC: Config.Wccp2.info
+DEFAULT: none
+IFDEF: USE_WCCPv2
+DOC_START
+	Dynamic WCCPv2 services require further information to define the
+	traffic you wish to have diverted.
+
+	The format is:
+
+	wccp2_service_info <id> protocol=<protocol> flags=<flag>,<flag>..
+	    priority=<priority> ports=<port>,<port>..
+
+	The relevant WCCPv2 flags:
+	+ src_ip_hash, dst_ip_hash
+	+ source_port_hash, dest_port_hash
+	+ src_ip_alt_hash, dst_ip_alt_hash
+	+ src_port_alt_hash, dst_port_alt_hash
+	+ ports_source
+
+	The port list can be one to eight entries.
+
+	Example:
+
+	wccp2_service_info 80 protocol=tcp flags=src_ip_hash,ports_source
+	    priority=240 ports=80
+
+	Note: the service id must have been defined by a previous
+	'wccp2_service dynamic <id>' entry.
+DOC_END
+
+NAME: wccp2_weight
+TYPE: int
+LOC: Config.Wccp2.weight
+DEFAULT: 10000
+IFDEF: USE_WCCPv2
+DOC_START
+	Each cache server gets assigned a set of the destination
+	hash proportional to their weight.
+DOC_END
+
+NAME: wccp_address
+TYPE: address
+LOC: Config.Wccp.address
+DEFAULT: 0.0.0.0
+IFDEF: USE_WCCP
+DOC_NONE
+NAME: wccp2_address
+TYPE: address
+LOC: Config.Wccp2.address
+DEFAULT: 0.0.0.0
+IFDEF: USE_WCCPv2
+DOC_START
+	Use this option if you require WCCP to use a specific
+	interface address.
+
+	The default behavior is to not bind to any specific address.
+DOC_END
+
+COMMENT_START
+ PERSISTENT CONNECTION HANDLING
+
+ Also see "pconn_timeout" in the TIMEOUTS section
+ -----------------------------------------------------------------------------
+COMMENT_END
+
+NAME: client_persistent_connections
+TYPE: onoff
+LOC: Config.onoff.client_pconns
+DEFAULT: on
+DOC_NONE
+
+NAME: server_persistent_connections
+TYPE: onoff
+LOC: Config.onoff.server_pconns
+DEFAULT: on
+DOC_START
+	Persistent connection support for clients and servers.  By
+	default, Squid uses persistent connections (when allowed)
+	with its clients and servers.  You can use these options to
+	disable persistent connections with clients and/or servers.
+DOC_END
+
+NAME: persistent_connection_after_error
+TYPE: onoff
+LOC: Config.onoff.error_pconns
+DEFAULT: off
+DOC_START
+	With this directive the use of persistent connections after
+	HTTP errors can be disabled. Useful if you have clients
+	who fail to handle errors on persistent connections proper.
+DOC_END
+
+NAME: detect_broken_pconn
+TYPE: onoff
+LOC: Config.onoff.detect_broken_server_pconns
+DEFAULT: off
+DOC_START
+	Some servers have been found to incorrectly signal the use
+	of HTTP/1.0 persistent connections even on replies not
+	compatible, causing significant delays. This server problem
+	has mostly been seen on redirects.
+
+	By enabling this directive Squid attempts to detect such
+	broken replies and automatically assume the reply is finished
+	after 10 seconds timeout.
+DOC_END
+
+COMMENT_START
+ CACHE DIGEST OPTIONS
+ -----------------------------------------------------------------------------
+COMMENT_END
+
+NAME: digest_generation
+IFDEF: USE_CACHE_DIGESTS
+TYPE: onoff
+LOC: Config.onoff.digest_generation
+DEFAULT: on
+DOC_START
+	This controls whether the server will generate a Cache Digest
+	of its contents.  By default, Cache Digest generation is
+	enabled if Squid is compiled with USE_CACHE_DIGESTS defined.
+DOC_END
+
+NAME: digest_bits_per_entry
+IFDEF: USE_CACHE_DIGESTS
+TYPE: int
+LOC: Config.digest.bits_per_entry
+DEFAULT: 5
+DOC_START
+	This is the number of bits of the server's Cache Digest which
+	will be associated with the Digest entry for a given HTTP
+	Method and URL (public key) combination.  The default is 5.
+DOC_END
+
+NAME: digest_rebuild_period
+IFDEF: USE_CACHE_DIGESTS
+COMMENT: (seconds)
+TYPE: time_t
+LOC: Config.digest.rebuild_period
+DEFAULT: 1 hour
+DOC_START
+	This is the number of seconds between Cache Digest rebuilds.
+DOC_END
+
+NAME: digest_rewrite_period
+COMMENT: (seconds)
+IFDEF: USE_CACHE_DIGESTS
+TYPE: time_t
+LOC: Config.digest.rewrite_period
+DEFAULT: 1 hour
+DOC_START
+	This is the number of seconds between Cache Digest writes to
+	disk.
+DOC_END
+
+NAME: digest_swapout_chunk_size
+COMMENT: (bytes)
+TYPE: b_size_t
+IFDEF: USE_CACHE_DIGESTS
+LOC: Config.digest.swapout_chunk_size
+DEFAULT: 4096 bytes
+DOC_START
+	This is the number of bytes of the Cache Digest to write to
+	disk at a time.  It defaults to 4096 bytes (4KB), the Squid
+	default swap page.
+DOC_END
+
+NAME: digest_rebuild_chunk_percentage
+COMMENT: (percent, 0-100)
+IFDEF: USE_CACHE_DIGESTS
+TYPE: int
+LOC: Config.digest.rebuild_chunk_percentage
+DEFAULT: 10
+DOC_START
+	This is the percentage of the Cache Digest to be scanned at a
+	time.  By default it is set to 10% of the Cache Digest.
+DOC_END
+
+
+
 COMMENT_START
  MISCELLANEOUS
  -----------------------------------------------------------------------------
@@ -4231,352 +4706,6 @@ DOC_START
 	queried only when Squid starts up, not for every request.
 DOC_END
 
-NAME: wccp_router
-TYPE: address
-LOC: Config.Wccp.router
-DEFAULT: 0.0.0.0
-IFDEF: USE_WCCP
-DOC_NONE
-NAME: wccp2_router
-TYPE: sockaddr_in_list
-LOC: Config.Wccp2.router
-DEFAULT: none
-IFDEF: USE_WCCPv2
-DOC_START
-	Use this option to define your WCCP ``home'' router for
-	Squid.
-
-	wccp_router supports a single WCCP(v1) router
-
-	wccp2_router supports multiple WCCPv2 routers
-
-	only one of the two may be used at the same time and defines
-	which version of WCCP to use.
-DOC_END
-
-NAME: wccp_version
-TYPE: int
-LOC: Config.Wccp.version
-DEFAULT: 4
-IFDEF: USE_WCCP
-DOC_START
-	This directive is only relevant if you need to set up WCCP(v1)
-	to some very old and end-of-life Cisco routers. In all other
-	setups it must be left unset or at the default setting.
-	It defines an internal version in the WCCP(v1) protocol,
-	with version 4 being the officially documented protocol.
-
-	According to some users, Cisco IOS 11.2 and earlier only
-	support WCCP version 3.  If you're using that or an earlier
-	version of IOS, you may need to change this value to 3, otherwise
-	do not specify this parameter.
-DOC_END
-
-NAME: wccp2_rebuild_wait
-TYPE: onoff
-LOC: Config.Wccp2.rebuildwait
-DEFAULT: on
-IFDEF: USE_WCCPv2
-DOC_START
-	If this is enabled Squid will wait for the cache dir rebuild to finish
-	before sending the first wccp2 HereIAm packet
-DOC_END
-
-NAME: wccp2_forwarding_method
-TYPE: int
-LOC: Config.Wccp2.forwarding_method
-DEFAULT: 1
-IFDEF: USE_WCCPv2
-DOC_START
-	WCCP2 allows the setting of forwarding methods between the 
-	router/switch and the cache.  Valid values are as follows:
-
-	1 - GRE encapsulation (forward the packet in a GRE/WCCP tunnel)
-	2 - L2 redirect (forward the packet using Layer 2/MAC rewriting)
-
-	Currently (as of IOS 12.4) cisco routers only support GRE.
-	Cisco switches only support the L2 redirect assignment method.
-DOC_END
-
-NAME: wccp2_return_method
-TYPE: int
-LOC: Config.Wccp2.return_method
-DEFAULT: 1
-IFDEF: USE_WCCPv2
-DOC_START
-	WCCP2 allows the setting of return methods between the 
-	router/switch and the cache for packets that the cache
-	decides not to handle.  Valid values are as follows:
-
-	1 - GRE encapsulation (forward the packet in a GRE/WCCP tunnel)
-	2 - L2 redirect (forward the packet using Layer 2/MAC rewriting)
-
-	Currently (as of IOS 12.4) cisco routers only support GRE.
-	Cisco switches only support the L2 redirect assignment.
-
-	If the "ip wccp redirect exclude in" command has been 
-	enabled on the cache interface, then it is still safe for
-	the proxy server to use a l2 redirect method even if this
-	option is set to GRE.
-DOC_END
-
-NAME: wccp2_assignment_method
-TYPE: int
-LOC: Config.Wccp2.assignment_method
-DEFAULT: 1
-IFDEF: USE_WCCPv2
-DOC_START
-	WCCP2 allows the setting of methods to assign the WCCP hash
-	Valid values are as follows:
-
-	1 - Hash assignment
-	2 - Mask assignment
-
-	As a general rule, cisco routers support the hash assignment method
-	and cisco switches support the mask assignment method.
-DOC_END
-
-NAME: wccp2_service
-TYPE: wccp2_service
-LOC: Config.Wccp2.info
-DEFAULT: none
-DEFAULT_IF_NONE: standard 0
-IFDEF: USE_WCCPv2
-DOC_START
-	WCCP2 allows for multiple traffic services. There are two
-	types: "standard" and "dynamic". The standard type defines
-	one service id - http (id 0). The dynamic service ids can be from
-	51 to 255 inclusive.  In order to use a dynamic service id
-	one must define the type of traffic to be redirected; this is done
-	using the wccp2_service_info option.
-
-	The "standard" type does not require a wccp2_service_info option,
-	just specifying the service id will suffice.
-
-	MD5 service authentication can be enabled by adding
-	"password=<password>" to the end of this service declaration.
-
-	Examples:
-
-	wccp2_service standard 0	# for the 'web-cache' standard service
-	wccp2_service dynamic 80	# a dynamic service type which will be
-					# fleshed out with subsequent options.
-	wccp2_service standard 0 password=foo
-
-DOC_END
-
-NAME: wccp2_service_info
-TYPE: wccp2_service_info
-LOC: Config.Wccp2.info
-DEFAULT: none
-IFDEF: USE_WCCPv2
-DOC_START
-	Dynamic WCCPv2 services require further information to define the
-	traffic you wish to have diverted.
-
-	The format is:
-
-	wccp2_service_info <id> protocol=<protocol> flags=<flag>,<flag>..
-	    priority=<priority> ports=<port>,<port>..
-
-	The relevant WCCPv2 flags:
-	+ src_ip_hash, dst_ip_hash
-	+ source_port_hash, dest_port_hash
-	+ src_ip_alt_hash, dst_ip_alt_hash
-	+ src_port_alt_hash, dst_port_alt_hash
-	+ ports_source
-
-	The port list can be one to eight entries.
-
-	Example:
-
-	wccp2_service_info 80 protocol=tcp flags=src_ip_hash,ports_source
-	    priority=240 ports=80
-
-	Note: the service id must have been defined by a previous
-	'wccp2_service dynamic <id>' entry.
-DOC_END
-
-NAME: wccp2_weight
-TYPE: int
-LOC: Config.Wccp2.weight
-DEFAULT: 10000
-IFDEF: USE_WCCPv2
-DOC_START
-	Each cache server gets assigned a set of the destination
-	hash proportional to their weight.
-DOC_END
-
-NAME: wccp_address
-TYPE: address
-LOC: Config.Wccp.address
-DEFAULT: 0.0.0.0
-IFDEF: USE_WCCP
-DOC_NONE
-NAME: wccp2_address
-TYPE: address
-LOC: Config.Wccp2.address
-DEFAULT: 0.0.0.0
-IFDEF: USE_WCCPv2
-DOC_START
-	Use this option if you require WCCP to use a specific
-	interface address.
-
-	The default behavior is to not bind to any specific address.
-DOC_END
-
-
-COMMENT_START
- DELAY POOL PARAMETERS (all require DELAY_POOLS compilation option)
- -----------------------------------------------------------------------------
-COMMENT_END
-
-NAME: delay_pools
-TYPE: delay_pool_count
-DEFAULT: 0
-IFDEF: DELAY_POOLS
-LOC: Config.Delay
-DOC_START
-	This represents the number of delay pools to be used.  For example,
-	if you have one class 2 delay pool and one class 3 delays pool, you
-	have a total of 2 delay pools.
-DOC_END
-
-NAME: delay_class
-TYPE: delay_pool_class
-DEFAULT: none
-IFDEF: DELAY_POOLS
-LOC: Config.Delay
-DOC_START
-	This defines the class of each delay pool.  There must be exactly one
-	delay_class line for each delay pool.  For example, to define two
-	delay pools, one of class 2 and one of class 3, the settings above
-	and here would be:
-
-Example:
- delay_pools 2      # 2 delay pools
- delay_class 1 2    # pool 1 is a class 2 pool
- delay_class 2 3    # pool 2 is a class 3 pool
-
-	The delay pool classes are:
-
-		class 1		Everything is limited by a single aggregate
-				bucket.
-
-		class 2 	Everything is limited by a single aggregate
-				bucket as well as an "individual" bucket chosen
-				from bits 25 through 32 of the IP address.
-
-		class 3		Everything is limited by a single aggregate
-				bucket as well as a "network" bucket chosen
-				from bits 17 through 24 of the IP address and a
-				"individual" bucket chosen from bits 17 through
-				32 of the IP address.
-
-	NOTE: If an IP address is a.b.c.d
-		-> bits 25 through 32 are "d"
-		-> bits 17 through 24 are "c"
-		-> bits 17 through 32 are "c * 256 + d"
-DOC_END
-
-NAME: delay_access
-TYPE: delay_pool_access
-DEFAULT: none
-IFDEF: DELAY_POOLS
-LOC: Config.Delay
-DOC_START
-	This is used to determine which delay pool a request falls into.
-
-	delay_access is sorted per pool and the matching starts with pool 1,
-	then pool 2, ..., and finally pool N. The first delay pool where the
-	request is allowed is selected for the request. If it does not allow
-	the request to any pool then the request is not delayed (default).
-
-	For example, if you want some_big_clients in delay
-	pool 1 and lotsa_little_clients in delay pool 2:
-
-Example:
- delay_access 1 allow some_big_clients
- delay_access 1 deny all
- delay_access 2 allow lotsa_little_clients
- delay_access 2 deny all
-DOC_END
-
-NAME: delay_parameters
-TYPE: delay_pool_rates
-DEFAULT: none
-IFDEF: DELAY_POOLS
-LOC: Config.Delay
-DOC_START
-	This defines the parameters for a delay pool.  Each delay pool has
-	a number of "buckets" associated with it, as explained in the
-	description of delay_class.  For a class 1 delay pool, the syntax is:
-
-delay_parameters pool aggregate
-
-	For a class 2 delay pool:
-
-delay_parameters pool aggregate individual
-
-	For a class 3 delay pool:
-
-delay_parameters pool aggregate network individual
-
-	The variables here are:
-
-		pool		a pool number - ie, a number between 1 and the
-				number specified in delay_pools as used in
-				delay_class lines.
-
-		aggregate	the "delay parameters" for the aggregate bucket
-				(class 1, 2, 3).
-
-		individual	the "delay parameters" for the individual
-				buckets (class 2, 3).
-
-		network		the "delay parameters" for the network buckets
-				(class 3).
-
-	A pair of delay parameters is written restore/maximum, where restore is
-	the number of bytes (not bits - modem and network speeds are usually
-	quoted in bits) per second placed into the bucket, and maximum is the
-	maximum number of bytes which can be in the bucket at any time.
-
-	For example, if delay pool number 1 is a class 2 delay pool as in the
-	above example, and is being used to strictly limit each host to 64kbps
-	(plus overheads), with no overall limit, the line is:
-
-delay_parameters 1 -1/-1 8000/8000
-
-	Note that the figure -1 is used to represent "unlimited".
-
-	And, if delay pool number 2 is a class 3 delay pool as in the above
-	example, and you want to limit it to a total of 256kbps (strict limit)
-	with each 8-bit network permitted 64kbps (strict limit) and each
-	individual host permitted 4800bps with a bucket maximum size of 64kb
-	to permit a decent web page to be downloaded at a decent speed
-	(if the network is not being limited due to overuse) but slow down
-	large downloads more significantly:
-
-delay_parameters 2 32000/32000 8000/8000 600/8000
-
-	There must be one delay_parameters line for each delay pool.
-DOC_END
-
-NAME: delay_initial_bucket_level
-COMMENT: (percent, 0-100)
-TYPE: ushort
-DEFAULT: 50
-IFDEF: DELAY_POOLS
-LOC: Config.Delay.initial
-DOC_START
-	The initial bucket percentage is used to determine how much is put
-	in each bucket when squid starts, is reconfigured, or first notices
-	a host accessing it (in class 2 and class 3, individual hosts and
-	networks only have buckets associated with them once they have been
-	"seen" by squid).
-DOC_END
-
 NAME: incoming_icp_average
 TYPE: int
 DEFAULT: 6
@@ -4822,72 +4951,6 @@ DOC_START
 	nameservers by setting this option to 'off'.
 DOC_END
 
-NAME: digest_generation
-IFDEF: USE_CACHE_DIGESTS
-TYPE: onoff
-LOC: Config.onoff.digest_generation
-DEFAULT: on
-DOC_START
-	This controls whether the server will generate a Cache Digest
-	of its contents.  By default, Cache Digest generation is
-	enabled if Squid is compiled with USE_CACHE_DIGESTS defined.
-DOC_END
-
-NAME: digest_bits_per_entry
-IFDEF: USE_CACHE_DIGESTS
-TYPE: int
-LOC: Config.digest.bits_per_entry
-DEFAULT: 5
-DOC_START
-	This is the number of bits of the server's Cache Digest which
-	will be associated with the Digest entry for a given HTTP
-	Method and URL (public key) combination.  The default is 5.
-DOC_END
-
-NAME: digest_rebuild_period
-IFDEF: USE_CACHE_DIGESTS
-COMMENT: (seconds)
-TYPE: time_t
-LOC: Config.digest.rebuild_period
-DEFAULT: 1 hour
-DOC_START
-	This is the number of seconds between Cache Digest rebuilds.
-DOC_END
-
-NAME: digest_rewrite_period
-COMMENT: (seconds)
-IFDEF: USE_CACHE_DIGESTS
-TYPE: time_t
-LOC: Config.digest.rewrite_period
-DEFAULT: 1 hour
-DOC_START
-	This is the number of seconds between Cache Digest writes to
-	disk.
-DOC_END
-
-NAME: digest_swapout_chunk_size
-COMMENT: (bytes)
-TYPE: b_size_t
-IFDEF: USE_CACHE_DIGESTS
-LOC: Config.digest.swapout_chunk_size
-DEFAULT: 4096 bytes
-DOC_START
-	This is the number of bytes of the Cache Digest to write to
-	disk at a time.  It defaults to 4096 bytes (4KB), the Squid
-	default swap page.
-DOC_END
-
-NAME: digest_rebuild_chunk_percentage
-COMMENT: (percent, 0-100)
-IFDEF: USE_CACHE_DIGESTS
-TYPE: int
-LOC: Config.digest.rebuild_chunk_percentage
-DEFAULT: 10
-DOC_START
-	This is the percentage of the Cache Digest to be scanned at a
-	time.  By default it is set to 10% of the Cache Digest.
-DOC_END
-
 NAME: chroot
 TYPE: string
 LOC: Config.chroot_dir
@@ -4898,48 +4961,6 @@ DOC_START
 	initializing.  This means, for example, that if you use a HTTP
 	port less than 1024 and try to reconfigure, you will get an
 	error.
-DOC_END
-
-NAME: client_persistent_connections
-TYPE: onoff
-LOC: Config.onoff.client_pconns
-DEFAULT: on
-DOC_NONE
-
-NAME: server_persistent_connections
-TYPE: onoff
-LOC: Config.onoff.server_pconns
-DEFAULT: on
-DOC_START
-	Persistent connection support for clients and servers.  By
-	default, Squid uses persistent connections (when allowed)
-	with its clients and servers.  You can use these options to
-	disable persistent connections with clients and/or servers.
-DOC_END
-
-NAME: persistent_connection_after_error
-TYPE: onoff
-LOC: Config.onoff.error_pconns
-DEFAULT: off
-DOC_START
-	With this directive the use of persistent connections after
-	HTTP errors can be disabled. Useful if you have clients
-	who fail to handle errors on persistent connections proper.
-DOC_END
-
-NAME: detect_broken_pconn
-TYPE: onoff
-LOC: Config.onoff.detect_broken_server_pconns
-DEFAULT: off
-DOC_START
-	Some servers have been found to incorrectly signal the use
-	of HTTP/1.0 persistent connections even on replies not
-	compatible, causing significant delays. This server problem
-	has mostly been seen on redirects.
-
-	By enabling this directive Squid attempts to detect such
-	broken replies and automatically assume the reply is finished
-	after 10 seconds timeout.
 DOC_END
 
 NAME: balance_on_multiple_ip
