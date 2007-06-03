@@ -3,5 +3,5 @@
 #  $Id$
 #
 
-DIST_SUBDIRS	= mswin_sspi
+DIST_SUBDIRS	= mswin_sspi squid_kerb_auth
 SUBDIRS		= @NEGOTIATE_AUTH_HELPERS@
