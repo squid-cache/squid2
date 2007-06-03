@@ -175,8 +175,8 @@ int
 eventNextTime(void)
 {
     if (!tasks)
-	return (int) 10;
-    return (int) ((tasks->when - current_dtime) * 1000);
+	return 10000;
+    return ceil((tasks->when - current_dtime) * 1000);
 }
 
 void
