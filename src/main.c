@@ -1053,6 +1053,10 @@ watch_child(char *argv[])
 	    case SIGKILL:
 		exit(0);
 		break;
+	    case SIGINT:
+	    case SIGTERM:
+		syslog(LOG_ALERT, "Exiting due to unexpected forced shutdown");
+		exit(1);
 	    default:
 		break;
 	    }
