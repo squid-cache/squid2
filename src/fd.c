@@ -90,7 +90,7 @@ fd_close(int fd)
 	assert(F->write_handler == NULL);
     }
     debug(51, 3) ("fd_close FD %d %s\n", fd, F->desc);
-    commSetEvents(fd, 0, 0);
+    commClose(fd);
     F->flags.open = 0;
 #if DELAY_POOLS
     if (F->slow_id)
@@ -154,6 +154,7 @@ fd_open(int fd, unsigned int type, const char *desc)
     debug(51, 3) ("fd_open FD %d %s\n", fd, desc);
     F->type = type;
     F->flags.open = 1;
+    commOpen(fd);
 #ifdef _SQUID_MSWIN_
     F->win32.handle = _get_osfhandle(fd);
     switch (type) {

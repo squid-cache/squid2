@@ -193,6 +193,8 @@ extern void comm_select_shutdown(void);
 extern int comm_select(int);
 extern void commUpdateEvents(int fd);
 extern void commSetEvents(int fd, int need_read, int need_write);
+extern void commClose(int fd);
+extern void commOpen(int fd);
 extern void commUpdateReadHandler(int, PF *, void *);
 extern void commUpdateWriteHandler(int, PF *, void *);
 extern void comm_quick_poll_required(void);
