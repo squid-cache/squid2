@@ -132,12 +132,10 @@ storeDirValidSwapDirSize(int swapdir, squid_off_t objsize)
 {
     /*
      * If the object size is -1, then if the storedir max_objsize isn't -1
-     * or min_objsize isn't 0, we can't store it
+     * we can't store it (min_objsize intentionally ignored here)
      */
-    if ((objsize == -1) &&
-	((Config.cacheSwap.swapDirs[swapdir].max_objsize != -1) ||
-	    (Config.cacheSwap.swapDirs[swapdir].min_objsize > 0)))
-	return 0;
+    if (objsize == -1)
+	return Config.cacheSwap.swapDirs[swapdir].max_objsize == -1;
 
     /*
      * Else, make sure that min_objsize <= objsize < max_objsize
