@@ -37,9 +37,8 @@
 
 #include <sys/devpoll.h>
 
-#define	STATE_READ		1
-#define	STATE_WRITE		2
-
+#define	DEVPOLL_UPDATESIZE	1024
+#define	DEVPOLL_QUERYSIZE	1024
 
 static int devpoll_fd;
 static struct timespec zero_timespec;
@@ -52,19 +51,20 @@ static struct timespec zero_timespec;
  * can zero out an entry in the poll list if its active.
  */
 
+/* Current state */
 struct _devpoll_state {
     char state;
-    int offset;
+    int update_offset;
 };
 
-struct _devpoll_events {
-    int ds_used;
-    int ds_size;
-    struct pollfd *events;
-};
+/* The update list */
+struct {
+    struct pollfd *pfds;
+    int cur;
+    int size;
+} devpoll_update;
 
 static struct _devpoll_state *devpoll_state;
-static struct _devpoll_events ds_events;
 static struct dvpoll do_poll;
 static int dpoll_nfds;
 
@@ -81,47 +81,52 @@ do_select_init()
     /* This tracks the FD devpoll offset+state */
     devpoll_state = xcalloc(Squid_MaxFD, sizeof(struct _devpoll_state));
 
-    /* And this stuff is list used to submit events */
-    ds_events.events = xcalloc(1024, sizeof(struct pollfd));
-    ds_events.ds_used = 0;
-    ds_events.ds_size = 1024;
-
     /* And this is the stuff we use to read events */
-    do_poll.dp_fds = xcalloc(1024, sizeof(struct pollfd));
-    dpoll_nfds = 1024;
+    do_poll.dp_fds = xcalloc(DEVPOLL_QUERYSIZE, sizeof(struct pollfd));
+    dpoll_nfds = DEVPOLL_QUERYSIZE;
+
+    devpoll_update.pfds = xcalloc(DEVPOLL_UPDATESIZE, sizeof(struct pollfd));
+    devpoll_update.cur = -1;
+    devpoll_update.size = DEVPOLL_UPDATESIZE;
 
     fd_open(devpoll_fd, FD_UNKNOWN, "devpoll ctl");
     commSetCloseOnExec(devpoll_fd);
 }
 
 static void
-comm_submit_updates()
+comm_flush_updates(void)
 {
     int i;
-
-    if (ds_events.ds_used == 0)
+    if (devpoll_update.cur == -1)
 	return;
-    debug(5, 5) ("comm_submit_updates: have %d updates to submit..\n", ds_events.ds_used);
-    i = write(devpoll_fd, ds_events.events, ds_events.ds_used * sizeof(struct pollfd));
-    debug(5, 5) ("comm_submit_updates: .. and wrote %d bytes\n", i);
-    /* Could we handle "partial" writes? */
-    assert(i == (sizeof(struct pollfd) * ds_events.ds_used));
-    ds_events.ds_used = 0;
-    /* XXX bzero the array after? */
+
+    debug(5, 5) ("comm_flush_updates: %d fds queued\n", devpoll_update.cur + 1);
+
+    i = write(devpoll_fd, devpoll_update.pfds, (devpoll_update.cur + 1) * sizeof(struct pollfd));
+    assert(i > 0);
+    assert(i == sizeof(struct pollfd) * (devpoll_update.cur + 1));
+    devpoll_update.cur = -1;
 }
 
+/*
+ * We could be "optimal" and -change- an existing entry if they
+ * just add a bit - since the devpoll interface OR's multiple fd
+ * updates. We'll need to POLLREMOVE entries which has a bit cleared
+ * but for now I'll do whats "easier" and add the smart logic
+ * later.
+ */
 static void
-comm_add_update(int fd, int events)
+comm_update_fd(int fd, int events)
 {
-    debug(5, 5) ("comm_add_update: FD %d: added (%d) %s %s %s\n", fd, events, (events & POLLIN) ? "POLLIN" : "", (events & POLLOUT) ? "POLLOUT" : "", (events & POLLREMOVE) ? "POLLREMOVE" : "");
-    int i = ds_events.ds_used;
-    ds_events.events[i].fd = fd;
-    ds_events.events[i].events = events;
-    ds_events.events[i].revents = 0;
-    ds_events.ds_used++;
-
-    if (ds_events.ds_used == ds_events.ds_size)
-	comm_submit_updates();
+    debug(5, 5) ("comm_update_fd: fd %d: events %d\n", fd, events);
+    if (devpoll_update.cur != -1 && (devpoll_update.cur == devpoll_update.size))
+	comm_flush_updates();
+    devpoll_update.cur++;
+    debug(5, 5) ("  -> new slot (%d)\n", devpoll_update.cur);
+    devpoll_state[fd].update_offset = devpoll_update.cur;
+    devpoll_update.pfds[devpoll_update.cur].fd = fd;
+    devpoll_update.pfds[devpoll_update.cur].events = events;
+    devpoll_update.pfds[devpoll_update.cur].revents = 0;
 }
 
 void
@@ -148,31 +153,26 @@ comm_select_status(StoreEntry * sentry)
 void
 commOpen(int fd)
 {
+    debug(5, 5) ("commOpen: %d\n", fd);
     devpoll_state[fd].state = 0;
-    devpoll_state[fd].offset = 0;
+    devpoll_state[fd].update_offset = -1;
 }
 
 void
 commClose(int fd)
 {
-    int o;
-    /*
-     * Is there a pending event in the array for this
-     * particular FD? Delete if so.
-     */
-    o = devpoll_state[fd].offset;
-    if (devpoll_state[fd].offset <= ds_events.ds_used && fd == ds_events.events[devpoll_state[fd].offset].fd) {
-	ds_events.events[devpoll_state[fd].offset].events = 0;
-	ds_events.events[devpoll_state[fd].offset].fd = 0;
-    }
+    debug(5, 5) ("commClose: %d\n", fd);
+    comm_update_fd(fd, POLLREMOVE);
 }
 
 void
 commSetEvents(int fd, int need_read, int need_write)
 {
-    int st_new = (need_read ? STATE_READ : 0) | (need_write ? STATE_WRITE : 0);
+    int st_new = (need_read ? POLLIN : 0) | (need_write ? POLLOUT : 0);
     int st_change;
-    int events = 0;
+
+    if (fd_table[fd].flags.closing)
+	return;
 
     debug(5, 5) ("commSetEvents(fd=%d, read=%d, write=%d)\n", fd, need_read, need_write);
 
@@ -180,21 +180,10 @@ commSetEvents(int fd, int need_read, int need_write)
     if (!st_change)
 	return;
 
-    if (need_read)
-	events |= POLLIN;
-    if (need_write)
-	events |= POLLOUT;
-    if (events == 0)
-	events |= POLLREMOVE;
-
-    /* Is the existing poll entry ours? If so, then update it */
-    if (devpoll_state[fd].offset < ds_events.ds_used && fd == ds_events.events[devpoll_state[fd].offset].fd) {
-	/* Just update it */
-	ds_events.events[devpoll_state[fd].offset].events = events;
-    } else {
-	/* Nope, new one required */
-	comm_add_update(fd, events);
-    }
+    comm_update_fd(fd, POLLREMOVE);
+    if (st_new)
+	comm_update_fd(fd, st_new);
+    devpoll_state[fd].state = st_new;
 }
 
 static int
@@ -205,13 +194,15 @@ do_comm_select(int msec)
 
     statCounter.syscalls.polls++;
 
-    comm_submit_updates();
-
     do_poll.dp_timeout = msec;
     do_poll.dp_nfds = dpoll_nfds;
     /* dp_fds is already allocated */
 
+    debug(5, 5) ("do_comm_select: begin\n");
+    comm_flush_updates();
+
     num = ioctl(devpoll_fd, DP_POLL, &do_poll);
+    debug(5, 5) ("do_comm_select: ioctl() returned %d fds\n", num);
 
     if (num < 0) {
 	getCurrentTime();
@@ -227,8 +218,8 @@ do_comm_select(int msec)
 
     for (i = 0; i < num; i++) {
 	int fd = (int) do_poll.dp_fds[i].fd;
-	if (do_poll.dp_fds[i].revents & POLLERR) {
-	    debug(5, 3) ("comm_select: devpoll event error: fd %d\n", fd);
+	if (do_poll.dp_fds[i].revents & (POLLERR | POLLHUP | POLLNVAL)) {
+	    debug(5, 1) ("comm_select: devpoll event error: fd %d\n", fd);
 	    continue;		/* XXX! */
 	}
 	if (do_poll.dp_fds[i].revents & POLLIN) {
