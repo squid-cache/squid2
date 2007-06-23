@@ -663,16 +663,16 @@
 /* The size of a `int', as computed by sizeof. */
 #undef SIZEOF_INT
 
-/* Size of SIZEOF_INT16_T */
+/* The size of a `int16_t', as computed by sizeof. */
 #undef SIZEOF_INT16_T
 
-/* Size of SIZEOF_INT32_T */
+/* The size of a `int32_t', as computed by sizeof. */
 #undef SIZEOF_INT32_T
 
-/* Size of SIZEOF_INT64_T */
+/* The size of a `int64_t', as computed by sizeof. */
 #undef SIZEOF_INT64_T
 
-/* Size of SIZEOF_INT8_T */
+/* The size of a `int8_t', as computed by sizeof. */
 #undef SIZEOF_INT8_T
 
 /* The size of a `long', as computed by sizeof. */
@@ -681,43 +681,43 @@
 /* The size of a `long long', as computed by sizeof. */
 #undef SIZEOF_LONG_LONG
 
-/* Size of SIZEOF_OFF_T */
+/* The size of a `off_t', as computed by sizeof. */
 #undef SIZEOF_OFF_T
 
 /* The size of a `short', as computed by sizeof. */
 #undef SIZEOF_SHORT
 
-/* Size of SIZEOF_SIZE_T */
+/* The size of a `size_t', as computed by sizeof. */
 #undef SIZEOF_SIZE_T
 
-/* Size of SIZEOF_UINT16_T */
+/* The size of a `uint16_t', as computed by sizeof. */
 #undef SIZEOF_UINT16_T
 
-/* Size of SIZEOF_UINT32_T */
+/* The size of a `uint32_t', as computed by sizeof. */
 #undef SIZEOF_UINT32_T
 
-/* Size of SIZEOF_UINT64_T */
+/* The size of a `uint64_t', as computed by sizeof. */
 #undef SIZEOF_UINT64_T
 
-/* Size of SIZEOF_UINT8_T */
+/* The size of a `uint8_t', as computed by sizeof. */
 #undef SIZEOF_UINT8_T
 
-/* Size of SIZEOF_U_INT16_T */
+/* The size of a `u_int16_t', as computed by sizeof. */
 #undef SIZEOF_U_INT16_T
 
-/* Size of SIZEOF_U_INT32_T */
+/* The size of a `u_int32_t', as computed by sizeof. */
 #undef SIZEOF_U_INT32_T
 
-/* Size of SIZEOF_U_INT64_T */
+/* The size of a `u_int64_t', as computed by sizeof. */
 #undef SIZEOF_U_INT64_T
 
-/* Size of SIZEOF_U_INT8_T */
+/* The size of a `u_int8_t', as computed by sizeof. */
 #undef SIZEOF_U_INT8_T
 
 /* The size of a `void *', as computed by sizeof. */
 #undef SIZEOF_VOID_P
 
-/* Size of SIZEOF___INT64 */
+/* The size of a `__int64', as computed by sizeof. */
 #undef SIZEOF___INT64
 
 /* configure command line used to configure Squid */
@@ -849,7 +849,7 @@
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
 
-/* Have int datatype */
+/* Define to 'int' if not defined */
 #undef fd_mask
 
 /* Define to `__inline__' or `__inline' if that's what the C compiler
@@ -858,31 +858,31 @@
 #undef inline
 #endif
 
-/* Have int datatype */
+/* Define to 'int' if not defined */
 #undef int16_t
 
-/* Have long datatype */
+/* Define to 'long' if not defined */
 #undef int32_t
 
-/* Have __int64 datatype */
+/* Define to '__int64' if not defined */
 #undef int64_t
 
-/* Have char datatype */
+/* Define to 'char' if not defined */
 #undef int8_t
 
-/* Have unsigned short datatype */
+/* Define to 'unsigned short' if not defined */
 #undef mode_t
 
 /* message type for message queues */
 #undef mtyp_t
 
-/* Have int datatype */
+/* Define to 'int' if not defined */
 #undef off_t
 
-/* Have int datatype */
+/* Define to 'int' if not defined */
 #undef pid_t
 
-/* Have unsigned int datatype */
+/* Define to 'unsigned int' if not defined */
 #undef size_t
 
 /* This makes warnings go away. If you have socklen_t defined in your
@@ -890,29 +890,29 @@
    defined to int. */
 #undef socklen_t
 
-/* Have int datatype */
+/* Define to 'int' if not defined */
 #undef ssize_t
 
-/* Have unsigned int datatype */
+/* Define to 'unsigned int' if not defined */
 #undef u_int16_t
 
-/* Have unsigned long datatype */
+/* Define to 'unsigned long' if not defined */
 #undef u_int32_t
 
-/* Have unsigned __int64 datatype */
+/* Define to 'unsigned __int64' if not defined */
 #undef u_int64_t
 
-/* Have unsigned char datatype */
+/* Define to 'unsigned char' if not defined */
 #undef u_int8_t
 
-/* Have unsigned int datatype */
+/* Define to 'unsigned int' if not defined */
 #undef uint16_t
 
-/* Have unsigned long datatype */
+/* Define to 'unsigned long' if not defined */
 #undef uint32_t
 
-/* Have unsigned __int64 datatype */
+/* Define to 'unsigned __int64' if not defined */
 #undef uint64_t
 
-/* Have unsigned char datatype */
+/* Define to 'unsigned char' if not defined */
 #undef uint8_t

@@ -240,7 +240,7 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-DIST_SUBDIRS = password ldap
+DIST_SUBDIRS = password ldap eDirectory
 SUBDIRS = @DIGEST_AUTH_HELPERS@
 all: all-recursive
 

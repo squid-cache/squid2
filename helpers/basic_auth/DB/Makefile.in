@@ -246,7 +246,9 @@ libexec_SCRIPTS = squid_db_auth
 CLEANFILES = squid_db_auth
 do_subst = sed -e 's,[@]PERL[@],$(PERL),g'
 man_MANS = squid_db_auth.8
-EXTRA_DIST = passwd.sql
+EXTRA_DIST = passwd.sql \
+		  squid_db_auth.in
+
 all: all-am
 
 .SUFFIXES:
