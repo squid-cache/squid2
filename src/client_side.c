@@ -1906,7 +1906,7 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
 	    httpHeaderDelById(hdr, HDR_DATE);
 	    httpHeaderInsertTime(hdr, 0, HDR_DATE, squid_curtime);
 	    h = httpHeaderFindEntry(hdr, HDR_EXPIRES);
-	    if (h) {
+	    if (h && http->entry->expires >= 0) {
 		httpHeaderPutExt(hdr, "X-Origin-Expires", strBuf(h->value));
 		httpHeaderDelById(hdr, HDR_EXPIRES);
 		httpHeaderInsertTime(hdr, 1, HDR_EXPIRES, squid_curtime + http->entry->expires - http->entry->timestamp);
@@ -2299,9 +2299,10 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	 * Copy timestamp from the original entry so the 304
 	 * reply has a meaningful Age: header.
 	 */
-	e->timestamp = timestamp;
 	http->entry = e;
 	httpReplyParse(e->mem_obj->reply, mb.buf, mb.size);
+	storeTimestampsSet(e);
+	e->timestamp = timestamp;
 	storeAppend(e, mb.buf, mb.size);
 	memBufClean(&mb);
 	storeComplete(e);
