@@ -131,23 +131,18 @@ static int
 storeDirValidSwapDirSize(int swapdir, squid_off_t objsize)
 {
     /*
-     * If the swapdir's max_obj_size is -1, then it definitely can
+     * If the object size is -1, then if the storedir max_objsize isn't -1
+     * we can't store it (min_objsize intentionally ignored here)
      */
-    if (Config.cacheSwap.swapDirs[swapdir].max_objsize == -1)
-	return 1;
+    if (objsize == -1)
+	return Config.cacheSwap.swapDirs[swapdir].max_objsize == -1;
 
     /*
-     * If the object size is -1, then if the storedir isn't -1 we
-     * can't store it
+     * Else, make sure that min_objsize <= objsize < max_objsize
      */
-    if ((objsize == -1) &&
-	(Config.cacheSwap.swapDirs[swapdir].max_objsize != -1))
-	return 0;
-
-    /*
-     * Else, make sure that the max object size is larger than objsize
-     */
-    if (Config.cacheSwap.swapDirs[swapdir].max_objsize > objsize)
+    if ((Config.cacheSwap.swapDirs[swapdir].min_objsize <= objsize) &&
+	((Config.cacheSwap.swapDirs[swapdir].max_objsize > objsize) ||
+	    (Config.cacheSwap.swapDirs[swapdir].max_objsize == -1)))
 	return 1;
     else
 	return 0;
@@ -337,6 +332,11 @@ storeDirStats(StoreEntry * sentry)
 	storeAppendPrintf(sentry, "FS Block Size %d Bytes\n",
 	    SD->fs.blksize);
 	SD->statfs(SD, sentry);
+	storeAppendPrintf(sentry, "Accepted object sizes: %" PRINTF_OFF_T " - ", SD->min_objsize);
+	if (SD->max_objsize == -1)
+	    storeAppendPrintf(sentry, "(unlimited) bytes\n");
+	else
+	    storeAppendPrintf(sentry, "%" PRINTF_OFF_T " bytes\n", SD->max_objsize);
 	if (SD->repl) {
 	    storeAppendPrintf(sentry, "Removal policy: %s\n", SD->repl->_type);
 	    if (SD->repl->Stats)

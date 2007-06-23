@@ -58,6 +58,8 @@ static const char *const list_sep = ", \t\n\r";
 
 static void parse_cachedir_option_readonly(SwapDir * sd, const char *option, const char *value, int reconfiguring);
 static void dump_cachedir_option_readonly(StoreEntry * e, const char *option, SwapDir * sd);
+static void parse_cachedir_option_minsize(SwapDir * sd, const char *option, const char *value, int reconfiguring);
+static void dump_cachedir_option_minsize(StoreEntry * e, const char *option, SwapDir * sd);
 static void parse_cachedir_option_maxsize(SwapDir * sd, const char *option, const char *value, int reconfiguring);
 static void dump_cachedir_option_maxsize(StoreEntry * e, const char *option, SwapDir * sd);
 static void parse_logformat(logformat ** logformat_definitions);
@@ -71,6 +73,7 @@ static void free_access_log(customlog ** definitions);
 static struct cache_dir_option common_cachedir_options[] =
 {
     {"read-only", parse_cachedir_option_readonly, dump_cachedir_option_readonly},
+    {"min-size", parse_cachedir_option_minsize, dump_cachedir_option_minsize},
     {"max-size", parse_cachedir_option_maxsize, dump_cachedir_option_maxsize},
     {NULL, NULL}
 };
@@ -1422,6 +1425,7 @@ parse_cachedir(cacheSwap * swap)
     sd = swap->swapDirs + swap->n_configured;
     sd->type = storefs_list[fs].typestr;
     /* defaults in case fs implementation fails to set these */
+    sd->min_objsize = 0;
     sd->max_objsize = -1;
     sd->fs.blksize = 1024;
     /* parse the FS parameters and options */
@@ -1447,6 +1451,29 @@ dump_cachedir_option_readonly(StoreEntry * e, const char *option, SwapDir * sd)
 {
     if (sd->flags.read_only)
 	storeAppendPrintf(e, " %s", option);
+}
+
+static void
+parse_cachedir_option_minsize(SwapDir * sd, const char *option, const char *value, int reconfiguring)
+{
+    squid_off_t size;
+
+    if (!value)
+	self_destruct();
+
+    size = strto_off_t(value, NULL, 10);
+
+    if (reconfiguring && sd->min_objsize != size)
+	debug(3, 1) ("Cache dir '%s' min object size now %ld\n", sd->path, (long int) size);
+
+    sd->min_objsize = size;
+}
+
+static void
+dump_cachedir_option_minsize(StoreEntry * e, const char *option, SwapDir * sd)
+{
+    if (sd->min_objsize != 0)
+	storeAppendPrintf(e, " %s=%ld", option, (long int) sd->min_objsize);
 }
 
 static void

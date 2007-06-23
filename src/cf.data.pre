@@ -1195,6 +1195,11 @@ DOC_START
 
 	read-only, this cache_dir is read only.
 
+	min-size=n, refers to the min object size this storedir will accept.
+	It's used to restrict a storedir to only store large objects
+	(e.g. aufs) while other storedirs are optimized for smaller objects
+	(e.g. COSS). Defaults to 0.
+
 	max-size=n, refers to the max object size this storedir supports.
 	It is used to initially choose the storedir to dump the object.
 	Note: To make optimal use of the max-size limits you should order
