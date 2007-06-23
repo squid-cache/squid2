@@ -929,20 +929,15 @@ AC_ARG_ENABLE(kqueue,
 
 dnl Enable devpoll
 AC_ARG_ENABLE(devpoll,
-[  --enable-devpoll       Force the use of devpoll even if automatic checks
-                          indicate devpoll may not be supported.
-  --disable-devpoll       Disable devpoll support. ],
-
+[  --enable-devpoll       Use Solaris /dev/poll instead of poll],
 [
   case "$enableval" in
   yes)
     echo "Forcing devpoll to be enabled"
     SELECT_TYPE="devpoll"
-    ac_cv_func_devpoll='yes'
     ;;
   no)
     echo "Forcing devpoll to be disabled"
-    ac_cv_func_devpoll='no'
     ;;
   esac
 ])
