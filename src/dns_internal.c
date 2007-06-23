@@ -813,6 +813,10 @@ idnsGrokReply(const char *buf, size_t sz)
 		q->attempt++;
 	    }
 	    rfc1035MessageDestroy(message);
+	    if (q->hash.key) {
+		hash_remove_link(idns_lookup_hash, &q->hash);
+		q->hash.key = NULL;
+	    }
 	    q->start_t = current_time;
 	    q->id = idnsQueryID();
 	    rfc1035SetQueryID(q->buf, q->id);
