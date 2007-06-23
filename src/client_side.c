@@ -3420,7 +3420,6 @@ parseHttpRequest(ConnStateData * conn, HttpMsgBuf * hmsg, method_t * method_p, i
 {
     LOCAL_ARRAY(char, urlbuf, MAX_URL);
     char *url = urlbuf;
-    char *mstr = NULL;
     const char *req_hdr = NULL;
     http_version_t http_ver;
     size_t header_sz;		/* size of headers, not including first line */
@@ -3467,10 +3466,10 @@ parseHttpRequest(ConnStateData * conn, HttpMsgBuf * hmsg, method_t * method_p, i
     method = urlParseMethod(hmsg->buf + hmsg->m_start, hmsg->m_len);
 
     if (method == METHOD_NONE) {
-	debug(33, 1) ("parseHttpRequest: Unsupported method '%s'\n", mstr);
+	debug(33, 1) ("parseHttpRequest: Unsupported method '%.*s'\n", hmsg->m_len, hmsg->buf + hmsg->m_start);
 	return parseHttpRequestAbort(conn, "error:unsupported-request-method");
     }
-    debug(33, 5) ("parseHttpRequest: Method is '%s'\n", mstr);
+    debug(33, 5) ("parseHttpRequest: Method is '%s'\n", RequestMethods[method].str);
     *method_p = method;
 
     /* Make sure URL fits inside MAX_URL */
