@@ -76,10 +76,6 @@ DOC_START
 	If you are running Squid in accelerator mode, you
 	probably want to listen on port 80 also, or instead.
 
-	The -a command line option will override the *first* port
-	number listed here.   That option will NOT override an IP
-	address, however.
-
 	You may specify multiple socket addresses on multiple lines.
 
 	options are:
