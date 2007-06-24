@@ -76,6 +76,8 @@ export KRB5_CONFIG
 
 4 Miscellaneous
 
+The -i options creates informational messages whereas -d creates full debug output
+
 If squid_kerb_auth doesn't determine for some reason the right service principal you can provide 
 it with -s HTTP/fqdn.
 

@@ -124,7 +124,7 @@ int parseNegTokenInit (const unsigned char *  negTokenInit,
                        size_t *               kerberosTokenLength)
 {
     SPNEGO_TOKEN_HANDLE hSpnegoToken = NULL;
-    int                 index        = -1;
+    int                 pindex       = -1;
     int                 rc1          = 1;
     int                 rc2          = SPNEGO_E_SUCCESS;
     unsigned char       reqFlags     = 0;
@@ -176,17 +176,17 @@ int parseNegTokenInit (const unsigned char *  negTokenInit,
 
     rc2 = spnegoIsMechTypeAvailable (hSpnegoToken,
                                      spnego_mech_oid_Kerberos_V5_Legacy,
-                                     &index);
+                                     &pindex);
 
     if (rc2 != SPNEGO_E_SUCCESS ||
-        index != 0)
+        pindex != 0)
     {
         rc2 = spnegoIsMechTypeAvailable (hSpnegoToken,
                                          spnego_mech_oid_Kerberos_V5,
-                                         &index);
+                                         &pindex);
 
         if (rc2 != SPNEGO_E_SUCCESS ||
-            index != 0)
+            pindex != 0)
         {
             rc1 = abs(rc2)+400;
             goto cleanup;
