@@ -75,10 +75,10 @@ DOC_START
 
 	You may specify multiple socket addresses on multiple lines.
 
-	options are:
+	Options:
 
 		transparent	Support for transparent interception of
-				outgoing requests without browser settings
+				outgoing requests without browser settings.
 
 		accel		Accelerator mode. Also needs at least one
 				of vhost/vport/defaultsite.
@@ -86,21 +86,20 @@ DOC_START
 		defaultsite=	Main web site name for accelerators. Implies
 				accel.
 
-		vhost		Accelerator using the Host header for
+		vhost		Accelerator mode using the Host header for
 				virtual domain support. Implies accel.
 
 		vport		Accelerator with IP based virtual host support.
 				Implies accel.
 
-		vport=		As above, but uses specified port number
-				rather than the http_port number. Implies accel.
+		vport=NN	As above, but uses specified port number rather
+				than the http_port number. Implies accel.
 
-		urlgroup=	Default urlgroup to mark requests
-				with (see also acl urlgroup and
-				url_rewrite_program)
+		urlgroup=	Default urlgroup to mark requests with (see
+				also acl urlgroup and url_rewrite_program)
 
-		protocol=	Protocol to reconstruct accelerated
-				requests with. Defaults to http.
+		protocol=	Protocol to reconstruct accelerated requests with.
+				Defaults to http.
 
 		no-connection-auth
 				Prevent forwarding of Microsoft
@@ -152,16 +151,16 @@ DOC_START
 	   defaultsite=	The name of the https site presented on
 			this port. Implies accel.
 
-	   vhost	Domain based virtual host support. Useful
-			in combination with a wildcard certificate or
-			other certificates valid for more than one domain.
+	   vhost	Accelerator mode using Host header for virtual
+			domain support. Requires a wildcard certificate
+			or other certificate valid for more than one domain.
 			Implies accel.
 
 	   urlgroup=	Default urlgroup to mark requests with (see
 			also acl urlgroup and url_rewrite_program)
 
-	   protocol=	Protocol to reconstruct accelerated requests
-			with. Defaults to https.
+	   protocol=	Protocol to reconstruct accelerated requests with.
+			Defaults to https.
 
 	   cert=	Path to SSL certificate (PEM format)
 
@@ -298,6 +297,8 @@ DEFAULT: none
 LOC: Config.ssl_client.cafile
 TYPE: string
 DOC_START
+	file containing CA certificates to use when verifying server
+	certificates while proxying https:// URLs
 DOC_END
 
 NAME: sslproxy_capath
@@ -306,6 +307,8 @@ DEFAULT: none
 LOC: Config.ssl_client.capath
 TYPE: string
 DOC_START
+	directory containing CA certificates to use when verifying
+       server certificates while proxying https:// URLs
 DOC_END
 
 NAME: sslproxy_flags
@@ -314,6 +317,11 @@ DEFAULT: none
 LOC: Config.ssl_client.flags
 TYPE: string
 DOC_START
+	Various flags modifying the use of SSL while proxying https:// URLs:
+            DONT_VERIFY_PEER    Accept certificates even if they fail to
+                                verify.
+            NO_DEFAULT_CA       Don't use the default CA list built in
+                                to OpenSSL.
 DOC_END
 
 NAME: sslpassword_program
