@@ -210,7 +210,7 @@ DOC_START
 				Don't request client certificates
 				immediately, but wait until acl processing
 				requires a certificate (not yet implemented)
-			    NO_DEFAULT_CA	
+			    NO_DEFAULT_CA
 				Don't use the default CA lists built in
 				to OpenSSL.
 			    NO_SESSION_REUSE
@@ -575,7 +575,7 @@ DOC_START
 		     cache as one participating in a CARP array.
 		     The 'f' values for all CARP parents must add
 		     up to 1.0.
-		 
+
 		     'originserver' causes this parent peer to be contacted as
 		     a origin server. Meant to be used in accelerator setups.
 
@@ -594,7 +594,7 @@ DOC_START
 		     URL from the peer, and only consider the peer as alive
 		     if this monitoring is successful (default none)
 
-		     use 'monitorsize=min[-max]' to limit the size range of 
+		     use 'monitorsize=min[-max]' to limit the size range of
 		     'monitorurl' replies considered valid. Defaults to 0 to
 		     accept any size replies as valid.
 
@@ -656,7 +656,7 @@ DOC_START
 			DONT_VERIFY_PEER
 				Accept certificates even if they fail to
 				verify.
-			NO_DEFAULT_CA	
+			NO_DEFAULT_CA
 				Don't use the default CA list built in
 				to OpenSSL.
 
@@ -1153,20 +1153,20 @@ DOC_START
 	current stripe.  A value of "n" closer to 100 will cause COSS
 	to waste less disk space by having multiple copies of an object
 	on disk, but will increase the chances of overwriting a popular
-	object as COSS overwrites stripes.  A value of "n" close to 0 
+	object as COSS overwrites stripes.  A value of "n" close to 0
 	will cause COSS to keep all current objects in the current COSS
 	stripe at the expense of the hit rate.  The default value of 50
 	will allow any given object to be stored on disk a maximum of
 	2 times.
 
-	max-stripe-waste=n defines the maximum amount of space that COSS 
+	max-stripe-waste=n defines the maximum amount of space that COSS
 	will waste in a given stripe (in bytes).  When COSS writes data
 	to disk, it will potentially waste up to "max-size" worth of disk
 	space for each 1MB of data written.  If "max-size" is set to a
 	large value (ie >256k), this could potentially result in large
 	amounts of wasted disk space. Setting this value to a lower value
 	(ie 64k or 32k) will result in a COSS disk refusing to cache
-	larger objects until the COSS stripe has been filled to within 
+	larger objects until the COSS stripe has been filled to within
 	"max-stripe-waste" of the maximum size (1MB).
 
 	membufs=n defines the number of "memory-only" stripes that COSS
@@ -1177,12 +1177,12 @@ DOC_START
 	number of memory-only buffers that COSS will use.  The default value
 	is 10, which will use a maximum of 10MB of memory for buffers.
 
-	maxfullbufs=n defines the maximum number of stripes a COSS partition 
+	maxfullbufs=n defines the maximum number of stripes a COSS partition
 	will have in memory waiting to be freed (either because the disk is
-	under load and the stripe is unwritten, or because clients are still 
-	transferring data from objects using the memory).  In order to try 
-	and maintain a good hit rate under load, COSS will reserve the last 
-	2 full stripes for object hits. (ie a COSS cache_dir will reject 
+	under load and the stripe is unwritten, or because clients are still
+	transferring data from objects using the memory).  In order to try
+	and maintain a good hit rate under load, COSS will reserve the last
+	2 full stripes for object hits. (ie a COSS cache_dir will reject
 	new objects when the number of full stripes is 2 less than maxfullbufs)
 
 	Common options:
@@ -1216,7 +1216,7 @@ DOC_START
 	Defines an access log format.
 
 	The <format specification> is a string with embedded % format codes
-	
+
 	% format codes all follow the same basic structure where all but
 	the formatcode is optional. Output strings are automatically escaped
 	as required according to their context and the output format
@@ -1224,7 +1224,7 @@ DOC_START
 	output format is desired.
 
 		% ["|[|'|#] [-] [[0]width] [{argument}] formatcode
-	
+
 		"	output in quoted string format
 		[	output in squid text log format as used by log_mime_hdrs
 		#	output in URL quoted format
@@ -1293,7 +1293,7 @@ DOC_START
   must be defined in a logformat directive) those entries which match
   ALL the acl's specified (which must be defined in acl clauses).
   If no acl is specified, all requests will be logged to this file.
-  
+
   To disable logging of a request use the filepath "none", in which case
   a logformat name should not be specified.
 
@@ -1325,7 +1325,7 @@ DOC_START
 	disable it.
 DOC_END
 
-NAME: cache_swap_state cache_swap_log 
+NAME: cache_swap_state cache_swap_log
 TYPE: string
 LOC: Config.Log.swap
 DEFAULT: none
@@ -1712,7 +1712,7 @@ DOC_START
 	The rewriter can also indicate that a client-side redirect should
 	be performed to the new URL. This is done by prefixing the returned
 	URL with "301:" (moved permanently) or 302: (moved temporarily).
-	
+
 	It can also return a "urlgroup" that can subsequently be matched
 	in cache_peer_access and similar ACL driven rules. An urlgroup is
 	returned by prefixing the returned url with "!urlgroup!"
@@ -1877,7 +1877,7 @@ DOC_START
 	auth_param basic program @DEFAULT_PREFIX@/libexec/ncsa_auth @DEFAULT_PREFIX@/etc/passwd
 
 	"children" numberofchildren
-	The number of authenticator processes to spawn. If you start too few 
+	The number of authenticator processes to spawn. If you start too few
 	squid will have to wait for them to process a backlog of credential
 	verifications, slowing it down. When credential verifications are
 	done via a (slow) network you are likely to need lots of
@@ -1944,7 +1944,7 @@ DOC_START
 	auth_param digest program @DEFAULT_PREFIX@/libexec/digest_auth_pw @DEFAULT_PREFIX@/etc/digpass
 
 	"children" numberofchildren
-	The number of authenticator processes to spawn. If you start too few 
+	The number of authenticator processes to spawn. If you start too few
 	squid will have to wait for them to process a backlog of credential
 	verifications, slowing it down. When credential verifications are
 	done via a (slow) network you are likely to need lots of
@@ -2012,7 +2012,7 @@ DOC_START
 	auth_param ntlm program /path/to/samba/bin/ntlm_auth --helper-protocol=squid-2.5-ntlmssp
 
 	"children" numberofchildren
-	The number of authenticator processes to spawn. If you start too few 
+	The number of authenticator processes to spawn. If you start too few
 	squid will have to wait for them to process a backlog of credential
 	verifications, slowing it down. When credential verifications are
 	done via a (slow) network you are likely to need lots of
@@ -2042,7 +2042,7 @@ DOC_START
 	auth_param negotiate program /path/to/samba/bin/ntlm_auth --helper-protocol=gss-spnego
 
 	"children" numberofchildren
-	The number of authenticator processes to spawn. If you start too few 
+	The number of authenticator processes to spawn. If you start too few
 	squid will have to wait for them to process a backlog of credential
 	verifications, slowing it down. When credential verifications are
 	done via a (slow) network you are likely to need lots of
@@ -2293,21 +2293,21 @@ DOC_START
 
 		ignore-no-cache ignores any ``Pragma: no-cache'' and
 		``Cache-control: no-cache'' headers received from a server.
-		The HTTP RFC never allows the use of this (Pragma) header 
-		from a server, only a client, though plenty of servers 
+		The HTTP RFC never allows the use of this (Pragma) header
+		from a server, only a client, though plenty of servers
 		send it anyway.
-		
-		ignore-private ignores any ``Cache-control: private'' 
-		headers received from a server. Doing this VIOLATES 
-		the HTTP standard. Enabling this feature could make you 
+
+		ignore-private ignores any ``Cache-control: private''
+		headers received from a server. Doing this VIOLATES
+		the HTTP standard. Enabling this feature could make you
 		liable for problems which it causes.
-		
+
 		ignore-auth caches responses to requests with authorization,
 		as if the originserver had sent ``Cache-control: public''
 		in the response header. Doing this VIOLATES the HTTP standard.
 		Enabling this feature could make you liable for problems which
 		it causes.
-		
+
 	Basically a cached object is:
 
 		FRESH if expires < now, else STALE
@@ -3118,7 +3118,7 @@ DOC_START
 	tcp_outgoing_tos 0x20 good_service_net
 
 	TOS/DSCP values really only have local significance - so you should
-	know what you're specifying. For more information, see RFC2474 and 
+	know what you're specifying. For more information, see RFC2474 and
 	RFC3260.
 
 	The TOS/DSCP byte must be exactly that - a octet value  0 - 255, or
@@ -3240,7 +3240,7 @@ LOC: Config.EmailFrom
 DOC_START
 	From: email-address for mail sent when the cache dies.
 	The default is to use 'appname@unique_hostname'.
-	Default appname value is "squid", can be changed into 
+	Default appname value is "squid", can be changed into
 	src/globals.h before building squid.
 DOC_END
 
@@ -3418,8 +3418,8 @@ DOC_START
 	discovery can not work on traffic towards the clients. This is
 	the case when the intercepting device does not fully track
 	connections and fails to forward ICMP must fragment messages
-	to the cache server. 
-	
+	to the cache server.
+
 	If you have such setup and experience that certain clients
 	sporadically hang or never complete requests set this to on.
 DOC_END
@@ -3637,7 +3637,7 @@ LOC: Config.Wccp2.forwarding_method
 DEFAULT: 1
 IFDEF: USE_WCCPv2
 DOC_START
-	WCCP2 allows the setting of forwarding methods between the 
+	WCCP2 allows the setting of forwarding methods between the
 	router/switch and the cache.  Valid values are as follows:
 
 	1 - GRE encapsulation (forward the packet in a GRE/WCCP tunnel)
@@ -3653,7 +3653,7 @@ LOC: Config.Wccp2.return_method
 DEFAULT: 1
 IFDEF: USE_WCCPv2
 DOC_START
-	WCCP2 allows the setting of return methods between the 
+	WCCP2 allows the setting of return methods between the
 	router/switch and the cache for packets that the cache
 	decides not to handle.  Valid values are as follows:
 
@@ -3663,7 +3663,7 @@ DOC_START
 	Currently (as of IOS 12.4) cisco routers only support GRE.
 	Cisco switches only support the L2 redirect assignment.
 
-	If the "ip wccp redirect exclude in" command has been 
+	If the "ip wccp redirect exclude in" command has been
 	enabled on the cache interface, then it is still safe for
 	the proxy server to use a l2 redirect method even if this
 	option is set to GRE.
@@ -3970,26 +3970,26 @@ DOC_START
 	messages.
 
 	Use in accelerators to substitute the error messages returned
-	by servers with other custom errors. 
+	by servers with other custom errors.
 
 	    error_map http://your.server/error/404.shtml 404
-	
+
 	Requests for error messages is a GET request for the configured
 	URL with the following special headers
 
 	    X-Error-Status:	The received HTTP status code (i.e. 404)
 	    X-Request-URI:	The requested URI where the error occurred
-	
+
 	In Addition the following headers are forwarded from the client
 	request:
-	    
+
 	    User-Agent, Cookie, X-Forwarded-For, Via, Authorization,
 	    Accept, Referer
-	
+
 	And the following headers from the server reply:
 
 	    Server, Via, Location, Content-Location
-	
+
 	The reply returned to the client will carry the original HTTP
 	headers from the real error message, but with the reply body
 	of the configured error message.
@@ -4896,7 +4896,7 @@ TYPE: onoff
 LOC: Config.onoff.balance_on_multiple_ip
 DEFAULT: on
 DOC_START
-	Some load balancing servers based on round robin DNS have been 
+	Some load balancing servers based on round robin DNS have been
 	found not to preserve user session state across requests
 	to different IP addresses.
 
