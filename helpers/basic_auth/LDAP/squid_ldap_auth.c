@@ -32,13 +32,13 @@
  * Changes:
  * 2005-01-07: Henrik Nordstrom <hno@squid-cache.org>
  *             - Added some sanity checks on login names to avoid
- *             users bypassing equality checks by exploring the
- *             overly helpful match capabilities of LDAP
+ *               users bypassing equality checks by exploring the
+ *               overly helpful match capabilities of LDAP
  * 2004-07-17: Henrik Nordstrom <hno@squid-cache.org>
  *             - Corrected non-persistent mode to only issue one
- *             ldap_bind per connection.
+ *               ldap_bind per connection.
  *             - -U option to compare the users password rather
- *             than binding.
+ *               than binding.
  * 2004-03-01: Henrik Nordstrom <hno@squid-cache.org>
  *             - corrected building of search filters to escape
  *               unsafe input
@@ -100,7 +100,9 @@
 #define LDAPAPI __cdecl
 #endif
 #ifdef LDAP_VERSION3
-#define LDAP_OPT_SUCCESS LDAP_SUCCESS
+#ifndef LDAP_OPT_X_TLS
+#define LDAP_OPT_X_TLS 0x6000
+#endif
 /* Some tricks to allow dynamic bind with ldap_start_tls_s entry point at
  * run time.
  */
@@ -547,7 +549,7 @@ main(int argc, char **argv)
 	fprintf(stderr, "\tIf you need to bind as a user to perform searches then use the\n\t-D binddn -w bindpasswd or -D binddn -W secretfile options\n\n");
 	exit(1);
     }
-/* On windows ldap_start_tls_s is available starting from Windows XP, 
+/* On Windows ldap_start_tls_s is available starting from Windows XP, 
  * so we need to bind at run-time with the function entry point
  */
 #ifdef _SQUID_MSWIN_
@@ -639,7 +641,6 @@ checkLDAP(LDAP * persistent_ld, const char *userid, const char *password, const 
     char dn[256];
     int ret = 0;
     LDAP *bind_ld = NULL;
-    int rc;
 
     if (!*password) {
 	/* LDAP can't bind with a blank password. Seen as "anonymous"
@@ -657,6 +658,7 @@ checkLDAP(LDAP * persistent_ld, const char *userid, const char *password, const 
 	char *searchattr[] =
 	{LDAP_NO_ATTRS, NULL};
 	char *userdn;
+	int rc;
 	LDAP *search_ld = persistent_ld;
 
 	if (!search_ld)
