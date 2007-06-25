@@ -106,7 +106,10 @@ sub htmlescape($)
 {
 	my ($line) = @_;
 	return "" if !defined $line;
-	$line =~ s/([^\w\s])/sprintf ("&#%d;", ord ($1))/ge;
+	$line =~ s/&/\&amp;/g;
+	$line =~ s/</\&lt;/g;
+	$line =~ s/>/\&gt;/g;
+	$line =~ s/[^\x{20}-\x{7e}\s]/sprintf ("&#%d;", ord ($1))/ge;
 	return $line;
 }
 
