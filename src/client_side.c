@@ -4155,45 +4155,6 @@ clientAbortBody(request_t * request)
 static void
 requestTimeout(int fd, void *data)
 {
-#if THIS_CONFUSES_PERSISTENT_CONNECTION_AWARE_BROWSERS_AND_USERS
-    ConnStateData *conn = data;
-    ErrorState *err;
-    debug(33, 3) ("requestTimeout: FD %d: lifetime is expired.\n", fd);
-    if (fd_table[fd].rwstate.valid) {
-	/*
-	 * Some data has been sent to the client, just close the FD
-	 */
-	comm_close(fd);
-    } else if (conn->nrequests) {
-	/*
-	 * assume its a persistent connection; just close it
-	 */
-	comm_close(fd);
-    } else {
-	/*
-	 * Generate an error
-	 */
-	err = errorCon(ERR_LIFETIME_EXP, HTTP_REQUEST_TIMEOUT, NULL);
-	err->src_addr = conn->peer.sin_addr;
-	err->url = xstrdup("N/A");
-	/*
-	 * Normally we shouldn't call errorSend() in client_side.c, but
-	 * it should be okay in this case.  Presumably if we get here
-	 * this is the first request for the connection, and no data
-	 * has been written yet
-	 */
-	assert(conn->chr == NULL);
-	errorSend(fd, err);
-	/*
-	 * if we don't close() here, we still need a timeout handler!
-	 */
-	commSetTimeout(fd, 30, requestTimeout, conn);
-	/*
-	 * Aha, but we don't want a read handler!
-	 */
-	commSetSelect(fd, COMM_SELECT_READ, NULL, NULL, 0);
-    }
-#else
     /*
      * Just close the connection to not confuse browsers
      * using persistent connections. Some browsers opens
@@ -4204,7 +4165,6 @@ requestTimeout(int fd, void *data)
      */
     debug(33, 3) ("requestTimeout: FD %d: lifetime is expired.\n", fd);
     comm_close(fd);
-#endif
 }
 
 static void
