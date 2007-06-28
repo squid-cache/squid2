@@ -5091,4 +5091,16 @@ DOC_START
 	or response to be rejected.
 DOC_END
 
+NAME: max_filedescriptors
+TYPE: int
+DEFAULT: 0
+LOC: Config.max_filedescriptors
+DOC_START
+	The maximum number of filedescriptors supported.
+
+	The default "0" means Squid inherits the current ulimit setting.
+
+	Note: Changing this requires a restart of Squid. Also
+	not all comm loops supports values larger than --with-maxfd.
+DOC_END
 EOF

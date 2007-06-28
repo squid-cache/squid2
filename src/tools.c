@@ -761,6 +761,11 @@ setMaxFD(void)
     struct rlimit rl;
 #if !defined(_SQUID_CYGWIN_)
 #if defined(RLIMIT_NOFILE)
+    if (Config.max_filedescriptors > 0) {
+	Squid_MaxFD = rl.rlim_cur = rl.rlim_max = Config.max_filedescriptors;
+	if (setrlimit(RLIMIT_NOFILE, &rl))
+	    debug(50, 0) ("setrlimit: RLIMIT_NOFILE: %s\n", xstrerror());
+    }
     if (getrlimit(RLIMIT_NOFILE, &rl) < 0) {
 	debug(50, 0) ("setrlimit: RLIMIT_NOFILE: %s\n", xstrerror());
     } else {

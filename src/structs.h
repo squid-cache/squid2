@@ -806,6 +806,7 @@ struct _SquidConfig {
 #endif
     time_t refresh_stale_window;
     int umask;
+    int max_filedescriptors;
 };
 
 struct _SquidConfig2 {
