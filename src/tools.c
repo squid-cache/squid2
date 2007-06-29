@@ -752,51 +752,62 @@ readPidFile(void)
 }
 
 
+/* A little piece of glue for odd systems */
+#ifndef RLIMIT_NOFILE
+#ifdef RLIMIT_OFILE
+#define RLIMIT_NOFILE RLIMIT_OFILE
+#endif
+#endif
+
+/* Figure out the number of supported filedescriptors */
 void
 setMaxFD(void)
 {
-#if HAVE_SETRLIMIT
-    /* try to use as many file descriptors as possible */
-    /* System V uses RLIMIT_NOFILE and BSD uses RLIMIT_OFILE */
+#if HAVE_SETRLIMIT && defined(RLIMIT_NOFILE)
     struct rlimit rl;
-#if !defined(_SQUID_CYGWIN_)
-#if defined(RLIMIT_NOFILE)
-    if (Config.max_filedescriptors > 0) {
-	Squid_MaxFD = rl.rlim_cur = rl.rlim_max = Config.max_filedescriptors;
-	if (setrlimit(RLIMIT_NOFILE, &rl))
+    if (getrlimit(RLIMIT_NOFILE, &rl) < 0) {
+	debug(50, 0) ("setrlimit: RLIMIT_NOFILE: %s\n", xstrerror());
+    } else if (Config.max_filedescriptors > 0) {
+	rl.rlim_cur = Config.max_filedescriptors;
+	if (rl.rlim_cur > rl.rlim_max)
+	    rl.rlim_max = rl.rlim_cur;
+	if (setrlimit(RLIMIT_NOFILE, &rl)) {
 	    debug(50, 0) ("setrlimit: RLIMIT_NOFILE: %s\n", xstrerror());
+	    getrlimit(RLIMIT_NOFILE, &rl);
+	    rl.rlim_cur = rl.rlim_max;
+	    if (setrlimit(RLIMIT_NOFILE, &rl)) {
+		debug(50, 0) ("setrlimit: RLIMIT_NOFILE: %s\n", xstrerror());
+	    }
+	}
     }
     if (getrlimit(RLIMIT_NOFILE, &rl) < 0) {
 	debug(50, 0) ("setrlimit: RLIMIT_NOFILE: %s\n", xstrerror());
     } else {
+	Squid_MaxFD = rl.rlim_cur;
+    }
+#endif /* HAVE_SETRLIMIT */
+}
+
+void
+setSystemLimits(void)
+{
+#if HAVE_SETRLIMIT && defined(RLIMIT_NOFILE) && !defined(_SQUID_CYGWIN_)
+    /* limit system filedescriptors to our own limit */
+    struct rlimit rl;
+    if (getrlimit(RLIMIT_NOFILE, &rl) < 0) {
+	debug(50, 0) ("setrlimit: RLIMIT_NOFILE: %s\n", xstrerror());
+    } else {
 	rl.rlim_cur = Squid_MaxFD;
-	if (rl.rlim_cur > rl.rlim_max)
-	    Squid_MaxFD = rl.rlim_cur = rl.rlim_max;
 	if (setrlimit(RLIMIT_NOFILE, &rl) < 0) {
 	    snprintf(tmp_error_buf, ERROR_BUF_SZ,
 		"setrlimit: RLIMIT_NOFILE: %s", xstrerror());
 	    fatal_dump(tmp_error_buf);
 	}
     }
-#elif defined(RLIMIT_OFILE)
-    if (getrlimit(RLIMIT_OFILE, &rl) < 0) {
-	debug(50, 0) ("setrlimit: RLIMIT_NOFILE: %s\n", xstrerror());
-    } else {
-	rl.rlim_cur = Squid_MaxFD;
-	if (rl.rlim_cur > rl.rlim_max)
-	    Squid_MaxFD = rl.rlim_cur = rl.rlim_max;
-	if (setrlimit(RLIMIT_OFILE, &rl) < 0) {
-	    snprintf(tmp_error_buf, ERROR_BUF_SZ,
-		"setrlimit: RLIMIT_OFILE: %s", xstrerror());
-	    fatal_dump(tmp_error_buf);
-	}
-    }
-#endif
-#endif
-#else /* HAVE_SETRLIMIT */
-    debug(21, 1) ("setMaxFD: Cannot increase: setrlimit() not supported on this system\n");
 #endif /* HAVE_SETRLIMIT */
-
+    if (Config.max_filedescriptors > Squid_MaxFD) {
+	debug(50, 1) ("NOTICE: Could not increase the number of filedescriptors\n");
+    }
 #if HAVE_SETRLIMIT && defined(RLIMIT_DATA)
     if (getrlimit(RLIMIT_DATA, &rl) < 0) {
 	debug(50, 0) ("getrlimit: RLIMIT_DATA: %s\n", xstrerror());

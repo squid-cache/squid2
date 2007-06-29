@@ -552,6 +552,7 @@ mainInitialize(void)
 	debug(1, 0) ("Running on %s\n", WIN32_OS_string);
 #endif
     debug(1, 1) ("Process ID %d\n", (int) getpid());
+    setSystemLimits();
     debug(1, 1) ("With %d file descriptors available\n", Squid_MaxFD);
 #ifdef _SQUID_MSWIN_
     debug(1, 1) ("With %d CRT stdio descriptors available\n", _getmaxstdio());
