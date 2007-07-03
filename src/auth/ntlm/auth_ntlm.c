@@ -303,6 +303,8 @@ authenticateNTLMFixErrorHeader(auth_user_request_t * auth_user_request, HttpRepl
     ntlm_request_t *ntlm_request;
     if (!ntlmConfig->authenticate)
 	return;
+    if (!request->flags.proxy_keepalive && request->flags.must_keepalive)
+	return;
     /* New request, no user details */
     if (auth_user_request == NULL) {
 	debug(29, 9) ("authenticateNTLMFixErrorHeader: Sending type:%d header: 'NTLM'\n", type);
@@ -657,6 +659,13 @@ authenticateNTLMAuthenticateUser(auth_user_request_t * auth_user_request, reques
     if (!conn) {
 	ntlm_request->auth_state = AUTHENTICATE_STATE_FAILED;
 	debug(29, 1) ("authenticateNTLMAuthenticateUser: attempt to perform authentication without a connection!\n");
+	return;
+    }
+    if (!request->flags.proxy_keepalive) {
+	debug(29, 2) ("authenticateNTLMAuthenticateUser: attempt to perform authentication without a persistent connection!\n");
+	ntlm_request->auth_state = AUTHENTICATE_STATE_FAILED;
+	request->flags.proxy_keepalive = 0;
+	request->flags.must_keepalive = 1;
 	return;
     }
     if (ntlm_request->waiting) {
