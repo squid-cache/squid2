@@ -664,7 +664,6 @@ authenticateNTLMAuthenticateUser(auth_user_request_t * auth_user_request, reques
     if (!request->flags.proxy_keepalive) {
 	debug(29, 2) ("authenticateNTLMAuthenticateUser: attempt to perform authentication without a persistent connection!\n");
 	ntlm_request->auth_state = AUTHENTICATE_STATE_FAILED;
-	request->flags.proxy_keepalive = 0;
 	request->flags.must_keepalive = 1;
 	return;
     }
