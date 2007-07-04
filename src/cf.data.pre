@@ -73,6 +73,9 @@ DOC_START
 	If you are running Squid in accelerator mode, you
 	probably want to listen on port 80 also, or instead.
 
+	The -I command line option will override the *first* port
+	specified here.
+
 	You may specify multiple socket addresses on multiple lines.
 
 	Options:

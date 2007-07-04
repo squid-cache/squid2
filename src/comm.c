@@ -179,7 +179,6 @@ comm_openex(int sock_type,
 {
     int new_socket;
     int tos = 0;
-    fde *F = NULL;
 
     /* Create socket for accepting new connections. */
     statCounter.syscalls.sock.sockets++;
@@ -211,6 +210,31 @@ comm_openex(int sock_type,
     }
     /* update fdstat */
     debug(5, 5) ("comm_open: FD %d is a new socket\n", new_socket);
+    return comm_fdopenex(new_socket, sock_type, addr, port, flags, tos, note);
+}
+
+int
+comm_fdopen(int socket_fd,
+    int sock_type,
+    struct in_addr addr,
+    u_short port,
+    int flags,
+    const char *note)
+{
+    return comm_fdopenex(socket_fd, sock_type, addr, port, flags, 0, note);
+}
+
+int
+comm_fdopenex(int new_socket,
+    int sock_type,
+    struct in_addr addr,
+    u_short port,
+    int flags,
+    unsigned char tos,
+    const char *note)
+{
+    fde *F = NULL;
+
     fd_open(new_socket, FD_SOCKET, note);
     F = &fd_table[new_socket];
     F->local_addr = addr;

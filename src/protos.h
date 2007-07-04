@@ -163,6 +163,8 @@ extern void comm_init(void);
 extern int comm_listen(int sock);
 extern int comm_open(int, int, struct in_addr, u_short port, int, const char *note);
 extern int comm_openex(int, int, struct in_addr, u_short, int, unsigned char TOS, const char *);
+extern int comm_fdopen(int, int, struct in_addr, u_short, int, const char *);
+extern int comm_fdopenex(int, int, struct in_addr, u_short, int, unsigned char, const char *);
 extern u_short comm_local_port(int fd);
 
 extern void commDeferFD(int fd);

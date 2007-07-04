@@ -4709,14 +4709,24 @@ clientHttpConnectionsOpen(void)
 	    debug(1, 1) ("         The limit is %d\n", MAXHTTPPORTS);
 	    continue;
 	}
-	enter_suid();
-	fd = comm_open(SOCK_STREAM,
-	    IPPROTO_TCP,
-	    s->s.sin_addr,
-	    ntohs(s->s.sin_port),
-	    COMM_NONBLOCKING,
-	    "HTTP Socket");
-	leave_suid();
+	if ((NHttpSockets == 0) && opt_stdin_overrides_http_port) {
+	    fd = 0;
+	    comm_fdopen(fd,
+		SOCK_STREAM,
+		no_addr,
+		ntohs(s->s.sin_port),
+		COMM_NONBLOCKING,
+		"HTTP Socket");
+	} else {
+	    enter_suid();
+	    fd = comm_open(SOCK_STREAM,
+		IPPROTO_TCP,
+		s->s.sin_addr,
+		ntohs(s->s.sin_port),
+		COMM_NONBLOCKING,
+		"HTTP Socket");
+	    leave_suid();
+	}
 	if (fd < 0)
 	    continue;
 	comm_listen(fd);

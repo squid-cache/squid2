@@ -6,7 +6,7 @@ squid \- proxy caching server
 .SH SYNOPSIS
 .B squid
 [
-.B \-dhirsvzCDFNRVYX
+.B \-dhirsvzCDFINRVYX
 ] [
 .BI \-l " facility"
 ] [
@@ -100,6 +100,8 @@ Do not catch fatal signals.
 Disable initial DNS tests.
 .IP -F
 Don't serve any requests until store is rebuilt.
+.IP -I
+Override first HTTP port with the bound socket passed in on standard input.
 .IP -N
 No daemon mode.
 .IP "-O options"
