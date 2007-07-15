@@ -646,13 +646,13 @@ gopherReadReply(int fd, void *data)
 	    commSetSelect(fd, COMM_SELECT_READ, gopherReadReply, data, 0);
 	} else {
 	    ErrorState *err;
-	    err = errorCon(ERR_READ_ERROR, HTTP_INTERNAL_SERVER_ERROR, gopherState->fwdState->request);
+	    err = errorCon(ERR_READ_ERROR, HTTP_BAD_GATEWAY, gopherState->fwdState->request);
 	    err->xerrno = errno;
 	    fwdFail(gopherState->fwdState, err);
 	    comm_close(fd);
 	}
     } else if (len == 0 && entry->mem_obj->inmem_hi == 0) {
-	fwdFail(gopherState->fwdState, errorCon(ERR_ZERO_SIZE_OBJECT, HTTP_SERVICE_UNAVAILABLE, gopherState->fwdState->request));
+	fwdFail(gopherState->fwdState, errorCon(ERR_ZERO_SIZE_OBJECT, HTTP_BAD_GATEWAY, gopherState->fwdState->request));
 	comm_close(fd);
     } else if (len == 0) {
 	/* Connection closed; retrieval done. */

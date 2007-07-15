@@ -218,7 +218,7 @@ fwdServerClosed(int fd, void *data)
 	return;
     }
     if (!fwdState->err && shutting_down)
-	fwdState->err = errorCon(ERR_SHUTTING_DOWN, HTTP_SERVICE_UNAVAILABLE, fwdState->request);
+	fwdState->err = errorCon(ERR_SHUTTING_DOWN, HTTP_GATEWAY_TIMEOUT, fwdState->request);
     fwdStateFree(fwdState);
 }
 
@@ -246,7 +246,7 @@ fwdNegotiateSSL(int fd, void *data)
 	    return;
 	default:
 	    debug(81, 1) ("fwdNegotiateSSL: Error negotiating SSL connection on FD %d: %s (%d/%d/%d)\n", fd, ERR_error_string(ERR_get_error(), NULL), ssl_error, ret, errno);
-	    err = errorCon(ERR_CONNECT_FAIL, HTTP_SERVICE_UNAVAILABLE, request);
+	    err = errorCon(ERR_CONNECT_FAIL, HTTP_BAD_GATEWAY, request);
 #ifdef EPROTO
 	    err->xerrno = EPROTO;
 #else
@@ -347,13 +347,13 @@ fwdConnectDone(int server_fd, int status, void *data)
 	    fwdState->flags.dont_retry = 1;
 	debug(17, 4) ("fwdConnectDone: Unknown host: %s\n",
 	    request->host);
-	err = errorCon(ERR_DNS_FAIL, HTTP_SERVICE_UNAVAILABLE, fwdState->request);
+	err = errorCon(ERR_DNS_FAIL, HTTP_GATEWAY_TIMEOUT, fwdState->request);
 	err->dnsserver_msg = xstrdup(dns_error_message);
 	fwdFail(fwdState, err);
 	comm_close(server_fd);
     } else if (status != COMM_OK) {
 	assert(fs);
-	err = errorCon(ERR_CONNECT_FAIL, HTTP_SERVICE_UNAVAILABLE, fwdState->request);
+	err = errorCon(ERR_CONNECT_FAIL, HTTP_GATEWAY_TIMEOUT, fwdState->request);
 	err->xerrno = errno;
 	fwdFail(fwdState, err);
 	if (fs->peer)
@@ -651,7 +651,7 @@ fwdStartFail(FwdState * fwdState)
 {
     ErrorState *err;
     debug(17, 3) ("fwdStartFail: %s\n", storeUrl(fwdState->entry));
-    err = errorCon(ERR_CANNOT_FORWARD, HTTP_SERVICE_UNAVAILABLE, fwdState->request);
+    err = errorCon(ERR_CANNOT_FORWARD, HTTP_GATEWAY_TIMEOUT, fwdState->request);
     err->xerrno = errno;
     fwdFail(fwdState, err);
     fwdStateFree(fwdState);
@@ -849,7 +849,7 @@ fwdStart(int fd, StoreEntry * e, request_t * r)
 #endif
     if (shutting_down) {
 	/* more yuck */
-	err = errorCon(ERR_SHUTTING_DOWN, HTTP_SERVICE_UNAVAILABLE, r);
+	err = errorCon(ERR_SHUTTING_DOWN, HTTP_GATEWAY_TIMEOUT, r);
 	errorAppendEntry(e, err);
 	return;
     }

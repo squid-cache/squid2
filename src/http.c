@@ -312,7 +312,7 @@ httpCachableReply(HttpStateData * httpState)
     case HTTP_FORBIDDEN:
     case HTTP_NOT_FOUND:
     case HTTP_METHOD_NOT_ALLOWED:
-    case HTTP_REQUEST_URI_TOO_LARGE:
+    case HTTP_REQUEST_URI_TOO_LONG:
     case HTTP_INTERNAL_SERVER_ERROR:
     case HTTP_NOT_IMPLEMENTED:
     case HTTP_BAD_GATEWAY:

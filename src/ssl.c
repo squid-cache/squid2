@@ -424,7 +424,7 @@ sslConnectDone(int fd, int status, void *data)
     if (status == COMM_ERR_DNS) {
 	debug(26, 4) ("sslConnect: Unknown host: %s\n", sslState->host);
 	comm_close(fd);
-	err = errorCon(ERR_DNS_FAIL, HTTP_NOT_FOUND, request);
+	err = errorCon(ERR_DNS_FAIL, HTTP_GATEWAY_TIMEOUT, request);
 	*sslState->status_ptr = HTTP_NOT_FOUND;
 	err->dnsserver_msg = xstrdup(dns_error_message);
 	err->callback = sslErrorComplete;
@@ -432,8 +432,8 @@ sslConnectDone(int fd, int status, void *data)
 	errorSend(sslState->client.fd, err);
     } else if (status != COMM_OK) {
 	comm_close(fd);
-	err = errorCon(ERR_CONNECT_FAIL, HTTP_SERVICE_UNAVAILABLE, request);
-	*sslState->status_ptr = HTTP_SERVICE_UNAVAILABLE;
+	err = errorCon(ERR_CONNECT_FAIL, HTTP_GATEWAY_TIMEOUT, request);
+	*sslState->status_ptr = HTTP_GATEWAY_TIMEOUT;
 	err->xerrno = errno;
 	err->callback = sslErrorComplete;
 	err->callback_data = sslState;
@@ -470,8 +470,8 @@ sslConnectTimeout(int fd, void *data)
 	hierarchyNote(&sslState->request->hier, sslState->servers->code,
 	    sslState->host);
     comm_close(fd);
-    err = errorCon(ERR_CONNECT_FAIL, HTTP_SERVICE_UNAVAILABLE, request);
-    *sslState->status_ptr = HTTP_SERVICE_UNAVAILABLE;
+    err = errorCon(ERR_CONNECT_FAIL, HTTP_GATEWAY_TIMEOUT, request);
+    *sslState->status_ptr = HTTP_GATEWAY_TIMEOUT;
     err->xerrno = ETIMEDOUT;
     err->callback = sslErrorComplete;
     err->callback_data = sslState;
@@ -611,8 +611,8 @@ sslPeerSelectComplete(FwdServer * fs, void *data)
     peer *g = NULL;
     if (fs == NULL) {
 	ErrorState *err;
-	err = errorCon(ERR_CANNOT_FORWARD, HTTP_SERVICE_UNAVAILABLE, sslState->request);
-	*sslState->status_ptr = HTTP_SERVICE_UNAVAILABLE;
+	err = errorCon(ERR_CANNOT_FORWARD, HTTP_GATEWAY_TIMEOUT, sslState->request);
+	*sslState->status_ptr = HTTP_GATEWAY_TIMEOUT;
 	err->callback = sslErrorComplete;
 	err->callback_data = sslState;
 	errorSend(sslState->client.fd, err);

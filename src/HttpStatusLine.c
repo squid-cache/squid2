@@ -255,8 +255,8 @@ httpStatusString(http_status status)
     case HTTP_REQUEST_ENTITY_TOO_LARGE:
 	p = "Request Entity Too Large";
 	break;
-    case HTTP_REQUEST_URI_TOO_LARGE:
-	p = "Request-URI Too Large";
+    case HTTP_REQUEST_URI_TOO_LONG:
+	p = "Request-URI Too Long";
 	break;
     case HTTP_UNSUPPORTED_MEDIA_TYPE:
 	p = "Unsupported Media Type";

@@ -116,7 +116,7 @@ whoisReadReply(int fd, void *data)
 	    commSetSelect(fd, COMM_SELECT_READ, whoisReadReply, p, Config.Timeout.read);
 	} else {
 	    ErrorState *err;
-	    err = errorCon(ERR_READ_ERROR, HTTP_INTERNAL_SERVER_ERROR, p->fwd->request);
+	    err = errorCon(ERR_READ_ERROR, HTTP_BAD_GATEWAY, p->fwd->request);
 	    err->xerrno = errno;
 	    fwdFail(p->fwd, err);
 	    comm_close(fd);
