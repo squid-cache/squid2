@@ -190,31 +190,17 @@ strListIsMember(const String * list, const char *m, char del)
     return 0;
 }
 
-/* returns true iff "s" is a substring of a member of the list */
+/* returns true iff "s" is a substring of a member of the list, >1 if more than once */
 int
-strListIsSubstr(const String * list, const char *s, char del)
+strIsSubstr(const String * list, const char *s)
 {
-    assert(list && del);
-    return strStr(*list, s) != 0;
-
-    /*
-     * Note: the original code with a loop is broken because it uses strstr()
-     * instead of strnstr(). If 's' contains a 'del', strListIsSubstr() may
-     * return true when it should not. If 's' does not contain a 'del', the
-     * implementaion is equavalent to strstr()! Thus, we replace the loop with
-     * strstr() above until strnstr() is available.
-     */
-
-#ifdef BROKEN_CODE
-    const char *pos = NULL;
-    const char *item;
     assert(list && s);
-    while (strListGetItem(list, del, &item, NULL, &pos)) {
-	if (strstr(item, s))
-	    return 1;
-    }
-    return 0;
-#endif
+    const char *p = strStr(*list, s);
+    if (!p)
+	return 0;
+    if (strstr(p + 1, s) != NULL)
+	return 2;
+    return 1;
 }
 
 /* appends an item to the list */
