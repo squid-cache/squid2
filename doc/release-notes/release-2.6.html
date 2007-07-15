@@ -2,10 +2,10 @@
 <HTML>
 <HEAD>
  <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.21">
- <TITLE>Squid 2.6.STABLE13 release notes</TITLE>
+ <TITLE>Squid 2.6.STABLE14 release notes</TITLE>
 </HEAD>
 <BODY>
-<H1>Squid 2.6.STABLE13 release notes</H1>
+<H1>Squid 2.6.STABLE14 release notes</H1>
 
 <H2>Squid Developers</H2>$Id$
 <HR>
@@ -65,6 +65,9 @@ Squid is a WWW Cache application developed by the Web Caching community.</EM>
 
 <P>
 <H2><A NAME="toc18">18.</A> <A HREF="#s18">Key changes squid-2.6.STABLE12 to 2.6.STABLE13</A></H2>
+
+<P>
+<H2><A NAME="toc19">19.</A> <A HREF="#s19">Key changes squid-2.6.STABLE13 to 2.6.STABLE14</A></H2>
 
 
 <HR>
@@ -671,6 +674,37 @@ yet, fixing RealMedia streaming over HTTP issues.</LI>
 <LI>Ukrainan error messages</LI>
 <LI>See also the list of 
 <A HREF="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE13.html">squid-2.6.STABLE13 changes</A> and the 
+<A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
+</UL>
+</P>
+
+<H2><A NAME="s19">19.</A> <A HREF="#toc19">Key changes squid-2.6.STABLE13 to 2.6.STABLE14</A></H2>
+
+<P>
+<UL>
+<LI>Make sure reply headers gets sent even if there is no body available
+yet, fixing RealMedia streaming over HTTP issues.</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1814">#1814</a>: SSL memory leak on persistent SSL connections</LI>
+<LI>Ukrainan error messages</LI>
+<LI>See also the list of 
+<A HREF="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE13.html">squid-2.6.STABLE13 changes</A> and the 
+<A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
+</UL>
+</P>
+
+
+<P>
+<UL>
+<LI>New Kerberos Negotiate / SPNEGO helper</LI>
+<LI>New SQL Database basic auth helper</LI>
+<LI>New Solaris /dev/poll support</LI>
+<LI>New Novell eDirectory Digest auth helper</LI>
+<LI>New cache_dir min-size option</LI>
+<LI>New pop3 basic auth helper</LI>
+<LI>squid.conf.default cleanups</LI>
+<LI>NTLM workaround for some applications not negotiating HTTP/1.0 persistent connetions</LI>
+<LI>See also the list of 
+<A HREF="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE14.html">squid-2.6.STABLE14 changes</A> and the 
 <A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
 </UL>
 </P>

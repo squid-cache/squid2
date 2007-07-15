@@ -1,3 +1,30 @@
+Changes to squid-2.6.STABLE14 (15 Jul 2007)
+
+	- squid.conf.default cleanup to have options in their proper sections.
+	- documentation correction in the refresh_pattern ignore-auth option
+	- URI-escaping not uses the recommended upper-case hex codes
+	- refresh_pattern min-age 0 correted to really mean 0, and not 1 second
+	- Always use xisxxxx() Squid defined macros instead of ctype
+	  functions.
+	- Kerberos SPNEGO/Negotiate helper for the negotiate scheme
+	- Database basic auth helper using Perl DBI to connect to most SQL DBs
+	- Solaris /dev/poll network I/O support
+	- configure fixes to make cross compilation somewhat easier
+	- Removed incorrect -a reference from http_port documentation
+	- Bug #1900: Double "squid -k shutdown" makes Squid restart again
+	- Bug #1968: Squid hangs occasionally when using DNS search paths
+	- Novell eDirectory digest auth helper (digest_edir_auth)
+	- Bug #1130: min-size option for cache_dir
+	- POP3 basic auth helper querying a POP3 server
+	- Cosmetic squid_ldap_auth fixes from Squid-3
+	- Bug #1085: Add no-wrap to cache manager HTML tables
+	- Automatically restart if number of available filedescriptors becomes
+	  alarmingly low, preventing a situation where Squid would otherwise
+	  permanently stop processing requests.
+	- Bug #2010: snmp_core.cc:828: warning: array subscript is above
+	  array bounds
+	- Deal better with forwarding loops
+
 Changes to squid-2.6.STABLE13 (11 May 2007)
 
 	- Make sure reply headers gets sent even if there is no body available
