@@ -1815,6 +1815,7 @@ struct _request_flags {
     unsigned int cachable:1;
     unsigned int hierarchical:1;
     unsigned int loopdetect:1;
+    unsigned int loopdetect_twice:1;
     unsigned int proxy_keepalive:1;
     unsigned int proxying:1;	/* this should be killed, also in httpstateflags */
     unsigned int refresh:1;

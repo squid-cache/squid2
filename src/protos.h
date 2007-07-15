@@ -407,7 +407,7 @@ extern void httpHeaderAddContRange(HttpHeader *, HttpHdrRangeSpec, squid_off_t);
 extern void strListAdd(String * str, const char *item, char del);
 extern void strListAddUnique(String * str, const char *item, char del);
 extern int strListIsMember(const String * str, const char *item, char del);
-extern int strListIsSubstr(const String * list, const char *s, char del);
+extern int strIsSubstr(const String * list, const char *s);
 extern int strListGetItem(const String * str, char del, const char **item, int *ilen, const char **pos);
 extern const char *getStringPrefix(const char *str, const char *end);
 extern int httpHeaderParseInt(const char *start, int *val);

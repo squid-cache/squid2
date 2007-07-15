@@ -1512,16 +1512,19 @@ clientInterpretRequestHeaders(clientHttpRequest * http)
 	}
     }
     if (httpHeaderHas(req_hdr, HDR_VIA)) {
-	String s = httpHeaderGetList(req_hdr, HDR_VIA);
 	/*
 	 * ThisCache cannot be a member of Via header, "1.0 ThisCache" can.
 	 * Note ThisCache2 has a space prepended to the hostname so we don't
 	 * accidentally match super-domains.
 	 */
-	if (strListIsSubstr(&s, ThisCache2, ',')) {
+	String s = httpHeaderGetList(req_hdr, HDR_VIA);
+	int n = strIsSubstr(&s, ThisCache2);
+	if (n) {
 	    debugObj(33, 1, "WARNING: Forwarding loop detected for:\n",
 		request, (ObjPackMethod) & httpRequestPackDebug);
 	    request->flags.loopdetect = 1;
+	    if (n > 1)
+		request->flags.loopdetect_twice = 1;
 	}
 #if FORW_VIA_DB
 	fvdbCountVia(strBuf(s));
@@ -1606,6 +1609,8 @@ clientCachable(clientHttpRequest * http)
 {
     request_t *req = http->request;
     method_t method = req->method;
+    if (req->flags.loopdetect)
+	return 0;
     if (req->protocol == PROTO_HTTP)
 	return httpCachable(method);
     /* FTP is always cachable */
@@ -3349,11 +3354,11 @@ clientProcessMiss(clientHttpRequest * http)
 	return;
     }
     /*
-     * Deny loops when running in accelerator/transproxy mode.
+     * Deny double loops
      */
-    if (r->flags.loopdetect && (http->flags.accel || http->flags.transparent)) {
-	http->al.http.code = HTTP_FORBIDDEN;
-	err = errorCon(ERR_ACCESS_DENIED, HTTP_FORBIDDEN, http->orig_request);
+    if (r->flags.loopdetect_twice) {
+	http->al.http.code = HTTP_GATEWAY_TIMEOUT;
+	err = errorCon(ERR_CANNOT_FORWARD, HTTP_GATEWAY_TIMEOUT, http->orig_request);
 	http->log_type = LOG_TCP_DENIED;
 	http->entry = clientCreateStoreEntry(http, r->method, null_request_flags);
 	errorAppendEntry(http->entry, err);
