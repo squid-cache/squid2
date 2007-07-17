@@ -94,7 +94,7 @@ comm_select_status(StoreEntry * sentry)
 }
 
 void
-commClose(int fd)
+commOpen(int fd)
 {
 }
 
