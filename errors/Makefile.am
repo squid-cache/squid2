@@ -12,6 +12,7 @@ DEFAULT_ERROR_DIR	= $(errordir)
 
 INSTALL_LANGUAGES	= @ERR_LANGUAGES@
 LANGUAGES	= \
+		Armenian \
 		Azerbaijani \
 		Bulgarian \
 		Catalan \
