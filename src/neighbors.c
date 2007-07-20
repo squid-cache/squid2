@@ -104,6 +104,11 @@ neighborType(const peer * p, const request_t * request)
 	    if (d->type != PEER_NONE)
 		return d->type;
     }
+#if PEER_MULTICAST_SIBLINGS
+    if (p->type == PEER_MULTICAST)
+	if (p->options.mcast_siblings)
+	    return PEER_SIBLING;
+#endif
     return p->type;
 }
 
@@ -120,6 +125,12 @@ peerAllowedToUse(const peer * p, request_t * request)
     int do_ping = 1;
     assert(request != NULL);
     if (neighborType(p, request) == PEER_SIBLING) {
+#if PEER_MULTICAST_SIBLINGS
+	if (p->type == PEER_MULTICAST && p->options.mcast_siblings &&
+	    (request->flags.nocache || request->flags.refresh || request->flags.loopdetect || request->flags.need_validation))
+	    debug(15, 2) ("peerAllowedToUse(%s, %s) : multicast-siblings optimization match\n",
+		p->name, request->host);
+#endif
 	if (request->flags.nocache)
 	    return 0;
 	if (request->flags.refresh)
@@ -1252,6 +1263,10 @@ dump_peer_options(StoreEntry * sentry, peer * p)
 	storeAppendPrintf(sentry, " round-robin");
     if (p->options.mcast_responder)
 	storeAppendPrintf(sentry, " multicast-responder");
+#if PEER_MULTICAST_SIBLINGS
+    if (p->options.mcast_siblings)
+	storeAppendPrintf(sentry, " multicast-siblings");
+#endif
     if (p->weight != 1)
 	storeAppendPrintf(sentry, " weight=%d", p->weight);
     if (p->options.closest_only)

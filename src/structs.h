@@ -37,6 +37,8 @@
 #include "config.h"
 #include "splay.h"
 
+#define PEER_MULTICAST_SIBLINGS 1
+
 struct _dlink_node {
     void *data;
     dlink_node *prev;
@@ -1426,6 +1428,9 @@ struct _peer {
 	unsigned int default_parent:1;
 	unsigned int roundrobin:1;
 	unsigned int mcast_responder:1;
+#if PEER_MULTICAST_SIBLINGS
+	unsigned int mcast_siblings:1;
+#endif
 	unsigned int closest_only:1;
 #if USE_HTCP
 	unsigned int htcp:1;
