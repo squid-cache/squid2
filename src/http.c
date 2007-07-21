@@ -891,21 +891,23 @@ httpReadReply(int fd, void *data)
 	    fwdFail(httpState->fwd, err);
 	    comm_close(fd);
 	}
-    } else if (len == 0 && entry->mem_obj->inmem_hi == 0) {
+    } else if (len == 0 && entry->mem_obj->inmem_hi == 0 && !httpState->reply_hdr.size) {
 	fwdFail(httpState->fwd, errorCon(ERR_ZERO_SIZE_OBJECT, HTTP_BAD_GATEWAY, httpState->fwd->request));
 	httpState->eof = 1;
 	comm_close(fd);
     } else if (len == 0) {
 	/* Connection closed; retrieval done. */
 	httpState->eof = 1;
-	if (httpState->reply_hdr_state < 2)
+	if (httpState->reply_hdr_state < 2) {
 	    /*
 	     * Yes Henrik, there is a point to doing this.  When we
 	     * called httpProcessReplyHeader() before, we didn't find
 	     * the end of headers, but now we are definately at EOF, so
 	     * we want to process the reply headers.
 	     */
-	    httpProcessReplyHeader(httpState, buf, len);
+	    /* Fake an "end-of-headers" to work around such broken servers */
+	    httpProcessReplyHeader(httpState, "\r\n", 2);
+	}
 	if (entry->mem_obj->reply->sline.status == HTTP_HEADER_TOO_LARGE) {
 	    storeEntryReset(entry);
 	    fwdFail(httpState->fwd, errorCon(ERR_TOO_BIG, HTTP_BAD_GATEWAY, httpState->fwd->request));
