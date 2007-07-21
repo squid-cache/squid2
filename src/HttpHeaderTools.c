@@ -194,8 +194,9 @@ strListIsMember(const String * list, const char *m, char del)
 int
 strIsSubstr(const String * list, const char *s)
 {
+    const char *p;
     assert(list && s);
-    const char *p = strStr(*list, s);
+    p = strStr(*list, s);
     if (!p)
 	return 0;
     if (strstr(p + 1, s) != NULL)
