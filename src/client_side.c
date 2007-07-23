@@ -1915,6 +1915,10 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
 		httpHeaderPutExt(hdr, "X-Origin-Expires", strBuf(h->value));
 		httpHeaderDelById(hdr, HDR_EXPIRES);
 		httpHeaderInsertTime(hdr, 1, HDR_EXPIRES, squid_curtime + http->entry->expires - http->entry->timestamp);
+	    } {
+		char age[64];
+		snprintf(age, sizeof(age), "%ld", (long int) squid_curtime - http->entry->timestamp);
+		httpHeaderPutExt(hdr, "X-Cache-Age", age);
 	    }
 	} else if (http->entry->timestamp < squid_curtime) {
 	    httpHeaderPutInt(hdr, HDR_AGE,
