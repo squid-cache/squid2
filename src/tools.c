@@ -798,7 +798,6 @@ setSystemLimits(void)
 /* RLIMIT_NOFILE doesn't work on Cygwin */
 #if HAVE_SETRLIMIT && defined(RLIMIT_NOFILE) && !defined(_SQUID_CYGWIN_)
     /* limit system filedescriptors to our own limit */
-    struct rlimit rl;
     if (getrlimit(RLIMIT_NOFILE, &rl) < 0) {
 	debug(50, 0) ("setrlimit: RLIMIT_NOFILE: %s\n", xstrerror());
     } else {
