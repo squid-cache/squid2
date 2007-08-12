@@ -763,7 +763,8 @@ readPidFile(void)
 void
 setMaxFD(void)
 {
-#if HAVE_SETRLIMIT && defined(RLIMIT_NOFILE)
+/* RLIMIT_NOFILE doesn't work on Cygwin */
+#if HAVE_SETRLIMIT && defined(RLIMIT_NOFILE) && !defined(_SQUID_CYGWIN_)
     struct rlimit rl;
     if (getrlimit(RLIMIT_NOFILE, &rl) < 0) {
 	debug(50, 0) ("setrlimit: RLIMIT_NOFILE: %s\n", xstrerror());
@@ -791,6 +792,10 @@ setMaxFD(void)
 void
 setSystemLimits(void)
 {
+#if HAVE_SETRLIMIT
+    struct rlimit rl;
+#endif /* HAVE_SETRLIMIT */
+/* RLIMIT_NOFILE doesn't work on Cygwin */
 #if HAVE_SETRLIMIT && defined(RLIMIT_NOFILE) && !defined(_SQUID_CYGWIN_)
     /* limit system filedescriptors to our own limit */
     struct rlimit rl;
@@ -804,7 +809,7 @@ setSystemLimits(void)
 	    fatal_dump(tmp_error_buf);
 	}
     }
-#endif /* HAVE_SETRLIMIT */
+#endif /* RLIMIT_NOFILE */
     if (Config.max_filedescriptors > Squid_MaxFD) {
 	debug(50, 1) ("NOTICE: Could not increase the number of filedescriptors\n");
     }
