@@ -1683,6 +1683,7 @@ ftpReadMdtm(FtpStateData * ftpState)
 	ftpUnhack(ftpState);
     } else if (code < 0) {
 	ftpFail(ftpState);
+	return;
     }
     ftpSendSize(ftpState);
 }
@@ -1719,6 +1720,7 @@ ftpReadSize(FtpStateData * ftpState)
 	}
     } else if (code < 0) {
 	ftpFail(ftpState);
+	return;
     }
     ftpSendPasv(ftpState);
 }
