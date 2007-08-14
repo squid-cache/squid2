@@ -86,9 +86,6 @@ DOC_START
 		accel		Accelerator mode. Also needs at least one
 				of vhost/vport/defaultsite.
 
-		defaultsite=	Main web site name for accelerators. Implies
-				accel.
-
 		vhost		Accelerator mode using the Host header for
 				virtual domain support. Implies accel.
 
@@ -97,6 +94,12 @@ DOC_START
 
 		vport=NN	As above, but uses specified port number rather
 				than the http_port number. Implies accel.
+
+		defaultsite=domainname
+				What to use for the Host: header if it is not present
+				in a request. Determines what site (not origin server)
+				accelerators should consider the default.
+				Implies accel.
 
 		urlgroup=	Default urlgroup to mark requests with (see
 				also acl urlgroup and url_rewrite_program)
