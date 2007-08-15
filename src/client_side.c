@@ -3793,7 +3793,7 @@ clientTryParseRequest(ConnStateData * conn)
 	if (conn->port->urlgroup)
 	    request->urlgroup = xstrdup(conn->port->urlgroup);
 #if LINUX_TPROXY
-	request->flags.tproxy = conn->port->tproxy;
+	request->flags.tproxy = conn->port->tproxy && need_linux_tproxy;
 #endif
 	request->flags.accelerated = http->flags.accel;
 	request->flags.transparent = http->flags.transparent;
