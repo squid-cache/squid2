@@ -77,7 +77,7 @@ membership check
 <item>Selective access logging, and ability to log to more than access log possibly in different formats
 <item>New more efficient helper protocol allowing for multiple concurrent lookups to the same helper
 <item>Ability to rewrite Location headers (redirects sent by servers)
-<item>
+<item>Major cleanup or CARP. Now plays well with the other peering algorithms as just another non-ICP peering method.
 </itemize>
 
 <sect>Changes to squid.conf
@@ -135,6 +135,7 @@ membership check
 <tag>wccp2_weight</tag>Cache server load weigth in the cluster. (2.6.STABLE4)
 <tag>check_hostnames</tag>Control if Squid should check the sanity of host names before trying to look them up in DNS
 <tag>allow_underscores</tag>Control if _ is to be considered a valid character in hostnames or not
+<tag>cache_peer carp-load-factor</tag>Option removed. CARP now uses the weight parameter instead.
 </descrip>
 
 <sect>Known issues

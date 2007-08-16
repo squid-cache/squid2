@@ -414,7 +414,6 @@ DOC_START
 		     max-conn=n
 		     htcp
 		     htcp-oldsquid
-		     carp-load-factor
 		     originserver
 		     userhash
 		     sourcehash
@@ -543,11 +542,6 @@ DOC_START
 		     set the "icp port" to 4827 instead of 3130.
 
 		     use 'htcp-oldsquid' to send HTCP to old Squid versions
-
-		     use 'carp-load-factor=f' to define a parent
-		     cache as one participating in a CARP array.
-		     The 'f' values for all CARP parents must add
-		     up to 1.0.
 
 		     'originserver' causes this parent peer to be contacted as
 		     a origin server. Meant to be used in accelerator setups.
