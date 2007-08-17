@@ -401,6 +401,7 @@ DOC_START
 		     no-query
 		     default
 		     round-robin
+		     carp
 		     multicast-responder
 		     multicast-siblings
 		     closest-only
@@ -465,6 +466,11 @@ DOC_START
 		     use 'round-robin' to define a set of parents which
 		     should be used in a round-robin fashion in the
 		     absence of any ICP queries.
+
+		     use 'carp' to define a set of parents which should
+		     be used as a CARP array. The requests will be
+		     distributed among the parents based on the CARP load
+		     balancing hash function based on their weigth.
 
 		     'multicast-responder' indicates the named peer
 		     is a member of a multicast group.  ICP queries will
