@@ -80,45 +80,44 @@ DOC_START
 
 	Options:
 
-		transparent	Support for transparent interception of
-				outgoing requests without browser settings.
+	   transparent	Support for transparent interception of
+			outgoing requests without browser settings.
 
-		accel		Accelerator mode. Also needs at least one
-				of vhost/vport/defaultsite.
+	   accel	Accelerator mode. Also needs at least one
+			of vhost/vport/defaultsite.
 
-		vhost		Accelerator mode using the Host header for
-				virtual domain support. Implies accel.
+	   vhost	Accelerator mode using Host header for virtual
+			domain support. Implies accel.
 
-		vport		Accelerator with IP based virtual host support.
-				Implies accel.
+	   vport	Accelerator with IP based virtual host support.
+			Implies accel.
 
-		vport=NN	As above, but uses specified port number rather
-				than the http_port number. Implies accel.
+	   vport=NN	As above, but uses specified port number rather
+			than the http_port number. Implies accel.
 
-		defaultsite=domainname
-				What to use for the Host: header if it is not present
-				in a request. Determines what site (not origin server)
-				accelerators should consider the default.
-				Implies accel.
+	   defaultsite=domainname
+			What to use for the Host: header if it is not present
+			in a request. Determines what site (not origin server)
+			accelerators should consider the default.
+			Implies accel.
 
-		urlgroup=	Default urlgroup to mark requests with (see
-				also acl urlgroup and url_rewrite_program)
+	   urlgroup=	Default urlgroup to mark requests with (see
+			also acl urlgroup and url_rewrite_program)
 
-		protocol=	Protocol to reconstruct accelerated requests with.
-				Defaults to http.
+	   protocol=	Protocol to reconstruct accelerated requests with.
+			Defaults to http.
 
-		no-connection-auth
-				Prevent forwarding of Microsoft
-				connection oriented authentication
-				(NTLM, Negotiate and Kerberos)
+	   no-connection-auth
+			Prevent forwarding of Microsoft connection oriented
+			authentication (NTLM, Negotiate and Kerberos)
 
-		tproxy		Support Linux TPROXY for spoofing
-				outgoing connections using the client
-				IP address.
+	   tproxy	Support Linux TPROXY for spoofing outgoing
+			connections using the client IP address.
 
-		act-as-origin	Act is if this Squid is the origin server.
-				This currently means generate own Date: and
-				Expires: headers. Implies accel.
+	   act-as-origin
+	   		Act is if this Squid is the origin server.
+			This currently means generate own Date: and
+			Expires: headers. Implies accel.
 
 	If you run Squid on a dual-homed machine with an internal
 	and an external interface we recommend you to specify the
@@ -163,17 +162,17 @@ DOC_START
 			Implies accel.
 
 	   urlgroup=	Default urlgroup to mark requests with (see
-			also acl urlgroup and url_rewrite_program)
+			also acl urlgroup and url_rewrite_program).
 
 	   protocol=	Protocol to reconstruct accelerated requests with.
 			Defaults to https.
 
-	   cert=	Path to SSL certificate (PEM format)
+	   cert=	Path to SSL certificate (PEM format).
 
 	   key=		Path to SSL private key file (PEM format)
 			if not specified, the certificate file is
 			assumed to be a combined certificate and
-			key file
+			key file.
 
 	   version=	The version of SSL/TLS supported
 			    1	automatic (default)
@@ -181,7 +180,7 @@ DOC_START
 			    3	SSLv3 only
 			    4	TLSv1 only
 
-	   cipher=	Colon separated list of supported ciphers
+	   cipher=	Colon separated list of supported ciphers.
 
 	   options=	Various SSL engine options. The most important
 			being:
@@ -194,27 +193,27 @@ DOC_START
 			documentation for a complete list of options.
 
 	   clientca=	File containing the list of CAs to use when
-			requesting a client certificate
+			requesting a client certificate.
 
 	   cafile=	File containing additional CA certificates to
 			use when verifying client certificates. If unset
 			clientca will be used.
 
 	   capath=	Directory containing additional CA certificates
-			and CRL lists to use when verifying client certificates
+			and CRL lists to use when verifying client certificates.
 
 	   crlfile=	File of additional CRL lists to use when verifying
 			the client certificate, in addition to CRLs stored in
 			the capath. Implies VERIFY_CRL flag below.
 
 	   dhparams=	File containing DH parameters for temporary/ephemeral
-			DH key exchanges
+			DH key exchanges.
 
 	   sslflags=	Various flags modifying the use of SSL:
 			    DELAYED_AUTH
 				Don't request client certificates
 				immediately, but wait until acl processing
-				requires a certificate (not yet implemented)
+				requires a certificate (not yet implemented).
 			    NO_DEFAULT_CA
 				Don't use the default CA lists built in
 				to OpenSSL.
@@ -223,24 +222,18 @@ DOC_START
 				will result in a new SSL session.
 			    VERIFY_CRL
 				Verify CRL lists when accepting client
-				certificates
+				certificates.
 			    VERIFY_CRL_ALL
 				Verify CRL lists for all certificates in the
-				client certificate chain
+				client certificate chain.
 
 	   sslcontext=	SSL session ID context identifier.
 
-DOC_END
+	   vport	Accelerator with IP based virtual host support.
 
-NAME: htcp_port
-IFDEF: USE_HTCP
-TYPE: ushort
-DEFAULT: 4827
-LOC: Config.Port.htcp
-DOC_START
-	The port number where Squid sends and receives HTCP queries to
-	and from neighbor caches.  Default is 4827.  To disable use
-	"0".
+	   vport=NN	As above, but uses specified port number rather
+			than the https_port number. Implies accel.
+
 DOC_END
 
 COMMENT_START
@@ -358,7 +351,6 @@ DOC_START
 	option to allow it to query interactively for the passphrase.
 DOC_END
 
-
 COMMENT_START
  OPTIONS WHICH AFFECT THE NEIGHBOR SELECTION ALGORITHM
  -----------------------------------------------------------------------------
@@ -454,11 +446,6 @@ DOC_START
 		     neighbor.
 
 		     use 'default' if this is a parent cache which can
-		     be used as a "last-resort." You should probably
-		     only use 'default' in situations where you cannot
-		     use ICP with your parent cache(s).
-
-		     use 'default' if this is a parent cache which can
 		     be used as a "last-resort" if a peer cannot be located
 		     by any of the peer-selection mechanisms.
 		     If specified more than once, only the first is used.
@@ -506,12 +493,16 @@ DOC_START
 		     Note: The string can include URL escapes (i.e. %20 for
 		     spaces). This also means % must be written as %%.
 
-		     use 'login=PASS' to forward authentication to the peer.
-		     Needed if the peer requires login.
+		     use 'login=PASS' if users must authenticate against
+		     the upstream proxy or in the case of a reverse proxy
+		     configuration, the origin web server.  This will pass
+		     the users credentials as they are to the peer.
 		     Note: To combine this with local authentication the Basic
 		     authentication scheme must be used, and both servers must
 		     share the same user database as HTTP only allows for
 		     a single login (one for proxy, one for origin server).
+		     Also be warned this will expose your users proxy
+		     password to the peer. USE WITH CAUTION
 
 		     use 'login=*:password' to pass the username to the
 		     upstream cache, but with a fixed password. This is meant
@@ -559,7 +550,7 @@ DOC_START
 		     based on the client source ip.
 
 		     use 'name=xxx' if you have multiple peers on the same
-		     host but different ports. This name can then be used to
+		     host but different ports. This name can be used to
 		     differentiate the peers in cache_peer_access and similar
 		     directives.
 
@@ -585,7 +576,7 @@ DOC_START
 		     name and using redirectors to feed this domain name
 		     is not feasible.
 
-		     use 'ssl' to indicate that connections to this peer should
+		     use 'ssl' to indicate connections to this peer should
 		     be SSL/TLS encrypted.
 
 		     use 'sslcert=/path/to/ssl/certificate' to specify a client
@@ -593,7 +584,7 @@ DOC_START
 
 		     use 'sslkey=/path/to/ssl/key' to specify the private SSL
 		     key corresponding to sslcert above. If 'sslkey' is not
-		     specified then 'sslcert' is assumed to reference a
+		     specified 'sslcert' is assumed to reference a
 		     combined file containing both the certificate and the key.
 
 		     use sslversion=1|2|3|4 to specify the SSL version to use
@@ -641,7 +632,7 @@ DOC_START
 		     use front-end-https to enable the "Front-End-Https: On"
 		     header needed when using Squid as a SSL frontend in front
 		     of Microsoft OWA. See MS KB document Q307347 for details
-		     on this header. If set to auto then the header will
+		     on this header. If set to auto the header will
 		     only be added if the request is forwarded as a https://
 		     URL.
 
@@ -650,8 +641,6 @@ DOC_START
 		     and any such challenges received from there should be
 		     ignored. Default is auto to automatically determine the
 		     status of the peer.
-
-	NOTE: non-ICP/HTCP neighbors must be specified as 'parent'.
 DOC_END
 
 NAME: cache_peer_domain cache_host_domain
@@ -704,49 +693,6 @@ EXAMPLE:
 	cache_peer  parent cache.foo.org 3128 3130
 	neighbor_type_domain cache.foo.org sibling .com .net
 	neighbor_type_domain cache.foo.org sibling .au .de
-DOC_END
-
-NAME: icp_query_timeout
-COMMENT: (msec)
-DEFAULT: 0
-TYPE: int
-LOC: Config.Timeout.icp_query
-DOC_START
-	Normally Squid will automatically determine an optimal ICP
-	query timeout value based on the round-trip-time of recent ICP
-	queries.  If you want to override the value determined by
-	Squid, set this 'icp_query_timeout' to a non-zero value.  This
-	value is specified in MILLISECONDS, so, to use a 2-second
-	timeout (the old default), you would write:
-
-		icp_query_timeout 2000
-DOC_END
-
-NAME: maximum_icp_query_timeout
-COMMENT: (msec)
-DEFAULT: 2000
-TYPE: int
-LOC: Config.Timeout.icp_query_max
-DOC_START
-	Normally the ICP query timeout is determined dynamically.  But
-	sometimes it can lead to very large values (say 5 seconds).
-	Use this option to put an upper limit on the dynamic timeout
-	value.  Do NOT use this option to always use a fixed (instead
-	of a dynamic) timeout value. To set a fixed timeout see the
-	'icp_query_timeout' directive.
-DOC_END
-
-NAME: mcast_icp_query_timeout
-COMMENT: (msec)
-DEFAULT: 2000
-TYPE: int
-LOC: Config.Timeout.mcast_icp_query
-DOC_START
-	For multicast peers, Squid regularly sends out ICP "probes" to
-	count how many other peers are listening on the given multicast
-	address.  This value specifies how long Squid should wait to
-	count all the replies.  The default is 2000 msec, or 2
-	seconds.
 DOC_END
 
 NAME: dead_peer_timeout
@@ -932,7 +878,7 @@ DOC_START
 	The directory must exist and be writable by the Squid
 	process. Squid will NOT create this directory for you.
 	Only using COSS, a raw disk device or a stripe file can
-	be specified, but the configuration of the "cache_wap_log"
+	be specified, but the configuration of the "cache_swap_log"
 	tag is mandatory.
 
 	The ufs store type:
@@ -989,7 +935,7 @@ DOC_START
 	higher hit ratio at the expense of an increase in response
 	time.
 
-	The COSS store type:
+	The coss store type:
 
 	block-size=n defines the "block size" for COSS cache_dir's.
 	Squid uses file numbers as block numbers.  Since file numbers
@@ -1035,6 +981,10 @@ DOC_START
 	and maintain a good hit rate under load, COSS will reserve the last
 	2 full stripes for object hits. (ie a COSS cache_dir will reject
 	new objects when the number of full stripes is 2 less than maxfullbufs)
+
+	The null store type:
+
+	no options are allowed or required
 
 	Common options:
 
@@ -1170,7 +1120,6 @@ DOC_START
 	numbers closer together.
 DOC_END
 
-
 COMMENT_START
  LOGFILE OPTIONS
  -----------------------------------------------------------------------------
@@ -1203,7 +1152,7 @@ DOC_START
 		'	output as-is
 
 		-	left aligned
-		width	field width. If starting with 0 then the
+		width	field width. If starting with 0 the
 			output is zero padded
 		{arg}	argument such as header name etc
 
@@ -1228,10 +1177,10 @@ DOC_START
 		<h	Reply header. Optional header name argument
 			as for >h
 		un	User name
-		ul	User login
-		ui	User ident
-		us	User SSL
-		ue	User external acl
+		ul	User name from authentication
+		ui	User name from ident
+		us	User name from SSL
+		ue	User name from external acl helper
 		Hs	HTTP status code
 		Ss	Squid request status (TCP_MISS etc)
 		Sh	Squid hierarchy status (DEFAULT_PARENT etc)
@@ -1257,19 +1206,27 @@ TYPE: access_log
 LOC: Config.Log.accesslogs
 DEFAULT: none
 DOC_START
-  These files log client request activities. Has a line every HTTP or
-  ICP request. The format is:
-  access_log <filepath> [<logformat name> [acl acl ...]]
+	These files log client request activities. Has a line every HTTP or
+	ICP request. The format is:
+	access_log <filepath> [<logformat name> [acl acl ...]]
+	access_log none [acl acl ...]]
 
-  Will log to the specified file using the specified format (which
-  must be defined in a logformat directive) those entries which match
-  ALL the acl's specified (which must be defined in acl clauses).
-  If no acl is specified, all requests will be logged to this file.
+	Will log to the specified file using the specified format (which
+	must be defined in a logformat directive) those entries which match
+	ALL the acl's specified (which must be defined in acl clauses).
+	If no acl is specified, all requests will be logged to this file.
 
-  To disable logging of a request use the filepath "none", in which case
-  a logformat name should not be specified.
+	To disable logging of a request use the filepath "none", in which case
+	a logformat name should not be specified.
 
-  To log the request via syslog specify a filepath of "syslog"
+	To log the request via syslog specify a filepath of "syslog":
+
+	access_log syslog[:facility|priority] [format [acl1 [acl2 ....]]]
+	where facility could be any of:
+	LOG_AUTHPRIV, LOG_DAEMON, LOG_LOCAL0 .. LOG_LOCAL7 or LOG_USER.
+
+	And priority could be any of:
+	LOG_ERR, LOG_WARNING, LOG_NOTICE, LOG_INFO, LOG_DEBUG.
 NOCOMMENT_START
 access_log @DEFAULT_ACCESS_LOG@ squid
 NOCOMMENT_END
@@ -1302,7 +1259,7 @@ TYPE: string
 LOC: Config.Log.swap
 DEFAULT: none
 DOC_START
-	Location for the cache "swap.state" file. This log file holds
+	Location for the cache "swap.state" file. This index file holds
 	the metadata of objects saved on disk.  It is used to rebuild
 	the cache during startup.  Normally this file resides in each
 	'cache_dir' directory, but you may specify an alternate
@@ -1325,10 +1282,10 @@ DOC_START
 	The numbered extension (which is added automatically)
 	corresponds to the order of the 'cache_dir' lines in this
 	configuration file.  If you change the order of the 'cache_dir'
-	lines in this file, these log files will NOT correspond to
+	lines in this file, these index files will NOT correspond to
 	the correct 'cache_dir' entry (unless you manually rename
 	them).  We recommend you do NOT use this option.  It is
-	better to keep these log files in each 'cache_dir' directory.
+	better to keep these index files in each 'cache_dir' directory.
 DOC_END
 
 NAME: logfile_rotate
@@ -1339,8 +1296,8 @@ DOC_START
 	Specifies the number of logfile rotations to make when you
 	type 'squid -k rotate'.  The default is 10, which will rotate
 	with extensions 0 through 9.  Setting logfile_rotate to 0 will
-	disable the rotation, but the logfiles are still closed and
-	re-opened.  This will enable you to rename the logfiles
+	disable the file name rotation, but the logfiles are still closed
+	and re-opened.  This will enable you to rename the logfiles
 	yourself just before sending the rotate signal.
 
 	Note, the 'squid -k rotate' command normally sends a USR1
@@ -1350,7 +1307,6 @@ DOC_START
 	in the habit of using 'squid -k rotate' instead of 'kill -USR1
 	<pid>'.
 DOC_END
-
 
 NAME: emulate_httpd_log
 COMMENT: on|off
@@ -1501,7 +1457,6 @@ DOC_START
 	enabled in which case performance will suffer badly anyway..).
 DOC_END
 
-
 COMMENT_START
  OPTIONS FOR EXTERNAL SUPPORT PROGRAMS
  -----------------------------------------------------------------------------
@@ -1577,7 +1532,7 @@ DEFAULT: @DEFAULT_DISKD@
 LOC: Config.Program.diskd
 DOC_START
 	Specify the location of the diskd executable.
-	Note that this is only useful if you have compiled in
+	Note this is only useful if you have compiled in
 	diskd as one of the store io modules.
 DOC_END
 
@@ -1642,8 +1597,8 @@ DEFAULT: 0
 LOC: Config.Program.url_rewrite.concurrency
 DOC_START
 	The number of requests each redirector helper can handle in
-	parallel. Defaults to 0 which indicates that the redirector
-	is a old-style singlethreaded redirector.
+	parallel. Defaults to 0 which indicates the redirector
+	is a old-style single threaded redirector.
 DOC_END
 
 NAME: url_rewrite_host_header redirect_rewrites_host_header
@@ -2050,6 +2005,7 @@ DOC_START
 	FORMAT specifications
 
 	  %LOGIN	Authenticated user login name
+	  %EXT_USER	Username from external acl
 	  %IDENT	Ident user name
 	  %SRC		Client IP
 	  %SRCPORT	Client source port
@@ -2075,9 +2031,9 @@ DOC_START
 	 %DATA		The ACL arguments. If not used then any arguments
 			is automatically added at the end
 
-	The request sent to the helper consists of the data in the format
-	specification in the order specified, plus any values specified in
-	the referencing acl (see the "acl external" directive).
+	In addition to the above, any string specified in the referencing
+	acl will also be included in the helper request line, after the
+	specified formats (see the "acl external" directive)
 
 	The helper receives lines per the above format specification,
 	and returns lines starting with OK or ERR indicating the validity
@@ -2326,7 +2282,7 @@ LOC: Config.negativeDnsTtl
 DEFAULT: 1 minute
 DOC_START
 	Time-to-Live (TTL) for negative caching of failed DNS lookups.
-	This also makes sets the lower cache limit on positive lookups.
+	This also sets the lower cache limit on positive lookups.
 	Minimum value is 1 second, and it is not recommendable to go
 	much below 10 seconds.
 DOC_END
@@ -2384,9 +2340,8 @@ LOC: Config.Store.objectsPerBucket
 DOC_START
 	Target number of objects per bucket in the store hash table.
 	Lowering this value increases the total number of buckets and
-	also the storage maintenance rate.  The default is 50.
+	also the storage maintenance rate.  The default is 20.
 DOC_END
-
 
 COMMENT_START
  HTTP OPTIONS
@@ -2404,7 +2359,7 @@ DOC_START
 	Some HTTP servers has broken implementations of PUT/POST,
 	and rely on an extra CRLF pair sent by some WWW clients.
 
-	Quote from RFC2068 section 4.1 on this matter:
+	Quote from RFC2616 section 4.1 on this matter:
 
 	  Note: certain buggy HTTP/1.0 client implementations generate an
 	  extra CRLF's after a POST request. To restate what is explicitly
@@ -2424,7 +2379,7 @@ DEFAULT: on
 LOC: Config.onoff.via
 DOC_START
 	If set (default), Squid will include a Via header in requests and
-	replies.
+	replies as required by RFC2616.
 DOC_END
 
 NAME: cache_vary
@@ -2453,7 +2408,6 @@ acl apache rep_header Server ^Apache
 broken_vary_encoding allow apache
 NOCOMMENT_END
 DOC_END
-
 
 NAME: collapsed_forwarding
 COMMENT: (on|off)
@@ -2495,7 +2449,7 @@ DOC_START
 	requests from older IE versions to check the origin server
 	for fresh content.  This reduces hit ratio by some amount
 	(~10% in my experience), but allows users to actually get
-	fresh content when they want it.  Note that because Squid
+	fresh content when they want it.  Note because Squid
 	cannot tell if the user is using 5.5 or 5.5SP1, the behavior
 	of 5.5 is unchanged from old versions of Squid (i.e. a
 	forced refresh is impossible).  Newer versions of IE will,
@@ -2830,7 +2784,7 @@ DOC_START
 	acl aclname dstdomain   .foo.com ...    # Destination server from URL
 	acl aclname srcdom_regex [-i] xxx ...   # regex matching client name
 	acl aclname dstdom_regex [-i] xxx ...   # regex matching server
-	  # For dstdomain and dstdom_regex  a reverse lookup is tried if a IP
+	  # For dstdomain and dstdom_regex a reverse lookup is tried if a IP
 	  # based URL is used and no match is found. The name "none" is used
 	  # if the reverse lookup fails.
 
@@ -2884,9 +2838,9 @@ DOC_START
 	  # to check username/password combinations (see
 	  # auth_param directive).
 	  #
-	  # WARNING: proxy_auth can't be used in a transparent proxy. It
-	  # collides with any authentication done by origin servers. It may
-	  # seem like it works at first, but it doesn't.
+	  # NOTE: proxy_auth can't be used in a transparent proxy as
+	  # the browser needs to be configured for using a proxy in order
+	  # to respond to proxy authentication.
 
 	acl aclname snmp_community string ...
 	  # A community string to limit access to your SNMP Agent
@@ -2911,6 +2865,23 @@ DOC_START
 	  # clients may appear to come from multiple addresses if they are
 	  # going through proxy farms, so a limit of 1 may cause user problems.
 
+	acl aclname rep_mime_type mime-type1 ...
+	  # regex match against the mime type of the reply received by
+	  # squid. Can be used to detect file download or some
+	  # types HTTP tunneling requests.
+	  # NOTE: This has no effect in http_access rules. It only has
+	  # effect in rules that affect the reply data stream such as
+	  # http_reply_access.
+
+	acl aclname rep_header header-name [-i] any\.regex\.here
+	  # regex match against any of the known reply headers. May be
+	  # thought of as a superset of "browser", "referer" and "mime-type"
+	  # ACLs.
+	  #
+	  # Example:
+	  #
+	  # acl many_spaces rep_header Content-Disposition -i [[:space:]]{3,}
+
 	acl aclname req_mime_type mime-type1 ...
 	  # regex match against the mime type of the request generated
 	  # by the client. Can be used to detect file upload or some
@@ -2922,20 +2893,6 @@ DOC_START
 	  # regex match against any of the known request headers.  May be
 	  # thought of as a superset of "browser", "referer" and "mime-type"
 	  # ACLs.
-
-	acl aclname rep_mime_type mime-type1 ...
-	  # regex match against the mime type of the reply received by
-	  # squid. Can be used to detect file download or some
-	  # types HTTP tunneling requests.
-	  # NOTE: This has no effect in http_access rules. It only has
-	  # effect in rules that affect the reply data stream such as
-	  # http_reply_access.
-
-	acl aclname rep_header header-name [-i] any\.regex\.here
-	  # regex match against any of the known response headers.
-	  # Example:
-	  #
-	  # acl many_spaces rep_header Content-Disposition -i [[:space:]]{3,}
 
 	acl acl_name external class_name [arguments...]
 	  # external ACL lookup via a helper class defined by the
@@ -2952,10 +2909,11 @@ DOC_START
 	  # match against attributes a users issuing CA SSL certificate
 	  # attribute is one of DN/C/O/CN/L/ST
 
-	acl aclname ext_user       username ...
+	acl aclname ext_user username ...
 	acl aclname ext_user_regex [-i] pattern ...
-	  # string match on username returned by external acl
-	  # use REQUIRED to accept any user name.
+	  # string match on username returned by external acl helper
+	  # use REQUIRED to accept any non-null user name.
+
 Examples:
 acl macaddress arp 09:00:2b:23:45:67
 acl myexample dst_as 1241
@@ -4135,83 +4093,6 @@ DOC_START
 DOC_END
 
 COMMENT_START
- MULTICAST ICP OPTIONS
- -----------------------------------------------------------------------------
-COMMENT_END
-
-NAME: mcast_groups
-TYPE: wordlist
-LOC: Config.mcast_group_list
-DEFAULT: none
-DOC_START
-	This tag specifies a list of multicast groups which your server
-	should join to receive multicasted ICP queries.
-
-	NOTE!  Be very careful what you put here!  Be sure you
-	understand the difference between an ICP _query_ and an ICP
-	_reply_.  This option is to be set only if you want to RECEIVE
-	multicast queries.  Do NOT set this option to SEND multicast
-	ICP (use cache_peer for that).  ICP replies are always sent via
-	unicast, so this option does not affect whether or not you will
-	receive replies from multicast group members.
-
-	You must be very careful to NOT use a multicast address which
-	is already in use by another group of caches.
-
-	If you are unsure about multicast, please read the Multicast
-	chapter in the Squid FAQ (http://www.squid-cache.org/FAQ/).
-
-	Usage: mcast_groups 239.128.16.128 224.0.1.20
-
-	By default, Squid doesn't listen on any multicast groups.
-DOC_END
-
-
-NAME: mcast_miss_addr
-IFDEF: MULTICAST_MISS_STREAM
-TYPE: address
-LOC: Config.mcast_miss.addr
-DEFAULT: 255.255.255.255
-DOC_START
-	If you enable this option, every "cache miss" URL will
-	be sent out on the specified multicast address.
-
-	Do not enable this option unless you are are absolutely
-	certain you understand what you are doing.
-DOC_END
-
-NAME: mcast_miss_ttl
-IFDEF: MULTICAST_MISS_STREAM
-TYPE: ushort
-LOC: Config.mcast_miss.ttl
-DEFAULT: 16
-DOC_START
-	This is the time-to-live value for packets multicasted
-	when multicasting off cache miss URLs is enabled.  By
-	default this is set to 'site scope', i.e. 16.
-DOC_END
-
-NAME: mcast_miss_port
-IFDEF: MULTICAST_MISS_STREAM
-TYPE: ushort
-LOC: Config.mcast_miss.port
-DEFAULT: 3135
-DOC_START
-	This is the port number to be used in conjunction with
-	'mcast_miss_addr'.
-DOC_END
-
-NAME: mcast_miss_encode_key
-IFDEF: MULTICAST_MISS_STREAM
-TYPE: string
-LOC: Config.mcast_miss.encode_key
-DEFAULT: XXXXXXXXXXXXXXXX
-DOC_START
-	The URLs that are sent in the multicast miss stream are
-	encrypted.  This is the encryption key.
-DOC_END
-
-COMMENT_START
  ICP OPTIONS
  -----------------------------------------------------------------------------
 COMMENT_END
@@ -4224,6 +4105,17 @@ DOC_START
 	The port number where Squid sends and receives ICP queries to
 	and from neighbor caches.  Default is 3130.  To disable use
 	"0".  May be overridden with -u on the command line.
+DOC_END
+
+NAME: htcp_port
+IFDEF: USE_HTCP
+TYPE: ushort
+DEFAULT: 4827
+LOC: Config.Port.htcp
+DOC_START
+	The port number where Squid sends and receives HTCP queries to
+	and from neighbor caches.  Default is 4827.  To disable use
+	"0".
 DOC_END
 
 NAME: log_icp_queries
@@ -4358,6 +4250,125 @@ DOC_START
 	database, or has a zero RTT.
 DOC_END
 
+NAME: icp_query_timeout
+COMMENT: (msec)
+DEFAULT: 0
+TYPE: int
+LOC: Config.Timeout.icp_query
+DOC_START
+	Normally Squid will automatically determine an optimal ICP
+	query timeout value based on the round-trip-time of recent ICP
+	queries.  If you want to override the value determined by
+	Squid, set this 'icp_query_timeout' to a non-zero value.  This
+	value is specified in MILLISECONDS, so, to use a 2-second
+	timeout (the old default), you would write:
+
+		icp_query_timeout 2000
+DOC_END
+
+NAME: maximum_icp_query_timeout
+COMMENT: (msec)
+DEFAULT: 2000
+TYPE: int
+LOC: Config.Timeout.icp_query_max
+DOC_START
+	Normally the ICP query timeout is determined dynamically.  But
+	sometimes it can lead to very large values (say 5 seconds).
+	Use this option to put an upper limit on the dynamic timeout
+	value.  Do NOT use this option to always use a fixed (instead
+	of a dynamic) timeout value. To set a fixed timeout see the
+	'icp_query_timeout' directive.
+DOC_END
+
+COMMENT_START
+ MULTICAST ICP OPTIONS
+ -----------------------------------------------------------------------------
+COMMENT_END
+
+NAME: mcast_groups
+TYPE: wordlist
+LOC: Config.mcast_group_list
+DEFAULT: none
+DOC_START
+	This tag specifies a list of multicast groups which your server
+	should join to receive multicasted ICP queries.
+
+	NOTE!  Be very careful what you put here!  Be sure you
+	understand the difference between an ICP _query_ and an ICP
+	_reply_.  This option is to be set only if you want to RECEIVE
+	multicast queries.  Do NOT set this option to SEND multicast
+	ICP (use cache_peer for that).  ICP replies are always sent via
+	unicast, so this option does not affect whether or not you will
+	receive replies from multicast group members.
+
+	You must be very careful to NOT use a multicast address which
+	is already in use by another group of caches.
+
+	If you are unsure about multicast, please read the Multicast
+	chapter in the Squid FAQ (http://www.squid-cache.org/FAQ/).
+
+	Usage: mcast_groups 239.128.16.128 224.0.1.20
+
+	By default, Squid doesn't listen on any multicast groups.
+DOC_END
+
+NAME: mcast_miss_addr
+IFDEF: MULTICAST_MISS_STREAM
+TYPE: address
+LOC: Config.mcast_miss.addr
+DEFAULT: 255.255.255.255
+DOC_START
+	If you enable this option, every "cache miss" URL will
+	be sent out on the specified multicast address.
+
+	Do not enable this option unless you are are absolutely
+	certain you understand what you are doing.
+DOC_END
+
+NAME: mcast_miss_ttl
+IFDEF: MULTICAST_MISS_STREAM
+TYPE: ushort
+LOC: Config.mcast_miss.ttl
+DEFAULT: 16
+DOC_START
+	This is the time-to-live value for packets multicasted
+	when multicasting off cache miss URLs is enabled.  By
+	default this is set to 'site scope', i.e. 16.
+DOC_END
+
+NAME: mcast_miss_port
+IFDEF: MULTICAST_MISS_STREAM
+TYPE: ushort
+LOC: Config.mcast_miss.port
+DEFAULT: 3135
+DOC_START
+	This is the port number to be used in conjunction with
+	'mcast_miss_addr'.
+DOC_END
+
+NAME: mcast_miss_encode_key
+IFDEF: MULTICAST_MISS_STREAM
+TYPE: string
+LOC: Config.mcast_miss.encode_key
+DEFAULT: XXXXXXXXXXXXXXXX
+DOC_START
+	The URLs that are sent in the multicast miss stream are
+	encrypted.  This is the encryption key.
+DOC_END
+
+NAME: mcast_icp_query_timeout
+COMMENT: (msec)
+DEFAULT: 2000
+TYPE: int
+LOC: Config.Timeout.mcast_icp_query
+DOC_START
+	For multicast peers, Squid regularly sends out ICP "probes" to
+	count how many other peers are listening on the given multicast
+	address.  This value specifies how long Squid should wait to
+	count all the replies.  The default is 2000 msec, or 2
+	seconds.
+DOC_END
+
 COMMENT_START
  INTERNAL ICON OPTIONS
  -----------------------------------------------------------------------------
@@ -4411,6 +4422,11 @@ DOC_START
 	(English) error files, either to customize them to suit your
 	language or company copy the template English files to another
 	directory and point this tag at them.
+
+	The squid developers are interested in making squid available in
+	a wide variety of languages. If you are making translations for a
+	langauge that Squid does not currently provide please consider
+	contributing your translation back to the project.
 DOC_END
 
 NAME: error_map
@@ -4477,9 +4493,16 @@ DOC_START
 	Example: deny_info ERR_CUSTOM_ACCESS_DENIED bad_guys
 
 	This can be used to return a ERR_ page for requests which
-	do not pass the 'http_access' rules.  A single ACL will cause
-	the http_access check to fail.  If a 'deny_info' line exists
+	do not pass the 'http_access' rules.  Squid remembers the last
+	acl it evaluated in http_access, and if a 'deny_info' line exists
 	for that ACL Squid returns a corresponding error page.
+
+	The acl is typically the last acl on the http_access deny line which
+	denied access. The exceptions to this rule are:
+	- When Squid needs to request authentication credentials. It's then
+	  the first authentication related acl encountered
+	- When none of the http_access lines matches. It's then the last
+	  acl processed on the last http_access line.
 
 	You may use ERR_ pages that come with Squid or create your own pages
 	and put them into the configured errors/ directory.
@@ -4723,6 +4746,7 @@ DOC_START
 	Underscore characters is not strictly allowed in Internet hostnames
 	but nevertheless used by many sites. Set this to off if you want
 	Squid to be strict about the standard.
+	This check is performed only when check_hostnames is set to on.
 DOC_END
 
 NAME: cache_dns_program
@@ -5130,9 +5154,9 @@ DEFAULT: none
 DOC_START
 	Use this to have Squid do a chroot() while initializing.  This
 	also causes Squid to fully drop root privileges after
-	initializing.  This means, for example, that if you use a HTTP
-	port less than 1024 and try to reconfigure, you will get an
-	error.
+	initializing.  This means, for example, if you use a HTTP
+	port less than 1024 and try to reconfigure, you will may get an
+	error saying that Squid can not open the port.
 DOC_END
 
 NAME: balance_on_multiple_ip
@@ -5203,7 +5227,7 @@ DOC_START
 	sleeps the specified number of microseconds after a fork()
 	system call. This sleep may help the situation where your
 	system reports fork() failures due to lack of (virtual)
-	memory. Note, however, that if you have a lot of child
+	memory. Note, however, if you have a lot of child
 	processes, these sleep delays will add up and your
 	Squid will not service requests for some amount of time
 	until all the child processes have been started.
