@@ -83,8 +83,17 @@ DOC_START
 	   transparent	Support for transparent interception of
 			outgoing requests without browser settings.
 
+	   tproxy	Support Linux TPROXY for spoofing outgoing
+			connections using the client IP address.
+
 	   accel	Accelerator mode. Also needs at least one
 			of vhost/vport/defaultsite.
+
+	   defaultsite=domainname
+			What to use for the Host: header if it is not present
+			in a request. Determines what site (not origin server)
+			accelerators should consider the default.
+			Implies accel.
 
 	   vhost	Accelerator mode using Host header for virtual
 			domain support. Implies accel.
@@ -95,12 +104,6 @@ DOC_START
 	   vport=NN	As above, but uses specified port number rather
 			than the http_port number. Implies accel.
 
-	   defaultsite=domainname
-			What to use for the Host: header if it is not present
-			in a request. Determines what site (not origin server)
-			accelerators should consider the default.
-			Implies accel.
-
 	   urlgroup=	Default urlgroup to mark requests with (see
 			also acl urlgroup and url_rewrite_program)
 
@@ -110,9 +113,6 @@ DOC_START
 	   no-connection-auth
 			Prevent forwarding of Microsoft connection oriented
 			authentication (NTLM, Negotiate and Kerberos)
-
-	   tproxy	Support Linux TPROXY for spoofing outgoing
-			connections using the client IP address.
 
 	   act-as-origin
 	   		Act is if this Squid is the origin server.
@@ -323,7 +323,7 @@ LOC: Config.ssl_client.capath
 TYPE: string
 DOC_START
 	directory containing CA certificates to use when verifying
-       server certificates while proxying https:// URLs
+	server certificates while proxying https:// URLs
 DOC_END
 
 NAME: sslproxy_flags
@@ -333,10 +333,10 @@ LOC: Config.ssl_client.flags
 TYPE: string
 DOC_START
 	Various flags modifying the use of SSL while proxying https:// URLs:
-            DONT_VERIFY_PEER    Accept certificates even if they fail to
-                                verify.
-            NO_DEFAULT_CA       Don't use the default CA list built in
-                                to OpenSSL.
+	    DONT_VERIFY_PEER    Accept certificates even if they fail to
+				verify.
+	    NO_DEFAULT_CA       Don't use the default CA list built in
+				to OpenSSL.
 DOC_END
 
 NAME: sslpassword_program
@@ -428,12 +428,12 @@ DOC_START
 		     use 'proxy-only' to specify objects fetched
 		     from this cache should not be saved locally.
 
-                     use 'weight=n' to affect the selection of a peer
-                     during any weighted peer-selection mechanisms.
-                     The weight must be an integer; default is 1,
-                     larger weights are favored more.
-                     This option does not affect parent selection if a peering
-                     protocol is not in use.
+		     use 'weight=n' to affect the selection of a peer
+		     during any weighted peer-selection mechanisms.
+		     The weight must be an integer; default is 1,
+		     larger weights are favored more.
+		     This option does not affect parent selection if a peering
+		     protocol is not in use.
 
 		     use 'ttl=n' to specify a IP multicast TTL to use
 		     when sending an ICP queries to this address.
@@ -457,7 +457,7 @@ DOC_START
 		     use 'carp' to define a set of parents which should
 		     be used as a CARP array. The requests will be
 		     distributed among the parents based on the CARP load
-		     balancing hash function based on their weigth.
+		     balancing hash function based on their weight.
 
 		     'multicast-responder' indicates the named peer
 		     is a member of a multicast group.  ICP queries will
@@ -546,7 +546,7 @@ DOC_START
 		     use 'userhash' to load-balance amongst a set of parents
 		     based on the client proxy_auth or ident username.
 
-		     use 'sourcehash' to load-balanse amongs a set of parents
+		     use 'sourcehash' to load-balance amongst a set of parents
 		     based on the client source ip.
 
 		     use 'name=xxx' if you have multiple peers on the same
@@ -805,38 +805,6 @@ DOC_START
 	the memory cache. This should be set high enough to keep objects
 	accessed frequently in memory to improve performance whilst low
 	enough to keep larger objects from hoarding cache_mem.
-DOC_END
-
-NAME: ipcache_size
-COMMENT: (number of entries)
-TYPE: int
-DEFAULT: 1024
-LOC: Config.ipcache.size
-DOC_NONE
-
-NAME: ipcache_low
-COMMENT: (percent)
-TYPE: int
-DEFAULT: 90
-LOC: Config.ipcache.low
-DOC_NONE
-
-NAME: ipcache_high
-COMMENT: (percent)
-TYPE: int
-DEFAULT: 95
-LOC: Config.ipcache.high
-DOC_START
-	The size, low-, and high-water marks for the IP cache.
-DOC_END
-
-NAME: fqdncache_size
-COMMENT: (number of entries)
-TYPE: int
-DEFAULT: 1024
-LOC: Config.fqdncache.size
-DOC_START
-	Maximum number of FQDN cache entries.
 DOC_END
 
 NAME: memory_replacement_policy
@@ -1221,12 +1189,12 @@ DOC_START
 
 	To log the request via syslog specify a filepath of "syslog":
 
-	access_log syslog[:facility|priority] [format [acl1 [acl2 ....]]]
+	access_log syslog[:facility.priority] [format [acl1 [acl2 ....]]]
 	where facility could be any of:
-	LOG_AUTHPRIV, LOG_DAEMON, LOG_LOCAL0 .. LOG_LOCAL7 or LOG_USER.
+	authpriv, daemon, local9 .. local7 or user.
 
 	And priority could be any of:
-	LOG_ERR, LOG_WARNING, LOG_NOTICE, LOG_INFO, LOG_DEBUG.
+	err, warning, notice, info, debug.
 NOCOMMENT_START
 access_log @DEFAULT_ACCESS_LOG@ squid
 NOCOMMENT_END
@@ -2865,6 +2833,18 @@ DOC_START
 	  # clients may appear to come from multiple addresses if they are
 	  # going through proxy farms, so a limit of 1 may cause user problems.
 
+	acl aclname req_mime_type mime-type1 ...
+	  # regex match against the mime type of the request generated
+	  # by the client. Can be used to detect file upload or some
+	  # types HTTP tunneling requests.
+	  # NOTE: This does NOT match the reply. You cannot use this
+	  # to match the returned file type.
+
+	acl aclname req_header header-name [-i] any\.regex\.here
+	  # regex match against any of the known request headers.  May be
+	  # thought of as a superset of "browser", "referer" and "mime-type"
+	  # ACLs.
+
 	acl aclname rep_mime_type mime-type1 ...
 	  # regex match against the mime type of the reply received by
 	  # squid. Can be used to detect file download or some
@@ -2881,18 +2861,6 @@ DOC_START
 	  # Example:
 	  #
 	  # acl many_spaces rep_header Content-Disposition -i [[:space:]]{3,}
-
-	acl aclname req_mime_type mime-type1 ...
-	  # regex match against the mime type of the request generated
-	  # by the client. Can be used to detect file upload or some
-	  # types HTTP tunneling requests.
-	  # NOTE: This does NOT match the reply. You cannot use this
-	  # to match the returned file type.
-
-	acl aclname req_header header-name [-i] any\.regex\.here
-	  # regex match against any of the known request headers.  May be
-	  # thought of as a superset of "browser", "referer" and "mime-type"
-	  # ACLs.
 
 	acl acl_name external class_name [arguments...]
 	  # external ACL lookup via a helper class defined by the
@@ -4888,6 +4856,38 @@ DOC_START
 	don't match, Squid ignores the response and writes a warning
 	message to cache.log.  You can allow responses from unknown
 	nameservers by setting this option to 'off'.
+DOC_END
+
+NAME: ipcache_size
+COMMENT: (number of entries)
+TYPE: int
+DEFAULT: 1024
+LOC: Config.ipcache.size
+DOC_NONE
+
+NAME: ipcache_low
+COMMENT: (percent)
+TYPE: int
+DEFAULT: 90
+LOC: Config.ipcache.low
+DOC_NONE
+
+NAME: ipcache_high
+COMMENT: (percent)
+TYPE: int
+DEFAULT: 95
+LOC: Config.ipcache.high
+DOC_START
+	The size, low-, and high-water marks for the IP cache.
+DOC_END
+
+NAME: fqdncache_size
+COMMENT: (number of entries)
+TYPE: int
+DEFAULT: 1024
+LOC: Config.fqdncache.size
+DOC_START
+	Maximum number of FQDN cache entries.
 DOC_END
 
 COMMENT_START
