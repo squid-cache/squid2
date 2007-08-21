@@ -107,7 +107,7 @@ syslog_ntoa(const char *s)
     syslog_symbol_t *p;
 
     for (p = symbols; p->name != NULL; ++p)
-	if (!strcmp(s, p->name) || !strcmp(s, p->name + 4))
+	if (!strcmp(s, p->name) || !strcasecmp(s, p->name + 4))
 	    return p->value;
     return 0;
 }
