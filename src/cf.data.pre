@@ -73,9 +73,6 @@ DOC_START
 	If you are running Squid in accelerator mode, you
 	probably want to listen on port 80 also, or instead.
 
-	The -I command line option will override the *first* port
-	specified here.
-
 	You may specify multiple socket addresses on multiple lines.
 
 	Options:
@@ -113,11 +110,6 @@ DOC_START
 	   no-connection-auth
 			Prevent forwarding of Microsoft connection oriented
 			authentication (NTLM, Negotiate and Kerberos)
-
-	   act-as-origin
-	   		Act is if this Squid is the origin server.
-			This currently means generate own Date: and
-			Expires: headers. Implies accel.
 
 	If you run Squid on a dual-homed machine with an internal
 	and an external interface we recommend you to specify the
@@ -395,7 +387,6 @@ DOC_START
 		     round-robin
 		     carp
 		     multicast-responder
-		     multicast-siblings
 		     closest-only
 		     no-digest
 		     no-netdb-exchange
@@ -457,23 +448,12 @@ DOC_START
 		     use 'carp' to define a set of parents which should
 		     be used as a CARP array. The requests will be
 		     distributed among the parents based on the CARP load
-		     balancing hash function based on their weight.
+		     balancing hash function based on their weigth.
 
 		     'multicast-responder' indicates the named peer
 		     is a member of a multicast group.  ICP queries will
 		     not be sent directly to the peer, but ICP replies
 		     will be accepted from it.
-
-		     the 'multicast-siblings' option is meant to be used
-		     only for cache peers of type "multicast". It instructs
-		     Squid that ALL members of this multicast group have
-		     "sibling" relationship with it, not "parent".  This is
-		     an optimization that avoids useless multicast queries
-		     to a multicast group when the requested object would
-		     be fetched only from a "parent" cache, anyway.  It's
-		     useful, e.g., when configuring a pool of redundant
-		     Squid proxies, being members of the same
-		     multicast group.
 
 		     'closest-only' indicates that, for ICP_OP_MISS
 		     replies, we'll only forward CLOSEST_PARENT_MISSes
@@ -753,6 +733,20 @@ cache deny QUERY
 NOCOMMENT_END
 DOC_END
 
+NAME: wais_relay_host
+TYPE: string
+DEFAULT: none
+LOC: Config.Wais.relayHost
+DOC_NONE
+
+NAME: wais_relay_port
+TYPE: ushort
+DEFAULT: 0
+LOC: Config.Wais.relayPort
+DOC_START
+	Relay WAIS request to host (1st arg) at port (2 arg).
+DOC_END
+
 COMMENT_START
  MEMORY CACHE OPTIONS
  -----------------------------------------------------------------------------
@@ -956,7 +950,7 @@ DOC_START
 
 	Common options:
 
-	no-store, no new objects should be stored to this cache_dir
+	read-only, no new objects should be stored to this cache_dir
 
 	min-size=n, refers to the min object size this storedir will accept.
 	It's used to restrict a storedir to only store large objects
@@ -1132,7 +1126,6 @@ DOC_START
 		<A	Server IP address or peer name
 		la	Local IP address (http_port)
 		lp	Local port number (http_port)
-		oa	Our outgoing IP address (tcp_outgoing_address)
 		ts	Seconds since epoch
 		tu	subsecond time (milliseconds)
 		tl	Local time. Optional strftime format argument
@@ -1155,7 +1148,6 @@ DOC_START
 		mt	MIME content type
 		rm	Request method (GET/POST etc)
 		ru	Request URL
-		rp	Request URL-Path excluding hostname
 		rv	Request protocol version
 		ea	Log string returned by external acl
 		<st	Reply size including HTTP headers
@@ -1191,13 +1183,10 @@ DOC_START
 
 	access_log syslog[:facility.priority] [format [acl1 [acl2 ....]]]
 	where facility could be any of:
-	authpriv, daemon, local0 .. local7 or user.
+	authpriv, daemon, local9 .. local7 or user.
 
 	And priority could be any of:
 	err, warning, notice, info, debug.
-
-	Note: 2.6.STABLE14 and earlier only supports a slightly different
-	and undocumented format with all uppercase LOG_FACILITY|LOG_PRIORITY
 NOCOMMENT_START
 access_log @DEFAULT_ACCESS_LOG@ squid
 NOCOMMENT_END
@@ -1980,7 +1969,6 @@ DOC_START
 	  %IDENT	Ident user name
 	  %SRC		Client IP
 	  %SRCPORT	Client source port
-	  %URI		Requested URI
 	  %DST		Requested host
 	  %PROTO	Requested protocol
 	  %PORT		Requested port
@@ -2448,7 +2436,7 @@ DOC_END
 
 NAME: extension_methods
 TYPE: extension_method
-LOC: RequestMethods
+LOC: RequestMethodStr
 DEFAULT: none
 DOC_START
 	Squid only knows about standardized HTTP request methods.
@@ -4650,37 +4638,6 @@ DOC_START
 	Heavy voodoo here.  I can't even believe you are reading this.
 	Are you crazy?  Don't even think about adjusting these unless
 	you understand the algorithms in comm_select.c first!
-DOC_END
-
-NAME: max_filedescriptors
-TYPE: int
-DEFAULT: 0
-LOC: Config.max_filedescriptors
-DOC_START
-	The maximum number of filedescriptors supported.
-
-	The default "0" means Squid inherits the current ulimit setting.
-
-	Note: Changing this requires a restart of Squid. Also
-	not all comm loops supports values larger than --with-maxfd.
-DOC_END
-
-NAME: accept_filter
-IFDEF: SO_ACCEPTFILTER
-TYPE: string
-DEFAULT: none
-LOC: Config.accept_filter
-DOC_START
-	The name of an accept(2) filter to install on Squid's
-	listen socket(s).  This feature is perhaps specific to
-	FreeBSD and requires support in the kernel.
-
-	The 'httpready' filter delays delivering new connections
-	to Squid until a full HTTP request has been recieved.
-	See the accf_http(9) man page.
-
-EXAMPLE:
-accept_filter httpready
 DOC_END
 
 NAME: tcp_recv_bufsize
