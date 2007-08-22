@@ -3,6 +3,7 @@ use strict;
 use DBI;
 use Getopt::Long;
 use Pod::Usage;
+$|=1;
 
 =pod
 
