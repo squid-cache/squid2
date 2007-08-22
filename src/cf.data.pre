@@ -1191,7 +1191,7 @@ DOC_START
 
 	access_log syslog[:facility.priority] [format [acl1 [acl2 ....]]]
 	where facility could be any of:
-	authpriv, daemon, local9 .. local7 or user.
+	authpriv, daemon, local0 .. local7 or user.
 
 	And priority could be any of:
 	err, warning, notice, info, debug.
