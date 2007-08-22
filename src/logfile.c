@@ -107,7 +107,7 @@ syslog_ntoa(const char *s)
     syslog_symbol_t *p;
 
     for (p = symbols; p->name != NULL; ++p)
-	if (!strcmp(s, p->name) || !strcmp(s, p->name + 4))
+	if (!strcmp(s, p->name) || !strcasecmp(s, p->name + 4))
 	    return p->value;
     return 0;
 }
@@ -126,7 +126,10 @@ logfileOpen(const char *path, size_t bufsz, int fatal_flag)
 	lf->fd = -1;
 	if (path[6] != '\0') {
 	    const char *priority = path + 7;
-	    char *facility = (char *) strchr(priority, '|');
+	    char *facility = (char *) strchr(priority, '.');
+	    if (!facility)
+		facility = (char *) strchr(priority, '|');
+
 	    if (facility) {
 		*facility++ = '\0';
 		lf->syslog_priority |= syslog_ntoa(facility);

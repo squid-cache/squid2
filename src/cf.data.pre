@@ -1191,10 +1191,13 @@ DOC_START
 
 	access_log syslog[:facility.priority] [format [acl1 [acl2 ....]]]
 	where facility could be any of:
-	authpriv, daemon, local9 .. local7 or user.
+	authpriv, daemon, local0 .. local7 or user.
 
 	And priority could be any of:
 	err, warning, notice, info, debug.
+
+	Note: 2.6.STABLE14 and earlier only supports a slightly different
+	and undocumented format with all uppercase LOG_FACILITY|LOG_PRIORITY
 NOCOMMENT_START
 access_log @DEFAULT_ACCESS_LOG@ squid
 NOCOMMENT_END
