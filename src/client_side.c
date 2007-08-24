@@ -1826,6 +1826,7 @@ clientBuildRangeHeader(clientHttpRequest * http, HttpReply * rep)
 	assert(actual_clen >= 0);
 	httpHeaderDelById(hdr, HDR_CONTENT_LENGTH);
 	httpHeaderPutSize(hdr, HDR_CONTENT_LENGTH, actual_clen);
+	rep->content_length = actual_clen;
 	debug(33, 3) ("clientBuildRangeHeader: actual content length: %" PRINTF_OFF_T "\n", actual_clen);
     }
 }
@@ -2791,6 +2792,7 @@ clientCheckErrorMapDone(StoreEntry * e, int body_offset, squid_off_t content_len
 	if (content_length >= 0) {
 	    httpHeaderPutSize(&http->reply->header, HDR_CONTENT_LENGTH, content_length);
 	}
+	http->reply->content_length = content_length;
     }
     clientCheckHeaderDone(http);
 }
@@ -3050,10 +3052,7 @@ clientWriteComplete(int fd, char *bufnotused, size_t size, int errflag, void *da
     } else if ((done = clientCheckTransferDone(http)) != 0 || size == 0) {
 	debug(33, 5) ("clientWriteComplete: FD %d transfer is DONE\n", fd);
 	/* We're finished case */
-	if (httpReplyBodySize(http->request->method, entry->mem_obj->reply) < 0) {
-	    debug(33, 5) ("clientWriteComplete: closing, content_length < 0\n");
-	    comm_close(fd);
-	} else if (!done) {
+	if (!done) {
 	    debug(33, 5) ("clientWriteComplete: closing, !done\n");
 	    comm_close(fd);
 	} else if (clientGotNotEnough(http)) {
