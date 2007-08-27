@@ -687,7 +687,7 @@ authenticateNTLMAuthenticateUser(auth_user_request_t * auth_user_request, reques
 
     switch (ntlm_request->auth_state) {
     case AUTHENTICATE_STATE_NONE:
-	/* we've recieved a ntlm request. pass to a helper */
+	/* we've received a ntlm request. pass to a helper */
 	debug(29, 9) ("authenticateNTLMAuthenticateUser: auth state ntlm none. %s\n", proxy_auth);
 	ntlm_request->auth_state = AUTHENTICATE_STATE_INITIAL;
 	safe_free(ntlm_request->client_blob);
@@ -705,7 +705,7 @@ authenticateNTLMAuthenticateUser(auth_user_request_t * auth_user_request, reques
 	return;
 	break;
     case AUTHENTICATE_STATE_NEGOTIATE:
-	/* we should have recieved a blob from the clien. pass it to the same 
+	/* we should have received a blob from the clien. pass it to the same 
 	 * helper process */
 	debug(29, 9) ("authenticateNTLMAuthenticateUser: auth state challenge with header %s.\n", proxy_auth);
 	/* do a cache lookup here. If it matches it's a successful ntlm 

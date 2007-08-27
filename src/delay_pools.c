@@ -605,7 +605,7 @@ delayBytesWanted(delay_id d, int min, int max)
 }
 
 /*
- * this records actual bytes recieved.  always recorded, even if the
+ * this records actual bytes received.  always recorded, even if the
  * class is disabled - it's more efficient to just do it than to do all
  * the checks.
  */

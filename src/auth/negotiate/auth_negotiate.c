@@ -728,7 +728,7 @@ authenticateNegotiateAuthenticateUser(auth_user_request_t * auth_user_request, r
 
     switch (negotiate_request->auth_state) {
     case AUTHENTICATE_STATE_NONE:
-	/* we've recieved a negotiate request. pass to a helper */
+	/* we've received a negotiate request. pass to a helper */
 	debug(29, 9) ("authenticateNegotiateAuthenticateUser: auth state negotiate none. %s\n", proxy_auth);
 	negotiate_request->auth_state = AUTHENTICATE_STATE_INITIAL;
 	safe_free(negotiate_request->client_blob);
@@ -746,7 +746,7 @@ authenticateNegotiateAuthenticateUser(auth_user_request_t * auth_user_request, r
 	return;
 	break;
     case AUTHENTICATE_STATE_NEGOTIATE:
-	/* we should have recieved a blob from the clien. pass it to the same 
+	/* we should have received a blob from the clien. pass it to the same 
 	 * helper process */
 	debug(29, 9) ("authenticateNegotiateAuthenticateUser: auth state challenge with header %s.\n", proxy_auth);
 	/* do a cache lookup here. If it matches it's a successful negotiate 

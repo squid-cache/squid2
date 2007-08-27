@@ -4673,7 +4673,7 @@ DOC_START
 	FreeBSD and requires support in the kernel.
 
 	The 'httpready' filter delays delivering new connections
-	to Squid until a full HTTP request has been recieved.
+	to Squid until a full HTTP request has been received.
 	See the accf_http(9) man page.
 
 EXAMPLE:

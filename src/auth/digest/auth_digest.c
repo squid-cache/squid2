@@ -1271,7 +1271,7 @@ authenticateDigestDecodeAuth(auth_user_request_t * auth_user_request, const char
     nonce = authenticateDigestNonceFindNonce(digest_request->nonceb64);
     if (!nonce) {
 	/* we couldn't find a matching nonce! */
-	debug(29, 4) ("authenticateDigestDecode: Unexpected or invalid nonce recieved\n");
+	debug(29, 4) ("authenticateDigestDecode: Unexpected or invalid nonce received\n");
 	authDigestLogUsername(auth_user_request, username);
 
 	/* we don't need the scheme specific data anymore */
@@ -1285,8 +1285,8 @@ authenticateDigestDecodeAuth(auth_user_request_t * auth_user_request, const char
     /* check the qop is what we expected. Note that for compatability with 
      * RFC 2069 we should support a missing qop. Tough. */
     if (!digest_request->qop || strcmp(digest_request->qop, QOP_AUTH)) {
-	/* we recieved a qop option we didn't send */
-	debug(29, 4) ("authenticateDigestDecode: Invalid qop option recieved\n");
+	/* we received a qop option we didn't send */
+	debug(29, 4) ("authenticateDigestDecode: Invalid qop option received\n");
 	authDigestLogUsername(auth_user_request, username);
 
 	/* we don't need the scheme specific data anymore */
