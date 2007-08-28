@@ -332,7 +332,6 @@ authenticateNTLMFixErrorHeader(auth_user_request_t * auth_user_request, HttpRepl
 	debug(29, 9) ("authenticateNTLMFixErrorHeader: Sending type:%d header: 'NTLM %s'\n", type, ntlm_request->server_blob);
 	httpHeaderPutStrf(&rep->header, type, "NTLM %s", ntlm_request->server_blob);
 	safe_free(ntlm_request->server_blob);
-	request->flags.must_keepalive = 1;
 	break;
     case AUTHENTICATE_STATE_DONE:
 	/* Special case when authentication finished, but not allowed by ACL */
@@ -355,6 +354,10 @@ authNTLMRequestFree(ntlm_request_t * ntlm_request)
     if (ntlm_request->authserver != NULL) {
 	debug(29, 9) ("authenticateNTLMRequestFree: releasing server '%p'\n", ntlm_request->authserver);
 	authenticateNTLMReleaseServer(ntlm_request);
+    }
+    if (ntlm_request->request) {
+	requestUnlink(ntlm_request->request);
+	ntlm_request->request = NULL;
     }
     memPoolFree(ntlm_request_pool, ntlm_request);
 }
@@ -445,11 +448,18 @@ authenticateNTLMHandleReply(void *data, void *srv, char *reply)
     if (strncasecmp(reply, "TT ", 3) == 0) {
 	/* we have been given a blob to send to the client */
 	safe_free(ntlm_request->server_blob);
-	ntlm_request->server_blob = xstrdup(blob);
-	ntlm_request->auth_state = AUTHENTICATE_STATE_NEGOTIATE;
-	safe_free(auth_user_request->message);
-	auth_user_request->message = xstrdup("Authentication in progress");
-	debug(29, 4) ("authenticateNTLMHandleReply: Need to challenge the client with a server blob '%s'\n", blob);
+	ntlm_request->request->flags.must_keepalive = 1;
+	if (ntlm_request->request->flags.proxy_keepalive) {
+	    ntlm_request->server_blob = xstrdup(blob);
+	    ntlm_request->auth_state = AUTHENTICATE_STATE_NEGOTIATE;
+	    safe_free(auth_user_request->message);
+	    auth_user_request->message = xstrdup("Authentication in progress");
+	    debug(29, 4) ("authenticateNTLMHandleReply: Need to challenge the client with a server blob '%s'\n", blob);
+	} else {
+	    ntlm_request->auth_state = AUTHENTICATE_STATE_FAILED;
+	    safe_free(auth_user_request->message);
+	    auth_user_request->message = xstrdup("NTLM authentication requires a persistent connection");
+	}
     } else if (strncasecmp(reply, "AF ", 3) == 0) {
 	auth_user_hash_pointer *usernamehash;
 	/* we're finished, release the helper */
@@ -503,6 +513,8 @@ authenticateNTLMHandleReply(void *data, void *srv, char *reply)
     } else {
 	fatalf("authenticateNTLMHandleReply: *** Unsupported helper response ***, '%s'\n", reply);
     }
+    requestUnlink(ntlm_request->request);
+    ntlm_request->request = NULL;
     r->handler(r->data, NULL);
     cbdataUnlock(r->data);
     authenticateStateFree(r);
@@ -661,12 +673,6 @@ authenticateNTLMAuthenticateUser(auth_user_request_t * auth_user_request, reques
 	debug(29, 1) ("authenticateNTLMAuthenticateUser: attempt to perform authentication without a connection!\n");
 	return;
     }
-    if (!request->flags.proxy_keepalive) {
-	debug(29, 2) ("authenticateNTLMAuthenticateUser: attempt to perform authentication without a persistent connection!\n");
-	ntlm_request->auth_state = AUTHENTICATE_STATE_FAILED;
-	request->flags.must_keepalive = 1;
-	return;
-    }
     if (ntlm_request->waiting) {
 	debug(29, 1) ("authenticateNTLMAuthenticateUser: waiting for helper reply!\n");
 	return;
@@ -698,6 +704,7 @@ authenticateNTLMAuthenticateUser(auth_user_request_t * auth_user_request, reques
 	/* and lock for the connection duration */
 	debug(29, 9) ("authenticateNTLMAuthenticateUser: Locking auth_user from the connection.\n");
 	authenticateAuthUserRequestLock(auth_user_request);
+	ntlm_request->request = requestLink(request);
 	return;
 	break;
     case AUTHENTICATE_STATE_INITIAL:
@@ -713,6 +720,9 @@ authenticateNTLMAuthenticateUser(auth_user_request_t * auth_user_request, reques
 	 * details. */
 	safe_free(ntlm_request->client_blob);
 	ntlm_request->client_blob = xstrdup(blob);
+	if (ntlm_request->request)
+	    requestUnlink(ntlm_request->request);
+	ntlm_request->request = requestLink(request);
 	return;
 	break;
     case AUTHENTICATE_STATE_DONE:
