@@ -951,7 +951,7 @@ storeLocateVary(StoreEntry * e, int offset, const char *vary_data, String accept
     state->buf = memAllocBuf(4096, &state->buf_size);
     state->sc = storeClientRegister(state->e, state);
     state->seen_offset = offset;
-    if (strCmp(e->mem_obj->reply->content_type, "x-squid-internal/vary") != 0) {
+    if (!strLen(e->mem_obj->reply->content_type) || strCmp(e->mem_obj->reply->content_type, "x-squid-internal/vary") != 0) {
 	/* This is not our Vary marker object. Bail out. */
 	debug(33, 1) ("storeLocateVary: Not our vary marker object, %s = '%s', '%s'/'%s'\n",
 	    storeKeyText(e->hash.key), e->mem_obj->url, vary_data, strBuf(accept_encoding) ? strBuf(accept_encoding) : "-");
