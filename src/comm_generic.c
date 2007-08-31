@@ -356,7 +356,7 @@ checkTimeouts(void)
 int
 comm_select(int msec)
 {
-    static time_t last_timeout = 0;
+    static double last_timeout = 0.0;
     int rc;
     double start = current_dtime;
 
@@ -377,9 +377,13 @@ comm_select(int msec)
     storeDirCallback();
 
     /* Check timeouts once per second */
-    if (last_timeout != squid_curtime) {
-	last_timeout = squid_curtime;
+    if (last_timeout + 0.999 < current_dtime) {
+	last_timeout = current_dtime;
 	checkTimeouts();
+    } else {
+	int max_timeout = (last_timeout + 1.0 - current_dtime) * 1000;
+	if (max_timeout < msec)
+	    msec = max_timeout;
     }
     comm_select_handled = 0;
 
