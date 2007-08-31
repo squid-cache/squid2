@@ -1,3 +1,36 @@
+Changes to squid-2.6.STABLE15 (31 Aug 2007)
+
+	- The select() I/O loop got broken by the /dev/poll addition
+	  (2.6.STABLE14)
+	- Bug #2017: Fails to work around broken servers sending just the HTTP
+	  headers
+	- Bug #2023: Compile error with old GCC 2.x or other ANSI-C compilers
+	  before C99
+	- squid.conf.default updated and reorganised in more sensible groups
+	- correct and document the syslog access_log format
+	- Armenian error pages translation
+	- digest_ldap_helper usage help updated
+	- Bug #1560: ftpSendPasv: getsockname(-1,..): (9) Bad file descriptor
+	- Improve delay pools in low traffic environment by checking timeouts
+	  at a steady 1 second interval even when there is not much activity
+	- Don't request authentication on transparently intercepted
+	  connections
+	- Cleanup linux capabilities for tproxy
+	- Bug #2003: 'via' config directive doesn't affect response headers
+	- Bug #1902: Adds Numeric Hit and invalid request counters to IP Cache
+	- Add missing $|=1 to squid_db_auth
+	- Bug #2050: Persistent connection dropped if cache has no
+	  Content-Length
+	- Verify the URL on memory cache hits
+	- Bug #2057: NTLM stop work in messengers after upgrade to 2.6.STABLE14
+	- Bug #1972: Squid sets peers to down state when they are in fact
+	  working.
+	- potential segmentation fault in storeLocateVary()
+	- Bug #2066: chdir after chroot
+	- Windows port: Fix compiler warnings when building Squid as
+	  application (not Windows service mode)
+	- Spelling correction of received
+
 Changes to squid-2.6.STABLE14 (15 Jul 2007)
 
 	- squid.conf.default cleanup to have options in their proper sections.
