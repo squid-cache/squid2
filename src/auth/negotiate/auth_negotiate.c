@@ -334,7 +334,6 @@ authenticateNegotiateFixErrorHeader(auth_user_request_t * auth_user_request, Htt
 	debug(29, 9) ("authenticateNegotiateFixErrorHeader: Sending type:%d header: 'Negotiate %s'\n", type, negotiate_request->server_blob);
 	httpHeaderPutStrf(&rep->header, type, "Negotiate %s", negotiate_request->server_blob);
 	safe_free(negotiate_request->server_blob);
-	request->flags.must_keepalive = 1;
 	break;
     case AUTHENTICATE_STATE_DONE:
 	/* Special case when authentication finished, but not allowed by ACL */
@@ -382,6 +381,10 @@ authNegotiateRequestFree(negotiate_request_t * negotiate_request)
     if (negotiate_request->authserver != NULL) {
 	debug(29, 9) ("authenticateNegotiateRequestFree: releasing server '%p'\n", negotiate_request->authserver);
 	authenticateNegotiateReleaseServer(negotiate_request);
+    }
+    if (negotiate_request->request) {
+	requestUnlink(negotiate_request->request);
+	negotiate_request->request = NULL;
     }
     memPoolFree(negotiate_request_pool, negotiate_request);
 }
@@ -478,11 +481,18 @@ authenticateNegotiateHandleReply(void *data, void *srv, char *reply)
 	if (arg)
 	    *arg++ = '\0';
 	safe_free(negotiate_request->server_blob);
-	negotiate_request->server_blob = xstrdup(blob);
-	negotiate_request->auth_state = AUTHENTICATE_STATE_NEGOTIATE;
-	safe_free(auth_user_request->message);
-	auth_user_request->message = xstrdup("Authentication in progress");
-	debug(29, 4) ("authenticateNegotiateHandleReply: Need to challenge the client with a server blob '%s'\n", blob);
+	negotiate_request->request->flags.must_keepalive = 1;
+	if (negotiate_request->request->flags.proxy_keepalive) {
+	    negotiate_request->server_blob = xstrdup(blob);
+	    negotiate_request->auth_state = AUTHENTICATE_STATE_NEGOTIATE;
+	    safe_free(auth_user_request->message);
+	    auth_user_request->message = xstrdup("Authentication in progress");
+	    debug(29, 4) ("authenticateNegotiateHandleReply: Need to challenge the client with a server blob '%s'\n", blob);
+	} else {
+	    negotiate_request->auth_state = AUTHENTICATE_STATE_FAILED;
+	    safe_free(auth_user_request->message);
+	    auth_user_request->message = xstrdup("NTLM authentication requires a persistent connection");
+	}
     } else if (strncasecmp(reply, "AF ", 3) == 0 && arg != NULL) {
 	auth_user_hash_pointer *usernamehash;
 	/* we're finished, release the helper */
@@ -544,6 +554,8 @@ authenticateNegotiateHandleReply(void *data, void *srv, char *reply)
     } else {
 	fatalf("authenticateNegotiateHandleReply: *** Unsupported helper response ***, '%s'\n", reply);
     }
+    requestUnlink(negotiate_request->request);
+    negotiate_request->request = NULL;
     r->handler(r->data, NULL);
     cbdataUnlock(r->data);
     authenticateStateFree(r);
@@ -702,12 +714,6 @@ authenticateNegotiateAuthenticateUser(auth_user_request_t * auth_user_request, r
 	debug(29, 1) ("authenticateNegotiateAuthenticateUser: attempt to perform authentication without a connection!\n");
 	return;
     }
-    if (!request->flags.proxy_keepalive) {
-	debug(29, 2) ("authenticateNegotiateAuthenticateUser: attempt to perform authentication without a persistent connection!\n");
-	negotiate_request->auth_state = AUTHENTICATE_STATE_FAILED;
-	request->flags.must_keepalive = 1;
-	return;
-    }
     if (negotiate_request->waiting) {
 	debug(29, 1) ("authenticateNegotiateAuthenticateUser: waiting for helper reply!\n");
 	return;
@@ -739,6 +745,7 @@ authenticateNegotiateAuthenticateUser(auth_user_request_t * auth_user_request, r
 	/* and lock for the connection duration */
 	debug(29, 9) ("authenticateNegotiateAuthenticateUser: Locking auth_user from the connection.\n");
 	authenticateAuthUserRequestLock(auth_user_request);
+	negotiate_request->request = requestLink(request);
 	return;
 	break;
     case AUTHENTICATE_STATE_INITIAL:
@@ -754,6 +761,9 @@ authenticateNegotiateAuthenticateUser(auth_user_request_t * auth_user_request, r
 	 * details. */
 	safe_free(negotiate_request->client_blob);
 	negotiate_request->client_blob = xstrdup(blob);
+	if (negotiate_request->request)
+	    requestUnlink(negotiate_request->request);
+	negotiate_request->request = requestLink(request);
 	return;
 	break;
     case AUTHENTICATE_STATE_DONE:

@@ -41,6 +41,8 @@ struct _negotiate_request {
     char *server_blob;
     /* our current blob to pass to the server */
     char *client_blob;
+    /* the HTTP request */
+    request_t *request;
 };
 
 /* configuration runtime data */
