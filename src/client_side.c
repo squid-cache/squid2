@@ -1990,7 +1990,7 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
 	request->flags.proxy_keepalive = 0;
     }
     /* Append Via */
-    {
+    if (Config.onoff.via) {
 	char bbuf[MAX_URL + 32];
 	String strVia = httpHeaderGetList(hdr, HDR_VIA);
 	snprintf(bbuf, MAX_URL + 32, "%d.%d %s",
