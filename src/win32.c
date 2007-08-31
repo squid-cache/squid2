@@ -54,9 +54,11 @@
 static unsigned int GetOSVersion();
 void WIN32_svcstatusupdate(DWORD, DWORD);
 void WINAPI WIN32_svcHandler(DWORD);
+#if USE_WIN32_SERVICE
 static int WIN32_StoreKey(const char *, DWORD, unsigned char *, int);
 static int WIN32_create_key(void);
 static void WIN32_build_argv(char *);
+#endif /* USE_WIN32_SERVICE */
 void WINAPI SquidWinSvcMain(DWORD, char **);
 
 #if defined(_SQUID_MSWIN_)
@@ -67,11 +69,14 @@ void WIN32_ExceptionHandlerCleanup(void);
 static LPTOP_LEVEL_EXCEPTION_FILTER Win32_Old_ExceptionHandler = NULL;
 #endif /* _SQUID_MSWIN_ */
 
+#if USE_WIN32_SERVICE
 static SERVICE_STATUS svcStatus;
 static SERVICE_STATUS_HANDLE svcHandle;
+
 static int WIN32_argc;
 static char **WIN32_argv;
 static char *WIN32_module_name;
+#endif /* USE_WIN32_SERVICE */
 static int Squid_Aborting = 0;
 
 #define VENDOR   "GNU"
@@ -86,6 +91,7 @@ typedef BOOL(WINAPI * PFChangeServiceConfig2) (SC_HANDLE, DWORD, LPVOID);
 #else
 #define CHANGESERVICECONFIG2 "ChangeServiceConfig2A"
 #endif
+#if USE_WIN32_SERVICE
 static SC_ACTION Squid_SCAction[] =
 {
     {SC_ACTION_RESTART, 60000}};
@@ -93,6 +99,7 @@ static SERVICE_DESCRIPTION Squid_ServiceDescription =
 {SOFTWARENAME " " VERSION " " PACKAGE_NAME};
 static SERVICE_FAILURE_ACTIONS Squid_ServiceFailureActions =
 {INFINITE, NULL, NULL, 1, Squid_SCAction};
+
 static char REGKEY[256] = "SOFTWARE\\" VENDOR "\\" SOFTWARENAME "\\" WIN32_VERSION "\\";
 static char *keys[] =
 {
@@ -103,11 +110,13 @@ static char *keys[] =
     NULL,			/* key[4] */
     NULL			/* key[5] */
 };
+#endif /* USE_WIN32_SERVICE */
 
 /* ====================================================================== */
 /* LOCAL FUNCTIONS */
 /* ====================================================================== */
 
+#if USE_WIN32_SERVICE
 static int
 WIN32_create_key(void)
 {
@@ -221,6 +230,7 @@ WIN32_StoreKey(const char *key, DWORD type, unsigned char *value,
     }
     return retval;
 }
+#endif /* USE_WIN32_SERVICE */
 
 static unsigned int
 GetOSVersion()
@@ -293,6 +303,7 @@ GetOSVersion()
     return _WIN_OS_UNKNOWN;
 }
 
+#if USE_WIN32_SERVICE
 /* Build argv, argc from string passed from Windows.  */
 static void
 WIN32_build_argv(char *cmd)
@@ -329,6 +340,8 @@ WIN32_build_argv(char *cmd)
     }
     WIN32_argv[WIN32_argc] = NULL;
 }
+
+#endif
 
 /* ====================================================================== */
 /* PUBLIC FUNCTIONS */
