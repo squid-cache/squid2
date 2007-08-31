@@ -1665,6 +1665,7 @@ AC_CHECK_HEADERS(
 	db.h \
 	db_185.h \
 	aio.h \
+	sys/capability.h \
 ,,,[
 #if HAVE_SYS_TYPES_H
 #include <sys/types.h>
