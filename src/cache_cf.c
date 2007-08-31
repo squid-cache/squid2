@@ -1626,6 +1626,7 @@ parse_peer(peer ** head)
     p->stats.logged_state = PEER_ALIVE;
     p->monitor.state = PEER_ALIVE;
     p->monitor.interval = 300;
+    p->tcp_up = PEER_TCP_MAGIC_COUNT;
     if ((token = strtok(NULL, w_space)) == NULL)
 	self_destruct();
     p->host = xstrdup(token);
