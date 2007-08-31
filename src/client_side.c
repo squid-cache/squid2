@@ -2130,6 +2130,11 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	}
 	return;
     }
+    if (strcmp(mem->url, urlCanonical(r)) != 0) {
+	debug(33, 1) ("clientCacheHit: URL mismatch '%s' != '%s'?\n", e->mem_obj->url, urlCanonical(r));
+	clientProcessMiss(http);
+	return;
+    }
     /*
      * Got the headers, now grok them
      */
