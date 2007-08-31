@@ -1,6 +1,6 @@
 <!doctype linuxdoc system>
 <article>
-<title>Squid 2.6.STABLE14 release notes</title>
+<title>Squid 2.6.STABLE15 release notes</title>
 <author>Squid Developers</author>
 <date>$Id$</date>
 
@@ -588,11 +588,30 @@ ScriptAlias /squid/cgi-bin/ "c:/squid/libexec/"
 	<item>Bug #1814: SSL memory leak on persistent SSL connections
 	<item>Ukrainan error messages
 	<item>See also the list of <url
-		url="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE13.html"
-			name="squid-2.6.STABLE13 changes"> and the <url url="ChangeLog"
+		url="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE14.html"
+			name="squid-2.6.STABLE14 changes"> and the <url url="ChangeLog"
 				name="ChangeLog"> file for details.
 </itemize>
 
+
+<sect>Key changes squid-2.6.STABLE14 to 2.6.STABLE15
+
+<p>
+<itemize>
+	<item>Portability fix for systems requiring select(). Got broken when
+	adding /dev/poll support in 2.6.STABLE14
+	<item>Bug #2017: Work around broken servers sending just the HTTP headers
+	<item>squid.conf.default documentation update and reorganisation
+	<item>access_log syslog syntax cleaned up and documented
+	<item>Armenian error pages translation
+	<item>Bug #2057: NTLM stop work in messengers after upgrade to 2.6.STABLE14
+	<item>Bug #1972: Squid sets peers to down state when they are in fact working.
+	<item>Bug #2066: chdir after chroot
+	<item>See also the list of <url
+		url="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE15.html"
+			name="squid-2.6.STABLE15 changes"> and the <url url="ChangeLog"
+				name="ChangeLog"> file for details.
+</itemize>
 
 <p>
 <itemize>
@@ -606,8 +625,8 @@ ScriptAlias /squid/cgi-bin/ "c:/squid/libexec/"
 	<item>NTLM workaround for some applications not negotiating HTTP/1.0 persistent connetions
 	<item>See also the list of <url
 		url="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE14.html"
-			name="squid-2.6.STABLE14 changes"> and the <url url="ChangeLog"
-				name="ChangeLog"> file for details.
+		name="squid-2.6.STABLE14 changes"> and the <url url="ChangeLog"
+		name="ChangeLog"> file for details.
 </itemize>
 
 </article>
