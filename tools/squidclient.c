@@ -132,7 +132,7 @@ static void
 usage(const char *progname)
 {
     fprintf(stderr,
-	"Usage: %s [-arsv] [-i IMS] [-h remote host] [-l local host] [-p port] [-m method] [-t count] [-I ping-interval] [-H 'strings'] [-T timeout] url\n"
+	"Usage: %s [-arsv] [-i IMS] [-h remote host] [-l local host] [-p port] [-m method] [-t count] [-I ping-interval] [-H 'strings'] [-T timeout] [-j 'hostheader'] url\n"
 	"Options:\n"
 	"    -P file      PUT request.\n"
 	"    -a           Do NOT include Accept: header.\n"
@@ -142,6 +142,7 @@ usage(const char *progname)
 	"    -i IMS       If-Modified-Since time (in Epoch seconds).\n"
 	"    -h host      Retrieve URL from cache on hostname.  Default is localhost.\n"
 	"    -l host      Specify a local IP address to bind to.  Default is none.\n"
+	"    -j hosthdr   Host header content\n"
 	"    -p port      Port number of cache.  Default is %d.\n"
 	"    -m method    Request method, default is GET.\n"
 	"    -t count     Trace count cache-hops\n"
@@ -152,7 +153,8 @@ usage(const char *progname)
 	"    -u user      Proxy authentication username\n"
 	"    -w password  Proxy authentication password\n"
 	"    -U user      WWW authentication username\n"
-	"    -W password  WWW authentication password\n",
+	"    -W password  WWW authentication password\n"
+	"    -V version   HTTP Version\n",
 	progname, CACHE_HTTP_PORT);
     exit(1);
 }
@@ -178,10 +180,12 @@ main(int argc, char *argv[])
     int i = 0, loops;
     long ping_int;
     long ping_min = 0, ping_max = 0, ping_sum = 0, ping_mean = 0;
-    char *proxy_user = NULL;
-    char *proxy_password = NULL;
-    char *www_user = NULL;
-    char *www_password = NULL;
+    const char *proxy_user = NULL;
+    const char *proxy_password = NULL;
+    const char *www_user = NULL;
+    const char *www_password = NULL;
+    const char *host = NULL;
+    const char *version = "1.1";
 
     /* set the defaults */
     hostname = "localhost";
@@ -201,18 +205,22 @@ main(int argc, char *argv[])
 	url[BUFSIZ - 1] = '\0';
 	if (url[0] == '-')
 	    usage(argv[0]);
-	while ((c = getopt(argc, argv, "ah:l:P:i:km:p:rsvt:g:p:I:H:T:u:U:w:W:?")) != -1)
+	while ((c = getopt(argc, argv, "ah:j:V:l:P:i:km:p:rsvt:g:p:I:H:T:u:U:w:W:?")) != -1)
 	    switch (c) {
 	    case 'a':
 		opt_noaccept = 1;
 		break;
 	    case 'h':		/* remote host */
-		if (optarg != NULL)
-		    hostname = optarg;
+		hostname = optarg;
+		break;
+	    case 'j':
+		host = optarg;
+		break;
+	    case 'V':
+		version = optarg;
 		break;
 	    case 'l':		/* local host */
-		if (optarg != NULL)
-		    localhost = optarg;
+		localhost = optarg;
 		break;
 	    case 's':		/* silent */
 		to_stdout = 0;
@@ -308,7 +316,26 @@ main(int argc, char *argv[])
 #endif
 	fstat(put_fd, &sb);
     }
-    snprintf(msg, BUFSIZ, "%s %s HTTP/1.0\r\n", method, url);
+    if (!host) {
+	char *newhost = strstr(url, "://");
+	if (newhost) {
+	    char *t;
+	    newhost += 3;
+	    newhost = strdup(newhost);
+	    t = newhost + strcspn(newhost, "@/?");
+	    if (*t == '@') {
+		newhost = t + 1;
+		t = newhost + strcspn(newhost, "@/?");
+	    }
+	    *t = '\0';
+	    host = newhost;
+	}
+    }
+    if (host)
+	snprintf(msg, BUFSIZ, "%s %s HTTP/%s\r\nHost: %s\r\n", method, url, version, host);
+    else
+	snprintf(msg, BUFSIZ, "%s %s HTTP/%s\r\n", method, url, version);
+
     if (reload) {
 	snprintf(buf, BUFSIZ, "Pragma: no-cache\r\n");
 	strcat(msg, buf);
@@ -330,8 +357,8 @@ main(int argc, char *argv[])
 	strcat(msg, buf);
     }
     if (proxy_user) {
-	char *user = proxy_user;
-	char *password = proxy_password;
+	const char *user = proxy_user;
+	const char *password = proxy_password;
 #if HAVE_GETPASS
 	if (!password)
 	    password = getpass("Proxy password: ");
@@ -345,8 +372,8 @@ main(int argc, char *argv[])
 	strcat(msg, buf);
     }
     if (www_user) {
-	char *user = www_user;
-	char *password = www_password;
+	const char *user = www_user;
+	const char *password = www_password;
 #if HAVE_GETPASS
 	if (!password)
 	    password = getpass("WWW password: ");
@@ -360,15 +387,14 @@ main(int argc, char *argv[])
 	strcat(msg, buf);
     }
     if (keep_alive) {
-	if (port != 80)
-	    snprintf(buf, BUFSIZ, "Proxy-Connection: keep-alive\r\n");
-	else
-	    snprintf(buf, BUFSIZ, "Connection: keep-alive\r\n");
-	strcat(msg, buf);
+	if (strstr(url, "://"))
+	    strcat(msg, "Proxy-Connection: keep-alive\r\n");
+	strcat(msg, "Connection: keep-alive\r\n");
     }
+    if (!keep_alive)
+	strcat(msg, "Connection: close\r\n");
     strcat(msg, extra_hdrs);
-    snprintf(buf, BUFSIZ, "\r\n");
-    strcat(msg, buf);
+    strcat(msg, "\r\n");
 
     if (opt_verbose)
 	fprintf(stderr, "headers: '%s'\n", msg);
