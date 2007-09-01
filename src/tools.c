@@ -41,12 +41,14 @@
 #include "squid.h"
 
 #ifdef _SQUID_LINUX_
+#if HAVE_SYS_CAPABILITY_H
 #undef _POSIX_SOURCE
 /* Ugly glue to get around linux header madness colliding with glibc */
 #define _LINUX_TYPES_H
 #define _LINUX_FS_H
 typedef uint32_t __u32;
 #include <sys/capability.h>
+#endif
 #endif
 
 #if HAVE_SYS_PRCTL_H
@@ -1319,7 +1321,7 @@ xusleep(unsigned int usec)
 void
 keepCapabilities(void)
 {
-#if HAVE_PRCTL && defined(PR_SET_KEEPCAPS)
+#if HAVE_PRCTL && defined(PR_SET_KEEPCAPS) && HAVE_SYS_CAPABILITY_H
     if (prctl(PR_SET_KEEPCAPS, 1, 0, 0, 0)) {
 	/* Silent failure unless TPROXY is required. Maybe not started as root */
 #if LINUX_TPROXY
@@ -1334,7 +1336,7 @@ keepCapabilities(void)
 static void
 restoreCapabilities(int keep)
 {
-#ifdef _SQUID_LINUX_
+#if defined(_SQUID_LINUX_) && HAVE_SYS_CAPABILITY_H
     cap_user_header_t head = (cap_user_header_t) xcalloc(1, sizeof(cap_user_header_t));
     cap_user_data_t cap = (cap_user_data_t) xcalloc(1, sizeof(cap_user_data_t));
 
@@ -1368,5 +1370,11 @@ restoreCapabilities(int keep)
   nocap:
     xfree(head);
     xfree(cap);
+#else
+#if LINUX_TPROXY
+    if (need_linux_tproxy)
+	debug(50, 1) ("Missing needed capability support. Will continue without tproxy support\n");
+    need_linux_tproxy = 0;
+#endif
 #endif
 }
