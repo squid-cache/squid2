@@ -1898,36 +1898,36 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
 	 * the objects age, so a Age: 0 header does not add any useful
 	 * information to the reply in any case.
 	 */
-	if (NULL == http->entry)
-	    (void) 0;
-	else if (http->entry->timestamp < 0)
-	    (void) 0;
-	if (EBIT_TEST(http->entry->flags, ENTRY_SPECIAL)) {
-	    httpHeaderDelById(hdr, HDR_DATE);
-	    httpHeaderInsertTime(hdr, 0, HDR_DATE, squid_curtime);
-	} else if (http->conn->port->act_as_origin) {
-	    HttpHeaderEntry *h = httpHeaderFindEntry(hdr, HDR_DATE);
-	    if (h)
-		httpHeaderPutExt(hdr, "X-Origin-Date", strBuf(h->value));
-	    httpHeaderDelById(hdr, HDR_DATE);
-	    httpHeaderInsertTime(hdr, 0, HDR_DATE, squid_curtime);
-	    h = httpHeaderFindEntry(hdr, HDR_EXPIRES);
-	    if (h && http->entry->expires >= 0) {
-		httpHeaderPutExt(hdr, "X-Origin-Expires", strBuf(h->value));
-		httpHeaderDelById(hdr, HDR_EXPIRES);
-		httpHeaderInsertTime(hdr, 1, HDR_EXPIRES, squid_curtime + http->entry->expires - http->entry->timestamp);
-	    } {
-		char age[64];
-		snprintf(age, sizeof(age), "%ld", (long int) squid_curtime - http->entry->timestamp);
-		httpHeaderPutExt(hdr, "X-Cache-Age", age);
+	if (http->entry) {
+	    if (EBIT_TEST(http->entry->flags, ENTRY_SPECIAL)) {
+		httpHeaderDelById(hdr, HDR_DATE);
+		httpHeaderInsertTime(hdr, 0, HDR_DATE, squid_curtime);
+	    } else if (http->entry->timestamp < 0) {
+		(void) 0;
+	    } else if (http->conn->port->act_as_origin) {
+		HttpHeaderEntry *h = httpHeaderFindEntry(hdr, HDR_DATE);
+		if (h)
+		    httpHeaderPutExt(hdr, "X-Origin-Date", strBuf(h->value));
+		httpHeaderDelById(hdr, HDR_DATE);
+		httpHeaderInsertTime(hdr, 0, HDR_DATE, squid_curtime);
+		h = httpHeaderFindEntry(hdr, HDR_EXPIRES);
+		if (h && http->entry->expires >= 0) {
+		    httpHeaderPutExt(hdr, "X-Origin-Expires", strBuf(h->value));
+		    httpHeaderDelById(hdr, HDR_EXPIRES);
+		    httpHeaderInsertTime(hdr, 1, HDR_EXPIRES, squid_curtime + http->entry->expires - http->entry->timestamp);
+		} {
+		    char age[64];
+		    snprintf(age, sizeof(age), "%ld", (long int) squid_curtime - http->entry->timestamp);
+		    httpHeaderPutExt(hdr, "X-Cache-Age", age);
+		}
+	    } else if (http->entry->timestamp < squid_curtime) {
+		httpHeaderPutInt(hdr, HDR_AGE,
+		    squid_curtime - http->entry->timestamp);
 	    }
-	} else if (http->entry->timestamp < squid_curtime) {
-	    httpHeaderPutInt(hdr, HDR_AGE,
-		squid_curtime - http->entry->timestamp);
-	}
-	if (!httpHeaderHas(hdr, HDR_CONTENT_LENGTH) && http->entry->mem_obj && http->entry->store_status == STORE_OK) {
-	    rep->content_length = contentLen(http->entry);
-	    httpHeaderPutSize(hdr, HDR_CONTENT_LENGTH, rep->content_length);
+	    if (!httpHeaderHas(hdr, HDR_CONTENT_LENGTH) && http->entry->mem_obj && http->entry->store_status == STORE_OK) {
+		rep->content_length = contentLen(http->entry);
+		httpHeaderPutSize(hdr, HDR_CONTENT_LENGTH, rep->content_length);
+	    }
 	}
     }
     /* Filter unproxyable authentication types */
