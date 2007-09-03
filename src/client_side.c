@@ -1911,19 +1911,19 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
 	 * the objects age, so a Age: 0 header does not add any useful
 	 * information to the reply in any case.
 	 */
-	if (NULL == http->entry)
-	    (void) 0;
-	else if (http->entry->timestamp < 0)
-	    (void) 0;
-	if (EBIT_TEST(http->entry->flags, ENTRY_SPECIAL)) {
-	    httpHeaderDelById(hdr, HDR_DATE);
-	    httpHeaderInsertTime(hdr, 0, HDR_DATE, squid_curtime);
-	} else if (http->entry->timestamp < squid_curtime)
-	    httpHeaderPutInt(hdr, HDR_AGE,
-		squid_curtime - http->entry->timestamp);
-	if (!httpHeaderHas(hdr, HDR_CONTENT_LENGTH) && http->entry->mem_obj && http->entry->store_status == STORE_OK) {
-	    rep->content_length = contentLen(http->entry);
-	    httpHeaderPutSize(hdr, HDR_CONTENT_LENGTH, rep->content_length);
+	if (http->entry) {
+	    if (EBIT_TEST(http->entry->flags, ENTRY_SPECIAL)) {
+		httpHeaderDelById(hdr, HDR_DATE);
+		httpHeaderInsertTime(hdr, 0, HDR_DATE, squid_curtime);
+	    } else if (http->entry->timestamp < 0) {
+		(void) 0;
+	    } else if (http->entry->timestamp < squid_curtime)
+		httpHeaderPutInt(hdr, HDR_AGE,
+		    squid_curtime - http->entry->timestamp);
+	    if (!httpHeaderHas(hdr, HDR_CONTENT_LENGTH) && http->entry->mem_obj && http->entry->store_status == STORE_OK) {
+		rep->content_length = contentLen(http->entry);
+		httpHeaderPutSize(hdr, HDR_CONTENT_LENGTH, rep->content_length);
+	    }
 	}
     }
     /* Filter unproxyable authentication types */
