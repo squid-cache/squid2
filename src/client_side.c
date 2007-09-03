@@ -4172,7 +4172,6 @@ clientProcessBody(ConnStateData * conn)
 	assert(conn->body.size_left > 0);
 	assert(conn->in.offset > 0);
 	assert(callback != NULL);
-	assert(buf != NULL || !conn->body.request);
 	/* How much do we have to process? */
 	size = conn->in.offset;
 	if (size > conn->body.size_left)	/* only process the body part */
@@ -4210,10 +4209,8 @@ clientProcessBody(ConnStateData * conn)
 	/* Invoke callback function */
 	if (valid)
 	    callback(buf, size, cbdata);
-	if (request != NULL) {
+	if (request != NULL)
 	    requestUnlink(request);	/* Linked in clientReadBody */
-	    conn->body.request = NULL;
-	}
 	debug(33, 2) ("clientProcessBody: end fd=%d size=%d body_size=%lu in.offset=%ld cb=%p req=%p\n", conn->fd, size, (unsigned long int) conn->body.size_left, (long int) conn->in.offset, callback, request);
     }
 }
