@@ -424,6 +424,7 @@ DOC_START
 		     ssloptions=...
 		     front-end-https[=on|auto]
 		     connection-auth[=on|off|auto]
+		     idle=n
 
 		     use 'proxy-only' to specify objects fetched
 		     from this cache should not be saved locally.
@@ -641,6 +642,9 @@ DOC_START
 		     and any such challenges received from there should be
 		     ignored. Default is auto to automatically determine the
 		     status of the peer.
+
+		     use idle=n to specify a minimum number of idle connections
+		     that should be kept open to this peer.
 DOC_END
 
 NAME: cache_peer_domain cache_host_domain

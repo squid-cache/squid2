@@ -1175,8 +1175,7 @@ extern ErrorState *errorCon(err_type type, http_status, request_t * request);
 extern int errorPageId(const char *page_name);
 
 extern void pconnPush(int, const char *host, u_short port, const char *domain, struct in_addr *client_address, u_short client_port);
-extern int pconnPop(const char *host, u_short port, const char *domain, struct in_addr *client_address, u_short client_port);
-extern hash_link *pconnLookup(const char *peer, u_short port, const char *domain, struct in_addr *client_address, u_short client_port);
+extern int pconnPop(const char *host, u_short port, const char *domain, struct in_addr *client_address, u_short client_port, int *idle);
 extern void pconnInit(void);
 
 extern int asnMatchIp(void *, struct in_addr);

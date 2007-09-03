@@ -1404,6 +1404,7 @@ struct _peer {
 	time_t last_connect_probe;
 	int logged_state;	/* so we can print dead/revived msgs */
 	int conn_open;		/* current opened connections */
+	int idle_opening;	/* pending idle connection setups */
     } stats;
     struct {
 	int version;
@@ -1518,6 +1519,7 @@ struct _peer {
 #endif
     int front_end_https;
     int connection_auth;
+    int idle;
 };
 
 struct _net_db_name {

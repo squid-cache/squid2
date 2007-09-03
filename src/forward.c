@@ -397,6 +397,76 @@ fwdConnectTimeout(int fd, void *data)
     comm_close(fd);
 }
 
+typedef struct {
+    peer *peer;
+    char *domain;
+} idleconn;
+
+static void
+free_idleconn(void *data)
+{
+    idleconn *idle = data;
+    safe_free(idle->domain)
+}
+
+CBDATA_TYPE(idleconn);
+
+static void
+fwdConnectIdleDone(int fd, int status, void *data)
+{
+    idleconn *idle = data;
+    idle->peer->stats.idle_opening--;
+    if (fd >= 0)
+	pconnPush(fd, idle->peer->name, idle->peer->http_port, idle->domain, NULL, 0);
+    cbdataFree(idle);
+}
+
+static void
+fwdConnectIdleTimeout(int fd, void *data)
+{
+    idleconn *idle = data;
+    debug(17, 2) ("fwdConnectIdleTimeout: FD %d: '%s'\n", fd, idle->peer->name);
+    idle->peer->stats.idle_opening--;
+    comm_close(fd);
+    cbdataFree(idle);
+}
+
+static void
+openIdleConn(peer * peer, const char *domain, struct in_addr outgoing, unsigned short tos, int ctimeout)
+{
+    int fd = comm_openex(SOCK_STREAM,
+	IPPROTO_TCP,
+	outgoing,
+	0,
+	COMM_NONBLOCKING,
+	tos,
+	peer->name);
+    idleconn *idle;
+    if (fd < 0) {
+	debug(50, 4) ("openIdleConn: %s\n", xstrerror());
+	return;;
+    }
+    CBDATA_INIT_TYPE_FREECB(idleconn, free_idleconn);
+    idle = cbdataAlloc(idleconn);
+    idle->peer = peer;
+    cbdataLock(idle->peer);
+    idle->domain = xstrdup(domain);
+    /*
+     * stats.conn_open is used to account for the number of
+     * connections that we have open to the peer, so we can limit
+     * based on the max-conn option.  We need to increment here,
+     * even if the connection may fail.
+     */
+    peer->stats.conn_open++;
+    peer->stats.idle_opening++;
+    comm_add_close_handler(fd, fwdPeerClosed, peer);
+    commSetTimeout(fd,
+	ctimeout,
+	fwdConnectIdleTimeout,
+	idle);
+    commConnectStart(fd, peer->host, peer->http_port, fwdConnectIdleDone, idle, NULL);
+}
+
 static struct in_addr
 aclMapAddr(acl_address * head, aclCheck_t * ch)
 {
@@ -464,6 +534,7 @@ fwdConnectStart(void *data)
 #if LINUX_TPROXY
     struct in_tproxy itp;
 #endif
+    int idle = -1;
 
     assert(fs);
     assert(fwdState->server_fd == -1);
@@ -474,6 +545,8 @@ fwdConnectStart(void *data)
 	port = fs->peer->http_port;
 	if (fs->peer->options.originserver)
 	    domain = fwdState->request->host;
+	else
+	    domain = "*";
 	ctimeout = fs->peer->connect_timeout > 0 ? fs->peer->connect_timeout
 	    : Config.Timeout.peer_connect;
     } else {
@@ -513,10 +586,11 @@ fwdConnectStart(void *data)
     }
 #if LINUX_TPROXY
     if (fd == -1 && fwdState->request->flags.tproxy)
-	fd = pconnPop(name, port, domain, &fwdState->request->client_addr, 0);
+	fd = pconnPop(name, port, domain, &fwdState->request->client_addr, 0, NULL);
 #endif
-    if (fd == -1)
-	fd = pconnPop(name, port, domain, NULL, 0);
+    if (fd == -1) {
+	fd = pconnPop(name, port, domain, NULL, 0, &idle);
+    }
     if (fd != -1) {
 	/* Don't cache if the returned fd does not have valid DNS */
 	if (fd_table[fd].flags.dnsfailed)
@@ -534,6 +608,19 @@ fwdConnectStart(void *data)
 		hierarchyNote(&fwdState->request->hier, fs->code, fd_table[fd].ipaddr);
 	    else
 		hierarchyNote(&fwdState->request->hier, fs->code, name);
+	    if (fs->peer && idle >= 0 && idle < fs->peer->idle) {
+		debug(17, 3) ("fwdConnectStart: Opening idle connetions for '%s'\n",
+		    fs->peer->name);
+		outgoing = getOutgoingAddr(fwdState->request);
+		tos = getOutgoingTOS(fwdState->request);
+		debug(17, 3) ("fwdConnectStart: got addr %s, tos %d\n",
+		    inet_ntoa(outgoing), tos);
+		idle += fs->peer->stats.idle_opening;
+		while (idle < fs->peer->idle) {
+		    openIdleConn(fs->peer, domain, outgoing, tos, ctimeout);
+		    idle++;
+		}
+	    }
 	    fwdDispatch(fwdState);
 	    return;
 	} else {
