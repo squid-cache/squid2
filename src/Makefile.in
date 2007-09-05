@@ -1220,10 +1220,10 @@ test_cache_digest: test_cache_digest.o CacheDigest.o debug.o globals.o store_key
 cache_cf.o: cf_parser.h
 
 squid.conf.default: cf_parser.h
-	$(SHELL) -c "test -f squid.conf.default || ./cf_gen cf.data"
+	true	# built by cf_gen when making cf_parser.h
 
 cf_parser.h: cf.data cf_gen$(EXEEXT)
-	./cf_gen cf.data 
+	./cf_gen cf.data $(srcdir)/cf.data.depend
 
 cf_gen_defines.h: $(srcdir)/cf_gen_defines $(srcdir)/cf.data.pre
 	awk -f $(srcdir)/cf_gen_defines <$(srcdir)/cf.data.pre >cf_gen_defines.h
