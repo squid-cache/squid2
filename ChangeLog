@@ -1,3 +1,19 @@
+Changes to squid-2.6.STABLE16 (5 Sep 2007)
+
+	- Test for sys/capability.h linux include file to avoid failing on
+	  linux systems missing libcap
+	- Release private objects on cache rebuild
+	- Segfault in clientBuildReplyHeader when http->entry == NULL
+	- Bug #2072: digest_pw_auth fails when using plaintext passwords
+	- Bug #2073: assertion failed: client_side.c:4175: "buf != NULL ||
+	  !conn->body.request on POST
+	- Adjust default pconn timeouts to avoid shutting down connection while
+	  child sends request
+	- Bug #1980: cache_peer monitortimeout not working
+	- Bug #1882: Parent responses are not cached if sibling returns 504
+	- More squid.conf reordering to get the dependencies between options
+	  sorted proper
+
 Changes to squid-2.6.STABLE15 (31 Aug 2007)
 
 	- The select() I/O loop got broken by the /dev/poll addition
