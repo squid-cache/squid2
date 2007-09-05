@@ -359,8 +359,9 @@ test_cache_digest: test_cache_digest.o CacheDigest.o debug.o globals.o store_key
 ## If autodependency works well this is not needed anymore
 cache_cf.o: cf_parser.h
 
+# squid.conf.default is built by cf_gen when making cf_parser.h
 squid.conf.default: cf_parser.h
-	true	# built by cf_gen when making cf_parser.h
+	true
 
 cf_parser.h: cf.data cf_gen$(EXEEXT)
 	./cf_gen cf.data $(srcdir)/cf.data.depend
