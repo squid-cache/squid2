@@ -894,6 +894,7 @@ fwdStartPeer(peer * p, StoreEntry * e, request_t * r)
     fwdState->server_fd = -1;
     fwdState->request = requestLink(r);
     fwdState->start = squid_curtime;
+    fwdState->orig_entry_flags = e->flags;
     storeLockObject(e);
     if (!fwdState->request->flags.pinned)
 	EBIT_SET(e->flags, ENTRY_FWD_HDR_WAIT);
@@ -962,6 +963,7 @@ fwdStart(int fd, StoreEntry * e, request_t * r)
     fwdState->server_fd = -1;
     fwdState->request = requestLink(r);
     fwdState->start = squid_curtime;
+    fwdState->orig_entry_flags = e->flags;
 
 #if LINUX_TPROXY
     /* If we need to transparently proxy the request
@@ -1110,6 +1112,24 @@ fwdComplete(FwdState * fwdState)
 	if (fwdState->server_fd > -1)
 	    fwdUnregister(fwdState->server_fd, fwdState);
 	storeEntryReset(e);
+	/* HACK WARNING: This fiddling with the flags really
+	 * should be done in the store layer, but current
+	 * design does not allow it to be done proper in a
+	 * sane manner.
+	 * A sign that we have pushed the design of everything
+	 * going via a single StoreEntry per request a bit too far.
+	 */
+	if (EBIT_TEST(e->flags, ENTRY_NEGCACHED)) {
+	    storeSetPrivateKey(e);
+	    EBIT_CLR(e->flags, ENTRY_NEGCACHED);
+	    EBIT_CLR(e->flags, KEY_EARLY_PUBLIC);
+	}
+	if (EBIT_TEST(e->flags, RELEASE_REQUEST)) {
+	    EBIT_CLR(e->flags, RELEASE_REQUEST);
+	    EBIT_CLR(e->flags, KEY_EARLY_PUBLIC);
+	}
+	if (EBIT_TEST(fwdState->orig_entry_flags, ENTRY_CACHABLE))
+	    EBIT_SET(e->flags, ENTRY_CACHABLE);
 	fwdStartComplete(fwdState->servers, fwdState);
     } else {
 	debug(17, 3) ("fwdComplete: not re-forwarding status %d\n",

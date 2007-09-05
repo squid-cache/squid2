@@ -2260,6 +2260,7 @@ struct _FwdState {
 #if LINUX_NETFILTER
     struct sockaddr_in src;
 #endif
+    u_short orig_entry_flags;	/* Hack to be able to reset the entry proper */
 };
 
 #if USE_HTCP
