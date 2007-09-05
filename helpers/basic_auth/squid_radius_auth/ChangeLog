@@ -1,0 +1,47 @@
+2007-08-27 02:10  hno
+
+	* Makefile.in: Bootstrapped
+
+2007-08-24 14:31  hno
+
+	* Makefile.in: Bootstrapped
+
+2007-08-24 04:36  amosjeffries
+
+	* Makefile.in: Bootstrapped.
+
+2007-08-18 02:11  hno
+
+	* Makefile.in: Bootstrapped
+
+2007-08-17 20:58  serassio
+
+	* Makefile.in: Bootstrapped
+
+2007-08-15 02:11  hno
+
+	* Makefile.in: Bootstrapped
+
+2007-08-14 19:07  serassio
+
+	* Makefile.in: Bootstrapped
+
+2007-08-13 10:28  serassio
+
+	* .cvsignore: Added/updated .cvsignore files
+
+2007-06-25 15:57  hno
+
+	* Makefile.in: Bootstrapped
+
+2007-06-25 13:02  hno
+
+	* COPYRIGHT, Changelog, Make.inc, Makefile.am, Makefile.default,
+	  Makefile.in, Makefile.solaris, README, md5.c, md5.h, radius.h,
+	  squid_rad_auth.c, squid_radius_auth.8, util.c, util.h: Import
+	  squid_radius_auth helper for basic authentication to RADIUS
+
+2004-08-07 20:09  hno
+
+	* etc/squid_radius_auth.conf: Import of version 1.07
+
