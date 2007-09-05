@@ -1,3 +1,6 @@
+	- cache_peer idle=n option to specify a minimum number of idle
+	  connections to keep open
+	- Imported squidclient fixes from http11 branch
 	- X-Cache-Age header when using act-as-origin
 	- Bug #1843: multicast-siblings cache_peer option for optimising
 	  multicast ICP relations
@@ -32,6 +35,22 @@
 	  already parsed headers when building the client reply.
 	- Simple perl library and script for processing access.log files
 	- General code tidyups of HTTP parser and related optimizations
+
+Changes to squid-2.6.STABLE16 (5 Sep 2007)
+
+	- Test for sys/capability.h linux include file to avoid failing on
+	  linux systems missing libcap
+	- Release private objects on cache rebuild
+	- Segfault in clientBuildReplyHeader when http->entry == NULL
+	- Bug #2072: digest_pw_auth fails when using plaintext passwords
+	- Bug #2073: assertion failed: client_side.c:4175: "buf != NULL ||
+	  !conn->body.request on POST
+	- Adjust default pconn timeouts to avoid shutting down connection while
+	  child sends request
+	- Bug #1980: cache_peer monitortimeout not working
+	- Bug #1882: Parent responses are not cached if sibling returns 504
+	- More squid.conf reordering to get the dependencies between options
+	  sorted proper
 
 Changes to squid-2.6.STABLE15 (31 Aug 2007)
 
