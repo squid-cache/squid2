@@ -177,9 +177,10 @@ main(int argc, char *argv[])
     while ((NULL != fgets(buff, MAX_LINE, fp))) {
 	const char *type = strtok(buff, WS);
 	const char *dep;
+	Type *t;
 	if (!type || type[0] == '#')
 	    continue;
-	Type *t = (Type *) xcalloc(1, sizeof(*t));
+	t = (Type *) xcalloc(1, sizeof(*t));
 	t->name = xstrdup(type);
 	while ((dep = strtok(NULL, WS)) != NULL) {
 	    TypeDep *d = (TypeDep *) xcalloc(1, sizeof(*dep));
