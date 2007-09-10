@@ -1022,6 +1022,10 @@ DOC_START
 	   vport=NN	As above, but uses specified port number rather
 			than the http_port number. Implies accel.
 
+	   allow-direct	Allow direct forwarding in accelerator mode. Normally
+	   		accelerated requests is denied direct forwarding as it
+			never_direct was used.
+
 	   urlgroup=	Default urlgroup to mark requests with (see
 			also acl urlgroup and url_rewrite_program)
 

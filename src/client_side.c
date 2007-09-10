@@ -3800,6 +3800,7 @@ clientTryParseRequest(ConnStateData * conn)
 	request->flags.tproxy = conn->port->tproxy && need_linux_tproxy;
 #endif
 	request->flags.accelerated = http->flags.accel;
+	request->flags.no_direct = request->flags.accelerated ? !conn->port->allow_direct : 0;
 	request->flags.transparent = http->flags.transparent;
 	/*
 	 * cache the Content-length value in request_t.

@@ -2782,6 +2782,8 @@ parse_http_port_option(http_port_list * s, char *token)
     } else if (strcmp(token, "act-as-origin") == 0) {
 	s->act_as_origin = 1;
 	s->accel = 1;
+    } else if (strcmp(token, "allow-direct") == 0) {
+	s->allow_direct = 1;
     } else {
 	self_destruct();
     }

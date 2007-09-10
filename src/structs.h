@@ -374,6 +374,7 @@ struct _http_port_list {
     unsigned int tproxy;
 #endif
     unsigned int act_as_origin;	/* Fake Date: headers in accelerator mode */
+    unsigned int allow_direct:1;	/* Allow direct forwarding in accelerator mode */
 };
 
 #if USE_SSL
@@ -1847,6 +1848,7 @@ struct _request_flags {
 #endif
     unsigned int collapsed:1;	/* This request was collapsed. Don't trust the store entry to be valid */
     unsigned int cache_validation:1;	/* This request is an internal cache validation */
+    unsigned int no_direct:1;	/* Deny direct forwarding unless overriden by always_direct. Used in accelerator mode */
 };
 
 struct _link_list {

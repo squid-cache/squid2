@@ -266,7 +266,7 @@ peerSelectFoo(ps_state * ps)
 	    return;
 	} else if (ps->never_direct > 0) {
 	    ps->direct = DIRECT_NO;
-	} else if (request->flags.accelerated) {
+	} else if (request->flags.no_direct) {
 	    ps->direct = DIRECT_NO;
 	} else if (request->flags.loopdetect) {
 	    ps->direct = DIRECT_YES;
