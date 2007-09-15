@@ -1699,7 +1699,7 @@ DOC_START
 	applies for hostnames which do not match domains listed here.
 
 EXAMPLE:
-	cache_peer  parent cache.foo.org 3128 3130
+	cache_peer cache.foo.org parent 3128 3130
 	neighbor_type_domain cache.foo.org sibling .com .net
 	neighbor_type_domain cache.foo.org sibling .au .de
 DOC_END
