@@ -136,6 +136,7 @@ membership check
 <tag>check_hostnames</tag>Control if Squid should check the sanity of host names before trying to look them up in DNS
 <tag>allow_underscores</tag>Control if _ is to be considered a valid character in hostnames or not
 <tag>cache_peer carp-load-factor</tag>Option removed. CARP now uses the weight parameter instead.
+<tag>cache_peer login=</tag>Controls how Squid forwards login information to peer caches and servers.
 </descrip>
 
 <sect>Known issues
