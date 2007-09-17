@@ -183,7 +183,7 @@ main(int argc, char *argv[])
 	t = (Type *) xcalloc(1, sizeof(*t));
 	t->name = xstrdup(type);
 	while ((dep = strtok(NULL, WS)) != NULL) {
-	    TypeDep *d = (TypeDep *) xcalloc(1, sizeof(*dep));
+	    TypeDep *d = (TypeDep *) xcalloc(1, sizeof(*d));
 	    d->name = xstrdup(dep);
 	    d->next = t->depend;
 	    t->depend = d;
