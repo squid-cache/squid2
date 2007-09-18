@@ -213,6 +213,7 @@ typedef struct _link_list link_list;
 typedef struct _storefs_entry storefs_entry_t;
 typedef struct _storerepl_entry storerepl_entry_t;
 typedef struct _diskd_queue diskd_queue;
+typedef struct _logfile_buffer logfile_buffer_t;
 typedef struct _Logfile Logfile;
 typedef struct _logformat_token logformat_token;
 typedef struct _logformat logformat;
@@ -408,5 +409,12 @@ typedef void STLVCB(VaryData * vary, void *cbdata);
 typedef struct _HttpMsgBuf HttpMsgBuf;
 
 typedef struct rms rms_t;
+
+typedef void LOGLINESTART(Logfile *);
+typedef void LOGWRITE(Logfile *, const char *, size_t len);
+typedef void LOGLINEEND(Logfile *);
+typedef void LOGFLUSH(Logfile *);
+typedef void LOGROTATE(Logfile *);
+typedef void LOGCLOSE(Logfile *);
 
 #endif /* SQUID_TYPEDEFS_H */

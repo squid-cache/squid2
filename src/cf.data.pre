@@ -2220,6 +2220,27 @@ DOC_START
 	logging will also not be accounted for in performance counters.
 DOC_END
 
+NAME: logtype
+TYPE: string
+LOC: Config.Log.logtype
+DEFAULT: stdio
+DOC_START
+	Usage:
+
+	logtype stdio|daemon|syslog
+
+	Choose the logging method used to write access and store logs, if enabled.
+DOC_END
+
+NAME: logfile_daemon
+TYPE: string
+DEFAULT: @DEFAULT_LOGFILED@
+LOC: Config.Program.logfile_daemon
+DOC_START
+	Specify the path to the logfile-writing daemon. This daemon is
+	used to write the access and store logs, if configured.
+DOC_END
+
 NAME: cache_log
 TYPE: string
 DEFAULT: @DEFAULT_CACHE_LOG@

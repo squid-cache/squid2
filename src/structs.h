@@ -528,6 +528,7 @@ struct _SquidConfig {
 #endif
 	logformat *logformats;
 	customlog *accesslogs;
+	char *logtype;
 	int rotateNumber;
     } Log;
     char *adminEmail;
@@ -560,6 +561,7 @@ struct _SquidConfig {
 #if USE_SSL
 	char *ssl_password;
 #endif
+	char *logfile_daemon;
     } Program;
 #if USE_DNSSERVERS
     int dnsChildren;
@@ -2455,17 +2457,28 @@ struct _diskd_queue {
     } shm;
 };
 
-struct _Logfile {
-    int fd;
-    char path[MAXPATHLEN];
+struct _logfile_buffer {
     char *buf;
-    size_t bufsz;
-    ssize_t offset;
+    int size;
+    int len;
+    int written_len;
+    dlink_node node;
+};
+
+struct _Logfile {
+    char path[MAXPATHLEN];
     struct {
 	unsigned int fatal;
-	unsigned int syslog;
     } flags;
-    int syslog_priority;
+
+    void *data;
+
+    LOGLINESTART *f_linestart;
+    LOGWRITE *f_linewrite;
+    LOGLINEEND *f_lineend;
+    LOGFLUSH *f_flush;
+    LOGROTATE *f_rotate;
+    LOGCLOSE *f_close;
 };
 
 struct _logformat {

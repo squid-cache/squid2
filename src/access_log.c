@@ -1133,29 +1133,32 @@ accessLogLog(AccessLogEntry * al, aclCheck_t * checklist)
     for (log = Config.Log.accesslogs; log; log = log->next) {
 	if (checklist && log->aclList && aclMatchAclList(log->aclList, checklist) != 1)
 	    continue;
-	switch (log->type) {
-	case CLF_AUTO:
-	    if (Config.onoff.common_log)
-		accessLogCommon(al, log->logfile);
-	    else
+	if (log->logfile) {
+	    logfileLineStart(log->logfile);
+	    switch (log->type) {
+	    case CLF_AUTO:
+		if (Config.onoff.common_log)
+		    accessLogCommon(al, log->logfile);
+		else
+		    accessLogSquid(al, log->logfile);
+		break;
+	    case CLF_SQUID:
 		accessLogSquid(al, log->logfile);
-	    break;
-	case CLF_SQUID:
-	    accessLogSquid(al, log->logfile);
-	    break;
-	case CLF_COMMON:
-	    accessLogCommon(al, log->logfile);
-	    break;
-	case CLF_CUSTOM:
-	    accessLogCustom(al, log);
-	    break;
-	case CLF_NONE:
-	    goto last;
-	default:
-	    fatalf("Unknown log format %d\n", log->type);
-	    break;
+		break;
+	    case CLF_COMMON:
+		accessLogCommon(al, log->logfile);
+		break;
+	    case CLF_CUSTOM:
+		accessLogCustom(al, log);
+		break;
+	    case CLF_NONE:
+		goto last;
+	    default:
+		fatalf("Unknown log format %d\n", log->type);
+		break;
+	    }
+	    logfileLineEnd(log->logfile);
 	}
-	logfileFlush(log->logfile);
 	if (!checklist)
 	    break;
     }
@@ -1235,7 +1238,7 @@ accessLogInit(void)
     for (log = Config.Log.accesslogs; log; log = log->next) {
 	if (log->type == CLF_NONE)
 	    continue;
-	log->logfile = logfileOpen(log->filename, MAX_URL << 1, 1);
+	log->logfile = logfileOpen(log->filename, Config.Log.logtype, MAX_URL << 2, 1);
 	LogfileStatus = LOG_ENABLE;
     }
 #if HEADERS_LOG
@@ -1454,7 +1457,6 @@ headersLog(int cs, int pq, method_t m, void *data)
     logfileWrite(headerslog, &S, sizeof(S));
     logfileWrite(headerslog, hmask, sizeof(HttpHeaderMask));
     logfileWrite(headerslog, &ccmask, sizeof(int));
-    logfileFlush(headerslog);
 }
 
 #endif

@@ -470,6 +470,7 @@ configDoConfigure(void)
 #if USE_UNLINKD
     requirePathnameExists("unlinkd_program", Config.Program.unlinkd);
 #endif
+    requirePathnameExists("logfile_daemon", Config.Program.logfile_daemon);
     if (Config.Program.url_rewrite.command)
 	requirePathnameExists("url_rewrite_program", Config.Program.url_rewrite.command->key);
     if (Config.Program.location_rewrite.command)
