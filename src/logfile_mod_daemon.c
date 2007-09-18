@@ -2,7 +2,7 @@
  * $Id$
  *
  * DEBUG: section 50    Log file handling
- * AUTHOR: Duane Wessels
+ * AUTHOR: Adrian Chadd <adrian@squid-cache.org>
  *
  * SQUID Web Proxy Cache          http://www.squid-cache.org/
  * ----------------------------------------------------------
