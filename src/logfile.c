@@ -33,27 +33,27 @@
  */
 
 #include "squid.h"
+
 #include "logfile_mod_daemon.h"
 #if HAVE_SYSLOG
 #include "logfile_mod_syslog.h"
 #endif
 #include "logfile_mod_stdio.h"
 
-static void logfileWriteWrapper(Logfile * lf, const void *buf, size_t len);
-
 CBDATA_TYPE(Logfile);
-
 Logfile *
 logfileOpen(const char *path, const char *type, size_t bufsz, int fatal_flag)
 {
     Logfile *lf;
-    CBDATA_INIT_TYPE(Logfile);
     int ret;
 
+    debug(50, 1) ("Logfile: opening log %s\n", path);
+
+    CBDATA_INIT_TYPE(Logfile);
     lf = cbdataAlloc(Logfile);
     cbdataLock(lf);
     xstrncpy(lf->path, path, MAXPATHLEN);
-    debug(50, 1) ("Logfile: opening log %s\n", path);
+
     /* need to call the per-logfile-type code */
     if (strcmp(type, "stdio") == 0) {
 	ret = logfile_mod_stdio_open(lf, path, bufsz, fatal_flag);
@@ -70,6 +70,9 @@ logfileOpen(const char *path, const char *type, size_t bufsz, int fatal_flag)
 	fatalf("logfileOpen: type %s path %s: couldn't open!\n", type, path);
     }
     assert(lf->data != NULL);
+
+    if (fatal_flag)
+	lf->flags.fatal = 1;
     return lf;
 }
 
