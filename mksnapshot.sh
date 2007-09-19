@@ -37,7 +37,7 @@ EOS
 ./configure --silent
 make -s dist-all
 
-basetarball=/server/httpd/htdocs/squid-cache.org/Versions/v2/`echo $VERSION | cut -d. -f-2`/${PACKAGE}-${VERSION}.tar.bz2
+basetarball=/server/httpd/htdocs/squid-cache.org/Versions/v`echo $VERSION | cut -d. -f1`/`echo $VERSION | cut -d. -f-2|cut -d- -f1`/${PACKAGE}-${VERSION}.tar.bz2
 if (echo $VERSION | grep PRE) || (echo $VERSION | grep STABLE); then
 	echo "Differences from ${PACKAGE}-${VERSION} to ${PACKAGE}-${VERSION}-${date}" >${PACKAGE}-${VERSION}-${date}.diff
 	if [ -f $basetarball ]; then
@@ -45,7 +45,7 @@ if (echo $VERSION | grep PRE) || (echo $VERSION | grep STABLE); then
 		tar jxf $basetarball
 		diff -ruN ${PACKAGE}-${VERSION} ${PACKAGE}-${VERSION}-${date} >>${PACKAGE}-${VERSION}-${date}.diff || true
 	else
-		cvs -q rdiff -u -r SQUID_`echo $VERSION | tr .- __` -r $tag $module >>${PACKAGE}-${VERSION}-${date}.diff
+		cvs -q rdiff -u -r SQUID_`echo $VERSION | tr .- __` -r $tag $module >>${PACKAGE}-${VERSION}-${date}.diff || true
 	fi
 elif [ -f STABLE_BRANCH ]; then
 	stable=`cat STABLE_BRANCH`
@@ -78,7 +78,7 @@ echo ${PACKAGE}-${VERSION}-${date}-ChangeLog.txt >>${tag}.out
 if [ -x $tmpdir/scripts/www/build-cfg-help.pl ]; then
 	make -C $tmpdir/src cf.data
 	mkdir -p $tmpdir/doc/cfgman
-	$tmpdir/scripts/www/build-cfg-help.pl -o $tmpdir/doc/cfgman $tmpdir/src/cf.data
+	$tmpdir/scripts/www/build-cfg-help.pl --version ${VERSION} -o $tmpdir/doc/cfgman $tmpdir/src/cf.data
 	sh -c "cd $tmpdir/doc/cfgman && tar -zcf $PWD/${PACKAGE}-${VERSION}-${date}-cfgman.tar.gz *"
 	echo ${PACKAGE}-${VERSION}-${date}-cfgman.tar.gz >>${tag}.out
 	$tmpdir/scripts/www/build-cfg-help.pl --version ${VERSION} -o ${PACKAGE}-${VERSION}-${date}-cfgman.html -f singlehtml $tmpdir/src/cf.data
