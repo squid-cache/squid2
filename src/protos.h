@@ -879,6 +879,7 @@ extern void memCheckInit(void);
 /* MemPool */
 extern MemPool *memPoolCreate(const char *label, size_t obj_size);
 extern void memPoolDestroy(MemPool * pool);
+extern void memPoolNonZero(MemPool * p);
 extern void *memPoolAlloc(MemPool * pool);
 extern void memPoolFree(MemPool * pool, void *obj);
 extern int memPoolWasUsed(const MemPool * pool);

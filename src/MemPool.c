@@ -217,10 +217,17 @@ memPoolCreate(const char *label, size_t obj_size)
 #if DEBUG_MEMPOOL
     pool->real_obj_size = (obj_size & 7) ? (obj_size | 7) + 1 : obj_size;
 #endif
+    pool->flags.dozero = 1;
     stackInit(&pool->pstack);
     /* other members are set to 0 */
     stackPush(&Pools, pool);
     return pool;
+}
+
+void
+memPoolNonZero(MemPool * p)
+{
+    p->flags.dozero = 0;
 }
 
 void
@@ -292,7 +299,10 @@ memPoolAlloc(MemPool * pool)
 	    (void) VALGRIND_MAKE_NOACCESS(cookie, sizeof(cookie));
 	}
 #else
-	obj = xcalloc(1, pool->obj_size);
+	if (Config.onoff.zero_buffers || pool->flags.dozero)
+	    obj = xcalloc(1, pool->obj_size);
+	else
+	    obj = xmalloc(pool->obj_size);
 #endif
     }
     return obj;
@@ -317,7 +327,8 @@ memPoolFree(MemPool * pool, void *obj)
     if (TheMeter.idle.level + pool->obj_size <= mem_idle_limit) {
 	memMeterInc(pool->meter.idle);
 	memMeterAdd(TheMeter.idle, pool->obj_size);
-	memset(obj, 0, pool->obj_size);
+	if (Config.onoff.zero_buffers || pool->flags.dozero)
+	    memset(obj, 0, pool->obj_size);
 #if DEBUG_MEMPOOL
 	(void) VALGRIND_MAKE_NOACCESS(obj, pool->real_obj_size + sizeof(struct mempool_cookie));
 #else

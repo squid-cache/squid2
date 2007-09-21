@@ -626,6 +626,7 @@ struct _SquidConfig {
 	time_t period;
     } Netdb;
     struct {
+	int zero_buffers;
 	int log_udp;
 	int res_defnames;
 	int anonymizer;
@@ -2202,6 +2203,9 @@ struct _MemPool {
 #if DEBUG_MEMPOOL
     size_t real_obj_size;	/* with alignment */
 #endif
+    struct {
+	int dozero:1;
+    } flags;
     Stack pstack;		/* stack for free pointers */
     MemPoolMeter meter;
 #if DEBUG_MEMPOOL

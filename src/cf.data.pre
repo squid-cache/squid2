@@ -5284,4 +5284,17 @@ DOC_START
 	rounded to 1000.
 DOC_END
 
+NAME: zero_buffers
+COMMENT: on|off
+TYPE: onoff
+LOC: Config.onoff.zero_buffers
+DEFAULT: on
+DOC_START
+	Squid by default will zero all buffers before using or reusing them.
+ 	Setting this to 'off' will result in fixed-sized temporary buffers
+	not being zero'ed. This may give a performance boost on certain
+	platforms but it may result in undefined behaviour at the present
+	time.
+DOC_END
+
 EOF
