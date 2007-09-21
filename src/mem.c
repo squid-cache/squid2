@@ -146,7 +146,7 @@ memDataInit(mem_type type, const char *name, size_t size, int max_pages_notused)
     MemPools[type] = memPoolCreate(name, size);
 }
 
-void
+static void
 memDataNonZero(mem_type type)
 {
     memPoolNonZero(MemPools[type]);
