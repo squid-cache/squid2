@@ -864,7 +864,7 @@ DOC_END
 COMMENT_START
  OPTIONS FOR X-Forwarded-For
  -----------------------------------------------------------------------------
-COMMEND_END
+COMMENT_END
 
 NAME: follow_x_forwarded_for
 TYPE: acl_access
