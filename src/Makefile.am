@@ -204,6 +204,8 @@ squid_SOURCES = \
 	logfile_mod_stdio.h \
 	logfile_mod_syslog.c \
 	logfile_mod_syslog.h \
+	logfile_mod_udp.c \
+	logfile_mod_udp.h \
 	main.c \
 	mem.c \
 	MemPool.c \
