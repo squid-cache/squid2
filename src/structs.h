@@ -528,7 +528,6 @@ struct _SquidConfig {
 #endif
 	logformat *logformats;
 	customlog *accesslogs;
-	char *logtype;
 	int rotateNumber;
     } Log;
     char *adminEmail;

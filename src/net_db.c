@@ -387,7 +387,7 @@ netdbSaveState(void *foo)
      * logfileOpen() use O_TRUNC.
      */
     unlink(path);
-    lf = logfileOpen(path, Config.Log.logtype, 4096, 0);
+    lf = logfileOpen(path, 4096, 0);
     if (NULL == lf) {
 	debug(50, 1) ("netdbSaveState: %s: %s\n", path, xstrerror());
 	return;

@@ -48,7 +48,7 @@ useragentOpenLog(void)
 	debug(40, 1) ("User-Agent logging is disabled.\n");
 	return;
     }
-    useragentlog = logfileOpen(Config.Log.useragent, Config.Log.logtype, 0, 1);
+    useragentlog = logfileOpen(Config.Log.useragent, 0, 1);
 #endif
 }
 

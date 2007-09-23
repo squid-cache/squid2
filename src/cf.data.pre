@@ -2188,18 +2188,6 @@ DOC_START
 	logging will also not be accounted for in performance counters.
 DOC_END
 
-NAME: logtype
-TYPE: string
-LOC: Config.Log.logtype
-DEFAULT: stdio
-DOC_START
-	Usage:
-
-	logtype stdio|daemon|syslog
-
-	Choose the logging method used to write access and store logs, if enabled.
-DOC_END
-
 NAME: logfile_daemon
 TYPE: string
 DEFAULT: @DEFAULT_LOGFILED@

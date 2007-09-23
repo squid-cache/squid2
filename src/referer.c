@@ -49,7 +49,7 @@ refererOpenLog(void)
 	debug(40, 1) ("Referer logging is disabled.\n");
 	return;
     }
-    refererlog = logfileOpen(Config.Log.referer, Config.Log.logtype, 0, 1);
+    refererlog = logfileOpen(Config.Log.referer, 0, 1);
 #endif
 }
 

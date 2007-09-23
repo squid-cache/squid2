@@ -39,12 +39,14 @@
 #include "logfile_mod_syslog.h"
 #endif
 #include "logfile_mod_stdio.h"
+#include "logfile_mod_udp.h"
 
 CBDATA_TYPE(Logfile);
 Logfile *
-logfileOpen(const char *path, const char *type, size_t bufsz, int fatal_flag)
+logfileOpen(const char *path, size_t bufsz, int fatal_flag)
 {
     Logfile *lf;
+    const char *patharg;
     int ret;
 
     debug(50, 1) ("Logfile: opening log %s\n", path);
@@ -53,23 +55,28 @@ logfileOpen(const char *path, const char *type, size_t bufsz, int fatal_flag)
     lf = cbdataAlloc(Logfile);
     cbdataLock(lf);
     xstrncpy(lf->path, path, MAXPATHLEN);
+    patharg = path;
 
     /* need to call the per-logfile-type code */
-    if (strcmp(type, "stdio") == 0) {
-	ret = logfile_mod_stdio_open(lf, path, bufsz, fatal_flag);
-    } else if (strcmp(type, "daemon") == 0) {
-	ret = logfile_mod_daemon_open(lf, path, bufsz, fatal_flag);
-    } else if (strcmp(type, "udp") == 0) {
-	ret = logfile_mod_udp_open(lf, path, bufsz, fatal_flag);
+    if (strncmp(path, "stdio:", 6) == 0) {
+	patharg = path + 6;
+	ret = logfile_mod_stdio_open(lf, patharg, bufsz, fatal_flag);
+    } else if (strncmp(path, "daemon:", 7) == 0) {
+	patharg = path + 7;
+	ret = logfile_mod_daemon_open(lf, patharg, bufsz, fatal_flag);
+    } else if (strncmp(path, "udp:", 4) == 0) {
+	patharg = path + 4;
+	ret = logfile_mod_udp_open(lf, patharg, bufsz, fatal_flag);
 #if HAVE_SYSLOG
-    } else if (strcmp(type, "syslog") == 0) {
-	ret = logfile_mod_syslog_open(lf, path, bufsz, fatal_flag);
+    } else if (strncmp(path, "syslog:", 7) == 0) {
+	patharg = path + 7;
+	ret = logfile_mod_syslog_open(lf, patharg, bufsz, fatal_flag);
 #endif
     } else {
-	fatalf("logfileOpen: unknown logtype '%s'\n", type);
+	ret = logfile_mod_stdio_open(lf, patharg, bufsz, fatal_flag);
     }
     if (fatal_flag && !ret) {
-	fatalf("logfileOpen: type %s path %s: couldn't open!\n", type, path);
+	fatalf("logfileOpen: path %s: couldn't open!\n", path);
     }
     assert(lf->data != NULL);
 

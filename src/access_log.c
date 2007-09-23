@@ -1247,7 +1247,7 @@ accessLogInit(void)
     for (log = Config.Log.accesslogs; log; log = log->next) {
 	if (log->type == CLF_NONE)
 	    continue;
-	log->logfile = logfileOpen(log->filename, Config.Log.logtype, MAX_URL << 2, 1);
+	log->logfile = logfileOpen(log->filename, MAX_URL << 2, 1);
 	LogfileStatus = LOG_ENABLE;
     }
 #if HEADERS_LOG
