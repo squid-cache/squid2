@@ -364,4 +364,6 @@
 #define	DLINK_ISEMPTY(n)	( (n).head == NULL )
 #define	DLINK_HEAD(n)		( (n).head->data )
 
+#define	LOGFILE_SEQNO(n)	( (n)->sequence_number )
+
 #endif /* SQUID_DEFINES_H */
