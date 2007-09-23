@@ -318,6 +318,8 @@ typedef enum {
 
     LFT_EXT_LOG,
 
+    LFT_SEQUENCE_NUMBER,
+
     LFT_PERCENT			/* special string cases for escaped chars */
 } logformat_bcode_t;
 
@@ -413,6 +415,8 @@ struct logformat_token_table_entry logformat_token_table[] =
 /*{ ">sh", LFT_REQUEST_SIZE_HEADERS }, */
 /*{ ">sb", LFT_REQUEST_SIZE_BODY }, */
 /*{ ">sB", LFT_REQUEST_SIZE_BODY_NO_TE }, */
+
+    {"sn", LFT_SEQUENCE_NUMBER},
 
     {"<st", LFT_REPLY_SIZE_TOTAL},
 /*{ "<sl", LFT_REPLY_SIZE_LINE }, * /   / * the reply line (protocol, code, text) */
@@ -680,6 +684,11 @@ accessLogCustom(AccessLogEntry * al, customlog * log)
 		out = strBuf(al->request->extacl_log);
 
 	    quote = 1;
+	    break;
+
+	case LFT_SEQUENCE_NUMBER:
+	    outint = LOGFILE_SEQNO(logfile);
+	    doint = 1;
 	    break;
 
 	case LFT_PERCENT:

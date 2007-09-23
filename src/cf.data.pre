@@ -2137,6 +2137,7 @@ DOC_START
 		<st	Reply size including HTTP headers
 		>st	Request size including HTTP headers
 		st	Request+Reply size including HTTP headers
+		sn	Unique sequence number per log line entry
 		%	a literal % character
 
 logformat squid  %ts.%03tu %6tr %>a %Ss/%03Hs %<st %rm %ru %un %Sh/%<A %mt

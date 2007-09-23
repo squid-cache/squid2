@@ -73,6 +73,7 @@ logfileOpen(const char *path, const char *type, size_t bufsz, int fatal_flag)
 
     if (fatal_flag)
 	lf->flags.fatal = 1;
+    lf->sequence_number = 0;
     return lf;
 }
 
@@ -110,6 +111,7 @@ void
 logfileLineEnd(Logfile * lf)
 {
     lf->f_lineend(lf);
+    lf->sequence_number++;
 }
 
 void

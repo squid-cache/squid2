@@ -2470,6 +2470,7 @@ struct _Logfile {
     } flags;
 
     void *data;
+    int sequence_number;
 
     LOGLINESTART *f_linestart;
     LOGWRITE *f_linewrite;
