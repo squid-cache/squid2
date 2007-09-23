@@ -182,7 +182,7 @@ logfile_mod_udp_open(Logfile * lf, const char *path, size_t bufsz, int fatal_fla
 	}
     }
     if (comm_connect_addr(ll->fd, &addr)) {
-	if (ll->flags.fatal) {
+	if (lf->flags.fatal) {
 	    fatalf("Unable to connect to %s for UDP log: %s\n", lf->path, xstrerror());
 	} else {
 	    debug(50, 1) ("Unable to connect to %s for UDP log: %s\n", lf->path, xstrerror());

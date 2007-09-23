@@ -59,6 +59,8 @@ logfileOpen(const char *path, const char *type, size_t bufsz, int fatal_flag)
 	ret = logfile_mod_stdio_open(lf, path, bufsz, fatal_flag);
     } else if (strcmp(type, "daemon") == 0) {
 	ret = logfile_mod_daemon_open(lf, path, bufsz, fatal_flag);
+    } else if (strcmp(type, "udp") == 0) {
+	ret = logfile_mod_udp_open(lf, path, bufsz, fatal_flag);
 #if HAVE_SYSLOG
     } else if (strcmp(type, "syslog") == 0) {
 	ret = logfile_mod_syslog_open(lf, path, bufsz, fatal_flag);

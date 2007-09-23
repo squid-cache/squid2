@@ -1202,6 +1202,7 @@ extern int xrename(const char *from, const char *to);
 extern int isPowTen(int);
 extern void parseEtcHosts(void);
 extern int getMyPort(void);
+extern int parse_sockaddr(char *s, struct sockaddr_in *addr);
 
 char *strwordtok(char *buf, char **t);
 void strwordquote(MemBuf * mb, const char *str);
