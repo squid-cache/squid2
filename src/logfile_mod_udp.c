@@ -50,20 +50,35 @@ typedef struct {
     int offset;
 } l_udp_t;
 
-/*
- * Aborts with fatal message if write() returns something other
- * than its length argument.
- */
 static void
-logfileWriteWrapper(Logfile * lf, const void *buf, size_t len)
+logfile_mod_udp_write(Logfile * lf, char *buf, size_t len)
 {
     l_udp_t *ll = (l_udp_t *) lf->data;
-    size_t s;
-    s = FD_WRITE_METHOD(ll->fd, (char const *) buf, len);
+    ssize_t s;
+    s = write(ll->fd, (char const *) buf, len);
     fd_bytes(ll->fd, s, FD_WRITE);
+#if 0
+    if (s < 0) {
+	debug(1, 1) ("logfile (udp): got errno %d (%s)\n", errno, xstrerror());
+    }
+    if (s != len) {
+	debug(1, 1) ("logfile (udp): len %d, wrote %d\n", len, s);
+    }
+#endif
 
     /* We don't worry about network errors for now */
 }
+
+static void
+logfile_mod_udp_flush(Logfile * lf)
+{
+    l_udp_t *ll = (l_udp_t *) lf->data;
+    if (0 == ll->offset)
+	return;
+    logfile_mod_udp_write(lf, ll->buf, (size_t) ll->offset);
+    ll->offset = 0;
+}
+
 
 static void
 logfile_mod_udp_writeline(Logfile * lf, const char *buf, size_t len)
@@ -72,15 +87,15 @@ logfile_mod_udp_writeline(Logfile * lf, const char *buf, size_t len)
 
     if (0 == ll->bufsz) {
 	/* buffering disabled */
-	logfileWriteWrapper(lf, buf, len);
+	logfile_mod_udp_write(lf, buf, len);
 	return;
     }
-    if (ll->offset > 0 && ll->offset + len > ll->bufsz)
-	logfileFlush(lf);
+    if (ll->offset > 0 && ll->offset + len + 4 > ll->bufsz)
+	logfile_mod_udp_flush(lf);
 
     if (len > ll->bufsz) {
 	/* too big to fit in buffer */
-	logfileWriteWrapper(lf, buf, len);
+	logfile_mod_udp_write(lf, buf, len);
 	return;
     }
     /* buffer it */
@@ -101,16 +116,6 @@ logfile_mod_udp_linestart(Logfile * lf)
 static void
 logfile_mod_udp_lineend(Logfile * lf)
 {
-}
-
-static void
-logfile_mod_udp_flush(Logfile * lf)
-{
-    l_udp_t *ll = (l_udp_t *) lf->data;
-    if (0 == ll->offset)
-	return;
-    logfileWriteWrapper(lf, ll->buf, (size_t) ll->offset);
-    ll->offset = 0;
 }
 
 static void
@@ -204,7 +209,12 @@ logfile_mod_udp_open(Logfile * lf, const char *path, size_t bufsz, int fatal_fla
 	}
     }
     /* Force buffer size to something roughly fitting inside an MTU */
-    bufsz = 1450;
+    /*
+     * XXX note the receive side needs to receive the whole packet at once;
+     * applications like netcat have a small default receive buffer and will
+     * truncate!
+     */
+    bufsz = 1400;
     if (bufsz > 0) {
 	ll->buf = (char *) xmalloc(bufsz);
 	ll->bufsz = bufsz;
