@@ -35,6 +35,9 @@
 	  already parsed headers when building the client reply.
 	- Simple perl library and script for processing access.log files
 	- General code tidyups of HTTP parser and related optimizations
+	- Add "%sn" - a sequence number - to the customlog format
+	- Implementation of an external logfile daemon (ie, logging to
+	  a pipe); UDP logging (based in part on work done by Tim Starling)
 
 Changes to squid-2.6.STABLE16 (5 Sep 2007)
 
