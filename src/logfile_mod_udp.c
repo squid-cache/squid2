@@ -101,7 +101,6 @@ logfile_mod_udp_linestart(Logfile * lf)
 static void
 logfile_mod_udp_lineend(Logfile * lf)
 {
-    lf->f_flush(lf);
 }
 
 static void
