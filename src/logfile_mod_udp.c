@@ -51,7 +51,7 @@ typedef struct {
 } l_udp_t;
 
 static void
-logfile_mod_udp_write(Logfile * lf, char *buf, size_t len)
+logfile_mod_udp_write(Logfile * lf, const char *buf, size_t len)
 {
     l_udp_t *ll = (l_udp_t *) lf->data;
     ssize_t s;
