@@ -149,17 +149,16 @@ int
 logfile_mod_udp_open(Logfile * lf, const char *path, size_t bufsz, int fatal_flag)
 {
     l_udp_t *ll;
+    struct sockaddr_in addr;
+    char *strAddr;
 
     ll = xcalloc(1, sizeof(*ll));
     lf->data = ll;
 
-    struct sockaddr_in addr;
-    char *strAddr;
-    if (strncmp(lf->path + 4, "//", 2) == 0) {
-	strAddr = xstrdup(lf->path + 6);
-    } else {
-	strAddr = xstrdup(lf->path + 4);
+    if (strncmp(path, "//", 2) == 0) {
+	path += 2;
     }
+    strAddr = xstrdup(path);
     if (!parse_sockaddr(strAddr, &addr)) {
 	if (lf->flags.fatal) {
 	    fatalf("Invalid UDP logging address '%s'\n", lf->path);
