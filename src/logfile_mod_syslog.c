@@ -163,8 +163,8 @@ logfile_mod_syslog_open(Logfile * lf, const char *path, size_t bufsz, int fatal_
     ll = xcalloc(1, sizeof(*ll));
     lf->data = ll;
 
-    if (path[6] != '\0') {
-	const char *priority = path + 7;
+    if (*path) {
+	char *priority = xstrdup(path);
 	char *facility = (char *) strchr(priority, '.');
 	if (!facility)
 	    facility = (char *) strchr(priority, '|');
@@ -173,6 +173,7 @@ logfile_mod_syslog_open(Logfile * lf, const char *path, size_t bufsz, int fatal_
 	    ll->syslog_priority |= syslog_ntoa(facility);
 	}
 	ll->syslog_priority |= syslog_ntoa(priority);
+	xfree(priority);
     }
     if ((ll->syslog_priority & PRIORITY_MASK) == 0)
 	ll->syslog_priority |= LOG_INFO;
