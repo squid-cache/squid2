@@ -101,17 +101,17 @@ am__squid_SOURCES_DIST = access_log.c acl.c asn.c authenticate.c \
 	ipc.c ipc_win32.c ipcache.c leakfinder.c locrewrite.c \
 	logfile.c logfile_mod_daemon.c logfile_mod_daemon.h \
 	logfile_mod_stdio.c logfile_mod_stdio.h logfile_mod_syslog.c \
-	logfile_mod_syslog.h main.c mem.c MemPool.c MemBuf.c mime.c \
-	multicast.c neighbors.c net_db.c Packer.c pconn.c \
-	peer_digest.c peer_monitor.c peer_select.c peer_sourcehash.c \
-	peer_userhash.c protos.h redirect.c referer.c refresh.c \
-	send-announce.c snmp_core.c snmp_agent.c squid.h ssl.c \
-	ssl_support.c stat.c StatHist.c String.c stmem.c store.c \
-	store_io.c store_client.c store_digest.c store_dir.c \
-	store_key_md5.c store_log.c store_rebuild.c store_swapin.c \
-	store_swapmeta.c store_swapout.c structs.h tools.c typedefs.h \
-	unlinkd.c url.c urn.c useragent.c wccp.c wccp2.c whois.c \
-	win32.c
+	logfile_mod_syslog.h logfile_mod_udp.c logfile_mod_udp.h \
+	main.c mem.c MemPool.c MemBuf.c mime.c multicast.c neighbors.c \
+	net_db.c Packer.c pconn.c peer_digest.c peer_monitor.c \
+	peer_select.c peer_sourcehash.c peer_userhash.c protos.h \
+	redirect.c referer.c refresh.c send-announce.c snmp_core.c \
+	snmp_agent.c squid.h ssl.c ssl_support.c stat.c StatHist.c \
+	String.c stmem.c store.c store_io.c store_client.c \
+	store_digest.c store_dir.c store_key_md5.c store_log.c \
+	store_rebuild.c store_swapin.c store_swapmeta.c \
+	store_swapout.c structs.h tools.c typedefs.h unlinkd.c url.c \
+	urn.c useragent.c wccp.c wccp2.c whois.c win32.c
 @USE_DEVPOLL_FALSE@@USE_EPOLL_FALSE@@USE_KQUEUE_FALSE@@USE_POLL_FALSE@@USE_SELECT_FALSE@@USE_SELECT_SIMPLE_FALSE@@USE_SELECT_WIN32_TRUE@am__objects_1 = comm_select_win32.$(OBJEXT)
 @USE_DEVPOLL_FALSE@@USE_EPOLL_FALSE@@USE_KQUEUE_FALSE@@USE_POLL_FALSE@@USE_SELECT_SIMPLE_FALSE@@USE_SELECT_TRUE@am__objects_1 = comm_select.$(OBJEXT)
 @USE_DEVPOLL_FALSE@@USE_EPOLL_FALSE@@USE_KQUEUE_FALSE@@USE_POLL_FALSE@@USE_SELECT_SIMPLE_TRUE@am__objects_1 = comm_select_simple.$(OBJEXT)
@@ -151,17 +151,17 @@ am_squid_OBJECTS = access_log.$(OBJEXT) acl.$(OBJEXT) asn.$(OBJEXT) \
 	$(am__objects_5) ipcache.$(OBJEXT) $(am__objects_6) \
 	locrewrite.$(OBJEXT) logfile.$(OBJEXT) \
 	logfile_mod_daemon.$(OBJEXT) logfile_mod_stdio.$(OBJEXT) \
-	logfile_mod_syslog.$(OBJEXT) main.$(OBJEXT) mem.$(OBJEXT) \
-	MemPool.$(OBJEXT) MemBuf.$(OBJEXT) mime.$(OBJEXT) \
-	multicast.$(OBJEXT) neighbors.$(OBJEXT) net_db.$(OBJEXT) \
-	Packer.$(OBJEXT) pconn.$(OBJEXT) peer_digest.$(OBJEXT) \
-	peer_monitor.$(OBJEXT) peer_select.$(OBJEXT) \
-	peer_sourcehash.$(OBJEXT) peer_userhash.$(OBJEXT) \
-	redirect.$(OBJEXT) referer.$(OBJEXT) refresh.$(OBJEXT) \
-	send-announce.$(OBJEXT) $(am__objects_7) ssl.$(OBJEXT) \
-	$(am__objects_8) stat.$(OBJEXT) StatHist.$(OBJEXT) \
-	String.$(OBJEXT) stmem.$(OBJEXT) store.$(OBJEXT) \
-	store_io.$(OBJEXT) store_client.$(OBJEXT) \
+	logfile_mod_syslog.$(OBJEXT) logfile_mod_udp.$(OBJEXT) \
+	main.$(OBJEXT) mem.$(OBJEXT) MemPool.$(OBJEXT) \
+	MemBuf.$(OBJEXT) mime.$(OBJEXT) multicast.$(OBJEXT) \
+	neighbors.$(OBJEXT) net_db.$(OBJEXT) Packer.$(OBJEXT) \
+	pconn.$(OBJEXT) peer_digest.$(OBJEXT) peer_monitor.$(OBJEXT) \
+	peer_select.$(OBJEXT) peer_sourcehash.$(OBJEXT) \
+	peer_userhash.$(OBJEXT) redirect.$(OBJEXT) referer.$(OBJEXT) \
+	refresh.$(OBJEXT) send-announce.$(OBJEXT) $(am__objects_7) \
+	ssl.$(OBJEXT) $(am__objects_8) stat.$(OBJEXT) \
+	StatHist.$(OBJEXT) String.$(OBJEXT) stmem.$(OBJEXT) \
+	store.$(OBJEXT) store_io.$(OBJEXT) store_client.$(OBJEXT) \
 	store_digest.$(OBJEXT) store_dir.$(OBJEXT) \
 	store_key_md5.$(OBJEXT) store_log.$(OBJEXT) \
 	store_rebuild.$(OBJEXT) store_swapin.$(OBJEXT) \
@@ -517,6 +517,8 @@ squid_SOURCES = \
 	logfile_mod_stdio.h \
 	logfile_mod_syslog.c \
 	logfile_mod_syslog.h \
+	logfile_mod_udp.c \
+	logfile_mod_udp.h \
 	main.c \
 	mem.c \
 	MemPool.c \
@@ -845,6 +847,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/logfile_mod_daemon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/logfile_mod_stdio.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/logfile_mod_syslog.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/logfile_mod_udp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mem.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mime.Po@am__quote@
