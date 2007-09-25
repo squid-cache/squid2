@@ -123,7 +123,7 @@ static void clientRedirectStart(clientHttpRequest * http);
 static RH clientRedirectDone;
 static void clientCheckNoCache(clientHttpRequest *);
 static void clientCheckNoCacheDone(int answer, void *data);
-static STCB clientHandleIMSReply;
+static STHCB clientHandleIMSReply;
 static int clientGetsOldEntry(StoreEntry * new, StoreEntry * old, request_t * request);
 #if USE_IDENT
 static IDCB clientIdentDone;
@@ -135,8 +135,8 @@ static void clientFollowXForwardedForDone(int answer, void *data);
 #endif /* FOLLOW_X_FORWARDED_FOR */
 static int clientOnlyIfCached(clientHttpRequest * http);
 static STCB clientSendMoreData;
-static STCB clientSendMoreHeaderData;
-static STCB clientCacheHit;
+static STHCB clientSendHeaders;
+static STHCB clientCacheHit;
 static void clientSetKeepaliveFlag(clientHttpRequest *);
 static void clientPackRangeHdr(const HttpReply * rep, const HttpHdrRangeSpec * spec, String boundary, MemBuf * mb);
 static void clientPackTermBound(String boundary, MemBuf * mb);
@@ -166,6 +166,31 @@ static int varyEvaluateMatch(StoreEntry * entry, request_t * request);
 static int modifiedSince(StoreEntry *, request_t *);
 static StoreEntry *clientCreateStoreEntry(clientHttpRequest *, method_t, request_flags);
 static inline int clientNatLookup(ConnStateData * conn);
+
+/* Temporary here while restructuring stuff */
+static void
+storeClientCopyHeadersCB(void *data, char *buf, ssize_t size)
+{
+    clientHttpRequest *http = data;
+    assert(http->header_callback);
+    assert(http->header_entry);
+    memFree(buf, MEM_STORE_CLIENT_BUF);
+    if (!http->header_entry)
+	return;
+    if (size < 0 || !memHaveHeaders(http->header_entry->mem_obj)) {
+	http->header_callback(data, NULL);
+	return;
+    }
+    http->header_callback(data, http->header_entry->mem_obj->reply);
+}
+void
+storeClientCopyHeaders(store_client * sc, StoreEntry * e, STHCB * callback, void *callback_data)
+{
+    clientHttpRequest *http = callback_data;
+    http->header_callback = callback;
+    http->header_entry = e;
+    storeClientCopy(http->sc, e, 0, 0, STORE_CLIENT_BUF_SZ, memAllocate(MEM_STORE_CLIENT_BUF), storeClientCopyHeadersCB, http);
+}
 
 #if USE_IDENT
 static void
@@ -399,7 +424,7 @@ clientCreateStoreEntry(clientHttpRequest * h, method_t m, request_flags flags)
     if (h->log_type != LOG_TCP_DENIED)
 	delaySetStoreClient(h->sc, delayClient(h));
 #endif
-    storeClientCopy(h->sc, e, 0, 0, STORE_CLIENT_BUF_SZ, memAllocate(MEM_STORE_CLIENT_BUF), clientSendMoreHeaderData, h);
+    storeClientCopyHeaders(h->sc, e, clientSendHeaders, h);
     return e;
 }
 
@@ -689,73 +714,50 @@ clientHandleETagMiss(clientHttpRequest * http)
 }
 
 static void
-clientHandleETagReply(void *data, char *buf, ssize_t size)
+clientHandleETagReply(void *data, HttpReply * rep)
 {
     clientHttpRequest *http = data;
     StoreEntry *entry = http->entry;
     MemObject *mem;
     const char *url = storeUrl(entry);
     http_status status;
-    debug(33, 3) ("clientHandleETagReply: %s, %d bytes\n", url, (int) size);
     if (entry == NULL) {
 	/* client aborted */
-	memFree(buf, MEM_STORE_CLIENT_BUF);
 	return;
     }
-    if (size < 0 && !EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
-	memFree(buf, MEM_STORE_CLIENT_BUF);
+    if (!rep) {
+	debug(33, 3) ("clientHandleETagReply: FAILED '%s'\n", url);
 	clientHandleETagMiss(http);
 	return;
     }
-    mem = entry->mem_obj;
-    status = mem->reply->sline.status;
     if (EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
 	debug(33, 3) ("clientHandleETagReply: ABORTED '%s'\n", url);
-	memFree(buf, MEM_STORE_CLIENT_BUF);
 	clientHandleETagMiss(http);
 	return;
     }
-    if (STORE_PENDING == entry->store_status && 0 == status) {
-	debug(33, 3) ("clientHandleETagReply: Incomplete headers for '%s'\n", url);
-	if (size >= STORE_CLIENT_BUF_SZ) {
-	    /* will not get any bigger than that */
-	    debug(33, 3) ("clientHandleETagReply: Reply is too large '%s'\n", url);
-	    memFree(buf, MEM_STORE_CLIENT_BUF);
-	    clientHandleETagMiss(http);
-	} else {
-	    storeClientCopy(http->sc, entry,
-		http->out.offset + size,
-		http->out.offset,
-		STORE_CLIENT_BUF_SZ,
-		buf,
-		clientHandleETagReply,
-		http);
-	}
-	return;
-    }
-    if (HTTP_NOT_MODIFIED == mem->reply->sline.status) {
+    debug(33, 3) ("clientHandleETagReply: %s = %d\n", url, (int) status);
+    if (HTTP_NOT_MODIFIED == rep->sline.status) {
 	/* Remember the ETag and restart */
-	memFree(buf, MEM_STORE_CLIENT_BUF);
-	if (mem->reply) {
+	if (rep) {
 	    request_t *request = http->request;
-	    const char *etag = httpHeaderGetStr(&mem->reply->header, HDR_ETAG);
+	    const char *etag = httpHeaderGetStr(&rep->header, HDR_ETAG);
 	    const char *vary = request->vary_headers;
-	    int has_vary = httpHeaderHas(&entry->mem_obj->reply->header, HDR_VARY);
+	    int has_vary = httpHeaderHas(&rep->header, HDR_VARY);
 #if X_ACCELERATOR_VARY
-	    has_vary |= httpHeaderHas(&entry->mem_obj->reply->header, HDR_X_ACCELERATOR_VARY);
+	    has_vary |= httpHeaderHas(&rep->header, HDR_X_ACCELERATOR_VARY);
 #endif
 	    if (has_vary)
-		vary = httpMakeVaryMark(request, mem->reply);
+		vary = httpMakeVaryMark(request, rep);
 
 	    if (etag && vary) {
-		storeAddVary(mem->url, mem->method, NULL, httpHeaderGetStr(&mem->reply->header, HDR_ETAG), request->vary_hdr, request->vary_headers, strBuf(request->vary_encoding));
+		storeAddVary(mem->url, mem->method, NULL, httpHeaderGetStr(&rep->header, HDR_ETAG), request->vary_hdr, request->vary_headers, strBuf(request->vary_encoding));
 	    }
 	}
 	clientHandleETagMiss(http);
 	return;
     }
     /* Send the new object to the client */
-    clientSendMoreHeaderData(data, buf, size);
+    clientSendHeaders(data, rep);
     return;
 }
 
@@ -777,11 +779,7 @@ clientProcessETag(clientHttpRequest * http)
     /* Register with storage manager to receive updates when data comes in. */
     if (EBIT_TEST(entry->flags, ENTRY_ABORTED))
 	debug(33, 0) ("clientProcessETag: found ENTRY_ABORTED object\n");
-    storeClientCopy(http->sc, entry,
-	http->out.offset,
-	http->out.offset,
-	STORE_CLIENT_BUF_SZ,
-	memAllocate(MEM_STORE_CLIENT_BUF),
+    storeClientCopyHeaders(http->sc, entry,
 	clientHandleETagReply,
 	http);
 }
@@ -862,11 +860,7 @@ clientProcessExpired(void *data)
     /* Register with storage manager to receive updates when data comes in. */
     if (EBIT_TEST(entry->flags, ENTRY_ABORTED))
 	debug(33, 0) ("clientProcessExpired: found ENTRY_ABORTED object\n");
-    storeClientCopy(http->sc, entry,
-	http->out.offset,
-	http->out.offset,
-	STORE_CLIENT_BUF_SZ,
-	memAllocate(MEM_STORE_CLIENT_BUF),
+    storeClientCopyHeaders(http->sc, entry,
 	clientHandleIMSReply,
 	http);
 }
@@ -930,7 +924,7 @@ clientGetsOldEntry(StoreEntry * new_entry, StoreEntry * old_entry, request_t * r
 
 
 static void
-clientHandleIMSReply(void *data, char *buf, ssize_t size)
+clientHandleIMSReply(void *data, HttpReply * rep)
 {
     clientHttpRequest *http = data;
     StoreEntry *entry = http->entry;
@@ -939,23 +933,16 @@ clientHandleIMSReply(void *data, char *buf, ssize_t size)
     int unlink_request = 0;
     StoreEntry *oldentry;
     int recopy = 1;
-    http_status status;
-    debug(33, 3) ("clientHandleIMSReply: %s, %ld bytes\n", url, (long int) size);
+    debug(33, 3) ("clientHandleIMSReply: %s\n", url);
     if (http->old_entry && http->old_entry->mem_obj && http->old_entry->mem_obj->ims_entry) {
 	storeUnlockObject(http->old_entry->mem_obj->ims_entry);
 	http->old_entry->mem_obj->ims_entry = NULL;
     }
     if (entry == NULL) {
-	memFree(buf, MEM_STORE_CLIENT_BUF);
-	return;
-    }
-    if (size < 0 && !EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
-	memFree(buf, MEM_STORE_CLIENT_BUF);
 	return;
     }
     mem = entry->mem_obj;
-    status = mem->reply->sline.status;
-    if (EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
+    if (!rep) {
 	debug(33, 3) ("clientHandleIMSReply: ABORTED '%s'\n", url);
 	/* We have an existing entry, but failed to validate it */
 	/* Its okay to send the old one anyway */
@@ -964,28 +951,6 @@ clientHandleIMSReply(void *data, char *buf, ssize_t size)
 	storeUnlockObject(entry);
 	entry = http->entry = http->old_entry;
 	http->sc = http->old_sc;
-    } else if (STORE_PENDING == entry->store_status && 0 == status) {
-	debug(33, 3) ("clientHandleIMSReply: Incomplete headers for '%s'\n", url);
-	if (size >= STORE_CLIENT_BUF_SZ) {
-	    /* will not get any bigger than that */
-	    debug(33, 3) ("clientHandleIMSReply: Reply is too large '%s', using old entry\n", url);
-	    /* use old entry, this repeats the code abovez */
-	    http->log_type = LOG_TCP_REFRESH_FAIL_HIT;
-	    storeClientUnregister(http->sc, entry, http);
-	    storeUnlockObject(entry);
-	    entry = http->entry = http->old_entry;
-	    http->sc = http->old_sc;
-	    /* continue */
-	} else {
-	    storeClientCopy(http->sc, entry,
-		http->out.offset + size,
-		http->out.offset,
-		STORE_CLIENT_BUF_SZ,
-		buf,
-		clientHandleIMSReply,
-		http);
-	    return;
-	}
     } else if (clientGetsOldEntry(entry, http->old_entry, http->request)) {
 	/* We initiated the IMS request, the client is not expecting
 	 * 304, so put the good one back.  First, make sure the old entry
@@ -996,12 +961,12 @@ clientHandleIMSReply(void *data, char *buf, ssize_t size)
 	    oldentry->mem_obj->request = requestLink(mem->request);
 	    unlink_request = 1;
 	}
-	if (mem->reply->sline.status == HTTP_NOT_MODIFIED) {
+	if (rep->sline.status == HTTP_NOT_MODIFIED) {
 	    /* Don't memcpy() the whole reply structure here.  For example,
 	     * www.thegist.com (Netscape/1.13) returns a content-length for
 	     * 304's which seems to be the length of the 304 HEADERS!!! and
 	     * not the body they refer to.  */
-	    httpReplyUpdateOnNotModified(oldentry->mem_obj->reply, mem->reply);
+	    httpReplyUpdateOnNotModified(oldentry->mem_obj->reply, rep);
 	    storeTimestampsSet(oldentry);
 	}
 	storeClientUnregister(http->sc, entry, http);
@@ -1016,9 +981,9 @@ clientHandleIMSReply(void *data, char *buf, ssize_t size)
 	/* the client can handle this reply, whatever it is */
 	http->flags.hit = 0;
 	http->log_type = LOG_TCP_REFRESH_MISS;
-	if (HTTP_NOT_MODIFIED == mem->reply->sline.status) {
+	if (HTTP_NOT_MODIFIED == rep->sline.status) {
 	    httpReplyUpdateOnNotModified(http->old_entry->mem_obj->reply,
-		mem->reply);
+		rep);
 	    storeTimestampsSet(http->old_entry);
 	    http->log_type = LOG_TCP_REFRESH_HIT;
 	}
@@ -1033,15 +998,11 @@ clientHandleIMSReply(void *data, char *buf, ssize_t size)
     http->old_sc = NULL;
     assert(!EBIT_TEST(entry->flags, ENTRY_ABORTED));
     if (recopy) {
-	storeClientCopy(http->sc, entry,
-	    http->out.offset,
-	    http->out.offset,
-	    STORE_CLIENT_BUF_SZ,
-	    buf,
-	    clientSendMoreHeaderData,
+	storeClientCopyHeaders(http->sc, entry,
+	    clientSendHeaders,
 	    http);
     } else {
-	clientSendMoreHeaderData(data, buf, size);
+	clientSendHeaders(data, rep);
     }
 }
 
@@ -1116,11 +1077,7 @@ clientPurgeRequest(clientHttpRequest * http)
 	    http->entry->mem_obj->method = http->request->method;
 	    http->sc = storeClientRegister(http->entry, http);
 	    http->log_type = LOG_TCP_HIT;
-	    storeClientCopy(http->sc, http->entry,
-		http->out.offset,
-		http->out.offset,
-		STORE_CLIENT_BUF_SZ,
-		memAllocate(MEM_STORE_CLIENT_BUF),
+	    storeClientCopyHeaders(http->sc, http->entry,
 		clientCacheHit,
 		http);
 	    return;
@@ -2033,7 +1990,7 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
     httpHdrMangleList(hdr, request);
 }
 
-/* Used exclusively by clientBuildReply() during failure cases only */
+/* Used exclusively by clientCloneReply() during failure cases only */
 static void
 clientUnwindReply(clientHttpRequest * http, HttpReply * rep)
 {
@@ -2055,7 +2012,7 @@ clientUnwindReply(clientHttpRequest * http, HttpReply * rep)
  * be.
  */
 static HttpReply *
-clientBuildReply(clientHttpRequest * http)
+clientCloneReply(clientHttpRequest * http, HttpReply * orig_rep)
 {
     HttpReply *rep = NULL;
     /* If we don't have a memobj / reply by now then we're stuffed */
@@ -2064,7 +2021,7 @@ clientBuildReply(clientHttpRequest * http)
 	return NULL;
     }
     /* try to grab the already-parsed header */
-    rep = httpReplyClone(http->sc->entry->mem_obj->reply);
+    rep = httpReplyClone(orig_rep);
     if (rep->pstate == psParsed) {
 	/* enforce 1.0 reply version */
 	httpBuildVersion(&rep->sline.version, 1, 0);
@@ -2116,7 +2073,7 @@ clientProcessVary(VaryData * vary, void *data)
  * clientProcessMiss.
  */
 static void
-clientCacheHit(void *data, char *buf, ssize_t size)
+clientCacheHit(void *data, HttpReply * rep)
 {
     clientHttpRequest *http = data;
     StoreEntry *e = http->entry;
@@ -2124,32 +2081,22 @@ clientCacheHit(void *data, char *buf, ssize_t size)
     request_t *r = http->request;
     int is_modified = -1;
     int stale;
-    debug(33, 3) ("clientCacheHit: %s, %d bytes\n", http->uri, (int) size);
     http->flags.hit = 0;
     if (http->entry == NULL) {
-	memFree(buf, MEM_STORE_CLIENT_BUF);
 	debug(33, 3) ("clientCacheHit: request aborted\n");
 	return;
-    } else if (size <= 0) {
+    } else if (!rep) {
 	/* swap in failure */
-	memFree(buf, MEM_STORE_CLIENT_BUF);
 	debug(33, 3) ("clientCacheHit: swapin failure for %s\n", http->uri);
 	http->log_type = LOG_TCP_SWAPFAIL_MISS;
 	clientProcessMiss(http);
 	return;
     }
-    assert(size > 0);
     mem = e->mem_obj;
+    debug(33, 3) ("clientCacheHit: %s = %d\n", http->uri, rep->sline.status);
     assert(!EBIT_TEST(e->flags, ENTRY_ABORTED));
-    if (!memHaveHeaders(mem)) {
-	debug(33, 1) ("clientCacheHit: No reply headers in '%s'?\n", e->mem_obj->url);
-	memFree(buf, MEM_STORE_CLIENT_BUF);
-	clientProcessMiss(http);
-	return;
-    }
     if (strcmp(mem->url, urlCanonical(r)) != 0) {
 	debug(33, 1) ("clientCacheHit: URL mismatch '%s' != '%s'?\n", e->mem_obj->url, urlCanonical(r));
-	memFree(buf, MEM_STORE_CLIENT_BUF);
 	clientProcessMiss(http);
 	return;
     }
@@ -2185,7 +2132,6 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	     * so we only get here once. (it also takes care of cancelling loops)
 	     */
 	    debug(33, 2) ("clientProcessHit: Vary detected!\n");
-	    memFree(buf, MEM_STORE_CLIENT_BUF);
 	    return;
 	}
     case VARY_RESTART:
@@ -2195,13 +2141,11 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	safe_free(r->vary_hdr);
 	safe_free(r->vary_headers);
 	clientProcessRequest(http);
-	memFree(buf, MEM_STORE_CLIENT_BUF);
 	return;
     case VARY_CANCEL:
 	/* varyEvaluateMatch found a object loop. Process as miss */
 	debug(33, 1) ("clientProcessHit: Vary object loop!\n");
 	clientProcessMiss(http);
-	memFree(buf, MEM_STORE_CLIENT_BUF);
 	return;
     }
     if (r->method == METHOD_PURGE) {
@@ -2210,7 +2154,6 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	http->sc = NULL;
 	storeUnlockObject(e);
 	clientPurgeRequest(http);
-	memFree(buf, MEM_STORE_CLIENT_BUF);
 	return;
     }
     http->flags.hit = 1;
@@ -2221,10 +2164,9 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 #endif
 	    ) {
 	    http->log_type = LOG_TCP_NEGATIVE_HIT;
-	    clientSendMoreHeaderData(data, buf, size);
+	    clientSendHeaders(data, rep);
 	} else {
 	    http->log_type = LOG_TCP_MISS;
-	    memFree(buf, MEM_STORE_CLIENT_BUF);
 	    clientProcessMiss(http);
 	}
 	return;
@@ -2242,7 +2184,6 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	     * Query the origin to see what should be done.
 	     */
 	    http->log_type = LOG_TCP_MISS;
-	    memFree(buf, MEM_STORE_CLIENT_BUF);
 	    clientProcessMiss(http);
 	    return;
 	}
@@ -2255,7 +2196,6 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	    debug(33, 4) ("clientCacheHit: Reply code %d != 200\n",
 		mem->reply->sline.status);
 	    http->log_type = LOG_TCP_MISS;
-	    memFree(buf, MEM_STORE_CLIENT_BUF);
 	    clientProcessMiss(http);
 	    return;
 	}
@@ -2321,7 +2261,6 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	} else {
 	    clientProcessExpired(http);
 	}
-	memFree(buf, MEM_STORE_CLIENT_BUF);
 	return;
     }
     if (is_modified == 0) {
@@ -2343,7 +2282,6 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	storeAppend(e, mb.buf, mb.size);
 	memBufClean(&mb);
 	storeComplete(e);
-	memFree(buf, MEM_STORE_CLIENT_BUF);
 	return;
     }
     /*
@@ -2353,7 +2291,7 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	http->log_type = LOG_TCP_MISS;
     else if (http->log_type == LOG_TCP_HIT && e->mem_status == IN_MEMORY)
 	http->log_type = LOG_TCP_MEM_HIT;
-    clientSendMoreHeaderData(data, buf, size);
+    clientSendHeaders(data, rep);
 }
 
 /* put terminating boundary for multiparts */
@@ -2611,48 +2549,31 @@ static void clientCheckHeaderDone(clientHttpRequest * http);
  * such, writes processed message to the client's socket
  */
 static void
-clientSendMoreHeaderData(void *data, char *buf, ssize_t size)
+clientSendHeaders(void *data, HttpReply * rep)
 {
     clientHttpRequest *http = data;
     StoreEntry *entry = http->entry;
     ConnStateData *conn = http->conn;
     int fd = conn->fd;
-    HttpReply *rep = NULL;
-    debug(33, 5) ("clientSendMoreHeaderData: %s, %d bytes\n", http->uri, (int) size);
-    assert(size <= STORE_CLIENT_BUF_SZ);
     assert(http->request != NULL);
     dlinkDelete(&http->active, &ClientActiveRequests);
     dlinkAdd(http, &http->active, &ClientActiveRequests);
-    debug(33, 5) ("clientSendMoreHeaderData: FD %d '%s', out.offset=%ld \n",
-	fd, storeUrl(entry), (long int) http->out.offset);
+    debug(33, 5) ("clientSendMoreHeaderData: FD %d '%s'\n", fd, storeUrl(entry));
     assert(conn->reqs.head != NULL);
     if (DLINK_HEAD(conn->reqs) != http) {
 	/* there is another object in progress, defer this one */
 	debug(33, 2) ("clientSendMoreHeaderData: Deferring %s\n", storeUrl(entry));
-	memFree(buf, MEM_STORE_CLIENT_BUF);
 	return;
     } else if (http->request->flags.reset_tcp) {
 	comm_reset_close(fd);
-	memFree(buf, MEM_STORE_CLIENT_BUF);
 	return;
-    } else if (entry && EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
-	/* call clientWriteComplete so the client socket gets closed */
-	memFree(buf, MEM_STORE_CLIENT_BUF);
-	clientWriteComplete(fd, NULL, 0, COMM_OK, http);
-	return;
-    } else if (size < 0) {
+    } else if (!rep) {
 	/* call clientWriteComplete so the client socket gets closed */
 	clientWriteComplete(fd, NULL, 0, COMM_OK, http);
-	memFree(buf, MEM_STORE_CLIENT_BUF);
-	return;
-    } else if (size == 0) {
-	/* call clientWriteComplete so the client socket gets closed */
-	clientWriteComplete(fd, NULL, 0, COMM_OK, http);
-	memFree(buf, MEM_STORE_CLIENT_BUF);
 	return;
     }
     assert(http->out.offset == 0);
-    rep = http->reply = clientBuildReply(http);
+    rep = http->reply = clientCloneReply(http, rep);
     if (!rep) {
 	ErrorState *err = errorCon(ERR_INVALID_RESP, HTTP_BAD_GATEWAY, http->orig_request);
 	storeClientUnregister(http->sc, http->entry, http);
@@ -2661,7 +2582,6 @@ clientSendMoreHeaderData(void *data, char *buf, ssize_t size)
 	http->entry = clientCreateStoreEntry(http, http->request->method,
 	    null_request_flags);
 	errorAppendEntry(http->entry, err);
-	memFree(buf, MEM_STORE_CLIENT_BUF);
 	return;
     }
     clientMaxBodySize(http->request, http, rep);
@@ -2674,7 +2594,6 @@ clientSendMoreHeaderData(void *data, char *buf, ssize_t size)
 	http->entry = clientCreateStoreEntry(http, http->request->method,
 	    null_request_flags);
 	errorAppendEntry(http->entry, err);
-	memFree(buf, MEM_STORE_CLIENT_BUF);
 	return;
     }
     /* 
@@ -2689,7 +2608,6 @@ clientSendMoreHeaderData(void *data, char *buf, ssize_t size)
      */
     http->range_iter.prefix_size = rep->hdr_sz;
     debug(33, 3) ("clientSendMoreHeaderData: %d bytes of headers\n", rep->hdr_sz);
-    memFree(buf, MEM_STORE_CLIENT_BUF);
     clientHttpLocationRewriteCheck(http);
 }
 
@@ -2949,7 +2867,7 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 	 * If we are here, then store_status == STORE_OK and it
 	 * seems we have a HEAD repsponse which is missing the
 	 * empty end-of-headers line (home.mira.net, phttpd/0.99.72
-	 * does this).  Because clientBuildReply() fails we just
+	 * does this).  Because clientCloneReply() fails we just
 	 * call this reply a body, set the done_copying flag and
 	 * continue...
 	 */
@@ -3039,12 +2957,8 @@ clientKeepaliveNextRequest(clientHttpRequest * http)
 	if (0 == storeClientCopyPending(http->sc, entry, http)) {
 	    if (EBIT_TEST(entry->flags, ENTRY_ABORTED))
 		debug(33, 0) ("clientKeepaliveNextRequest: ENTRY_ABORTED\n");
-	    storeClientCopy(http->sc, entry,
-		http->out.offset,
-		http->out.offset,
-		STORE_CLIENT_BUF_SZ,
-		memAllocate(MEM_STORE_CLIENT_BUF),
-		clientSendMoreHeaderData,
+	    storeClientCopyHeaders(http->sc, entry,
+		clientSendHeaders,
 		http);
 	}
     }
@@ -3349,11 +3263,7 @@ clientProcessRequest(clientHttpRequest * http)
 #if DELAY_POOLS
 	delaySetStoreClient(http->sc, delayClient(http));
 #endif
-	storeClientCopy(http->sc, http->entry,
-	    http->out.offset,
-	    http->out.offset,
-	    STORE_CLIENT_BUF_SZ,
-	    memAllocate(MEM_STORE_CLIENT_BUF),
+	storeClientCopyHeaders(http->sc, http->entry,
 	    clientCacheHit,
 	    http);
     } else {

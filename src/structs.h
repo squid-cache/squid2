@@ -1237,6 +1237,8 @@ struct _clientHttpRequest {
     } redirect;
     dlink_node active;
     squid_off_t maxBodySize;
+    STHCB *header_callback;	/* Temporarily here for storeClientCopyHeaders */
+    StoreEntry *header_entry;	/* Temporarily here for storeClientCopyHeaders */
 };
 
 struct _ConnStateData {
