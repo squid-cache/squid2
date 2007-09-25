@@ -128,7 +128,9 @@ new_MemObject(const char *url)
 int
 memHaveHeaders(const MemObject * mem)
 {
-    if (mem->reply == NULL)
+    if (!mem)
+	return 0;
+    if (!mem->reply)
 	return 0;
     if (mem->reply->pstate != psParsed)
 	return 0;
