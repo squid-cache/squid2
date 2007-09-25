@@ -142,7 +142,7 @@ static void clientPackRangeHdr(const HttpReply * rep, const HttpHdrRangeSpec * s
 static void clientPackTermBound(String boundary, MemBuf * mb);
 static void clientInterpretRequestHeaders(clientHttpRequest *);
 static void clientProcessRequest(clientHttpRequest *);
-static void clientProcessExpired(void *data);
+static void clientProcessExpired(clientHttpRequest *);
 static void clientProcessOnlyIfCachedMiss(clientHttpRequest * http);
 static int clientCachable(clientHttpRequest * http);
 static int clientHierarchical(clientHttpRequest * http);
@@ -785,9 +785,8 @@ clientProcessETag(clientHttpRequest * http)
 }
 
 static void
-clientProcessExpired(void *data)
+clientProcessExpired(clientHttpRequest * http)
 {
-    clientHttpRequest *http = data;
     char *url = http->uri;
     StoreEntry *entry = NULL;
     int hit = 0;
