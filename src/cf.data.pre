@@ -3404,9 +3404,10 @@ DEFAULT: mail
 LOC: Config.EmailProgram
 DOC_START
 	Email program used to send mail if the cache dies.
-	The default is "mail". The specified program must complain
+	The default is "mail". The specified program must comply
 	with the standard Unix mail syntax:
-	mail_program recipient < mailfile
+	  mail-program recipient < mailfile
+
 	Optional command line options can be specified.
 DOC_END
 
