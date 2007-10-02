@@ -710,6 +710,8 @@ main(int argc, char **argv)
 #endif
     mainParseOptions(argc, argv);
 
+    openlog(appname, LOG_PID | LOG_NDELAY | LOG_CONS, syslog_facility);
+
 #if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
     if (opt_install_service) {
 	WIN32_InstallService();
@@ -972,14 +974,12 @@ watch_child(char *argv[])
     int nullfd;
     if (*(argv[0]) == '(')
 	return;
-    openlog(appname, LOG_PID | LOG_NDELAY | LOG_CONS, LOG_LOCAL4);
     if ((pid = fork()) < 0)
 	syslog(LOG_ALERT, "fork failed: %s", xstrerror());
     else if (pid > 0)
 	exit(0);
     if (setsid() < 0)
 	syslog(LOG_ALERT, "setsid failed: %s", xstrerror());
-    closelog();
 #ifdef TIOCNOTTY
     if ((i = open("/dev/tty", O_RDWR | O_TEXT)) >= 0) {
 	ioctl(i, TIOCNOTTY, NULL);
@@ -1008,7 +1008,6 @@ watch_child(char *argv[])
 	mainStartScript(argv[0]);
 	if ((pid = fork()) == 0) {
 	    /* child */
-	    openlog(appname, LOG_PID | LOG_NDELAY | LOG_CONS, LOG_LOCAL4);
 	    prog = xstrdup(argv[0]);
 	    argv[0] = xstrdup("(squid)");
 	    execvp(prog, argv);
@@ -1016,7 +1015,6 @@ watch_child(char *argv[])
 	    exit(1);
 	}
 	/* parent */
-	openlog(appname, LOG_PID | LOG_NDELAY | LOG_CONS, LOG_LOCAL4);
 	syslog(LOG_NOTICE, "Squid Parent: child process %d started", pid);
 	time(&start);
 	squid_signal(SIGINT, SIG_IGN, SA_RESTART);

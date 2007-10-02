@@ -178,5 +178,8 @@ extern int need_linux_tproxy;	/* 0 */
 #endif
 extern int opt_parse_cfg_only;	/* 0 */
 extern int n_coss_dirs;		/* 0 */
+#ifdef LOG_LOCAL4
+extern int syslog_facility;	/* LOG_LOCAL4 */
+#endif
 
 #endif /* SQUID_GLOBALS_H */
