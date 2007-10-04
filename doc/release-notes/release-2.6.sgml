@@ -82,7 +82,7 @@ membership check
 
 <sect>Changes to squid.conf
 <p><descrip>
-<tag>http_port</tag>Now takes a list of options in addition to the port address, specifying the purpose of this http_port. Default is plain Internet proxy as usual.
+<tag>http_port</tag>Now takes a list of options in addition to the port address, specifying the purpose of this http_port. Default is plain Internet proxy as usual. Also there is no longer a default port and you must include a http_port directive in your squid.conf if you want Squid to listen for http requests.
 <tag>httpd_accel_* for transparent proxy</tag>Now implemented by the "transparent" http_port option
 <tag>httpd_accel_* for accelerator mode</tag>Now implemented by other options and the http_port accel option. See individual directives below.
 <tag>httpd_accel_host</tag>Replaced by defaultsite http_port option and cache_peer originserver option.
