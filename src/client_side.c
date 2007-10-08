@@ -718,9 +718,7 @@ clientHandleETagReply(void *data, HttpReply * rep)
 {
     clientHttpRequest *http = data;
     StoreEntry *entry = http->entry;
-    MemObject *mem;
     const char *url = storeUrl(entry);
-    http_status status;
     if (entry == NULL) {
 	/* client aborted */
 	return;
@@ -735,7 +733,7 @@ clientHandleETagReply(void *data, HttpReply * rep)
 	clientHandleETagMiss(http);
 	return;
     }
-    debug(33, 3) ("clientHandleETagReply: %s = %d\n", url, (int) status);
+    debug(33, 3) ("clientHandleETagReply: %s = %d\n", url, (int) rep->sline.status);
     if (HTTP_NOT_MODIFIED == rep->sline.status) {
 	/* Remember the ETag and restart */
 	if (rep) {
@@ -750,7 +748,7 @@ clientHandleETagReply(void *data, HttpReply * rep)
 		vary = httpMakeVaryMark(request, rep);
 
 	    if (etag && vary) {
-		storeAddVary(mem->url, mem->method, NULL, httpHeaderGetStr(&rep->header, HDR_ETAG), request->vary_hdr, request->vary_headers, strBuf(request->vary_encoding));
+		storeAddVary(url, entry->mem_obj->method, NULL, httpHeaderGetStr(&rep->header, HDR_ETAG), request->vary_hdr, request->vary_headers, strBuf(request->vary_encoding));
 	    }
 	}
 	clientHandleETagMiss(http);
