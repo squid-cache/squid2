@@ -4012,7 +4012,7 @@ TYPE: time_t
 LOC: Config.digest.rebuild_period
 DEFAULT: 1 hour
 DOC_START
-	This is the number of seconds between Cache Digest rebuilds.
+	This is the wait time between Cache Digest rebuilds.
 DOC_END
 
 NAME: digest_rewrite_period
@@ -4022,8 +4022,7 @@ TYPE: time_t
 LOC: Config.digest.rewrite_period
 DEFAULT: 1 hour
 DOC_START
-	This is the number of seconds between Cache Digest writes to
-	disk.
+	This is the wait time between Cache Digest writes to disk.
 DOC_END
 
 NAME: digest_swapout_chunk_size
