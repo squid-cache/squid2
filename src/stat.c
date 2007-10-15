@@ -421,7 +421,15 @@ fdRemoteAddr(const fde * f)
     LOCAL_ARRAY(char, buf, 32);
     if (f->type != FD_SOCKET)
 	return null_string;
-    snprintf(buf, 32, "%s.%d", f->ipaddr, (int) f->remote_port);
+    if (*f->ipaddr)
+	snprintf(buf, 32, "%s.%d", f->ipaddr, (int) f->remote_port);
+    else {
+	if (f->local_addr.s_addr != any_addr.s_addr) {
+	    snprintf(buf, 32, "%s.%d", inet_ntoa(f->local_addr), (int) f->local_port);
+	} else {
+	    snprintf(buf, 32, "*.%d", (int) f->local_port);
+	}
+    }
     return buf;
 }
 
