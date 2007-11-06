@@ -98,6 +98,8 @@ redirectStart(clientHttpRequest * http, RH * handler, void *data)
     const char *fqdn;
     char *urlgroup = conn->port->urlgroup;
     char buf[8192];
+    char claddr[20];
+    char myaddr[20];
     assert(http);
     assert(handler);
     debug(61, 5) ("redirectStart: '%s'\n", http->uri);
@@ -130,13 +132,17 @@ redirectStart(clientHttpRequest * http, RH * handler, void *data)
     cbdataLock(r->data);
     if ((fqdn = fqdncache_gethostbyaddr(r->client_addr, 0)) == NULL)
 	fqdn = dash_str;
-    snprintf(buf, 8191, "%s %s/%s %s %s %s",
+    xstrncpy(claddr, inet_ntoa(r->client_addr), 20);
+    xstrncpy(myaddr, inet_ntoa(http->request->my_addr), 20);
+    snprintf(buf, 8191, "%s %s/%s %s %s %s myip=%s myport=%d",
 	r->orig_url,
-	inet_ntoa(r->client_addr),
+	claddr,
 	fqdn,
 	r->client_ident[0] ? rfc1738_escape(r->client_ident) : dash_str,
 	r->method_s,
-	urlgroup ? urlgroup : "-");
+	urlgroup ? urlgroup : "-",
+	myaddr,
+	http->request->my_port);
     debug(61, 6) ("redirectStart: sending '%s' to the helper\n", buf);
     strcat(buf, "\n");
     helperSubmit(redirectors, buf, redirectHandleReply, r);
