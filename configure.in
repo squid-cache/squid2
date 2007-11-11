@@ -686,11 +686,13 @@ AC_ARG_ENABLE(htcp,
   fi
 ])
 
+dnl SSL is not enabled by default.
 AM_CONDITIONAL(ENABLE_SSL, false)
 
 SSLLIB=''
 SSLFLAGS=''
 
+dnl Default is to use OpenSSL when available
 AC_ARG_ENABLE(ssl,
 [  --enable-ssl            Enable ssl gatewaying support using OpenSSL],
 [ if test "$enableval" != "no"; then
@@ -709,8 +711,7 @@ AC_ARG_ENABLE(ssl,
   fi
 ])
 
-AM_CONDITIONAL(NEED_OWN_MD5, true)
-
+dnl User may specify OpenSSL is needed from a non-standard location
 AC_ARG_WITH(openssl,
 [  --with-openssl[=prefix]
 			  Compile with the OpenSSL libraries. The path to
@@ -739,7 +740,6 @@ if test -n "$USE_OPENSSL"; then
   AC_DEFINE(USE_OPENSSL, 1, [Define this to make use of the OpenSSL libraries for
 	MD5 calculation rather than Squid's own MD5 implementation
 	or if building with SSL encryption (USE_SSL)])
-  AM_CONDITIONAL(NEED_OWN_MD5, false)
   if test -z "$SSLLIB"; then
     SSLLIB="-lcrypto" # for MD5 routines
   fi
@@ -750,6 +750,7 @@ if test -n "$USE_OPENSSL"; then
   CPPFLAGS="${SSLFLAGS} $CPPFLAGS"
 fi
 AC_SUBST(SSLLIB)
+
 
 AC_ARG_ENABLE(forw-via-db,
 [  --enable-forw-via-db    Enable Forw/Via database],
@@ -1635,6 +1636,7 @@ AC_CHECK_HEADERS(
 	sys/file.h \
 	sys/ioctl.h \
 	sys/mount.h \
+	sys/md5.h \
 	sys/msg.h \
 	sys/prctl.h \
 	sys/resource.h \
@@ -2103,7 +2105,11 @@ esac
 dnl Check for libcrypt
 dnl Some of our helpers use crypt(3) which may be in libc, or in
 dnl libcrypt (eg FreeBSD)
-AC_CHECK_LIB(crypt, crypt, [CRYPTLIB="-lcrypt"])
+AC_CHECK_LIB(crypt, crypt, [CRYPTLIB=" -lcrypt "])
+
+dnl Solaris10 provides MD5 natively through libmd5
+AC_CHECK_LIB(md5, MD5Init, [CRYPTLIB+=" -lmd5 "])
+
 AC_SUBST(CRYPTLIB)
 
 dnl Check for libdl, used by auth_modules/PAM

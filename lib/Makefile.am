@@ -13,11 +13,6 @@ STRSEPSOURCE=strsep.c
 else
 STRSEPSOURCE=
 endif
-if NEED_OWN_MD5
-MD5SOURCE=md5.c
-else
-MD5SOURCE=
-endif
 if ENABLE_WIN32SPECIFIC
 LIBSSPWIN32=libsspwin32.a
 else
@@ -41,7 +36,6 @@ noinst_LIBRARIES = \
 	@LIBREGEX@ \
 	$(LIBSSPWIN32)
 EXTRA_libmiscutil_a_SOURCES = \
-	md5.c \
 	snprintf.c \
 	strsep.c \
 	win32lib.c
@@ -53,7 +47,7 @@ libmiscutil_a_SOURCES = \
 	heap.c \
 	html_quote.c \
 	iso3307.c \
-	$(MD5SOURCE) \
+	md5.c \
 	radix.c \
 	rfc1035.c \
 	rfc1123.c \
