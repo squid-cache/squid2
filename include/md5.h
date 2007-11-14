@@ -24,6 +24,7 @@
 /*
  * Solaris 10 provides MD5 as part of the system.
  */
+#include <sys/types.h>
 #include <sys/md5.h>
 
 /*
