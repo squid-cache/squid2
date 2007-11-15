@@ -549,6 +549,11 @@ struct _SquidConfig {
 	    wordlist *command;
 	    int children;
 	    int concurrency;
+	} store_rewrite;
+	struct {
+	    wordlist *command;
+	    int children;
+	    int concurrency;
 	} location_rewrite;
 #if USE_ICMP
 	char *pinger;
@@ -652,6 +657,7 @@ struct _SquidConfig {
 	int nonhierarchical_direct;
 	int strip_query_terms;
 	int redirector_bypass;
+	int storeurl_bypass;
 	int ignore_unknown_nameservers;
 	int client_pconns;
 	int server_pconns;
@@ -700,6 +706,7 @@ struct _SquidConfig {
 	acl_access *identLookup;
 #endif
 	acl_access *url_rewrite;
+	acl_access *storeurl_rewrite;
 	acl_access *location_rewrite;
 	acl_access *reply;
 	acl_address *outgoing_address;
@@ -1884,6 +1891,7 @@ struct _request_t {
     u_short port;
     String urlpath;
     char *canonical;
+    char *store_url;		/* rewritten URL for store lookup/storage; if NULL use canonical */
     int link_count;		/* free when zero */
     request_flags flags;
     HttpHdrCc *cache_control;

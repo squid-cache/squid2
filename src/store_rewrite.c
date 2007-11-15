@@ -2,8 +2,8 @@
 /*
  * $Id$
  *
- * DEBUG: section 85   Store URL Redirector
- * AUTHOR: Adrian Chadd; based on redirect.c by Duane Wessels
+ * DEBUG: section 61    Redirector
+ * AUTHOR: Duane Wessels
  *
  * SQUID Web Proxy Cache          http://www.squid-cache.org/
  * ----------------------------------------------------------
@@ -42,22 +42,22 @@ typedef struct {
     const char *client_ident;
     const char *method_s;
     RH *handler;
-} redirectStateData;
+} storeurlStateData;
 
-static HLPCB redirectHandleReply;
-static void redirectStateFree(redirectStateData * r);
-static helper *redirectors = NULL;
-static OBJH redirectStats;
+static HLPCB storeurlHandleReply;
+static void storeurlStateFree(storeurlStateData * r);
+static helper *storeurlors = NULL;
+static OBJH storeurlStats;
 static int n_bypassed = 0;
-CBDATA_TYPE(redirectStateData);
+CBDATA_TYPE(storeurlStateData);
 
 static void
-redirectHandleReply(void *data, char *reply)
+storeurlHandleReply(void *data, char *reply)
 {
-    redirectStateData *r = data;
+    storeurlStateData *r = data;
     int valid;
     char *t;
-    debug(61, 5) ("redirectHandleRead: {%s}\n", reply ? reply : "<NULL>");
+    debug(61, 5) ("storeurlHandleRead: {%s}\n", reply ? reply : "<NULL>");
     if (reply) {
 	if ((t = strchr(reply, ' ')))
 	    *t = '\0';
@@ -68,33 +68,33 @@ redirectHandleReply(void *data, char *reply)
     cbdataUnlock(r->data);
     if (valid)
 	r->handler(r->data, reply);
-    redirectStateFree(r);
+    storeurlStateFree(r);
 }
 
 static void
-redirectStateFree(redirectStateData * r)
+storeurlStateFree(storeurlStateData * r)
 {
     safe_free(r->orig_url);
     cbdataFree(r);
 }
 
 static void
-redirectStats(StoreEntry * sentry)
+storeurlStats(StoreEntry * sentry)
 {
     storeAppendPrintf(sentry, "Redirector Statistics:\n");
-    helperStats(sentry, redirectors);
-    if (Config.onoff.redirector_bypass)
+    helperStats(sentry, storeurlors);
+    if (Config.onoff.storeurl_bypass)
 	storeAppendPrintf(sentry, "\nNumber of requests bypassed "
-	    "because all redirectors were busy: %d\n", n_bypassed);
+	    "because all store url bypassers were busy: %d\n", n_bypassed);
 }
 
 /**** PUBLIC FUNCTIONS ****/
 
 void
-redirectStart(clientHttpRequest * http, RH * handler, void *data)
+storeurlStart(clientHttpRequest * http, RH * handler, void *data)
 {
     ConnStateData *conn = http->conn;
-    redirectStateData *r = NULL;
+    storeurlStateData *r = NULL;
     const char *fqdn;
     char *urlgroup = conn->port->urlgroup;
     char buf[8192];
@@ -102,14 +102,14 @@ redirectStart(clientHttpRequest * http, RH * handler, void *data)
     char myaddr[20];
     assert(http);
     assert(handler);
-    debug(61, 5) ("redirectStart: '%s'\n", http->uri);
-    if (Config.onoff.redirector_bypass && redirectors->stats.queue_size) {
-	/* Skip redirector if there is one request queued */
+    debug(61, 5) ("storeurlStart: '%s'\n", http->uri);
+    if (Config.onoff.storeurl_bypass && storeurlors->stats.queue_size) {
+	/* Skip storeurlor if there is one request queued */
 	n_bypassed++;
 	handler(data, NULL);
 	return;
     }
-    r = cbdataAlloc(redirectStateData);
+    r = cbdataAlloc(storeurlStateData);
     r->orig_url = xstrdup(http->uri);
     r->client_addr = conn->log_addr;
     r->client_ident = NULL;
@@ -143,41 +143,41 @@ redirectStart(clientHttpRequest * http, RH * handler, void *data)
 	urlgroup ? urlgroup : "-",
 	myaddr,
 	http->request->my_port);
-    debug(61, 6) ("redirectStart: sending '%s' to the helper\n", buf);
+    debug(61, 6) ("storeurlStart: sending '%s' to the helper\n", buf);
     strcat(buf, "\n");
-    helperSubmit(redirectors, buf, redirectHandleReply, r);
+    helperSubmit(storeurlors, buf, storeurlHandleReply, r);
 }
 
 void
-redirectInit(void)
+storeurlInit(void)
 {
     static int init = 0;
-    if (!Config.Program.url_rewrite.command)
+    if (!Config.Program.store_rewrite.command)
 	return;
-    if (redirectors == NULL)
-	redirectors = helperCreate("url_rewriter");
-    redirectors->cmdline = Config.Program.url_rewrite.command;
-    redirectors->n_to_start = Config.Program.url_rewrite.children;
-    redirectors->concurrency = Config.Program.url_rewrite.concurrency;
-    redirectors->ipc_type = IPC_STREAM;
-    helperOpenServers(redirectors);
+    if (storeurlors == NULL)
+	storeurlors = helperCreate("store_rewriter");
+    storeurlors->cmdline = Config.Program.store_rewrite.command;
+    storeurlors->n_to_start = Config.Program.store_rewrite.children;
+    storeurlors->concurrency = Config.Program.store_rewrite.concurrency;
+    storeurlors->ipc_type = IPC_STREAM;
+    helperOpenServers(storeurlors);
     if (!init) {
-	cachemgrRegister("url_rewriter",
+	cachemgrRegister("store_rewriter",
 	    "URL Rewriter Stats",
-	    redirectStats, 0, 1);
+	    storeurlStats, 0, 1);
 	init = 1;
-	CBDATA_INIT_TYPE(redirectStateData);
+	CBDATA_INIT_TYPE(storeurlStateData);
     }
 }
 
 void
-redirectShutdown(void)
+storeurlShutdown(void)
 {
-    if (!redirectors)
+    if (!storeurlors)
 	return;
-    helperShutdown(redirectors);
+    helperShutdown(storeurlors);
     if (!shutting_down)
 	return;
-    helperFree(redirectors);
-    redirectors = NULL;
+    helperFree(storeurlors);
+    storeurlors = NULL;
 }

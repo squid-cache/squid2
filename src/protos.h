@@ -747,6 +747,10 @@ extern void redirectStart(clientHttpRequest *, RH *, void *);
 extern void redirectInit(void);
 extern void redirectShutdown(void);
 
+extern void storeurlStart(clientHttpRequest *, RH *, void *);
+extern void storeurlInit(void);
+extern void storeurlShutdown(void);
+
 extern void locationRewriteStart(HttpReply *, clientHttpRequest *, RH *, void *);
 extern void locationRewriteInit(void);
 extern void locationRewriteShutdown(void);
@@ -1440,6 +1444,16 @@ extern int httpMsgParseRequestHeader(request_t * req, HttpMsgBuf * hmsg);
 extern int httpMsgFindHeadersEnd(HttpMsgBuf * hmsg);
 
 extern const char *xinet_ntoa(const struct in_addr addr);
+
+/* client_side.c */
+extern aclCheck_t *clientAclChecklistCreate(const acl_access * acl, const clientHttpRequest * http);
+extern void clientInterpretRequestHeaders(clientHttpRequest * http);
+extern void clientAccessCheck2(void *data);
+
+/* client_side_redirect.c */
+extern void clientRedirectAccessCheckDone(int answer, void *data);
+extern void clientRedirectStart(clientHttpRequest * http);
+extern void clientRedirectDone(void *data, char *result);
 
 
 #endif /* SQUID_PROTOS_H */

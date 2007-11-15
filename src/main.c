@@ -396,6 +396,7 @@ mainReconfigure(void)
     idnsShutdown();
 #endif
     redirectShutdown();
+    storeurlShutdown();
     locationRewriteShutdown();
     authenticateShutdown();
     externalAclShutdown();
@@ -425,6 +426,7 @@ mainReconfigure(void)
     idnsInit();
 #endif
     redirectInit();
+    storeurlInit();
     locationRewriteInit();
     authenticateInit(&Config.authConfig);
     externalAclInit();
@@ -478,6 +480,7 @@ mainRotate(void)
     dnsInit();
 #endif
     redirectInit();
+    storeurlInit();
     locationRewriteInit();
     authenticateInit(&Config.authConfig);
     externalAclInit();
@@ -576,6 +579,7 @@ mainInitialize(void)
     idnsInit();
 #endif
     redirectInit();
+    storeurlInit();
     locationRewriteInit();
     errorMapInit();
     authenticateInit(&Config.authConfig);

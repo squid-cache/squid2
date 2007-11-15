@@ -156,6 +156,8 @@ squid_SOURCES = \
 	cbdata.c \
 	client_db.c \
 	client_side.c \
+	client_side_rewrite.c \
+	client_side_storeurl_rewrite.c \
 	comm.c \
 	$(COMMLOOP_SOURCE) \
 	debug.c \
@@ -223,6 +225,7 @@ squid_SOURCES = \
 	peer_userhash.c \
 	protos.h \
 	redirect.c \
+	store_rewrite.c \
 	referer.c \
 	refresh.c \
 	send-announce.c \

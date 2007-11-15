@@ -89,29 +89,31 @@ pinger_LDADD = $(LDADD)
 pinger_DEPENDENCIES =
 am__squid_SOURCES_DIST = access_log.c acl.c asn.c authenticate.c \
 	cache_cf.c CacheDigest.c cache_manager.c carp.c cbdata.c \
-	client_db.c client_side.c comm.c comm_devpoll.c comm_epoll.c \
-	comm_kqueue.c comm_poll.c comm_select_simple.c comm_select.c \
-	comm_select_win32.c debug.c defines.h delay_pools.c disk.c \
-	dns_internal.c dns.c enums.h errorpage.c event.c errormap.c \
-	external_acl.c fd.c filemap.c forward.c fqdncache.c ftp.c \
-	globals.h gopher.c helper.c htcp.c http.c HttpStatusLine.c \
-	HttpHdrCc.c HttpHdrRange.c HttpHdrContRange.c HttpHeader.c \
-	HttpHeaderTools.c HttpBody.c HttpMsg.c HttpReply.c \
-	HttpRequest.c icmp.c icp_v2.c icp_v3.c ident.c internal.c \
-	ipc.c ipc_win32.c ipcache.c leakfinder.c locrewrite.c \
-	logfile.c logfile_mod_daemon.c logfile_mod_daemon.h \
-	logfile_mod_stdio.c logfile_mod_stdio.h logfile_mod_syslog.c \
-	logfile_mod_syslog.h logfile_mod_udp.c logfile_mod_udp.h \
-	main.c mem.c MemPool.c MemBuf.c mime.c multicast.c neighbors.c \
-	net_db.c Packer.c pconn.c peer_digest.c peer_monitor.c \
-	peer_select.c peer_sourcehash.c peer_userhash.c protos.h \
-	redirect.c referer.c refresh.c send-announce.c snmp_core.c \
-	snmp_agent.c squid.h ssl.c ssl_support.c stat.c StatHist.c \
-	String.c stmem.c store.c store_io.c store_client.c \
-	store_digest.c store_dir.c store_key_md5.c store_log.c \
-	store_rebuild.c store_swapin.c store_swapmeta.c \
-	store_swapout.c structs.h tools.c typedefs.h unlinkd.c url.c \
-	urn.c useragent.c wccp.c wccp2.c whois.c win32.c
+	client_db.c client_side.c client_side_rewrite.c \
+	client_side_storeurl_rewrite.c comm.c comm_devpoll.c \
+	comm_epoll.c comm_kqueue.c comm_poll.c comm_select_simple.c \
+	comm_select.c comm_select_win32.c debug.c defines.h \
+	delay_pools.c disk.c dns_internal.c dns.c enums.h errorpage.c \
+	event.c errormap.c external_acl.c fd.c filemap.c forward.c \
+	fqdncache.c ftp.c globals.h gopher.c helper.c htcp.c http.c \
+	HttpStatusLine.c HttpHdrCc.c HttpHdrRange.c HttpHdrContRange.c \
+	HttpHeader.c HttpHeaderTools.c HttpBody.c HttpMsg.c \
+	HttpReply.c HttpRequest.c icmp.c icp_v2.c icp_v3.c ident.c \
+	internal.c ipc.c ipc_win32.c ipcache.c leakfinder.c \
+	locrewrite.c logfile.c logfile_mod_daemon.c \
+	logfile_mod_daemon.h logfile_mod_stdio.c logfile_mod_stdio.h \
+	logfile_mod_syslog.c logfile_mod_syslog.h logfile_mod_udp.c \
+	logfile_mod_udp.h main.c mem.c MemPool.c MemBuf.c mime.c \
+	multicast.c neighbors.c net_db.c Packer.c pconn.c \
+	peer_digest.c peer_monitor.c peer_select.c peer_sourcehash.c \
+	peer_userhash.c protos.h redirect.c store_rewrite.c referer.c \
+	refresh.c send-announce.c snmp_core.c snmp_agent.c squid.h \
+	ssl.c ssl_support.c stat.c StatHist.c String.c stmem.c store.c \
+	store_io.c store_client.c store_digest.c store_dir.c \
+	store_key_md5.c store_log.c store_rebuild.c store_swapin.c \
+	store_swapmeta.c store_swapout.c structs.h tools.c typedefs.h \
+	unlinkd.c url.c urn.c useragent.c wccp.c wccp2.c whois.c \
+	win32.c
 @USE_DEVPOLL_FALSE@@USE_EPOLL_FALSE@@USE_KQUEUE_FALSE@@USE_POLL_FALSE@@USE_SELECT_FALSE@@USE_SELECT_SIMPLE_FALSE@@USE_SELECT_WIN32_TRUE@am__objects_1 = comm_select_win32.$(OBJEXT)
 @USE_DEVPOLL_FALSE@@USE_EPOLL_FALSE@@USE_KQUEUE_FALSE@@USE_POLL_FALSE@@USE_SELECT_SIMPLE_FALSE@@USE_SELECT_TRUE@am__objects_1 = comm_select.$(OBJEXT)
 @USE_DEVPOLL_FALSE@@USE_EPOLL_FALSE@@USE_KQUEUE_FALSE@@USE_POLL_FALSE@@USE_SELECT_SIMPLE_TRUE@am__objects_1 = comm_select_simple.$(OBJEXT)
@@ -136,13 +138,15 @@ am_squid_OBJECTS = access_log.$(OBJEXT) acl.$(OBJEXT) asn.$(OBJEXT) \
 	authenticate.$(OBJEXT) cache_cf.$(OBJEXT) \
 	CacheDigest.$(OBJEXT) cache_manager.$(OBJEXT) carp.$(OBJEXT) \
 	cbdata.$(OBJEXT) client_db.$(OBJEXT) client_side.$(OBJEXT) \
-	comm.$(OBJEXT) $(am__objects_1) debug.$(OBJEXT) \
-	$(am__objects_2) disk.$(OBJEXT) $(am__objects_3) \
-	errorpage.$(OBJEXT) event.$(OBJEXT) errormap.$(OBJEXT) \
-	external_acl.$(OBJEXT) fd.$(OBJEXT) filemap.$(OBJEXT) \
-	forward.$(OBJEXT) fqdncache.$(OBJEXT) ftp.$(OBJEXT) \
-	gopher.$(OBJEXT) helper.$(OBJEXT) $(am__objects_4) \
-	http.$(OBJEXT) HttpStatusLine.$(OBJEXT) HttpHdrCc.$(OBJEXT) \
+	client_side_rewrite.$(OBJEXT) \
+	client_side_storeurl_rewrite.$(OBJEXT) comm.$(OBJEXT) \
+	$(am__objects_1) debug.$(OBJEXT) $(am__objects_2) \
+	disk.$(OBJEXT) $(am__objects_3) errorpage.$(OBJEXT) \
+	event.$(OBJEXT) errormap.$(OBJEXT) external_acl.$(OBJEXT) \
+	fd.$(OBJEXT) filemap.$(OBJEXT) forward.$(OBJEXT) \
+	fqdncache.$(OBJEXT) ftp.$(OBJEXT) gopher.$(OBJEXT) \
+	helper.$(OBJEXT) $(am__objects_4) http.$(OBJEXT) \
+	HttpStatusLine.$(OBJEXT) HttpHdrCc.$(OBJEXT) \
 	HttpHdrRange.$(OBJEXT) HttpHdrContRange.$(OBJEXT) \
 	HttpHeader.$(OBJEXT) HttpHeaderTools.$(OBJEXT) \
 	HttpBody.$(OBJEXT) HttpMsg.$(OBJEXT) HttpReply.$(OBJEXT) \
@@ -157,11 +161,12 @@ am_squid_OBJECTS = access_log.$(OBJEXT) acl.$(OBJEXT) asn.$(OBJEXT) \
 	neighbors.$(OBJEXT) net_db.$(OBJEXT) Packer.$(OBJEXT) \
 	pconn.$(OBJEXT) peer_digest.$(OBJEXT) peer_monitor.$(OBJEXT) \
 	peer_select.$(OBJEXT) peer_sourcehash.$(OBJEXT) \
-	peer_userhash.$(OBJEXT) redirect.$(OBJEXT) referer.$(OBJEXT) \
-	refresh.$(OBJEXT) send-announce.$(OBJEXT) $(am__objects_7) \
-	ssl.$(OBJEXT) $(am__objects_8) stat.$(OBJEXT) \
-	StatHist.$(OBJEXT) String.$(OBJEXT) stmem.$(OBJEXT) \
-	store.$(OBJEXT) store_io.$(OBJEXT) store_client.$(OBJEXT) \
+	peer_userhash.$(OBJEXT) redirect.$(OBJEXT) \
+	store_rewrite.$(OBJEXT) referer.$(OBJEXT) refresh.$(OBJEXT) \
+	send-announce.$(OBJEXT) $(am__objects_7) ssl.$(OBJEXT) \
+	$(am__objects_8) stat.$(OBJEXT) StatHist.$(OBJEXT) \
+	String.$(OBJEXT) stmem.$(OBJEXT) store.$(OBJEXT) \
+	store_io.$(OBJEXT) store_client.$(OBJEXT) \
 	store_digest.$(OBJEXT) store_dir.$(OBJEXT) \
 	store_key_md5.$(OBJEXT) store_log.$(OBJEXT) \
 	store_rebuild.$(OBJEXT) store_swapin.$(OBJEXT) \
@@ -259,7 +264,6 @@ ERR_LANGUAGES = @ERR_LANGUAGES@
 EXEEXT = @EXEEXT@
 EXTERNAL_ACL_HELPERS = @EXTERNAL_ACL_HELPERS@
 FALSE = @FALSE@
-GREP = @GREP@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
@@ -350,6 +354,8 @@ WIN32_PSAPI = @WIN32_PSAPI@
 XTRA_LIBS = @XTRA_LIBS@
 XTRA_OBJS = @XTRA_OBJS@
 ac_ct_CC = @ac_ct_CC@
+ac_ct_RANLIB = @ac_ct_RANLIB@
+ac_ct_STRIP = @ac_ct_STRIP@
 am__fastdepCC_FALSE = @am__fastdepCC_FALSE@
 am__fastdepCC_TRUE = @am__fastdepCC_TRUE@
 am__include = @am__include@
@@ -364,31 +370,24 @@ build_cpu = @build_cpu@
 build_os = @build_os@
 build_vendor = @build_vendor@
 datadir = @datadir@
-datarootdir = @datarootdir@
-docdir = @docdir@
-dvidir = @dvidir@
 exec_prefix = @exec_prefix@
 host = @host@
 host_alias = @host_alias@
 host_cpu = @host_cpu@
 host_os = @host_os@
 host_vendor = @host_vendor@
-htmldir = @htmldir@
 includedir = @includedir@
 infodir = @infodir@
 install_sh = @install_sh@
 libdir = @libdir@
 libexecdir = @libexecdir@
-localedir = @localedir@
 localstatedir = @localstatedir@
 makesnmplib = @makesnmplib@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
 oldincludedir = @oldincludedir@
-pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
-psdir = @psdir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
@@ -467,6 +466,8 @@ squid_SOURCES = \
 	cbdata.c \
 	client_db.c \
 	client_side.c \
+	client_side_rewrite.c \
+	client_side_storeurl_rewrite.c \
 	comm.c \
 	$(COMMLOOP_SOURCE) \
 	debug.c \
@@ -534,6 +535,7 @@ squid_SOURCES = \
 	peer_userhash.c \
 	protos.h \
 	redirect.c \
+	store_rewrite.c \
 	referer.c \
 	refresh.c \
 	send-announce.c \
@@ -801,6 +803,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cf_gen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/client_db.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/client_side.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/client_side_rewrite.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/client_side_storeurl_rewrite.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/comm.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/comm_devpoll.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/comm_epoll.Po@am__quote@
@@ -879,6 +883,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/store_log.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/store_modules.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/store_rebuild.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/store_rewrite.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/store_swapin.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/store_swapmeta.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/store_swapout.Po@am__quote@

@@ -119,8 +119,7 @@ static void clientProcessMiss(clientHttpRequest *);
 static void clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep);
 static clientHttpRequest *parseHttpRequestAbort(ConnStateData * conn, const char *uri);
 static clientHttpRequest *parseHttpRequest(ConnStateData *, HttpMsgBuf *, method_t *, int *);
-static void clientRedirectStart(clientHttpRequest * http);
-static RH clientRedirectDone;
+
 static void clientCheckNoCache(clientHttpRequest *);
 static void clientCheckNoCacheDone(int answer, void *data);
 static STHCB clientHandleIMSReply;
@@ -140,7 +139,6 @@ static STHCB clientCacheHit;
 static void clientSetKeepaliveFlag(clientHttpRequest *);
 static void clientPackRangeHdr(const HttpReply * rep, const HttpHdrRangeSpec * spec, String boundary, MemBuf * mb);
 static void clientPackTermBound(String boundary, MemBuf * mb);
-static void clientInterpretRequestHeaders(clientHttpRequest *);
 static void clientProcessRequest(clientHttpRequest *);
 static void clientProcessExpired(clientHttpRequest *);
 static void clientProcessOnlyIfCachedMiss(clientHttpRequest * http);
@@ -155,7 +153,6 @@ static void clientProcessBody(ConnStateData * conn);
 static void clientEatRequestBody(clientHttpRequest *);
 static void clientAccessCheck(void *data);
 static void clientAccessCheckDone(int answer, void *data);
-static void clientAccessCheck2(void *data);
 static void clientAccessCheckDone2(int answer, void *data);
 static BODY_HANDLER clientReadBody;
 static void clientAbortBody(request_t * req);
@@ -202,7 +199,7 @@ clientIdentDone(const char *ident, void *data)
 
 #endif
 
-static aclCheck_t *
+aclCheck_t *
 clientAclChecklistCreate(const acl_access * acl, const clientHttpRequest * http)
 {
     aclCheck_t *ch;
@@ -383,7 +380,7 @@ clientAccessCheck(void *data)
     aclNBCheck(http->acl_checklist, clientAccessCheckDone, http);
 }
 
-static void
+void
 clientAccessCheck2(void *data)
 {
     clientHttpRequest *http = data;
@@ -553,123 +550,6 @@ clientAccessCheckDone2(int answer, void *data)
 	err->callback_data = NULL;
 	errorAppendEntry(http->entry, err);
     }
-}
-
-static void
-clientRedirectAccessCheckDone(int answer, void *data)
-{
-    clientHttpRequest *http = data;
-    http->acl_checklist = NULL;
-    if (answer == ACCESS_ALLOWED)
-	redirectStart(http, clientRedirectDone, http);
-    else
-	clientRedirectDone(http, NULL);
-}
-
-static void
-clientRedirectStart(clientHttpRequest * http)
-{
-    debug(33, 5) ("clientRedirectStart: '%s'\n", http->uri);
-    if (Config.Program.url_rewrite.command == NULL) {
-	clientRedirectDone(http, NULL);
-	return;
-    }
-    if (Config.accessList.url_rewrite) {
-	http->acl_checklist = clientAclChecklistCreate(Config.accessList.url_rewrite, http);
-	aclNBCheck(http->acl_checklist, clientRedirectAccessCheckDone, http);
-    } else {
-	redirectStart(http, clientRedirectDone, http);
-    }
-}
-
-static void
-clientRedirectDone(void *data, char *result)
-{
-    clientHttpRequest *http = data;
-    request_t *new_request = NULL;
-    request_t *old_request = http->request;
-    const char *urlgroup = http->conn->port->urlgroup;
-    debug(33, 5) ("clientRedirectDone: '%s' result=%s\n", http->uri,
-	result ? result : "NULL");
-    assert(http->redirect_state == REDIRECT_PENDING);
-    http->redirect_state = REDIRECT_DONE;
-    if (result) {
-	http_status status;
-	if (*result == '!') {
-	    char *t;
-	    if ((t = strchr(result + 1, '!')) != NULL) {
-		urlgroup = result + 1;
-		*t++ = '\0';
-		result = t;
-	    } else {
-		debug(33, 1) ("clientRedirectDone: bad input: %s\n", result);
-	    }
-	}
-	status = (http_status) atoi(result);
-	if (status == HTTP_MOVED_PERMANENTLY
-	    || status == HTTP_MOVED_TEMPORARILY
-	    || status == HTTP_SEE_OTHER
-	    || status == HTTP_TEMPORARY_REDIRECT) {
-	    char *t = result;
-	    if ((t = strchr(result, ':')) != NULL) {
-		http->redirect.status = status;
-		http->redirect.location = xstrdup(t + 1);
-		goto redirect_parsed;
-	    } else {
-		debug(33, 1) ("clientRedirectDone: bad input: %s\n", result);
-	    }
-	} else if (strcmp(result, http->uri))
-	    new_request = urlParse(old_request->method, result);
-    }
-  redirect_parsed:
-    if (new_request) {
-	safe_free(http->uri);
-	http->uri = xstrdup(urlCanonical(new_request));
-	new_request->http_ver = old_request->http_ver;
-	httpHeaderAppend(&new_request->header, &old_request->header);
-	new_request->client_addr = old_request->client_addr;
-	new_request->client_port = old_request->client_port;
-#if FOLLOW_X_FORWARDED_FOR
-	new_request->indirect_client_addr = old_request->indirect_client_addr;
-#endif /* FOLLOW_X_FORWARDED_FOR */
-	new_request->my_addr = old_request->my_addr;
-	new_request->my_port = old_request->my_port;
-	new_request->flags = old_request->flags;
-	new_request->flags.redirected = 1;
-	if (old_request->auth_user_request) {
-	    new_request->auth_user_request = old_request->auth_user_request;
-	    authenticateAuthUserRequestLock(new_request->auth_user_request);
-	}
-	if (old_request->body_reader) {
-	    new_request->body_reader = old_request->body_reader;
-	    new_request->body_reader_data = old_request->body_reader_data;
-	    old_request->body_reader = NULL;
-	    old_request->body_reader_data = NULL;
-	}
-	new_request->content_length = old_request->content_length;
-	if (strBuf(old_request->extacl_log))
-	    new_request->extacl_log = stringDup(&old_request->extacl_log);
-	if (old_request->extacl_user)
-	    new_request->extacl_user = xstrdup(old_request->extacl_user);
-	if (old_request->extacl_passwd)
-	    new_request->extacl_passwd = xstrdup(old_request->extacl_passwd);
-	requestUnlink(old_request);
-	http->request = requestLink(new_request);
-    } else {
-	/* Don't mess with urlgroup on internal request */
-	if (old_request->flags.internal)
-	    urlgroup = NULL;
-    }
-    safe_free(http->request->urlgroup);		/* only paranoia. should not happen */
-    if (urlgroup && *urlgroup)
-	http->request->urlgroup = xstrdup(urlgroup);
-    clientInterpretRequestHeaders(http);
-#if HEADERS_LOG
-    headersLog(0, 1, request->method, request);
-#endif
-    /* XXX This really should become a ref-counted string type pointer, not a copy! */
-    fd_note(http->conn->fd, http->uri);
-    clientAccessCheck2(http);
 }
 
 static void
@@ -1362,7 +1242,7 @@ connStateFree(int fd, void *data)
 #endif
 }
 
-static void
+void
 clientInterpretRequestHeaders(clientHttpRequest * http)
 {
     request_t *request = http->request;

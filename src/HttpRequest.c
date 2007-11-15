@@ -59,6 +59,7 @@ requestDestroy(request_t * req)
 	requestAbortBody(req);
     if (req->auth_user_request)
 	authenticateAuthUserRequestUnlock(req->auth_user_request);
+    safe_free(req->store_url);
     safe_free(req->canonical);
     safe_free(req->vary_hdr);
     safe_free(req->vary_headers);

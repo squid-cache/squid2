@@ -2548,6 +2548,30 @@ COMMENT_START
  -----------------------------------------------------------------------------
 COMMENT_END
 
+NAME: storeurl_rewrite_program
+TYPE: programline
+LOC: Config.Program.store_rewrite.command
+DEFAULT: none
+DOC_START
+
+DOC_END
+
+NAME: storeurl_rewrite_children
+TYPE: int
+DEFAULT: 5
+LOC: Config.Program.store_rewrite.children
+DOC_START
+
+DOC_END
+
+NAME: storeurl_rewrite_concurrency
+TYPE: int
+DEFAULT: 0
+LOC: Config.Program.store_rewrite.concurrency
+DOC_START
+
+DOC_END
+
 NAME: url_rewrite_program redirect_program
 TYPE: programline
 LOC: Config.Program.url_rewrite.command
@@ -2622,6 +2646,14 @@ DOC_START
 	If defined, this access list specifies which requests are
 	sent to the redirector processes.  By default all requests
 	are sent.
+DOC_END
+
+NAME: storeurl_access
+TYPE: acl_access
+DEFAULT: none
+LOC: Config.accessList.storeurl_rewrite
+DOC_START
+
 DOC_END
 
 NAME: redirector_bypass
