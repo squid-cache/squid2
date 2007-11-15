@@ -1455,5 +1455,10 @@ extern void clientRedirectAccessCheckDone(int answer, void *data);
 extern void clientRedirectStart(clientHttpRequest * http);
 extern void clientRedirectDone(void *data, char *result);
 
+/* client_side_storeurl_rewrite.c */
+extern void clientStoreURLRewriteAccessCheckDone(int answer, void *data);
+extern void clientStoreURLRewriteStart(clientHttpRequest * http);
+extern void clientStoreURLRewriteDone(void *data, char *result);
+
 
 #endif /* SQUID_PROTOS_H */

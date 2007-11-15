@@ -147,10 +147,8 @@ clientRedirectDone(void *data, char *result)
     if (urlgroup && *urlgroup)
 	http->request->urlgroup = xstrdup(urlgroup);
     clientInterpretRequestHeaders(http);
-#if HEADERS_LOG
-    headersLog(0, 1, request->method, request);
-#endif
     /* XXX This really should become a ref-counted string type pointer, not a copy! */
     fd_note(http->conn->fd, http->uri);
-    clientAccessCheck2(http);
+
+    clientStoreURLRewriteStart(http);
 }
