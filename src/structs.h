@@ -1704,6 +1704,7 @@ struct _RemovalPurgeWalker {
 struct _MemObject {
     method_t method;
     char *url;
+    const char *store_url;
     mem_hdr data_hdr;
     squid_off_t inmem_hi;
     squid_off_t inmem_lo;

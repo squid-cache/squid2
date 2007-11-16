@@ -416,6 +416,8 @@ clientCreateStoreEntry(clientHttpRequest * h, method_t m, request_flags flags)
     if (h->request == NULL)
 	h->request = requestLink(requestCreate(m, PROTO_NONE, null_string));
     e = storeCreateEntry(h->uri, flags, m);
+    if (h->request->store_url)
+	storeEntrySetStoreUrl(e, h->request->store_url);
     h->sc = storeClientRegister(e, h);
 #if DELAY_POOLS
     if (h->log_type != LOG_TCP_DENIED)
@@ -598,7 +600,7 @@ clientHandleETagReply(void *data, HttpReply * rep)
 {
     clientHttpRequest *http = data;
     StoreEntry *entry = http->entry;
-    const char *url = storeUrl(entry);
+    const char *url = storeLookupUrl(entry);
     if (entry == NULL) {
 	/* client aborted */
 	return;
@@ -646,6 +648,8 @@ clientProcessETag(clientHttpRequest * http)
     StoreEntry *entry = NULL;
     debug(33, 3) ("clientProcessETag: '%s'\n", http->uri);
     entry = storeCreateEntry(url, http->request->flags, http->request->method);
+    if (http->request->store_url)
+	storeEntrySetStoreUrl(entry, http->request->store_url);
     http->sc = storeClientRegister(entry, http);
 #if DELAY_POOLS
     /* delay_id is already set on original store client */
@@ -703,6 +707,8 @@ clientProcessExpired(clientHttpRequest * http)
     }
     if (!entry) {
 	entry = storeCreateEntry(url, http->request->flags, http->request->method);
+	if (http->request->store_url)
+	    storeEntrySetStoreUrl(entry, http->request->store_url);
 	if (http->entry->mem_obj) {
 	    http->entry->mem_obj->refresh_timestamp = squid_curtime;
 	    if (Config.onoff.collapsed_forwarding) {
@@ -889,7 +895,7 @@ modifiedSince(StoreEntry * entry, request_t * request)
     squid_off_t object_length;
     MemObject *mem = entry->mem_obj;
     time_t mod_time = entry->lastmod;
-    debug(33, 3) ("modifiedSince: '%s'\n", storeUrl(entry));
+    debug(33, 3) ("modifiedSince: '%s'\n", storeLookupUrl(entry));
     debug(33, 3) ("modifiedSince: mod_time = %ld\n", (long int) mod_time);
     if (mod_time < 0)
 	return 1;
@@ -1972,7 +1978,16 @@ clientCacheHit(void *data, HttpReply * rep)
     mem = e->mem_obj;
     debug(33, 3) ("clientCacheHit: %s = %d\n", http->uri, rep->sline.status);
     assert(!EBIT_TEST(e->flags, ENTRY_ABORTED));
-    if (strcmp(mem->url, urlCanonical(r)) != 0) {
+
+    if (r->store_url && mem->store_url == NULL) {
+	debug(33, 1) ("clientCacheHit: request has store_url '%s'; mem object in hit doesn't!\n", r->store_url);
+	clientProcessMiss(http);
+	return;
+    } else if (r->store_url && strcmp(mem->store_url, r->store_url) != 0) {
+	debug(33, 1) ("clientCacheHit: store URL mismatch '%s' != '%s'?\n", mem->store_url, r->store_url);
+	clientProcessMiss(http);
+	return;
+    } else if (strcmp(mem->url, urlCanonical(r)) != 0) {
 	debug(33, 1) ("clientCacheHit: URL mismatch '%s' != '%s'?\n", e->mem_obj->url, urlCanonical(r));
 	clientProcessMiss(http);
 	return;

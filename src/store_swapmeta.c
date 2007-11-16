@@ -86,6 +86,8 @@ storeSwapMetaBuild(StoreEntry * e)
     vary = e->mem_obj->vary_headers;
     if (vary)
 	T = storeSwapTLVAdd(STORE_META_VARY_HEADERS, vary, strlen(vary) + 1, T);
+    if (e->mem_obj->store_url)
+	T = storeSwapTLVAdd(STORE_META_STOREURL, e->mem_obj->store_url, strlen(e->mem_obj->store_url) + 1, T);
     return TLV;
 }
 

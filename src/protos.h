@@ -908,6 +908,7 @@ extern char *stmemNodeGet(mem_node *);
  * store.c
  */
 extern StoreEntry *new_StoreEntry(int, const char *);
+extern void storeEntrySetStoreUrl(StoreEntry * e, const char *store_url);
 extern StoreEntry *storeGet(const cache_key *);
 extern StoreEntry *storeGetPublic(const char *uri, const method_t method);
 extern StoreEntry *storeGetPublicByRequest(request_t * request);
@@ -921,6 +922,7 @@ extern void storeAppend(StoreEntry *, const char *, int);
 extern void storeLockObjectDebug(StoreEntry *, const char *file, const int line);
 extern void storeRelease(StoreEntry *);
 extern int storeUnlockObjectDebug(StoreEntry *, const char *file, const int line);
+extern const char *storeLookupUrl(const StoreEntry * e);
 #define	storeLockObject(a) storeLockObjectDebug(a, __FILE__, __LINE__);
 #define	storeUnlockObject(a) storeUnlockObjectDebug(a, __FILE__, __LINE__);
 extern EVH storeMaintainSwapSpace;

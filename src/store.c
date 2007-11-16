@@ -152,6 +152,16 @@ new_StoreEntry(int mem_obj_flag, const char *url)
     return e;
 }
 
+void
+storeEntrySetStoreUrl(StoreEntry * e, const char *store_url)
+{
+    /* XXX eww, another strdup! */
+    if (!e->mem_obj)
+	return;
+    safe_free(e->mem_obj->store_url);
+    e->mem_obj->store_url = xstrdup(store_url);
+}
+
 static void
 destroy_MemObject(StoreEntry * e)
 {
@@ -1012,7 +1022,7 @@ storeSetPublicKey(StoreEntry * e)
 		 * to record the new variance key
 		 */
 		safe_free(request->vary_headers);	/* free old "bad" variance key */
-		pe = storeGetPublic(mem->url, mem->method);
+		pe = storeGetPublic(storeLookupUrl(e), mem->method);
 		if (pe)
 		    storeRelease(pe);
 	    }
@@ -1044,7 +1054,7 @@ storeSetPublicKey(StoreEntry * e)
 	    stringClean(&vary);
 	}
     } else {
-	newkey = storeKeyPublic(mem->url, mem->method);
+	newkey = storeKeyPublic(storeLookupUrl(e), mem->method);
     }
     if ((e2 = (StoreEntry *) hash_lookup(store_table, newkey))) {
 	debug(20, 3) ("storeSetPublicKey: Making old '%s' private.\n", mem->url);
@@ -1053,7 +1063,7 @@ storeSetPublicKey(StoreEntry * e)
 	if (mem->request)
 	    newkey = storeKeyPublicByRequest(mem->request);
 	else
-	    newkey = storeKeyPublic(mem->url, mem->method);
+	    newkey = storeKeyPublic(storeLookupUrl(e), mem->method);
     }
     if (e->hash.key)
 	storeHashDelete(e);
@@ -1817,6 +1827,19 @@ storeUrl(const StoreEntry * e)
 	return "[null_entry]";
     else if (e->mem_obj == NULL)
 	return "[null_mem_obj]";
+    else
+	return e->mem_obj->url;
+}
+
+const char *
+storeLookupUrl(const StoreEntry * e)
+{
+    if (e == NULL)
+	return "[null_entry]";
+    else if (e->mem_obj == NULL)
+	return "[null_mem_obj]";
+    else if (e->mem_obj->store_url)
+	return e->mem_obj->store_url;
     else
 	return e->mem_obj->url;
 }
