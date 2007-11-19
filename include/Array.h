@@ -50,6 +50,8 @@ extern void arrayDestroy(Array * s);
 extern void arrayAppend(Array * s, void *obj);
 extern void arrayInsert(Array * s, void *obj, int position);
 extern void arrayPreAppend(Array * s, int app_count);
+extern void arrayShrink(Array *a, int new_count);
+
 
 
 #endif /* SQUID_ARRAY_H */

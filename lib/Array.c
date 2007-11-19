@@ -138,3 +138,11 @@ arrayGrow(Array * a, int min_capacity)
     /* reset, just in case */
     memset(a->items + a->count, 0, (a->capacity - a->count) * sizeof(void *));
 }
+
+void
+arrayShrink(Array *a, int new_count)
+{
+	assert(new_count < a->capacity);
+	assert(new_count >= 0);
+	a->count = new_count;
+}
