@@ -141,8 +141,6 @@ static const HttpHeaderFieldAttrs HeadersAttrs[] =
 };
 static HttpHeaderFieldInfo *Headers = NULL;
 
-static void httpHeaderPrint(const HttpHeader * hdr);
-
 /*
  * headers with field values defined as #(values) in HTTP/1.1
  * Headers that are currently not recognized, are commented out.
@@ -1468,17 +1466,4 @@ httpHeaderNameById(int id)
 	Headers = httpHeaderBuildFieldsInfo(HeadersAttrs, HDR_ENUM_END);
     assert(id >= 0 && id < HDR_ENUM_END);
     return strBuf(Headers[id].name);
-}
-
-static void
-httpHeaderPrint(const HttpHeader * hdr)
-{
-    HttpHeaderEntry *he;
-    HttpHeaderPos i = HttpHeaderInitPos;
-
-    debug(1, 1) ("httpHeaderPrint: %p\n", hdr);
-    while ((he = httpHeaderGetEntry(hdr, &i))) {
-	debug(2, 1) ("  (%d): %s: %s\n", i, strBuf(he->name), strBuf(he->value));
-    }
-    debug(1, 1) ("httpHeaderPrint: array size %d\n", hdr->entries.count);
 }
