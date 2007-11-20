@@ -11,8 +11,8 @@ man_MANS 		= squid_radius_auth.8
 EXTRA_DIST		= squid_radius_auth.8
 squid_radius_auth_SOURCES = \
 			squid_rad_auth.c \
-			md5.c md5.h \
 			radius.h \
 			util.c util.h
 
-LDADD = $(XTRA_LIBS)
+LDADD			= -L$(top_builddir)/lib -lmiscutil $(SSLLIB) $(XTRA_LIBS)
+INCLUDES		= -I$(top_srcdir)/include

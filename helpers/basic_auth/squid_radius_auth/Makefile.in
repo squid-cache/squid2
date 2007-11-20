@@ -59,12 +59,12 @@ CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(libexecdir)" "$(DESTDIR)$(man8dir)"
 libexecPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(libexec_PROGRAMS)
-am_squid_radius_auth_OBJECTS = squid_rad_auth.$(OBJEXT) md5.$(OBJEXT) \
-	util.$(OBJEXT)
+am_squid_radius_auth_OBJECTS = squid_rad_auth.$(OBJEXT) util.$(OBJEXT)
 squid_radius_auth_OBJECTS = $(am_squid_radius_auth_OBJECTS)
 squid_radius_auth_LDADD = $(LDADD)
 am__DEPENDENCIES_1 =
-squid_radius_auth_DEPENDENCIES = $(am__DEPENDENCIES_1)
+squid_radius_auth_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/include
 depcomp = $(SHELL) $(top_srcdir)/cfgaux/depcomp
 am__depfiles_maybe = depfiles
@@ -267,11 +267,11 @@ man_MANS = squid_radius_auth.8
 EXTRA_DIST = squid_radius_auth.8
 squid_radius_auth_SOURCES = \
 			squid_rad_auth.c \
-			md5.c md5.h \
 			radius.h \
 			util.c util.h
 
-LDADD = $(XTRA_LIBS)
+LDADD = -L$(top_builddir)/lib -lmiscutil $(SSLLIB) $(XTRA_LIBS)
+INCLUDES = -I$(top_srcdir)/include
 all: all-am
 
 .SUFFIXES:
@@ -338,7 +338,6 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/md5.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/squid_rad_auth.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/util.Po@am__quote@
 
