@@ -36,12 +36,6 @@
  */
 #if USE_SQUID_MD5
 
-/* MS VisualStudio Projects are monolithic, so we need USE_SSL
- * #if to exclude the MD5 code from compile process when we are
- * building the SSL support.
- */
-#if !USE_SSL
-
 #if HAVE_STRING_H
 #include <string.h>		/* for memcpy() */
 #endif
@@ -265,5 +259,4 @@ MD5Transform(uint32_t buf[4], uint32_t const in[16])
 }
 
 #endif /* !ASM_MD5 */
-#endif /* !USE_SSL */
 #endif /* !USE_SQUID_MD5 */

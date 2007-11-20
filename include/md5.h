@@ -1,6 +1,10 @@
 #ifndef SQUID_MD5_H
 #define SQUID_MD5_H
 
+#if HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+
 /*
  * If Squid is compiled with OpenSSL then we use the MD5 routines
  * from there via some wrapper macros, and the rest of this file is ignored..
@@ -24,7 +28,6 @@
 /*
  * Solaris 10 provides MD5 as part of the system.
  */
-#include <sys/types.h>
 #include <sys/md5.h>
 
 /*
