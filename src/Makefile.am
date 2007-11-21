@@ -248,6 +248,7 @@ squid_SOURCES = \
 	store_swapin.c \
 	store_swapmeta.c \
 	store_swapout.c \
+	store_update.c \
 	structs.h \
 	tools.c \
 	typedefs.h \

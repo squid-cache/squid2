@@ -851,6 +851,7 @@ clientHandleIMSReply(void *data, HttpReply * rep)
 	     * not the body they refer to.  */
 	    httpReplyUpdateOnNotModified(oldentry->mem_obj->reply, rep);
 	    storeTimestampsSet(oldentry);
+	    storeUpdate(oldentry, http->request);
 	}
 	storeClientUnregister(http->sc, entry, http);
 	http->sc = http->old_sc;

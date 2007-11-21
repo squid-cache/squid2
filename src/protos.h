@@ -969,6 +969,7 @@ void storeDeferRead(StoreEntry *, int fd);
 void storeResumeRead(StoreEntry *);
 void storeResetDefer(StoreEntry *);
 extern int memHaveHeaders(const MemObject * mem);
+extern void storeUpdate(StoreEntry * e, request_t *);
 
 
 /* store_modules.c */
