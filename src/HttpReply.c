@@ -42,9 +42,8 @@
 static HttpHeaderMask Denied304HeadersMask;
 static http_hdr_type Denied304HeadersArr[] =
 {
-    HDR_ALLOW, HDR_CONTENT_ENCODING, HDR_CONTENT_LANGUAGE, HDR_CONTENT_LENGTH,
-    HDR_CONTENT_LOCATION, HDR_CONTENT_RANGE, HDR_LAST_MODIFIED, HDR_LINK,
-    HDR_OTHER
+    HDR_CONTENT_ENCODING, HDR_CONTENT_LANGUAGE, HDR_CONTENT_LENGTH,
+    HDR_CONTENT_LOCATION, HDR_CONTENT_RANGE
 };
 
 /* local routines */
@@ -274,6 +273,7 @@ httpReplyUpdateOnNotModified(HttpReply * rep, HttpReply * freshRep)
     /* clean cache */
     httpReplyHdrCacheClean(rep);
     /* update raw headers */
+    httpHeaderDelById(&rep->header, HDR_AGE);
     httpHeaderUpdate(&rep->header, &freshRep->header,
 	(const HttpHeaderMask *) &Denied304HeadersMask);
     /* init cache */

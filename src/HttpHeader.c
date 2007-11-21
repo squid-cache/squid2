@@ -421,6 +421,12 @@ httpHeaderUpdate(HttpHeader * old, const HttpHeader * fresh, const HttpHeaderMas
 	    httpHeaderDelById(old, e->id);
 	else
 	    httpHeaderDelByName(old, strBuf(e->name));
+    }
+    pos = HttpHeaderInitPos;
+    while ((e = httpHeaderGetEntry(fresh, &pos))) {
+	/* deny bad guys (ok to check for HDR_OTHER) here */
+	if (denied_mask && CBIT_TEST(*denied_mask, e->id))
+	    continue;
 	httpHeaderAddClone(old, e);
     }
 
