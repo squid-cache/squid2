@@ -187,6 +187,10 @@ destroy_MemObject(StoreEntry * e)
 	storeUnlockObject(mem->ims_entry);
 	mem->ims_entry = NULL;
     }
+    if (mem->old_entry) {
+	storeUnlockObject(mem->old_entry);
+	mem->old_entry = NULL;
+    }
     httpReplyDestroy(mem->reply);
     requestUnlink(mem->request);
     mem->request = NULL;
@@ -1326,7 +1330,11 @@ storeComplete(StoreEntry * e)
     if (e->mem_obj->request)
 	e->mem_obj->request->hier.store_complete_stop = current_time;
 #endif
-    e->mem_obj->refresh_timestamp = e->timestamp;
+    e->mem_obj->refresh_timestamp = 0;
+    if (e->mem_obj->old_entry) {
+	if (e->mem_obj->old_entry->mem_obj)
+	    e->mem_obj->old_entry->mem_obj->refresh_timestamp = 0;
+    }
     /*
      * We used to call InvokeHandlers, then storeSwapOut.  However,
      * Madhukar Reddy <myreddy@persistence.com> reported that
@@ -1350,7 +1358,7 @@ storeAbort(StoreEntry * e)
     assert(mem != NULL);
     debug(20, 6) ("storeAbort: %s\n", storeKeyText(e->hash.key));
     storeLockObject(e);		/* lock while aborting */
-    storeNegativeCache(e);
+    storeExpireNow(e);
     storeReleaseRequest(e);
     EBIT_SET(e->flags, ENTRY_ABORTED);
     storeSetMemStatus(e, NOT_IN_MEMORY);
@@ -1639,7 +1647,34 @@ storeKeepInMemory(const StoreEntry * e)
 void
 storeNegativeCache(StoreEntry * e)
 {
-    e->expires = squid_curtime + Config.negativeTtl;
+    StoreEntry *oe = e->mem_obj->old_entry;
+    time_t expires = e->expires;
+    refresh_cc cc = refreshCC(e, e->mem_obj->request);
+    if (expires == -1)
+	expires = squid_curtime + cc.negative_ttl;
+    if (oe && !EBIT_TEST(oe->flags, KEY_PRIVATE) && !EBIT_TEST(oe->flags, ENTRY_REVALIDATE)) {
+	if (cc.max_stale >= 0) {
+	    time_t max_expires;
+	    storeTimestampsSet(oe);
+	    max_expires = oe->expires + cc.max_stale;
+	    /* Bail out if beyond the stale-if-error staleness limit */
+	    if (max_expires <= squid_curtime)
+		goto cache_error_response;
+	    /* Limit expiry time to stale-if-error/max_stale */
+	    if (expires > max_expires)
+		expires = max_expires;
+	}
+	/* Block the new error from getting cached */
+	EBIT_CLR(e->flags, ENTRY_CACHABLE);
+	/* And negatively cache the old one */
+	if (oe->expires < expires)
+	    oe->expires = expires;
+	EBIT_SET(oe->flags, REFRESH_FAILURE);
+	return;
+    }
+  cache_error_response:
+    if (e->expires < expires)
+	e->expires = expires;
     EBIT_SET(e->flags, ENTRY_NEGCACHED);
 }
 

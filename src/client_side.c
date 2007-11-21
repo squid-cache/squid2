@@ -717,7 +717,12 @@ clientProcessExpired(clientHttpRequest * http)
 	    }
 	}
     }
-    /* NOTE, don't call storeLockObject(), storeCreateEntry() does it */
+    if (entry->mem_obj->old_entry) {
+	storeUnlockObject(entry->mem_obj->old_entry);
+	entry->mem_obj->old_entry = NULL;
+    }
+    entry->mem_obj->old_entry = http->old_entry;
+    storeLockObject(entry->mem_obj->old_entry);
     http->sc = storeClientRegister(entry, http);
 #if DELAY_POOLS
     /* delay_id is already set on original store client */
@@ -729,6 +734,7 @@ clientProcessExpired(clientHttpRequest * http)
     } else
 	http->request->lastmod = -1;
     debug(33, 5) ("clientProcessExpired: lastmod %ld\n", (long int) entry->lastmod);
+    /* NOTE, don't call storeLockObject(), storeCreateEntry() does it */
     http->entry = entry;
     http->out.offset = 0;
     if (can_revalidate) {
@@ -759,8 +765,16 @@ clientGetsOldEntry(StoreEntry * new_entry, StoreEntry * old_entry, request_t * r
     /* If the reply is a failure then send the old object as a last
      * resort */
     if (status >= 500 && status < 600) {
-	debug(33, 3) ("clientGetsOldEntry: YES, failure reply=%d\n", status);
-	return 1;
+	if (EBIT_TEST(new_entry->flags, ENTRY_NEGCACHED)) {
+	    debug(33, 3) ("clientGetsOldEntry: NO, negatively cached failure reply=%d\n", status);
+	    return 0;
+	}
+	if (refreshCheckStaleOK(old_entry, request)) {
+	    debug(33, 3) ("clientGetsOldEntry: YES, failure reply=%d and old acceptable to send\n", status);
+	    return 1;
+	}
+	debug(33, 3) ("clientGetsOldEntry: NO, failure reply=%d and old NOT acceptable to send\n", status);
+	return 0;
     }
     /* If the reply is not to a cache validation conditional then
      * we should forward it to the client */
@@ -824,6 +838,10 @@ clientHandleIMSReply(void *data, HttpReply * rep)
     if (entry == NULL) {
 	return;
     }
+    if (entry->mem_obj->old_entry) {
+	storeUnlockObject(entry->mem_obj->old_entry);
+	entry->mem_obj->old_entry = NULL;
+    }
     mem = entry->mem_obj;
     if (!rep) {
 	debug(33, 3) ("clientHandleIMSReply: ABORTED '%s'\n", url);
@@ -839,7 +857,6 @@ clientHandleIMSReply(void *data, HttpReply * rep)
 	 * 304, so put the good one back.  First, make sure the old entry
 	 * headers have been loaded from disk. */
 	oldentry = http->old_entry;
-	http->log_type = LOG_TCP_REFRESH_HIT;
 	if (oldentry->mem_obj->request == NULL) {
 	    oldentry->mem_obj->request = requestLink(mem->request);
 	    unlink_request = 1;
@@ -852,6 +869,9 @@ clientHandleIMSReply(void *data, HttpReply * rep)
 	    httpReplyUpdateOnNotModified(oldentry->mem_obj->reply, rep);
 	    storeTimestampsSet(oldentry);
 	    storeUpdate(oldentry, http->request);
+	    http->log_type = LOG_TCP_REFRESH_HIT;
+	} else {
+	    http->log_type = LOG_TCP_REFRESH_FAIL_HIT;
 	}
 	storeClientUnregister(http->sc, entry, http);
 	http->sc = http->old_sc;
@@ -869,7 +889,10 @@ clientHandleIMSReply(void *data, HttpReply * rep)
 	    httpReplyUpdateOnNotModified(http->old_entry->mem_obj->reply,
 		rep);
 	    storeTimestampsSet(http->old_entry);
-	    http->log_type = LOG_TCP_REFRESH_HIT;
+	    if (!EBIT_TEST(http->old_entry->flags, REFRESH_FAILURE))
+		http->log_type = LOG_TCP_REFRESH_HIT;
+	    else
+		http->log_type = LOG_TCP_REFRESH_FAIL_HIT;
 	}
 	/* Get rid of the old entry if not a cache validation */
 	if (!http->request->flags.cache_validation)
@@ -1522,6 +1545,8 @@ isTcpHit(log_type code)
 	return 1;
     if (code == LOG_TCP_STALE_HIT)
 	return 1;
+    if (code == LOG_TCP_ASYNC_HIT)
+	return 1;
     if (code == LOG_TCP_IMS_HIT)
 	return 1;
     if (code == LOG_TCP_REFRESH_FAIL_HIT)
@@ -1950,6 +1975,163 @@ clientProcessVary(VaryData * vary, void *data)
 }
 
 /*
+ * Perform an async refresh of an object
+ */
+typedef struct _clientAsyncRefreshRequest {
+    request_t *request;
+    StoreEntry *entry;
+    StoreEntry *old_entry;
+    store_client *sc;
+    squid_off_t offset;
+    size_t buf_in_use;
+    char readbuf[STORE_CLIENT_BUF_SZ];
+    struct timeval start;
+} clientAsyncRefreshRequest;
+
+CBDATA_TYPE(clientAsyncRefreshRequest);
+
+static void
+clientAsyncDone(clientAsyncRefreshRequest * async)
+{
+    AccessLogEntry al;
+    static aclCheck_t *ch;
+    MemObject *mem = async->entry->mem_obj;
+    request_t *request = async->request;
+    memset(&al, 0, sizeof(al));
+    al.icp.opcode = ICP_INVALID;
+    al.url = mem->url;
+    debug(33, 9) ("clientAsyncDone: url='%s'\n", al.url);
+    al.http.code = mem->reply->sline.status;
+    al.http.content_type = strBuf(mem->reply->content_type);
+    al.cache.size = async->offset;
+    if (async->old_entry->mem_obj)
+	async->old_entry->mem_obj->refresh_timestamp = 0;
+    if (mem->reply->sline.status == 304) {
+	/* Don't memcpy() the whole reply structure here.  For example,
+	 * www.thegist.com (Netscape/1.13) returns a content-length for
+	 * 304's which seems to be the length of the 304 HEADERS!!! and
+	 * not the body they refer to.  */
+	httpReplyUpdateOnNotModified(async->old_entry->mem_obj->reply, async->entry->mem_obj->reply);
+	storeTimestampsSet(async->old_entry);
+	storeUpdate(async->old_entry, async->request);
+	al.cache.code = LOG_TCP_ASYNC_HIT;
+    } else
+	al.cache.code = LOG_TCP_ASYNC_MISS;
+    al.cache.msec = tvSubMsec(async->start, current_time);
+    if (Config.onoff.log_mime_hdrs) {
+	Packer p;
+	MemBuf mb;
+	memBufDefInit(&mb);
+	packerToMemInit(&p, &mb);
+	httpHeaderPackInto(&request->header, &p);
+	al.headers.request = xstrdup(mb.buf);
+	packerClean(&p);
+	memBufClean(&mb);
+    }
+    al.http.method = request->method;
+    al.http.version = request->http_ver;
+    al.hier = request->hier;
+    if (request->auth_user_request) {
+	if (authenticateUserRequestUsername(request->auth_user_request))
+	    al.cache.authuser = xstrdup(authenticateUserRequestUsername(request->auth_user_request));
+	authenticateAuthUserRequestUnlock(request->auth_user_request);
+	request->auth_user_request = NULL;
+    } else if (request->extacl_user) {
+	al.cache.authuser = xstrdup(request->extacl_user);
+    }
+    al.request = request;
+    al.reply = mem->reply;
+    ch = aclChecklistCreate(Config.accessList.http, request, NULL);
+    ch->reply = mem->reply;
+    if (!Config.accessList.log || aclCheckFast(Config.accessList.log, ch))
+	accessLogLog(&al, ch);
+    aclChecklistFree(ch);
+    storeClientUnregister(async->sc, async->entry, async);
+    storeUnlockObject(async->entry);
+    storeUnlockObject(async->old_entry);
+    requestUnlink(async->request);
+    safe_free(al.headers.request);
+    safe_free(al.headers.reply);
+    safe_free(al.cache.authuser);
+    cbdataFree(async);
+}
+
+static void
+clientHandleAsyncReply(void *data, char *buf, ssize_t size)
+{
+    clientAsyncRefreshRequest *async = data;
+    StoreEntry *e = async->entry;
+    if (EBIT_TEST(e->flags, ENTRY_ABORTED)) {
+	clientAsyncDone(async);
+	return;
+    }
+    if (size <= 0) {
+	clientAsyncDone(async);
+	return;
+    }
+    async->offset += size;
+    if (e->mem_obj->reply->sline.status == 304) {
+	clientAsyncDone(async);
+	return;
+    }
+    storeClientCopy(async->sc, async->entry,
+	async->offset,
+	async->offset,
+	STORE_CLIENT_BUF_SZ, async->readbuf,
+	clientHandleAsyncReply,
+	async);
+}
+
+static void
+clientAsyncRefresh(clientHttpRequest * http)
+{
+    char *url = http->uri;
+    clientAsyncRefreshRequest *async;
+    request_t *request = http->request;
+    debug(33, 3) ("clientAsyncRefresh: '%s'\n", http->uri);
+    CBDATA_INIT_TYPE(clientAsyncRefreshRequest);
+    http->entry->mem_obj->refresh_timestamp = squid_curtime;
+    async = cbdataAlloc(clientAsyncRefreshRequest);
+    async->start = current_time;
+    async->request = requestLink(request);
+    async->old_entry = http->entry;
+    storeLockObject(async->old_entry);
+    async->entry = storeCreateEntry(url,
+	request->flags,
+	request->method);
+    async->entry->mem_obj->old_entry = async->old_entry;
+    storeLockObject(async->entry->mem_obj->old_entry);
+    async->sc = storeClientRegister(async->entry, async);
+    request->etags = NULL;	/* Should always be null as this was a cache hit, but just in case.. */
+    httpHeaderDelById(&request->header, HDR_RANGE);
+    httpHeaderDelById(&request->header, HDR_IF_RANGE);
+    httpHeaderDelById(&request->header, HDR_IF_NONE_MATCH);
+    httpHeaderDelById(&request->header, HDR_IF_MATCH);
+    if (async->old_entry->lastmod > 0)
+	request->lastmod = async->old_entry->lastmod;
+    else if (async->old_entry->mem_obj && async->old_entry->mem_obj->reply)
+	request->lastmod = async->old_entry->mem_obj->reply->date;
+    else
+	request->lastmod = -1;
+    if (!request->etag) {
+	const char *etag = httpHeaderGetStr(&async->old_entry->mem_obj->reply->header, HDR_ETAG);
+	if (etag)
+	    async->request->etag = xstrdup(etag);
+    }
+#if DELAY_POOLS
+    /* delay_id is already set on original store client */
+    delaySetStoreClient(async->sc, delayClient(http));
+#endif
+    fwdStart(-1, async->entry, async->request);
+    storeClientCopy(async->sc, async->entry,
+	async->offset,
+	async->offset,
+	STORE_CLIENT_BUF_SZ, async->readbuf,
+	clientHandleAsyncReply,
+	async);
+}
+
+/*
  * clientCacheHit should only be called until the HTTP reply headers
  * have been parsed.  Normally this should be a single call, but
  * it might take more than one.  As soon as we have the headers,
@@ -2123,12 +2305,21 @@ clientCacheHit(void *data, HttpReply * rep)
 	debug(33, 2) ("clientProcessHit: refresh_stale HIT\n");
 	http->log_type = LOG_TCP_STALE_HIT;
 	stale = 0;
+    } else if (stale == -2 && e->mem_obj->refresh_timestamp + e->mem_obj->stale_while_revalidate >= squid_curtime) {
+	debug(33, 2) ("clientProcessHit: stale-while-revalidate HIT\n");
+	http->log_type = LOG_TCP_STALE_HIT;
+	stale = 0;
     } else if (stale && http->flags.internal) {
 	debug(33, 2) ("clientProcessHit: internal HIT\n");
 	stale = 0;
     } else if (stale && Config.onoff.offline) {
 	debug(33, 2) ("clientProcessHit: offline HIT\n");
 	http->log_type = LOG_TCP_OFFLINE_HIT;
+	stale = 0;
+    } else if (stale == -2) {
+	debug(33, 2) ("clientProcessHit: stale-while-revalidate needs revalidation\n");
+	clientAsyncRefresh(http);
+	http->log_type = LOG_TCP_STALE_HIT;
 	stale = 0;
     }
     if (stale) {
@@ -2151,9 +2342,9 @@ clientCacheHit(void *data, HttpReply * rep)
 	     */
 	    http->log_type = LOG_TCP_CLIENT_REFRESH_MISS;
 	    clientProcessMiss(http);
-	} else {
-	    clientProcessExpired(http);
+	    return;
 	}
+	clientProcessExpired(http);
 	return;
     }
     if (is_modified == 0) {
@@ -2180,6 +2371,8 @@ clientCacheHit(void *data, HttpReply * rep)
     /*
      * plain ol' cache hit
      */
+    if (EBIT_TEST(e->flags, REFRESH_FAILURE))
+	http->log_type = LOG_TCP_NEGATIVE_HIT;
     if (e->store_status != STORE_OK)
 	http->log_type = LOG_TCP_MISS;
     else if (http->log_type == LOG_TCP_HIT && e->mem_status == IN_MEMORY)

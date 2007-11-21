@@ -443,6 +443,7 @@ struct _SquidConfig {
     RemovalPolicySettings *replPolicy;
     RemovalPolicySettings *memPolicy;
     time_t negativeTtl;
+    time_t maxStale;
     time_t negativeDnsTtl;
     time_t positiveDnsTtl;
     time_t shutdownLifetime;
@@ -1737,7 +1738,9 @@ struct _MemObject {
     const char *vary_headers;
     const char *vary_encoding;
     StoreEntry *ims_entry;
+    StoreEntry *old_entry;
     time_t refresh_timestamp;
+    time_t stale_while_revalidate;
 };
 
 struct _StoreEntry {
@@ -1944,6 +1947,11 @@ struct _cachemgr_passwd {
     cachemgr_passwd *next;
 };
 
+struct _refresh_cc {
+    int max_stale;
+    int negative_ttl;
+};
+
 struct _refresh_t {
     const char *pattern;
     regex_t compiled_pattern;
@@ -1963,6 +1971,9 @@ struct _refresh_t {
 	unsigned int ignore_auth:1;
 #endif
     } flags;
+    int max_stale;
+    int stale_while_revalidate;
+    int negative_ttl;
 };
 
 struct _ErrorState {

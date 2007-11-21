@@ -324,7 +324,7 @@ errorAppendEntry(StoreEntry * entry, ErrorState * err)
     authenticateFixHeader(rep, err->auth_user_request, err->request, 0, 1);
     httpReplySwapOut(rep, entry);
     EBIT_CLR(entry->flags, ENTRY_FWD_HDR_WAIT);
-    storeNegativeCache(entry);
+    storeExpireNow(entry);
     storeReleaseRequest(entry);
     storeBufferFlush(entry);
     storeComplete(entry);

@@ -2755,6 +2755,16 @@ cache deny QUERY
 NOCOMMENT_END
 DOC_END
 
+NAME: max_stale
+COMMENT: time-units
+TYPE: time_t
+LOC: Config.maxStale
+DEFAULT: 1 week
+DOC_START
+	This option puts an upper limit on how stale content Squid
+	will serve from the cache if cache validation fails.
+DOC_END
+
 NAME: refresh_pattern
 TYPE: refreshpattern
 LOC: Config.Refresh
@@ -2785,6 +2795,9 @@ DOC_START
 		 ignore-no-cache
 		 ignore-private
 		 ignore-auth
+		 stale-while-revalidate=NN
+		 max-stale=NN
+		 negative-ttl=NN
 
 		override-expire enforces min age even if the server
 		sent a Expires: header. Doing this VIOLATES the HTTP
@@ -2820,6 +2833,19 @@ DOC_START
 		in the response header. Doing this VIOLATES the HTTP standard.
 		Enabling this feature could make you liable for problems which
 		it causes.
+
+		stale-while-revalidate=NN makes Squid perform an asyncronous
+		cache validation if the object isn't more stale than NN.
+		Doing this VIOLATES the HTTP standard. Enabling this
+		feature could make you liable for problems which it
+		causes.
+
+		max-stale=NN provided a maximum staleness factor. Squid won't
+		serve objects more stale than this even if it failed to
+		validate the object.
+
+		negative-ttl=NN overrides the global negative_ttl parameter
+		selectively for URLs matching this pattern (in seconds).
 
 	Basically a cached object is:
 

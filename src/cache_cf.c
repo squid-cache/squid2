@@ -494,6 +494,12 @@ configDoConfigure(void)
 	    debug(22, 1) ("WARNING: use of 'override-lastmod' in 'refresh_pattern' violates HTTP\n");
 	    break;
 	}
+	for (R = Config.Refresh; R; R = R->next) {
+	    if (R->stale_while_revalidate <= 0)
+		continue;
+	    debug(22, 1) ("WARNING: use of 'stale-while-revalidate' in 'refresh_pattern' violates HTTP\n");
+	    break;
+	}
     }
 #endif
 #if !HTTP_VIOLATIONS
@@ -2174,7 +2180,13 @@ dump_refreshpattern(StoreEntry * entry, const char *name, refresh_t * head)
 	    storeAppendPrintf(entry, " ignore-private");
 	if (head->flags.ignore_auth)
 	    storeAppendPrintf(entry, " ignore-auth");
+	if (head->stale_while_revalidate > 0)
+	    storeAppendPrintf(entry, " stale-while-revalidate=%d", head->stale_while_revalidate);
 #endif
+	if (head->max_stale >= 0)
+	    storeAppendPrintf(entry, " max-stale=%d", head->max_stale);
+	if (head->negative_ttl >= 0)
+	    storeAppendPrintf(entry, " negative-ttl=%d", head->negative_ttl);
 	storeAppendPrintf(entry, "\n");
 	head = head->next;
     }
@@ -2197,6 +2209,9 @@ parse_refreshpattern(refresh_t ** head)
     int ignore_private = 0;
     int ignore_auth = 0;
 #endif
+    int stale_while_revalidate = -1;
+    int max_stale = -1;
+    int negative_ttl = -1;
     int i;
     refresh_t *t;
     regex_t comp;
@@ -2241,10 +2256,18 @@ parse_refreshpattern(refresh_t ** head)
 	    ignore_reload = 1;
 	    refresh_nocache_hack = 1;
 	    /* tell client_side.c that this is used */
+	} else if (!strncmp(token, "stale-while-revalidate=", 23)) {
+	    stale_while_revalidate = atoi(token + 23);
 	} else
 #endif
+	if (!strncmp(token, "max-stale=", 10)) {
+	    max_stale = atoi(token + 10);
+	} else if (!strncmp(token, "negative-ttl=", 13)) {
+	    negative_ttl = atoi(token + 13);
+	} else {
 	    debug(22, 0) ("redreshAddToList: Unknown option '%s': %s\n",
 		pattern, token);
+	}
     }
     if ((errcode = regcomp(&comp, pattern, flags)) != 0) {
 	char errbuf[256];
@@ -2281,6 +2304,9 @@ parse_refreshpattern(refresh_t ** head)
     if (ignore_auth)
 	t->flags.ignore_auth = 1;
 #endif
+    t->stale_while_revalidate = stale_while_revalidate;
+    t->max_stale = max_stale;
+    t->negative_ttl = negative_ttl;
     t->next = NULL;
     while (*head)
 	head = &(*head)->next;

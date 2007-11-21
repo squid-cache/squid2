@@ -204,8 +204,8 @@ storeEntryFlags(const StoreEntry * entry)
 	strcat(buf, "DELAY_SENDING,");
     if (EBIT_TEST(flags, RELEASE_REQUEST))
 	strcat(buf, "RELEASE_REQUEST,");
-    if (EBIT_TEST(flags, REFRESH_REQUEST))
-	strcat(buf, "REFRESH_REQUEST,");
+    if (EBIT_TEST(flags, REFRESH_FAILURE))
+	strcat(buf, "REFRESH_FAILURE,");
     if (EBIT_TEST(flags, ENTRY_CACHABLE))
 	strcat(buf, "CACHABLE,");
     if (EBIT_TEST(flags, ENTRY_DISPATCHED))

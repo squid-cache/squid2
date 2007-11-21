@@ -81,6 +81,8 @@ enum {
     STALE_MAX_RULE,
     STALE_LMFACTOR_RULE,
     STALE_WITHIN_DELTA,
+    STALE_ASYNC_REFRESH,
+    STALE_MAX_STALE,
     STALE_DEFAULT = 299
 };
 
@@ -126,6 +128,30 @@ refreshUncompiledPattern(const char *pat)
 	    return R;
     }
     return NULL;
+}
+
+refresh_cc
+refreshCC(const StoreEntry * entry, request_t * request)
+{
+    const refresh_t *R;
+    const char *uri = NULL;
+    refresh_cc cc;
+    cc.negative_ttl = Config.negativeTtl;
+    cc.max_stale = Config.maxStale;
+    if (entry->mem_obj)
+	uri = entry->mem_obj->url;
+    else if (request)
+	uri = urlCanonical(request);
+
+    R = uri ? refreshLimits(uri) : refreshUncompiledPattern(".");
+
+    if (R && R->negative_ttl >= 0)
+	cc.negative_ttl = R->negative_ttl;
+
+    if (R && R->max_stale >= 0)
+	cc.max_stale = R->max_stale;
+
+    return cc;
 }
 
 /*
@@ -308,6 +334,20 @@ refreshCheck(const StoreEntry * entry, request_t * request, time_t delta)
      * At this point the response is stale, unless one of
      * the override options kicks in.
      */
+    if (entry->mem_obj) {
+	int stale_while_revalidate = R->stale_while_revalidate;
+	if (staleness < stale_while_revalidate) {
+	    debug(22, 3) ("stale-while-revalidate: age=%d, staleness=%d, stale_while_revalidate=%d\n", (int) age, staleness, stale_while_revalidate);
+	    entry->mem_obj->stale_while_revalidate = stale_while_revalidate;
+	    return STALE_ASYNC_REFRESH;
+	}
+    } {
+	int max_stale = Config.maxStale;
+	if (R->max_stale >= 0)
+	    max_stale = R->max_stale;
+	if (max_stale >= 0 && staleness >= max_stale)
+	    return STALE_MAX_STALE;
+    }
     if (delta < 0 && staleness + delta < 0) {
 	return STALE_WITHIN_DELTA;
     }
@@ -382,7 +422,22 @@ refreshCheckHTTPStale(const StoreEntry * entry, request_t * request)
     int reason = refreshCheck(entry, request, -Config.refresh_stale_window);
     if (reason == STALE_WITHIN_DELTA)
 	return -1;
+    if (reason == STALE_ASYNC_REFRESH)
+	return -2;
+    if (reason == STALE_MAX_STALE)
+	return 3;
     return (reason < 200) ? 0 : 1;
+}
+
+int
+refreshCheckStaleOK(const StoreEntry * entry, request_t * request)
+{
+    int reason = refreshCheck(entry, request, 0);
+    if (reason == STALE_MUST_REVALIDATE)
+	return 0;
+    if (reason == STALE_MAX_STALE)
+	return 0;
+    return 1;
 }
 
 int
@@ -472,6 +527,12 @@ refreshCountsStats(StoreEntry * sentry, struct RefreshCounts *rc)
 	"Stale: refresh_pattern max age rule");
     refreshCountsStatsEntry(STALE_LMFACTOR_RULE,
 	"Stale: refresh_pattern last-mod factor percentage");
+    refreshCountsStatsEntry(STALE_WITHIN_DELTA,
+	"Staĺe: but within a certain delta");
+    refreshCountsStatsEntry(STALE_ASYNC_REFRESH,
+	"Stale: suitable for an async refresh");
+    refreshCountsStatsEntry(STALE_MAX_STALE,
+	"Stale: max-stale");
     refreshCountsStatsEntry(STALE_DEFAULT,
 	"Stale: by default");
 
