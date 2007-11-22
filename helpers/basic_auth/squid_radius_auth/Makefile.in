@@ -46,8 +46,7 @@ build_triplet = @build@
 host_triplet = @host@
 libexec_PROGRAMS = squid_radius_auth$(EXEEXT)
 subdir = helpers/basic_auth/squid_radius_auth
-DIST_COMMON = README $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	ChangeLog
+DIST_COMMON = README $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
 	$(top_srcdir)/configure.in
