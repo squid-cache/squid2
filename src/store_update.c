@@ -136,6 +136,9 @@ storeUpdate(StoreEntry * entry, request_t * request)
     if (EBIT_TEST(entry->flags, KEY_PRIVATE))
 	return;			/* Nothing to do here... */
 
+    if (!Config.onoff.update_headers)
+	return;			/* Disabled */
+
     CBDATA_INIT_TYPE_FREECB(StoreUpdateState, free_StoreUpdateState);
 
     if (entry->mem_obj)

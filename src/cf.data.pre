@@ -2083,6 +2083,20 @@ DOC_START
 	numbers closer together.
 DOC_END
 
+NAME: update_headers
+IFDEF: HTTP_VIOLATIONS
+COMMENT: on|off
+TYPE: onoff
+DEFAULT: on
+LOC: Config.onoff.update_headers
+DOC_START
+	By default Squid updates stored HTTP headers when receiving
+	a 304 response. Set this to off if you want to disable this
+	for disk I/O performance reasons. Disabling this VIOLATES the
+	HTTP standard, and could make you liable for problems which it
+	causes.
+DOC_END
+
 COMMENT_START
  LOGFILE OPTIONS
  -----------------------------------------------------------------------------

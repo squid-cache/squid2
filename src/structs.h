@@ -687,6 +687,7 @@ struct _SquidConfig {
 	int delay_pool_uses_indirect_client;
 	int log_uses_indirect_client;
 #endif
+	int update_headers;
     } onoff;
     acl *aclList;
     struct {
