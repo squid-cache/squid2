@@ -400,6 +400,7 @@ mainReconfigure(void)
     locationRewriteShutdown();
     authenticateShutdown();
     externalAclShutdown();
+    refreshCheckShutdown();
     storeDirCloseSwapLogs();
     storeLogClose();
     accessLogClose();
@@ -430,6 +431,7 @@ mainReconfigure(void)
     locationRewriteInit();
     authenticateInit(&Config.authConfig);
     externalAclInit();
+    refreshCheckInit();
 #if USE_WCCP
     wccpInit();
 #endif
@@ -465,6 +467,7 @@ mainRotate(void)
     locationRewriteShutdown();
     authenticateShutdown();
     externalAclShutdown();
+    refreshCheckShutdown();
     _db_rotate_log();		/* cache.log */
     storeDirWriteCleanLogs(1);
     storeDirSync();		/* Flush pending I/O ops */
@@ -484,6 +487,7 @@ mainRotate(void)
     locationRewriteInit();
     authenticateInit(&Config.authConfig);
     externalAclInit();
+    refreshCheckInit();
 }
 
 static void
@@ -584,6 +588,7 @@ mainInitialize(void)
     errorMapInit();
     authenticateInit(&Config.authConfig);
     externalAclInit();
+    refreshCheckInit();
     useragentOpenLog();
     refererOpenLog();
     httpHeaderInitModule();	/* must go before any header processing (e.g. the one in errorInitialize) */
@@ -1093,6 +1098,7 @@ SquidShutdown(void *unused)
 #endif
     redirectShutdown();
     externalAclShutdown();
+    refreshCheckShutdown();
     locationRewriteShutdown();
     icpConnectionClose();
 #if USE_HTCP

@@ -479,6 +479,7 @@ configDoConfigure(void)
     requirePathnameExists("Error Directory", Config.errorDirectory);
     authenticateConfigure(&Config.authConfig);
     externalAclConfigure();
+    refreshCheckConfigure();
 #if HTTP_VIOLATIONS
     {
 	const refresh_t *R;

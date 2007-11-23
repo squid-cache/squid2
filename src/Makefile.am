@@ -228,6 +228,7 @@ squid_SOURCES = \
 	store_rewrite.c \
 	referer.c \
 	refresh.c \
+	refresh_check.c \
 	send-announce.c \
 	$(SNMPSOURCE) \
 	squid.h \

@@ -3335,6 +3335,69 @@ DOC_START
 	or response to be rejected.
 DOC_END
 
+NAME: external_refresh_check
+TYPE: refreshCheckHelper
+DEFAULT: none
+LOC: Config.Program.refresh_check
+DOC_START
+	This option defines an external helper for determining whether to
+	refresh a stale response. It will be called when Squid receives a
+	request for a cached response that is stale; the helper can either
+	confirm that the response is stale with a STALE response, or
+	extend the freshness of the response (thereby avoiding a refresh
+	check) with a FRESH response, along with a freshness=nnn keyword.
+
+	  external_refresh_check [options] FORMAT.. /path/to/helper [helper_args]
+
+	If present, helper_args will be passed to the helper on the command
+	line verbatim.
+
+	Options:
+
+	  children=n	Number of processes to spawn to service external
+			refresh checks (default 5).
+	  concurrency=n	Concurrency level per process. Only used with
+			helpers capable of processing more than one query
+			at a time.
+
+	When using the concurrency option, the protocol is changed by introducing
+	a query channel tag infront of the request/response. The query channel
+	tag is a number between 0 and concurrency−1.
+
+	FORMAT specifications:
+
+	  %CACHE_URI	The URI of the cached response
+	  %RES{Header}	HTTP response header value
+	  %AGE		The age of the cached response
+
+	The request sent to the helper consists of the data in the format
+	specification in the order specified.
+
+	The helper receives lines per the above format specification, and
+	returns lines starting with OK or ERR indicating the validity of
+	the request and optionally followed by additional keywords with
+	more details.  URL escaping is used to protect each value in both
+	requests and responses.
+
+	General result syntax:
+
+	  FRESH / STALE keyword=value ...
+
+	Defined keywords:
+
+	  freshness=nnn	The number of seconds to extend the freshness of
+			the response by.
+	  log=string	String to be logged in access.log. Available as
+			%ef in logformat specifications.
+	  res{Header}=value
+			Value to update response headers with. If already
+			present, the supplied value completely replaces
+			the cached value.
+
+	In the event of a helper−related error (e.g., overload), Squid
+	will always default to STALE.
+DOC_END
+
 COMMENT_START
  TIMEOUTS
  -----------------------------------------------------------------------------

@@ -419,4 +419,6 @@ typedef void LOGFLUSH(Logfile *);
 typedef void LOGROTATE(Logfile *);
 typedef void LOGCLOSE(Logfile *);
 
+typedef void REFRESHCHECK(void *data, int fresh, const char *log);
+typedef struct _refresh_check_helper refresh_check_helper;
 #endif /* SQUID_TYPEDEFS_H */

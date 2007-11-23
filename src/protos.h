@@ -1417,6 +1417,15 @@ extern char *strtokFile(void);
 const char *externalAclMessage(external_acl_entry * entry);
 
 
+/* refresh_check.c */
+extern void parse_refreshCheckHelper(refresh_check_helper **);
+extern void dump_refreshCheckHelper(StoreEntry * sentry, const char *name, const refresh_check_helper *);
+extern void free_refreshCheckHelper(refresh_check_helper **);
+extern void refreshCheckSubmit(StoreEntry * entry, REFRESHCHECK * callback, void *data);
+extern void refreshCheckInit(void);
+extern void refreshCheckConfigure(void);
+extern void refreshCheckShutdown(void);
+
 #if USE_WCCPv2
 extern void parse_wccp2_service(void *v);
 extern void free_wccp2_service(void *v);

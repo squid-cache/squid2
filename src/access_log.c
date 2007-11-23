@@ -320,6 +320,8 @@ typedef enum {
 
     LFT_SEQUENCE_NUMBER,
 
+    LFT_EXT_FRESHNESS,
+
     LFT_PERCENT			/* special string cases for escaped chars */
 } logformat_bcode_t;
 
@@ -427,6 +429,8 @@ struct logformat_token_table_entry logformat_token_table[] =
     {"st", LFT_IO_SIZE_TOTAL},
 
     {"ea", LFT_EXT_LOG},
+
+    {"ef", LFT_EXT_FRESHNESS},
 
     {"%", LFT_PERCENT},
 
@@ -689,6 +693,12 @@ accessLogCustom(AccessLogEntry * al, customlog * log)
 	case LFT_SEQUENCE_NUMBER:
 	    outint = LOGFILE_SEQNO(logfile);
 	    doint = 1;
+	    break;
+
+	case LFT_EXT_FRESHNESS:
+	    out = al->ext_refresh;
+
+	    quote = 1;
 	    break;
 
 	case LFT_PERCENT:

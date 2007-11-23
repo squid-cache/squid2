@@ -116,6 +116,7 @@ static int clientCheckTransferDone(clientHttpRequest *);
 static int clientGotNotEnough(clientHttpRequest *);
 static void checkFailureRatio(err_type, hier_code);
 static void clientProcessMiss(clientHttpRequest *);
+static void clientProcessHit(clientHttpRequest * http);
 static void clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep);
 static clientHttpRequest *parseHttpRequestAbort(ConnStateData * conn, const char *uri);
 static clientHttpRequest *parseHttpRequest(ConnStateData *, HttpMsgBuf *, method_t *, int *);
@@ -141,6 +142,8 @@ static void clientPackRangeHdr(const HttpReply * rep, const HttpHdrRangeSpec * s
 static void clientPackTermBound(String boundary, MemBuf * mb);
 static void clientProcessRequest(clientHttpRequest *);
 static void clientProcessExpired(clientHttpRequest *);
+static void clientRefreshCheck(clientHttpRequest *);
+static REFRESHCHECK clientRefreshCheckDone;
 static void clientProcessOnlyIfCachedMiss(clientHttpRequest * http);
 static int clientCachable(clientHttpRequest * http);
 static int clientHierarchical(clientHttpRequest * http);
@@ -664,6 +667,26 @@ clientProcessETag(clientHttpRequest * http)
     storeClientCopyHeaders(http->sc, entry,
 	clientHandleETagReply,
 	http);
+}
+
+static void
+clientRefreshCheck(clientHttpRequest * http)
+{
+    refreshCheckSubmit(http->entry, clientRefreshCheckDone, http);
+}
+
+static void
+clientRefreshCheckDone(void *data, int fresh, const char *log)
+{
+    clientHttpRequest *http = data;
+    if (log) {
+	safe_free(http->al.ext_refresh);
+	http->al.ext_refresh = xstrdup(log);
+    }
+    if (fresh)
+	clientProcessHit(http);
+    else
+	clientProcessExpired(http);
 }
 
 static void
@@ -2322,6 +2345,7 @@ clientCacheHit(void *data, HttpReply * rep)
 	http->log_type = LOG_TCP_STALE_HIT;
 	stale = 0;
     }
+    http->is_modified = is_modified;
     if (stale) {
 	debug(33, 5) ("clientCacheHit: in refreshCheck() block\n");
 	/*
@@ -2344,9 +2368,18 @@ clientCacheHit(void *data, HttpReply * rep)
 	    clientProcessMiss(http);
 	    return;
 	}
-	clientProcessExpired(http);
+	clientRefreshCheck(http);
 	return;
     }
+    clientProcessHit(http);
+}
+
+static void
+clientProcessHit(clientHttpRequest * http)
+{
+    int is_modified = http->is_modified;
+    StoreEntry *e = http->entry;
+
     if (is_modified == 0) {
 	time_t timestamp = e->timestamp;
 	MemBuf mb = httpPacked304Reply(e->mem_obj->reply);
@@ -2377,7 +2410,7 @@ clientCacheHit(void *data, HttpReply * rep)
 	http->log_type = LOG_TCP_MISS;
     else if (http->log_type == LOG_TCP_HIT && e->mem_status == IN_MEMORY)
 	http->log_type = LOG_TCP_MEM_HIT;
-    clientSendHeaders(data, rep);
+    clientSendHeaders(http, e->mem_obj->reply);
 }
 
 /* put terminating boundary for multiparts */
