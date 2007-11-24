@@ -2193,8 +2193,8 @@ clientCacheHit(void *data, HttpReply * rep)
 	debug(33, 1) ("clientCacheHit: store URL mismatch '%s' != '%s'?\n", mem->store_url, r->store_url);
 	clientProcessMiss(http);
 	return;
-    } else if (strcmp(mem->url, urlCanonical(r)) != 0) {
-	debug(33, 1) ("clientCacheHit: URL mismatch '%s' != '%s'?\n", e->mem_obj->url, urlCanonical(r));
+    } else if ((!r->store_url) && (!mem->store_url) && strcmp(mem->url, urlCanonical(r)) != 0) {
+	debug(33, 1) ("clientCacheHit: (store url '%s'); URL mismatch '%s' != '%s'?\n", r->store_url, e->mem_obj->url, urlCanonical(r));
 	clientProcessMiss(http);
 	return;
     }
