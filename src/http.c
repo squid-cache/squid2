@@ -1148,13 +1148,14 @@ httpBuildRequestHeader(request_t * request,
 	    /* append unless we added our own;
 	     * note: at most one client's ims header can pass through */
 	    if (!httpHeaderHas(hdr_out, HDR_IF_MODIFIED_SINCE))
-		httpHeaderAddClone(hdr_out, e);
+		if (!Config.onoff.ignore_ims_on_miss || !orig_request->flags.cachable || orig_request->flags.auth)
+		    httpHeaderAddClone(hdr_out, e);
 	    break;
 	case HDR_IF_NONE_MATCH:
-	    /* append unless we added our own;
-	     * note: at most one client's ims header can pass through */
+	    /* append unless ignore_ims_on_miss is in effect */
 	    if (!httpHeaderHas(hdr_out, HDR_IF_NONE_MATCH))
-		httpHeaderAddClone(hdr_out, e);
+		if (!Config.onoff.ignore_ims_on_miss || !orig_request->flags.cachable || orig_request->flags.auth)
+		    httpHeaderAddClone(hdr_out, e);
 	    break;
 	case HDR_MAX_FORWARDS:
 	    if (orig_request->method == METHOD_TRACE) {

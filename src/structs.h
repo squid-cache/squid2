@@ -680,6 +680,7 @@ struct _SquidConfig {
 	int global_internal_static;
 	int httpd_suppress_version_string;
 	int via;
+	int ignore_ims_on_miss;
 	int check_hostnames;
 	int allow_underscore;
 	int cache_vary;

@@ -4761,6 +4761,18 @@ DOC_START
 	acts on cacheable requests.
 DOC_END
 
+NAME: ignore_ims_on_miss
+IFDEF: HTTP_VIOLATIONS
+COMMENT: on|off
+TYPE: onoff
+DEFAULT: off
+LOC: Config.onoff.ignore_ims_on_miss
+DOC_START
+	This options makes Squid ignore If-Modified-Since on
+	cache misses. This is useful while the cache is
+	mostly empty to more quickly have the cache populated.
+DOC_END
+
 NAME: always_direct
 TYPE: acl_access
 LOC: Config.accessList.AlwaysDirect
