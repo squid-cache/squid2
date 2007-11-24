@@ -2,13 +2,13 @@
 /*
  * $Id$
  *
- * DEBUG: section 82    External ACL
+ * DEBUG: section 84    Refresh Check Helper
  * AUTHOR: Henrik Nordstrom
  *
  * SQUID Web Proxy Cache          http://www.squid-cache.org/
  * ----------------------------------------------------------
  *
- *  The contents of this file is Copyright (C) 2002 by MARA Systems AB,
+ *  The contents of this file is Copyright (C) 2007 by Henrik Nordstrom,
  *  Sweden, unless otherwise is indicated in the specific function. The
  *  author gives his full permission to include this file into the Squid
  *  software product under the terms of the GNU General Public License as
@@ -38,6 +38,7 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
  *
+ * Partially based on the External ACL implementation.
  */
 
 #include "squid.h"
@@ -366,7 +367,7 @@ refreshCheckHandleReply(void *data, char *reply)
     MemBuf hdrs = MemBufNULL;
 
 
-    debug(82, 2) ("refreshCheckHandleReply: reply=\"%s\"\n", reply);
+    debug(84, 2) ("refreshCheckHandleReply: reply=\"%s\"\n", reply);
 
     if (reply) {
 	char *t = NULL;
@@ -455,7 +456,7 @@ refreshCheckSubmit(StoreEntry * entry, REFRESHCHECK * callback, void *callback_d
 	callback(callback_data, 0, NULL);
 	return;
     }
-    debug(82, 2) ("refreshCheckLookup: for '%s'\n", key);
+    debug(84, 2) ("refreshCheckLookup: for '%s'\n", key);
 
     /* Check for a pending lookup to hook into */
     for (node = def->queue.head; node; node = node->next) {
@@ -482,7 +483,7 @@ refreshCheckSubmit(StoreEntry * entry, REFRESHCHECK * callback, void *callback_d
 	/* No pending lookup found. Sumbit to helper */
 	/* Check for queue overload */
 	if (refreshCheckOverload(def)) {
-	    debug(82, 1) ("refreshCheckLookup: queue overload\n");
+	    debug(84, 1) ("refreshCheckLookup: queue overload\n");
 	    cbdataFree(state);
 	    callback(callback_data, 0, "Overload");
 	    return;
