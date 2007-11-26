@@ -2,10 +2,10 @@
 <HTML>
 <HEAD>
  <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.21">
- <TITLE>Squid 2.6.STABLE16 release notes</TITLE>
+ <TITLE>Squid 2.6.STABLE17 release notes</TITLE>
 </HEAD>
 <BODY>
-<H1>Squid 2.6.STABLE16 release notes</H1>
+<H1>Squid 2.6.STABLE17 release notes</H1>
 
 <H2>Squid Developers</H2>$Id$
 <HR>
@@ -74,6 +74,9 @@ Squid is a WWW Cache application developed by the Web Caching community.</EM>
 
 <P>
 <H2><A NAME="toc21">21.</A> <A HREF="#s21">Key changes squid-2.6.STABLE15 to 2.6.STABLE16</A></H2>
+
+<P>
+<H2><A NAME="toc22">22.</A> <A HREF="#s22">Key changes squid-2.6.STABLE16 to 2.6.STABLE17</A></H2>
 
 
 <HR>
@@ -153,7 +156,7 @@ membership check</LI>
 
 <P>
 <DL>
-<DT><B>http_port</B><DD><P>Now takes a list of options in addition to the port address, specifying the purpose of this http_port. Default is plain Internet proxy as usual.</P>
+<DT><B>http_port</B><DD><P>Now takes a list of options in addition to the port address, specifying the purpose of this http_port. Default is plain Internet proxy as usual. Also there is no longer a default port and you must include a http_port directive in your squid.conf if you want Squid to listen for http requests.</P>
 <DT><B>httpd_accel_* for transparent proxy</B><DD><P>Now implemented by the "transparent" http_port option</P>
 <DT><B>httpd_accel_* for accelerator mode</B><DD><P>Now implemented by other options and the http_port accel option. See individual directives below.</P>
 <DT><B>httpd_accel_host</B><DD><P>Replaced by defaultsite http_port option and cache_peer originserver option.</P>
@@ -738,6 +741,21 @@ adding /dev/poll support in 2.6.STABLE14</LI>
 linux systems missing libcap</LI>
 <LI>More squid.conf reordering to get the dependencies between options
 sorted proper</LI>
+<LI>See also the list of 
+<A HREF="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE16.html">squid-2.6.STABLE16 changes</A> and the 
+<A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
+</UL>
+</P>
+
+<H2><A NAME="s22">22.</A> <A HREF="#toc22">Key changes squid-2.6.STABLE16 to 2.6.STABLE17</A></H2>
+
+<P>
+<UL>
+<LI>A temporary memory leak fixed on cache updates</LI>
+<LI>New squid_radius_auth RADIUS authentication helper</LI>
+<LI>Documentation cleanups</LI>
+<LI>Code cleanups and portability fixes</LI>
+<LI>Several minor bugfixes</LI>
 <LI>See also the list of 
 <A HREF="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE16.html">squid-2.6.STABLE16 changes</A> and the 
 <A HREF="ChangeLog">ChangeLog</A> file for details.</LI>

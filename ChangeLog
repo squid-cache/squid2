@@ -1,3 +1,42 @@
+Changes to squid-2.6.STABLE17 (26 Nov 2007)
+
+	- Fix compile error with old GCC 2.x or other ANSI-C compilers before
+	  C99
+	- Mention the login= cache_peer option in release notes
+	- Fix bad cache_peer example in squid.conf
+	- Bug #2086: Fix a compile-time memory corruption error causing cf_gen
+	  to fail
+	- Bug #2048: Clarify high_memory_warning usage
+	- Reject DNS responses which result in no data
+	- Fix version number in configuration manual
+	- Move cache and request/reply_header_max_size to their proper
+	  sections
+	- Bug #2088: sbrk statistics broken when process size >2GB
+	- Move logopen() much earlier to have fatal startup errors sent to the
+	  proper syslog facility
+	- Fix HTTP/0.9 responses
+	- Correct bad example config for tos_outgoing_tos
+	- Fix grammar in description of mail_program squid.conf option
+	- Ignore Content-Length in chunked responses instead of rejecting the
+	  response as invalid
+	- Documented that http_port no longer have a default
+	- Cleanup of cache digest documentation
+	- Make aufs store rebuilding back off a little if I/O load too high
+	- Bug #2100: Respect DNS ttl=0
+	- Update udp_(incoming|outgoing)_address documentation to reflect
+	  current bahaviour.
+	- Update HTCP documentation
+	- Document the overlapping helper request format
+	- Change priority of proxy auth and extacl provided username in
+	  login=*:pass
+	- pack header entries on cache updates
+	- Make squid_db_auth reopen the database connection on each query by
+	  default
+	- Improve helper debug ouput, including the channel number
+	- Update cachePeerEntry MIB description to mention what is used as
+	  index key
+	- Import squid_radius_auth for authenticating to RADIUS
+
 Changes to squid-2.6.STABLE16 (5 Sep 2007)
 
 	- Test for sys/capability.h linux include file to avoid failing on
