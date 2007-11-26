@@ -1026,7 +1026,7 @@ helperDispatch(helper_server * srv, helper_request * r)
 {
     helper *hlp = srv->parent;
     helper_request **ptr = NULL;
-    int slot;
+    int slot = -1;
     if (!cbdataValid(r->data)) {
 	debug(84, 1) ("helperDispatch: invalid callback data\n");
 	helperRequestFree(r);
@@ -1057,8 +1057,8 @@ helperDispatch(helper_server * srv, helper_request * r)
 	    helperDispatch_done,	/* Handler */
 	    srv);
     }
-    debug(84, 5) ("helperDispatch: Request sent to %s #%d, %d bytes\n",
-	hlp->id_name, srv->index + 1, (int) strlen(r->buf));
+    debug(84, 5) ("helperDispatch: Request sent to %s #%d[%d], %d bytes\n",
+	hlp->id_name, srv->index + 1, slot, (int) strlen(r->buf));
     srv->stats.uses++;
     hlp->stats.requests++;
 }
