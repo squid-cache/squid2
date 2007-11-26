@@ -322,7 +322,7 @@ squidaio_init(void)
     /* Create threads and get them to sit in their wait loop */
     squidaio_thread_pool = memPoolCreate("aio_thread", sizeof(squidaio_thread_t));
     if (squidaio_nthreads == 0) {
-	int j = 16;
+	int j = THREAD_FACTOR;
 	for (i = 0; i < n_asyncufs_dirs; i++) {
 	    squidaio_nthreads += j;
 	    j = j * 2 / 3;
@@ -338,7 +338,7 @@ squidaio_init(void)
 #endif
     }
     if (squidaio_nthreads == 0)
-	squidaio_nthreads = 16;
+	squidaio_nthreads = THREAD_FACTOR;
     squidaio_magic1 = squidaio_nthreads * MAGIC1_FACTOR;
     squidaio_magic2 = squidaio_nthreads * MAGIC2_FACTOR;
     for (i = 0; i < squidaio_nthreads; i++) {
