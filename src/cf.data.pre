@@ -3952,7 +3952,8 @@ LOC: Config.onoff.digest_generation
 DEFAULT: on
 DOC_START
 	This controls whether the server will generate a Cache Digest
-	of its contents.
+	of its contents. By default, Cache Digest generation is
+	enabled if Squid is compiled with --enable-cache-digests defined.
 DOC_END
 
 NAME: digest_bits_per_entry
