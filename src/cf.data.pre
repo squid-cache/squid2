@@ -1530,12 +1530,12 @@ DOC_START
 		     use 'htcp' to send HTCP, instead of ICP, queries
 		     to the neighbor.  You probably also want to
 		     set the "icp port" to 4827 instead of 3130.
-		     You MUST also set htcp_access expicitly. The default of
-		     deny all will prevent peer traffic.
+		     You must also allow this Squid htcp_access and
+		     http_access in the peer Squid configuration.
 
 		     use 'htcp-oldsquid' to send HTCP to old Squid versions
-		     You MUST also set htcp_access expicitly. The default of
-		     deny all will prevent peer traffic.		     
+		     You must also allow this Squid htcp_access and
+		     http_access in the peer Squid configuration.
 
 		     'originserver' causes this parent peer to be contacted as
 		     a origin server. Meant to be used in accelerator setups.
