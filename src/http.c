@@ -506,8 +506,8 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 	stringClean(&tr);
 	if (httpState->flags.chunked && reply->content_length >= 0) {
 	    /* Can't have a content-length in chunked encoding */
-	    reply->sline.status = HTTP_INVALID_HEADER;
-	    return done;
+	    reply->content_length = -1;
+	    httpHeaderDelById(&reply->header, HDR_CONTENT_LENGTH);
 	}
     }
     if (!httpState->flags.chunked) {
