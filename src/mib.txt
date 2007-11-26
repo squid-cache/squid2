@@ -715,7 +715,7 @@ squid MODULE-IDENTITY
 		MAX-ACCESS not-accessible
 		STATUS current
 		DESCRIPTION
-			" An entry in cachePeerTable "
+			" cache_peer indexed by IP address "
 		INDEX 	{ cachePeerAddr }
 	::= { cachePeerTable 1 }
 
@@ -724,7 +724,7 @@ squid MODULE-IDENTITY
 		MAX-ACCESS not-accessible
 		STATUS current
 		DESCRIPTION
-			" An entry in cachePeerTable "
+			" cache_peer indexed by position in squid.conf "
 		INDEX 	{ cachePeerIndex }
 	::= { cachePeerTable 2 }
 
