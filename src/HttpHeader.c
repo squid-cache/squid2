@@ -380,12 +380,34 @@ httpHeaderAppend(HttpHeader * dest, const HttpHeader * src)
     }
 }
 
+static void
+httpHeaderRepack(HttpHeader * hdr)
+{
+    HttpHeaderPos dp = HttpHeaderInitPos;
+    HttpHeaderPos pos = HttpHeaderInitPos;
+
+    /* XXX breaks layering for now! ie, getting grubby fingers in without httpHeaderEntryGet() */
+    dp = 0;
+    pos = 0;
+    while (dp < hdr->entries.count) {
+	for (; dp < hdr->entries.count && hdr->entries.items[dp] == NULL; dp++);
+	assert(dp < hdr->entries.count);
+	hdr->entries.items[pos] = hdr->entries.items[dp];
+	if (dp != pos)
+	    hdr->entries.items[dp] = NULL;
+	pos++;
+	dp++;
+    }
+    arrayShrink(&hdr->entries, pos);
+}
+
 /* use fresh entries to replace old ones */
 void
 httpHeaderUpdate(HttpHeader * old, const HttpHeader * fresh, const HttpHeaderMask * denied_mask)
 {
     const HttpHeaderEntry *e;
     HttpHeaderPos pos = HttpHeaderInitPos;
+
     assert(old && fresh);
     assert(old != fresh);
     debug(55, 7) ("updating hdr: %p <- %p\n", old, fresh);
@@ -400,6 +422,9 @@ httpHeaderUpdate(HttpHeader * old, const HttpHeader * fresh, const HttpHeaderMas
 	    httpHeaderDelByName(old, strBuf(e->name));
 	httpHeaderAddEntry(old, httpHeaderEntryClone(e));
     }
+
+    /* And now, repack the array to "fill in the holes" */
+    httpHeaderRepack(old);
 }
 
 /* just handy in parsing: resets and returns false */
