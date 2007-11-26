@@ -710,7 +710,9 @@ main(int argc, char **argv)
 #endif
     mainParseOptions(argc, argv);
 
+#if HAVE_SYSLOG && defined(LOG_LOCAL4)
     openlog(appname, LOG_PID | LOG_NDELAY | LOG_CONS, syslog_facility);
+#endif
 
 #if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
     if (opt_install_service) {
