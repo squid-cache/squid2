@@ -2185,8 +2185,8 @@ clientCacheHit(void *data, HttpReply * rep)
     debug(33, 3) ("clientCacheHit: %s = %d\n", http->uri, rep->sline.status);
     assert(!EBIT_TEST(e->flags, ENTRY_ABORTED));
 
-    if (r->store_url && mem->store_url == NULL) {
-	debug(33, 1) ("clientCacheHit: request has store_url '%s'; mem object in hit doesn't!\n", r->store_url);
+    if (r->store_url && mem->store_url == NULL && strcmp(r->store_url, mem->url) != 0) {
+	debug(33, 1) ("clientCacheHit: request has store_url '%s'; mem object in hit doesn't and doesn't match the url '%s'!\n", r->store_url, mem->url);
 	clientProcessMiss(http);
 	return;
     } else if (r->store_url && strcmp(mem->store_url, r->store_url) != 0) {
