@@ -381,6 +381,8 @@ storeClientReadHeader(void *data, const char *buf, ssize_t len)
     tlv *tlv_list;
     tlv *t;
     int swap_object_ok = 1;
+    char *new_url = NULL;
+    char *new_store_url = NULL;
     assert(sc->flags.disk_io_pending);
     sc->flags.disk_io_pending = 0;
     assert(sc->callback != NULL);
@@ -421,29 +423,9 @@ storeClientReadHeader(void *data, const char *buf, ssize_t len)
 	    }
 	    break;
 	case STORE_META_URL:
-	    if (NULL == mem->url)
-		(void) 0;	/* can't check */
-	    else if (0 == strcasecmp(mem->url, t->value))
-		(void) 0;	/* a match! */
-	    else {
-		debug(20, 1) ("storeClientReadHeader: URL mismatch\n");
-		debug(20, 1) ("\t{%s} != {%s}\n", (char *) t->value, mem->url);
-		swap_object_ok = 0;
-		break;
-	    }
-	    break;
+	    new_url = xstrdup(t->value);
 	case STORE_META_STOREURL:
-	    if (NULL == mem->store_url)
-		mem->store_url = xstrdup(t->value);
-	    else if (0 == strcasecmp(mem->store_url, t->value))
-		(void) 0;	/* a match! */
-	    else {
-		debug(20, 1) ("storeClientReadHeader: store URL mismatch\n");
-		debug(20, 1) ("\t{%s} != {%s}\n", (char *) t->value, mem->store_url);
-		swap_object_ok = 0;
-		break;
-	    }
-	    break;
+	    new_store_url = xstrdup(t->value);
 	case STORE_META_OBJSIZE:
 	    break;
 	case STORE_META_STD:
@@ -463,7 +445,47 @@ storeClientReadHeader(void *data, const char *buf, ssize_t len)
 	    break;
 	}
     }
+
+    /* Check url / store_url */
+    do {
+	if (new_url == NULL) {
+	    debug(20, 1) ("storeClientReadHeader: no URL!\n");
+	    swap_object_ok = 0;
+	    break;
+	}
+	/*
+	 * If we have a store URL then it must match the requested object URL.
+	 * The theory is that objects with a store URL have been normalised
+	 * and thus a direct access which didn't go via the rewrite framework
+	 * are illegal!
+	 */
+	if (new_store_url) {
+	    if (NULL == mem->store_url)
+		mem->store_url = new_store_url;
+	    else if (0 == strcasecmp(mem->store_url, new_store_url))
+		(void) 0;	/* a match! */
+	    else {
+		debug(20, 1) ("storeClientReadHeader: store URL mismatch\n");
+		debug(20, 1) ("\t{%s} != {%s}\n", (char *) new_store_url, mem->store_url);
+		swap_object_ok = 0;
+		break;
+	    }
+	}
+	/* If we have no store URL then the request and the memory URL must match */
+	if ((!new_store_url) && mem->url && strcasecmp(mem->url, new_url) != 0) {
+	    debug(20, 1) ("storeClientReadHeader: URL mismatch\n");
+	    debug(20, 1) ("\t{%s} != {%s}\n", (char *) new_url, mem->url);
+	    swap_object_ok = 0;
+	    break;
+	}
+    } while (0);
+
     storeSwapTLVFree(tlv_list);
+    xfree(new_url);
+    /* don't free new_store_url if its owned by the mem object now */
+    if (mem->store_url != new_store_url)
+	xfree(new_store_url);
+
     if (!swap_object_ok) {
 	storeClientCallback(sc, -1);
 	return;
