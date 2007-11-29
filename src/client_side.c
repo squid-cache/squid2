@@ -2322,6 +2322,7 @@ clientCacheHit(void *data, HttpReply * rep)
 	}
     }
     stale = refreshCheckHTTPStale(e, r);
+    debug(33, 2) ("clientProcessHit: refreshCheckHTTPStale returned %d\n", stale);
     if (stale == 0) {
 	debug(33, 2) ("clientProcessHit: HIT\n");
     } else if (stale == -1 && Config.refresh_stale_window > 0 && e->mem_obj->refresh_timestamp + Config.refresh_stale_window > squid_curtime) {
