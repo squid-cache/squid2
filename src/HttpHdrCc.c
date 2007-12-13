@@ -49,6 +49,8 @@ static const HttpHeaderFieldAttrs CcAttrs[CC_ENUM_END] =
     {"max-age", CC_MAX_AGE},
     {"s-maxage", CC_S_MAXAGE},
     {"max-stale", CC_MAX_STALE},
+    {"stale-while-revalidate", CC_STALE_WHILE_REVALIDATE},
+    {"stale-if-error", CC_STALE_IF_ERROR},
     {"Other,", CC_OTHER}	/* ',' will protect from matches */
 };
 HttpHeaderFieldInfo *CcFieldsInfo = NULL;
@@ -78,7 +80,7 @@ HttpHdrCc *
 httpHdrCcCreate(void)
 {
     HttpHdrCc *cc = memAllocate(MEM_HTTP_HDR_CC);
-    cc->max_age = cc->s_maxage = cc->max_stale = -1;
+    cc->max_age = cc->s_maxage = cc->max_stale = cc->stale_if_error - 1;
     return cc;
 }
 
@@ -154,6 +156,20 @@ httpHdrCcParseInit(HttpHdrCc * cc, const String * str)
 		EBIT_CLR(cc->mask, type);
 	    }
 	    break;
+	case CC_STALE_WHILE_REVALIDATE:
+	    if (!p || !httpHeaderParseInt(p, &cc->stale_while_revalidate)) {
+		debug(65, 2) ("cc: invalid stale-while-revalidate specs near '%s'\n", item);
+		cc->stale_while_revalidate = -1;
+		EBIT_CLR(cc->mask, type);
+	    }
+	    break;
+	case CC_STALE_IF_ERROR:
+	    if (!p || !httpHeaderParseInt(p, &cc->stale_if_error)) {
+		debug(65, 2) ("cc: invalid stale-if-error specs near '%s'\n", item);
+		cc->stale_if_error = -1;
+		EBIT_CLR(cc->mask, type);
+	    }
+	    break;
 	case CC_OTHER:
 	    if (strLen(cc->other))
 		strCat(cc->other, ", ");
@@ -210,6 +226,9 @@ httpHdrCcPackInto(const HttpHdrCc * cc, Packer * p)
 
 	    if (flag == CC_MAX_STALE && cc->max_stale > 0)
 		packerPrintf(p, "=%d", (int) cc->max_stale);
+
+	    if (flag == CC_STALE_WHILE_REVALIDATE)
+		packerPrintf(p, "=%d", (int) cc->stale_while_revalidate);
 
 	    pcount++;
 	}

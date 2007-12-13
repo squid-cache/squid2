@@ -2818,6 +2818,7 @@ DOC_START
 		 ignore-private
 		 ignore-auth
 		 stale-while-revalidate=NN
+		 ignore-stale-while-revalidate
 		 max-stale=NN
 		 negative-ttl=NN
 
@@ -2861,6 +2862,11 @@ DOC_START
 		Doing this VIOLATES the HTTP standard. Enabling this
 		feature could make you liable for problems which it
 		causes.
+
+		ignore-stale-while-revalidate makes Squid ignore any 'Cache-Control:
+		stale-while-revalidate=NN' headers received from a server. Can be
+		combined with stale-while-revalidate=NN to override the server provided
+		value.
 
 		max-stale=NN provided a maximum staleness factor. Squid won't
 		serve objects more stale than this even if it failed to

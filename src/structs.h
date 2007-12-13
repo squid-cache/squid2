@@ -1005,6 +1005,8 @@ struct _HttpHdrCc {
     int max_age;
     int s_maxage;
     int max_stale;
+    int stale_while_revalidate;
+    int stale_if_error;
     String other;
 };
 
@@ -1983,6 +1985,7 @@ struct _refresh_t {
 	unsigned int ignore_private:1;
 	unsigned int ignore_auth:1;
 #endif
+	unsigned int ignore_stale_while_revalidate:1;
     } flags;
     int max_stale;
     int stale_while_revalidate;

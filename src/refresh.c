@@ -335,7 +335,11 @@ refreshCheck(const StoreEntry * entry, request_t * request, time_t delta)
      * the override options kicks in.
      */
     if (entry->mem_obj) {
-	int stale_while_revalidate = R->stale_while_revalidate;
+	int stale_while_revalidate = -1;
+	if (entry->mem_obj->reply && entry->mem_obj->reply->cache_control && EBIT_TEST(entry->mem_obj->reply->cache_control->mask, CC_STALE_WHILE_REVALIDATE))
+	    stale_while_revalidate = entry->mem_obj->reply->cache_control->stale_while_revalidate;
+	if (R->flags.ignore_stale_while_revalidate || stale_while_revalidate == -1)
+	    stale_while_revalidate = R->stale_while_revalidate;
 	if (staleness < stale_while_revalidate) {
 	    debug(22, 3) ("stale-while-revalidate: age=%d, staleness=%d, stale_while_revalidate=%d\n", (int) age, staleness, stale_while_revalidate);
 	    entry->mem_obj->stale_while_revalidate = stale_while_revalidate;
@@ -345,6 +349,8 @@ refreshCheck(const StoreEntry * entry, request_t * request, time_t delta)
 	int max_stale = Config.maxStale;
 	if (R->max_stale >= 0)
 	    max_stale = R->max_stale;
+	if (entry->mem_obj && entry->mem_obj->reply && entry->mem_obj->reply->cache_control && EBIT_TEST(entry->mem_obj->reply->cache_control->mask, CC_STALE_IF_ERROR))
+	    max_stale = entry->mem_obj->reply->cache_control->stale_if_error;
 	if (max_stale >= 0 && staleness >= max_stale)
 	    return STALE_MAX_STALE;
     }

@@ -2186,6 +2186,8 @@ dump_refreshpattern(StoreEntry * entry, const char *name, refresh_t * head)
 	if (head->stale_while_revalidate > 0)
 	    storeAppendPrintf(entry, " stale-while-revalidate=%d", head->stale_while_revalidate);
 #endif
+	if (head->flags.ignore_stale_while_revalidate)
+	    storeAppendPrintf(entry, " ignore-stale-while-revalidate");
 	if (head->max_stale >= 0)
 	    storeAppendPrintf(entry, " max-stale=%d", head->max_stale);
 	if (head->negative_ttl >= 0)
@@ -2213,6 +2215,7 @@ parse_refreshpattern(refresh_t ** head)
     int ignore_auth = 0;
 #endif
     int stale_while_revalidate = -1;
+    int ignore_stale_while_revalidate = 0;
     int max_stale = -1;
     int negative_ttl = -1;
     int i;
@@ -2267,6 +2270,8 @@ parse_refreshpattern(refresh_t ** head)
 	    max_stale = atoi(token + 10);
 	} else if (!strncmp(token, "negative-ttl=", 13)) {
 	    negative_ttl = atoi(token + 13);
+	} else if (!strcmp(token, "ignore-stale-while-revalidate")) {
+	    ignore_stale_while_revalidate = 1;
 	} else {
 	    debug(22, 0) ("redreshAddToList: Unknown option '%s': %s\n",
 		pattern, token);
@@ -2307,6 +2312,7 @@ parse_refreshpattern(refresh_t ** head)
     if (ignore_auth)
 	t->flags.ignore_auth = 1;
 #endif
+    t->flags.ignore_stale_while_revalidate = ignore_stale_while_revalidate;
     t->stale_while_revalidate = stale_while_revalidate;
     t->max_stale = max_stale;
     t->negative_ttl = negative_ttl;

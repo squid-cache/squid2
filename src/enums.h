@@ -279,6 +279,8 @@ typedef enum {
     CC_S_MAXAGE,
     CC_MAX_STALE,
     CC_ONLY_IF_CACHED,
+    CC_STALE_WHILE_REVALIDATE,
+    CC_STALE_IF_ERROR,
     CC_OTHER,
     CC_ENUM_END
 } http_hdr_cc_type;
