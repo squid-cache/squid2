@@ -1043,6 +1043,10 @@ DOC_START
 			This currently means generate own Date: and
 			Expires: headers. Implies accel.
 
+	   http11	Enables HTTP/1.1 support to clients. The HTTP/1.1
+			support is still incomplete, but should work with
+			most clients.
+
 	If you run Squid on a dual-homed machine with an internal
 	and an external interface we recommend you to specify the
 	internal address:port in http_port. This way Squid will only be
@@ -1417,6 +1421,7 @@ DOC_START
 		     front-end-https[=on|auto]
 		     connection-auth[=on|off|auto]
 		     idle=n
+		     http11
 
 		     use 'proxy-only' to specify objects fetched
 		     from this cache should not be saved locally.
@@ -1641,6 +1646,9 @@ DOC_START
 
 		     use idle=n to specify a minimum number of idle connections
 		     that should be kept open to this peer.
+
+		     use http11 to send requests using HTTP/1.1 to this peer.
+		     The HTTP/1.1 support is still incomplete.
 DOC_END
 
 NAME: cache_peer_domain cache_host_domain
@@ -3333,6 +3341,29 @@ DOC_START
 
 	If set to "off" then such HTTP errors will cause the request
 	or response to be rejected.
+DOC_END
+
+NAME: server_http11
+COMMENT: on|off
+TYPE: onoff
+LOC: Config.onoff.server_http11
+DEFAULT: off
+DOC_START
+	This option enables the use ot HTTP/1.1 on outgoing "direct" requests.
+	See also the http11 cache_peer option.
+	Note: The HTTP/1.1 support is still incomplete.
+DOC_END
+
+NAME: ignore_expect_100
+COMMENT: on|off
+TYPE: onoff
+LOC: Config.onoff.ignore_expect_100
+DEFAULT: off
+DOC_START
+	This option makes Squid ignore any Expect: 100-continue header present
+	in the request.
+	Note: Enabling this is a HTTP protocol violation, but some client may
+	not handle it well..
 DOC_END
 
 NAME: external_refresh_check

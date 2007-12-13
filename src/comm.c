@@ -1114,11 +1114,14 @@ commHandleWrite(int fd, void *data)
 
     assert(state->valid);
 
-    debug(5, 5) ("commHandleWrite: FD %d: off %ld, sz %ld.\n",
-	fd, (long int) state->offset, (long int) state->size);
+    debug(5, 5) ("commHandleWrite: FD %d: off %ld, hd %ld, sz %ld.\n",
+	fd, (long int) state->offset, (long int) state->header_size, (long int) state->size);
 
-    nleft = state->size - state->offset;
-    len = FD_WRITE_METHOD(fd, state->buf + state->offset, nleft);
+    nleft = state->size + state->header_size - state->offset;
+    if (state->offset < state->header_size)
+	len = FD_WRITE_METHOD(fd, state->header + state->offset, state->header_size - state->offset);
+    else
+	len = FD_WRITE_METHOD(fd, state->buf + state->offset - state->header_size, nleft);
     debug(5, 5) ("commHandleWrite: write() returns %d\n", len);
     fd_bytes(fd, len, FD_WRITE);
     statCounter.syscalls.sock.writes++;
@@ -1151,7 +1154,7 @@ commHandleWrite(int fd, void *data)
     } else {
 	/* A successful write, continue */
 	state->offset += len;
-	if (state->offset < state->size) {
+	if (state->offset < state->size + state->header_size) {
 	    /* Not done, reinstall the write handler and write some more */
 	    commSetSelect(fd,
 		COMM_SELECT_WRITE,
@@ -1180,6 +1183,7 @@ comm_write(int fd, const char *buf, int size, CWCB * handler, void *handler_data
     }
     state->buf = (char *) buf;
     state->size = size;
+    state->header_size = 0;
     state->offset = 0;
     state->handler = handler;
     state->handler_data = handler_data;
@@ -1189,11 +1193,44 @@ comm_write(int fd, const char *buf, int size, CWCB * handler, void *handler_data
     commSetSelect(fd, COMM_SELECT_WRITE, commHandleWrite, NULL, 0);
 }
 
+/* Select for Writing on FD, until SIZE bytes are sent.  Call
+ * *HANDLER when complete. */
+void
+comm_write_header(int fd, const char *buf, int size, const char *header, size_t header_size, CWCB * handler, void *handler_data, FREE * free_func)
+{
+    CommWriteStateData *state = &fd_table[fd].rwstate;
+    debug(5, 5) ("comm_write: FD %d: sz %d: hndl %p: data %p.\n",
+	fd, size, handler, handler_data);
+    if (state->valid) {
+	debug(5, 1) ("comm_write: fd_table[%d].rwstate.valid == true!\n", fd);
+	fd_table[fd].rwstate.valid = 0;
+    }
+    state->buf = (char *) buf;
+    state->size = size;
+    state->offset = 0;
+    state->handler = handler;
+    state->handler_data = handler_data;
+    cbdataLock(handler_data);
+    state->free_func = free_func;
+    state->valid = 1;
+    assert(header_size < sizeof(state->header));
+    memcpy(state->header, header, header_size);
+    state->header_size = header_size;
+    commSetSelect(fd, COMM_SELECT_WRITE, commHandleWrite, NULL, 0);
+}
+
 /* a wrapper around comm_write to allow for MemBuf to be comm_written in a snap */
 void
 comm_write_mbuf(int fd, MemBuf mb, CWCB * handler, void *handler_data)
 {
     comm_write(fd, mb.buf, mb.size, handler, handler_data, memBufFreeFunc(&mb));
+}
+
+/* a wrapper around comm_write to allow for MemBuf to be comm_written in a snap */
+void
+comm_write_mbuf_header(int fd, MemBuf mb, const char *header, size_t header_size, CWCB * handler, void *handler_data)
+{
+    comm_write_header(fd, mb.buf, mb.size, header, header_size, handler, handler_data, memBufFreeFunc(&mb));
 }
 
 /*

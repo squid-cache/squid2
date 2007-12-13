@@ -1476,7 +1476,10 @@ clientSetKeepaliveFlag(clientHttpRequest * http)
 	RequestMethods[request->method].str);
     {
 	http_version_t http_ver;
-	httpBuildVersion(&http_ver, 1, 0);	/* we are HTTP/1.0, no matter what the client requests... */
+	if (http->conn->port->http11)
+	    http_ver = request->http_ver;
+	else
+	    httpBuildVersion(&http_ver, 1, 0);	/* we are HTTP/1.0, no matter what the client requests... */
 	if (httpMsgIsPersistent(http_ver, req_hdr))
 	    request->flags.proxy_keepalive = 1;
     }
@@ -1876,8 +1879,13 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
 	getMyHostname(), getMyPort());
 #endif
     if (httpReplyBodySize(request->method, rep) < 0) {
-	debug(33, 3) ("clientBuildReplyHeader: can't keep-alive, unknown body size\n");
-	request->flags.proxy_keepalive = 0;
+	if (http->conn->port->http11 && (request->http_ver.major > 1 || (request->http_ver.major == 1 && request->http_ver.minor >= 1))) {
+	    debug(33, 2) ("clientBuildReplyHeader: send chunked response, unknown body size\n");
+	    request->flags.chunked_response = 1;
+	} else {
+	    debug(33, 3) ("clientBuildReplyHeader: can't keep-alive, unknown body size\n");
+	    request->flags.proxy_keepalive = 0;
+	}
     }
     if (fdUsageHigh() && !request->flags.must_keepalive) {
 	debug(33, 3) ("clientBuildReplyHeader: Not many unused FDs, can't keep-alive\n");
@@ -1893,6 +1901,10 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
 	debug(33, 2) ("clientBuildReplyHeader: Connection oriented auth but server side non-persistent\n");
 	request->flags.proxy_keepalive = 0;
     }
+    /* Append Transfer-Encoding */
+    if (request->flags.chunked_response) {
+	httpHeaderPutStr(hdr, HDR_TRANSFER_ENCODING, "chunked");
+    }
     /* Append Via */
     if (Config.onoff.via) {
 	LOCAL_ARRAY(char, bbuf, MAX_URL + 32);
@@ -1906,9 +1918,13 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
 	stringClean(&strVia);
     }
     /* Signal keep-alive if needed */
-    httpHeaderPutStr(hdr,
-	(http->flags.accel || http->flags.transparent) ? HDR_CONNECTION : HDR_PROXY_CONNECTION,
-	request->flags.proxy_keepalive ? "keep-alive" : "close");
+    if (!request->flags.proxy_keepalive)
+	httpHeaderPutStr(hdr, HDR_CONNECTION, "close");
+    else if (request->http_ver.major == 1 && request->http_ver.minor == 0) {
+	httpHeaderPutStr(hdr, HDR_CONNECTION, "keep-alive");
+	if (!(http->flags.accel || http->flags.transparent))
+	    httpHeaderPutStr(hdr, HDR_PROXY_CONNECTION, "keep-alive");
+    }
 #if ADD_X_REQUEST_URI
     /*
      * Knowing the URI of the request is useful when debugging persistent
@@ -1955,8 +1971,13 @@ clientCloneReply(clientHttpRequest * http, HttpReply * orig_rep)
     /* try to grab the already-parsed header */
     rep = httpReplyClone(orig_rep);
     if (rep->pstate == psParsed) {
-	/* enforce 1.0 reply version */
-	httpBuildVersion(&rep->sline.version, 1, 0);
+	if (http->conn->port->http11) {
+	    /* enforce 1.1 reply version */
+	    httpBuildVersion(&rep->sline.version, 1, 1);
+	} else {
+	    /* enforce 1.0 reply version */
+	    httpBuildVersion(&rep->sline.version, 1, 0);
+	}
 	/* do header conversions */
 	clientBuildReplyHeader(http, rep);
 	/* if we do ranges, change status to "Partial Content" */
@@ -2408,7 +2429,7 @@ clientProcessHit(clientHttpRequest * http)
 
     if (is_modified == 0) {
 	time_t timestamp = e->timestamp;
-	MemBuf mb = httpPacked304Reply(e->mem_obj->reply);
+	MemBuf mb = httpPacked304Reply(e->mem_obj->reply, http->conn->port->http11);
 	http->log_type = LOG_TCP_IMS_HIT;
 	storeClientUnregister(http->sc, e, http);
 	http->sc = NULL;
@@ -3000,7 +3021,7 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 	memFree(buf, MEM_STORE_CLIENT_BUF);
 	return;
     }
-    if (!http->request->range) {
+    if (!http->request->range && !http->request->flags.chunked_response) {
 	/* Avoid copying to MemBuf for non-range requests */
 	http->out.offset += size;
 	comm_write(fd, buf, size, clientWriteBodyComplete, http, NULL);
@@ -3037,7 +3058,15 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 	memBufAppend(&mb, buf, size);
     }
     /* write body */
-    comm_write_mbuf(fd, mb, clientWriteComplete, http);
+    if (http->request->flags.chunked_response) {
+	char header[32];
+	size_t header_size;
+	header_size = snprintf(header, sizeof(header), "%x\r\n", mb.size);
+	memBufAppend(&mb, "\r\n", 2);
+	comm_write_mbuf_header(fd, mb, header, header_size, clientWriteComplete, http);
+    } else {
+	comm_write_mbuf(fd, mb, clientWriteComplete, http);
+    }
     memFree(buf, MEM_STORE_CLIENT_BUF);
 }
 
@@ -3160,6 +3189,10 @@ clientWriteComplete(int fd, char *bufnotused, size_t size, int errflag, void *da
 	} else if (clientGotNotEnough(http)) {
 	    debug(33, 5) ("clientWriteComplete: client didn't get all it expected\n");
 	    comm_close(fd);
+	} else if (http->request->flags.chunked_response) {
+	    /* Finish chunked transfer encoding */
+	    http->request->flags.chunked_response = 0;	/* no longer chunking */
+	    comm_write(http->conn->fd, "0\r\n\r\n", 5, clientWriteComplete, http, NULL);
 	} else if (http->request->body_reader == clientReadBody) {
 	    debug(33, 5) ("clientWriteComplete: closing, but first we need to read the rest of the request\n");
 	    /* XXX We assumes the reply does fit in the TCP transmit window.
@@ -3359,6 +3392,22 @@ clientProcessRequest(clientHttpRequest * http)
 	RequestMethods[r->method].str,
 	url);
     r->flags.collapsed = 0;
+    if (httpHeaderHas(&r->header, HDR_EXPECT)) {
+	int ignore = 0;
+	if (Config.onoff.ignore_expect_100) {
+	    String expect = httpHeaderGetList(&r->header, HDR_EXPECT);
+	    if (strCaseCmp(expect, "100-continue") == 0)
+		ignore = 1;
+	    stringClean(&expect);
+	}
+	if (!ignore) {
+	    ErrorState *err = errorCon(ERR_INVALID_REQ, HTTP_EXPECTATION_FAILED, r);
+	    http->log_type = LOG_TCP_MISS;
+	    http->entry = clientCreateStoreEntry(http, http->request->method, null_request_flags);
+	    errorAppendEntry(http->entry, err);
+	    return;
+	}
+    }
     if (r->method == METHOD_CONNECT && !http->redirect.status) {
 	http->log_type = LOG_TCP_MISS;
 #if USE_SSL && SSL_CONNECT_INTERCEPT
@@ -3910,8 +3959,7 @@ clientTryParseRequest(ConnStateData * conn)
 	request->my_addr = conn->me.sin_addr;
 	request->my_port = ntohs(conn->me.sin_port);
 	request->http_ver = http->http_ver;
-	if (!urlCheckRequest(request) ||
-	    httpHeaderHas(&request->header, HDR_TRANSFER_ENCODING)) {
+	if (!urlCheckRequest(request)) {
 	    err = errorCon(ERR_UNSUP_REQ, HTTP_NOT_IMPLEMENTED, request);
 	    request->flags.proxy_keepalive = 0;
 	    http->al.http.code = err->http_status;
@@ -3920,7 +3968,7 @@ clientTryParseRequest(ConnStateData * conn)
 	    errorAppendEntry(http->entry, err);
 	    return -1;
 	}
-	if (!clientCheckContentLength(request)) {
+	if (!clientCheckContentLength(request) || httpHeaderHas(&request->header, HDR_TRANSFER_ENCODING)) {
 	    err = errorCon(ERR_INVALID_REQ, HTTP_LENGTH_REQUIRED, request);
 	    http->al.http.code = err->http_status;
 	    http->log_type = LOG_TCP_DENIED;
@@ -3938,7 +3986,7 @@ clientTryParseRequest(ConnStateData * conn)
 	    request->body_reader_data = conn;
 	    cbdataLock(conn);
 	    /* Is it too large? */
-	    if (clientRequestBodyTooLarge(request->content_length)) {
+	    if (clientRequestBodyTooLarge(request->content_length) || request->method == METHOD_CONNECT) {
 		err = errorCon(ERR_TOO_BIG, HTTP_REQUEST_ENTITY_TOO_LARGE, request);
 		http->log_type = LOG_TCP_DENIED;
 		http->entry = clientCreateStoreEntry(http,

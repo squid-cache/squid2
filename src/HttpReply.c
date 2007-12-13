@@ -197,7 +197,7 @@ httpPackedReply(http_status status, const char *ctype,
 #endif
 
 MemBuf
-httpPacked304Reply(const HttpReply * rep)
+httpPacked304Reply(const HttpReply * rep, int http11)
 {
     static const http_hdr_type ImsEntries[] =
     {HDR_DATE, HDR_CONTENT_TYPE, HDR_EXPIRES, HDR_LAST_MODIFIED, HDR_ETAG, /* eof */ HDR_OTHER};
@@ -209,7 +209,7 @@ httpPacked304Reply(const HttpReply * rep)
 
     memBufDefInit(&mb);
     packerToMemInit(&p, &mb);
-    memBufPrintf(&mb, "%s", "HTTP/1.0 304 Not Modified\r\n");
+    memBufPrintf(&mb, "HTTP/1.%d 304 Not Modified\r\n", http11);
     for (t = 0; ImsEntries[t] != HDR_OTHER; ++t)
 	if ((e = httpHeaderFindEntry(&rep->header, ImsEntries[t])))
 	    httpHeaderEntryPackInto(e, &p);
@@ -254,7 +254,7 @@ httpRedirectReply(HttpReply * reply, http_status status, const char *loc)
     HttpHeader *hdr;
     http_version_t ver;
     assert(reply);
-    httpBuildVersion(&ver, 1, 0);
+    httpBuildVersion(&ver, 1, 1);
     httpStatusLineSet(&reply->sline, ver, status, httpStatusString(status));
     hdr = &reply->header;
     httpHeaderPutStr(hdr, HDR_SERVER, full_appname_string);
@@ -321,7 +321,7 @@ httpReplyHdrExpirationTime(const HttpReply * rep)
     if (httpHeaderHas(&rep->header, HDR_EXPIRES)) {
 	const time_t e = httpHeaderGetTime(&rep->header, HDR_EXPIRES);
 	/*
-	 * HTTP/1.0 says that robust implementations should consider
+	 * HTTP/1.1 says that robust implementations should consider
 	 * bad or malformed Expires header as equivalent to "expires
 	 * immediately."
 	 */

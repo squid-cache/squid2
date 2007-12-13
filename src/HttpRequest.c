@@ -113,8 +113,8 @@ httpRequestPack(const request_t * req, Packer * p)
 {
     assert(req && p);
     /* pack request-line */
-    packerPrintf(p, "%s %s HTTP/1.0\r\n",
-	RequestMethods[req->method].str, strBuf(req->urlpath));
+    packerPrintf(p, "%s %s HTTP/%d.%d\r\n",
+	RequestMethods[req->method].str, strBuf(req->urlpath), req->http_ver.major, req->http_ver.minor);
     /* headers */
     httpHeaderPackInto(&req->header, p);
     /* trailer */

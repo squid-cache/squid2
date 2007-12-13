@@ -370,6 +370,7 @@ struct _http_port_list {
     unsigned int vhost;		/* uses host header */
     unsigned int vport;		/* virtual port support */
     unsigned int no_connection_auth;	/* Don't support connection oriented auth */
+    unsigned int http11;	/* HTTP/1.1 support */
 #if LINUX_TPROXY
     unsigned int tproxy;
 #endif
@@ -661,6 +662,7 @@ struct _SquidConfig {
 	int redirector_bypass;
 	int storeurl_bypass;
 	int ignore_unknown_nameservers;
+	int server_http11;
 	int client_pconns;
 	int server_pconns;
 	int error_pconns;
@@ -690,6 +692,7 @@ struct _SquidConfig {
 	int log_uses_indirect_client;
 #endif
 	int update_headers;
+	int ignore_expect_100;
     } onoff;
     acl *aclList;
     struct {
@@ -867,6 +870,8 @@ struct _CommWriteStateData {
     CWCB *handler;
     void *handler_data;
     FREE *free_func;
+    char header[32];
+    size_t header_size;
 };
 
 
@@ -1112,6 +1117,7 @@ struct _http_state_flags {
     unsigned int originpeer:1;
     unsigned int chunked:1;
     unsigned int trailer:1;
+    unsigned int http11:1;
 };
 
 struct _HttpStateData {
@@ -1460,6 +1466,7 @@ struct _peer {
 #if USE_CARP
 	unsigned int carp:1;
 #endif
+	unsigned int http11:1;	/* HTTP/1.1 support */
     } options;
     int weight;
     struct {
@@ -1863,6 +1870,7 @@ struct _request_flags {
     unsigned int collapsed:1;	/* This request was collapsed. Don't trust the store entry to be valid */
     unsigned int cache_validation:1;	/* This request is an internal cache validation */
     unsigned int no_direct:1;	/* Deny direct forwarding unless overriden by always_direct. Used in accelerator mode */
+    unsigned int chunked_response:1;	/* Send the response using chunked encoding */
 };
 
 struct _link_list {

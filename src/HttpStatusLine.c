@@ -279,6 +279,9 @@ httpStatusString(http_status status)
     case HTTP_HTTP_VERSION_NOT_SUPPORTED:
 	p = "HTTP Version not supported";
 	break;
+    case HTTP_EXPECTATION_FAILED:
+	p = "Expectation failed";
+	break;
     default:
 	p = "Unknown";
 	debug(57, 3) ("Unknown HTTP status code: %d\n", status);

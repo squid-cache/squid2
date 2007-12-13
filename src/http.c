@@ -474,8 +474,19 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
     /* Parse headers into reply structure */
     /* what happens if we fail to parse here? */
     httpReplyParse(reply, httpState->reply_hdr.buf, hdr_size);
-    storeAppend(entry, httpState->reply_hdr.buf, hdr_size);
     done = hdr_size - old_size;
+    /* Skip 1xx messages for now. Advertised in Via as an internal 1.0 hop */
+    if (reply->sline.status >= 100 && reply->sline.status < 200) {
+	memBufClean(&httpState->reply_hdr);
+	httpReplyReset(reply);
+	httpState->reply_hdr_state = 0;
+	ctx_exit(ctx);
+	if (done < size)
+	    return done + httpProcessReplyHeader(httpState, buf + done, size - done);
+	else
+	    return done;
+    }
+    storeAppend(entry, httpState->reply_hdr.buf, hdr_size);
     if (reply->sline.status >= HTTP_INVALID_HEADER) {
 	debug(11, 3) ("httpProcessReplyHeader: Non-HTTP-compliant header: '%s'\n", httpState->reply_hdr.buf);
 	memBufClean(&httpState->reply_hdr);
@@ -1189,7 +1200,6 @@ httpBuildRequestHeader(request_t * request,
 	case HDR_TRANSFER_ENCODING:
 	case HDR_UPGRADE:
 	case HDR_PROXY_CONNECTION:
-	case HDR_EXPECT:
 	    /* hop-by-hop headers. Don't forward */
 	    break;
 	case HDR_CACHE_CONTROL:
@@ -1212,6 +1222,8 @@ httpBuildRequestHeader(request_t * request,
 	    orig_request->http_ver.major,
 	    orig_request->http_ver.minor, ThisCache);
 	strListAdd(&strVia, bbuf, ',');
+	if (flags.http11)
+	    strListAdd(&strVia, "1.0 internal", ',');
 	httpHeaderPutStr(hdr_out, HDR_VIA, strBuf(strVia));
 	stringClean(&strVia);
     }
@@ -1363,9 +1375,10 @@ httpBuildRequestPrefix(request_t * request,
     http_state_flags flags)
 {
     const int offset = mb->size;
-    memBufPrintf(mb, "%s %s HTTP/1.0\r\n",
+    memBufPrintf(mb, "%s %s HTTP/1.%d\r\n",
 	RequestMethods[request->method].str,
-	strLen(request->urlpath) ? strBuf(request->urlpath) : "/");
+	strLen(request->urlpath) ? strBuf(request->urlpath) : "/",
+	flags.http11);
     /* build and pack headers */
     {
 	HttpHeader hdr;
@@ -1432,6 +1445,10 @@ httpSendRequest(HttpStateData * httpState)
 	    httpState->flags.only_if_cached = 1;
 	httpState->flags.front_end_https = httpState->peer->front_end_https;
     }
+    if (httpState->peer)
+	httpState->flags.http11 = httpState->peer->options.http11;
+    else
+	httpState->flags.http11 = Config.onoff.server_http11;
     memBufDefInit(&mb);
     httpBuildRequestPrefix(req,
 	httpState->orig_request,

@@ -52,9 +52,11 @@ typedef struct {
     delay_id delay_id;
 #endif
     int connected;
+    int http11;			/* Client-side HTTP/1.1 capable */
 } SslStateData;
 
-static const char *const conn_established = "HTTP/1.0 200 Connection established\r\n\r\n";
+static const char *const conn_established_10 = "HTTP/1.0 200 Connection established\r\n\r\n";
+static const char *const conn_established_11 = "HTTP/1.1 200 Connection established\r\n\r\n";
 
 static CNCB sslConnectDone;
 static ERCB sslErrorComplete;
@@ -392,8 +394,13 @@ sslConnected(int fd, void *data)
     SslStateData *sslState = data;
     debug(26, 3) ("sslConnected: FD %d sslState=%p\n", fd, sslState);
     *sslState->status_ptr = HTTP_OK;
-    xstrncpy(sslState->server.buf, conn_established, SQUID_TCP_SO_RCVBUF);
-    sslState->server.len = strlen(conn_established);
+    if (sslState->http11) {
+	xstrncpy(sslState->server.buf, conn_established_11, SQUID_TCP_SO_RCVBUF);
+	sslState->server.len = strlen(conn_established_11);
+    } else {
+	xstrncpy(sslState->server.buf, conn_established_10, SQUID_TCP_SO_RCVBUF);
+	sslState->server.len = strlen(conn_established_10);
+    }
     sslSetSelect(sslState);
 }
 
@@ -539,6 +546,7 @@ sslStart(clientHttpRequest * http, squid_off_t * size_ptr, int *status_ptr)
 #endif
     sslState->url = xstrdup(url);
     sslState->request = requestLink(request);
+    sslState->http11 = http->conn->port->http11;
     sslState->size_ptr = size_ptr;
     sslState->status_ptr = status_ptr;
     sslState->client.fd = fd;
@@ -585,7 +593,7 @@ sslProxyConnected(int fd, void *data)
     memset(&flags, '\0', sizeof(flags));
     flags.proxying = sslState->request->flags.proxying;
     memBufDefInit(&mb);
-    memBufPrintf(&mb, "CONNECT %s HTTP/1.0\r\n", sslState->url);
+    memBufPrintf(&mb, "CONNECT %s HTTP/1.%d\r\n", sslState->url, sslState->servers->peer ? sslState->servers->peer->options.http11 : 0);
     httpBuildRequestHeader(sslState->request,
 	sslState->request,
 	NULL,			/* StoreEntry */

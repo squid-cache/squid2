@@ -386,13 +386,17 @@ main(int argc, char *argv[])
 	snprintf(buf, BUFSIZ, "Authorization: Basic %s\r\n", base64_encode(buf));
 	strcat(msg, buf);
     }
-    if (keep_alive) {
-	if (strstr(url, "://"))
-	    strcat(msg, "Proxy-Connection: keep-alive\r\n");
-	strcat(msg, "Connection: keep-alive\r\n");
+    if (strcmp(version, "1.0") == 0) {
+	if (keep_alive) {
+	    if (strstr(url, "://"))
+		strcat(msg, "Proxy-Connection: keep-alive\r\n");
+	    else
+		strcat(msg, "Connection: keep-alive\r\n");
+	}
+    } else {
+	if (!keep_alive)
+	    strcat(msg, "Connection: close\r\n");
     }
-    if (!keep_alive)
-	strcat(msg, "Connection: close\r\n");
     strcat(msg, extra_hdrs);
     strcat(msg, "\r\n");
 

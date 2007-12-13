@@ -181,6 +181,15 @@ extern void comm_write(int fd,
     void *handler_data,
     FREE *);
 extern void comm_write_mbuf(int fd, MemBuf mb, CWCB * handler, void *handler_data);
+extern void comm_write_header(int fd,
+    const char *buf,
+    int size,
+    const char *header,
+    size_t header_size,
+    CWCB * handler,
+    void *handler_data,
+    FREE *);
+extern void comm_write_mbuf_header(int fd, MemBuf mb, const char *header, size_t header_size, CWCB * handler, void *handler_data);
 extern void commCallCloseHandlers(int fd);
 extern int commSetTimeout(int fd, int, PF *, void *);
 extern void commSetDefer(int fd, DEFER * func, void *);
@@ -502,7 +511,7 @@ extern void httpReplySetHeaders(HttpReply * rep, http_status status,
 extern MemBuf httpPackedReply(http_version_t ver, http_status status, const char *ctype,
     squid_off_t clen, time_t lmt, time_t expires);
 /* construct 304 reply and pack it into MemBuf, return MemBuf */
-extern MemBuf httpPacked304Reply(const HttpReply * rep);
+extern MemBuf httpPacked304Reply(const HttpReply * rep, int http11);
 /* update when 304 reply is received for a cached object */
 extern void httpReplyUpdateOnNotModified(HttpReply * rep, HttpReply * freshRep);
 /* header manipulation */
