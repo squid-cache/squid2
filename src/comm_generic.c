@@ -360,7 +360,7 @@ comm_select(int msec)
     int rc;
     double start = current_dtime;
 
-    debug(5, 3) ("comm_select: timeout %d\n", msec);
+    debug(5, 5) ("comm_select: timeout %d\n", msec);
 
     if (msec > MAX_POLL_TIME)
 	msec = MAX_POLL_TIME;

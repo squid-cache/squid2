@@ -87,6 +87,7 @@ static void storeEntryReferenced(StoreEntry *);
 static void storeEntryDereferenced(StoreEntry *);
 static int getKeyCounter(void);
 static int storeKeepInMemory(const StoreEntry *);
+static void initVaryId(vary_id_t *);
 static OBJH storeCheckCachableStats;
 static EVH storeLateRelease;
 
@@ -347,8 +348,9 @@ storeUnlockObjectDebug(StoreEntry * e, const char *file, const int line)
 StoreEntry *
 storeGet(const cache_key * key)
 {
-    debug(20, 3) ("storeGet: looking up %s\n", storeKeyText(key));
-    return (StoreEntry *) hash_lookup(store_table, key);
+    StoreEntry *e = (StoreEntry *) hash_lookup(store_table, key);
+    debug(20, 3) ("storeGet: %s -> %p\n", storeKeyText(key), e);
+    return e;
 }
 
 StoreEntry *
@@ -451,6 +453,11 @@ free_AddVaryState(void *data)
 	    if (state->etag)
 		storeAppendPrintf(state->e, "ETag: %s\n", state->etag);
 	    storeAppendPrintf(state->e, "VaryData: %s\n", state->vary_headers);
+	}
+	if (state->oe) {
+	    debug(11, 3) ("free_AddVaryState: copying vary ID %ld.%u to new entry\n",
+		state->oe->mem_obj->vary_id.create_time, state->oe->mem_obj->vary_id.serial);
+	    state->e->mem_obj->vary_id = state->oe->mem_obj->vary_id;
 	}
 	storeTimestampsSet(state->e);
 	storeComplete(state->e);
@@ -563,6 +570,7 @@ storeAddVaryReadOld(void *data, char *buf, ssize_t size)
     debug(11, 3) ("storeAddVaryReadOld: %p seen_offset=%" PRINTF_OFF_T " buf_offset=%d size=%d\n", data, state->seen_offset, (int) state->buf_offset, (int) size);
     if (size <= 0) {
 	debug(11, 2) ("storeAddVaryReadOld: DONE\n");
+	/* Call back to the destructor free_AddVaryState */
 	cbdataFree(state);
 	return;
     }
@@ -706,12 +714,14 @@ storeAddVaryReadOld(void *data, char *buf, ssize_t size)
 
 /*
  * Adds/updates a Vary record.
- * For updates only one of key or etag needs to be specified
- * At leas one of key or etag must be specified, preferably both.
+ * At least one of key or etag must be specified, preferably both.
+ * Returns the vary ID if it can be determined immediately, zero otherwise
  */
-void
+vary_id_t
 storeAddVary(const char *url, const method_t method, const cache_key * key, const char *etag, const char *vary, const char *vary_headers, const char *accept_encoding)
 {
+    vary_id_t vary_id =
+    {0, 0};
     AddVaryState *state;
     request_flags flags = null_request_flags;
     CBDATA_INIT_TYPE_FREECB(AddVaryState, free_AddVaryState);
@@ -733,6 +743,11 @@ storeAddVary(const char *url, const method_t method, const cache_key * key, cons
     state->e = storeCreateEntry(url, flags, method);
     httpReplySetHeaders(state->e->mem_obj->reply, HTTP_OK, "Internal marker object", "x-squid-internal/vary", -1, -1, squid_curtime + 100000);
     httpHeaderPutStr(&state->e->mem_obj->reply->header, HDR_VARY, vary);
+    if (!state->oe) {
+	/* New entry, create new unique ID */
+	initVaryId(&vary_id);
+	state->e->mem_obj->vary_id = vary_id;
+    }
     storeSetPublicKey(state->e);
     storeBuffer(state->e);
     httpReplySwapOut(state->e->mem_obj->reply, state->e);
@@ -751,8 +766,10 @@ storeAddVary(const char *url, const method_t method, const cache_key * key, cons
 	 * - VaryData is added last in the Key record it corresponds to (after
 	 *   modifications above)
 	 */
-	/* Swap in the dummy Vary object */
-	if (!state->oe->mem_obj) {
+	if (state->oe->mem_obj) {
+	    vary_id = state->oe->mem_obj->vary_id;
+	} else {
+	    /* Swap in the dummy Vary object. vary_id is unknown for now */
 	    storeCreateMemObject(state->oe, state->url);
 	    state->oe->mem_obj->method = method;
 	}
@@ -764,10 +781,10 @@ storeAddVary(const char *url, const method_t method, const cache_key * key, cons
 	    state->buf,
 	    storeAddVaryReadOld,
 	    state);
-	return;
     } else {
 	cbdataFree(state);
     }
+    return vary_id;
 }
 
 static MemPool *VaryData_pool = NULL;
@@ -810,9 +827,10 @@ CBDATA_TYPE(LocateVaryState);
 static void
 storeLocateVaryCallback(LocateVaryState * state)
 {
+    int expired = FALSE;
     if (cbdataValid(state->callback_data)) {
 	VaryData *data = state->data;
-	if (data->key || data->etags.count) {
+	if (!expired && (data->key || data->etags.count)) {
 	    state->callback(data, state->callback_data);
 	    state->data = NULL;	/* now owned by the caller */
 	} else {
@@ -989,6 +1007,7 @@ storeSetPublicKey(StoreEntry * e)
     StoreEntry *e2 = NULL;
     const cache_key *newkey;
     MemObject *mem = e->mem_obj;
+    debug(20, 3) ("storeSetPublicKey: %s\n", storeKeyText(e->hash.key));
     if (e->hash.key && !EBIT_TEST(e->flags, KEY_PRIVATE)) {
 	if (EBIT_TEST(e->flags, KEY_EARLY_PUBLIC)) {
 	    EBIT_CLR(e->flags, KEY_EARLY_PUBLIC);
@@ -1042,6 +1061,7 @@ storeSetPublicKey(StoreEntry * e)
 	newkey = storeKeyPublicByRequest(mem->request);
 	if (mem->vary_headers && !EBIT_TEST(e->flags, KEY_EARLY_PUBLIC)) {
 	    String vary = StringNull;
+	    vary_id_t vary_id;
 	    String varyhdr;
 	    varyhdr = httpHeaderGetList(&mem->reply->header, HDR_VARY);
 	    if (strBuf(varyhdr))
@@ -1054,7 +1074,26 @@ storeSetPublicKey(StoreEntry * e)
 		strListAdd(&vary, strBuf(varyhdr), ',');
 	    stringClean(&varyhdr);
 #endif
-	    storeAddVary(mem->url, mem->method, newkey, httpHeaderGetStr(&mem->reply->header, HDR_ETAG), strBuf(vary), mem->vary_headers, mem->vary_encoding);
+	    /* Create or update the vary object */
+	    vary_id = storeAddVary(mem->url, mem->method, newkey, httpHeaderGetStr(&mem->reply->header, HDR_ETAG), strBuf(vary), mem->vary_headers, mem->vary_encoding);
+	    if (vary_id.create_time) {
+		mem->vary_id = vary_id;
+	    } else {
+		/* Base vary object is not swapped in, so the vary_id is unknown.
+		 * Maybe we can cheat and use the vary_id from the request. If the 
+		 * base object existed earlier in the request, it would have been
+		 * swapped in and stored at that time.
+		 */
+		if (mem->request->vary_id.create_time) {
+		    mem->vary_id = mem->request->vary_id;
+		} else {
+		    /* Nope, no luck. Store with zero vary_id, which will immediately 
+		     * be treated as expired.
+		     * FIXME: make this work properly.
+		     */
+		    debug(20, 1) ("storeSetPublicKey: unable to determine vary_id for '%s'\n", mem->url);
+		}
+	    }
 	    stringClean(&vary);
 	}
     } else {
@@ -1799,6 +1838,8 @@ storeMemObjectDump(MemObject * mem)
     debug(20, 1) ("MemObject->url: %p %s\n",
 	mem->url,
 	checkNullString(mem->url));
+    debug(20, 1) ("MemObject->vary_id: %ld.%u\n",
+	mem->vary_id.create_time, mem->vary_id.serial);
 }
 
 void
@@ -2081,4 +2122,16 @@ storeResetDefer(StoreEntry * e)
     EBIT_CLR(e->flags, ENTRY_DEFER_READ);
     if (e->mem_obj)
 	e->mem_obj->serverfd = -1;
+}
+
+/* Initialise the vary_id with a new unique value */
+static void
+initVaryId(vary_id_t * vary_id)
+{
+    static unsigned int serial = 0;
+
+    debug(20, 3) ("initVaryId: Initialising vary_id to %ld.%u\n",
+	squid_curtime, serial);
+    vary_id->create_time = squid_curtime;
+    vary_id->serial = serial++;
 }

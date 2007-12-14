@@ -660,6 +660,7 @@ enum {
     STORE_META_STD_LFS,		/* standard metadata in lfs format */
     STORE_META_OBJSIZE,		/* object size, if its known */
     STORE_META_STOREURL,	/* the store url, if different to the normal URL */
+    STORE_META_VARY_ID,		/* Unique ID linking variants */
     STORE_META_END
 };
 
@@ -753,7 +754,8 @@ enum {
     VARY_MATCH,
     VARY_OTHER,
     VARY_RESTART,
-    VARY_CANCEL
+    VARY_CANCEL,
+    VARY_EXPIRED
 };
 
 /* Windows Port */

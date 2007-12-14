@@ -440,6 +440,9 @@ storeClientReadHeader(void *data, const char *buf, ssize_t len)
 		mem->vary_headers = xstrdup(t->value);
 	    }
 	    break;
+	case STORE_META_VARY_ID:
+	    memcpy(&mem->vary_id, t->value, sizeof(vary_id_t));
+	    break;
 	default:
 	    debug(20, 2) ("WARNING: got unused STORE_META type %d\n", t->type);
 	    break;
