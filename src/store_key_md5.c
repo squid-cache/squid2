@@ -132,6 +132,7 @@ storeKeyPublicByRequestMethod(request_t * request, const method_t method)
     static cache_key digest[MD5_DIGEST_CHARS];
     unsigned char m = (unsigned char) method;
     const char *url;
+    MD5_CTX M;
 
     if (request->store_url) {
 	url = request->store_url;
@@ -139,7 +140,6 @@ storeKeyPublicByRequestMethod(request_t * request, const method_t method)
 	url = urlCanonical(request);
     }
 
-    MD5_CTX M;
     MD5Init(&M);
     MD5Update(&M, &m, sizeof(m));
     MD5Update(&M, (unsigned char *) url, strlen(url));
