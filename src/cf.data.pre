@@ -773,8 +773,8 @@ DOC_START
 
 NOCOMMENT_START
 #Allow HTCP queries from local networks only
-htcp_access allow localnet
-htcp_access deny all
+# htcp_access allow localnet
+# htcp_access deny all
 NOCOMMENT_END
 DOC_END
 
