@@ -49,7 +49,6 @@ struct _PeerMonitor {
 	http_status status;
 	int hdr_size;
 	int offset;
-	char *buf;
 	int timeout_set;
     } running;
     char name[40];
@@ -70,7 +69,7 @@ freePeerMonitor(void *data)
 }
 
 static void
-peerMonitorFetchReply(void *data, char *buf, ssize_t size)
+peerMonitorFetchReply(void *data, mem_node_ref nr, ssize_t size)
 {
     PeerMonitor *pm = data;
 
@@ -79,15 +78,17 @@ peerMonitorFetchReply(void *data, char *buf, ssize_t size)
     } else {
 	pm->running.size += size;
 	pm->running.offset += size;
-	storeClientCopy(pm->running.sc, pm->running.e, pm->running.offset, pm->running.offset, 4096, buf, peerMonitorFetchReply, pm);
+	storeClientRef(pm->running.sc, pm->running.e, pm->running.offset, pm->running.offset, SM_PAGE_SIZE, peerMonitorFetchReply, pm);
     }
+    stmemNodeFree(&nr);
 }
 
 static void
-peerMonitorFetchReplyHeaders(void *data, char *buf, ssize_t size)
+peerMonitorFetchReplyHeaders(void *data, mem_node_ref nr, ssize_t size)
 {
     PeerMonitor *pm = data;
     size_t hdr_size;
+    const char *buf = NULL;
 
     if (EBIT_TEST(pm->running.e->flags, ENTRY_ABORTED))
 	goto completed;
@@ -95,6 +96,8 @@ peerMonitorFetchReplyHeaders(void *data, char *buf, ssize_t size)
 	goto completed;
     if (!cbdataValid(pm->peer))
 	goto completed;
+
+    buf = nr.node->data + nr.offset;
 
     if ((hdr_size = headersEnd(buf, size))) {
 	http_status status;
@@ -107,18 +110,20 @@ peerMonitorFetchReplyHeaders(void *data, char *buf, ssize_t size)
 	    goto completed;
 	pm->running.size = size - hdr_size;
 	pm->running.offset = size;
-	storeClientCopy(pm->running.sc, pm->running.e, pm->running.offset, pm->running.offset, 4096, buf, peerMonitorFetchReply, pm);
+	storeClientRef(pm->running.sc, pm->running.e, pm->running.offset, pm->running.offset, SM_PAGE_SIZE, peerMonitorFetchReply, pm);
     } else {
 	/* need more data, do we have space? */
-	if (size >= 4096)
+	if (size >= SM_PAGE_SIZE)
 	    goto completed;
 	else
-	    storeClientCopy(pm->running.sc, pm->running.e, size, 0, 4096, buf, peerMonitorFetchReplyHeaders, pm);
+	    storeClientRef(pm->running.sc, pm->running.e, size, 0, SM_PAGE_SIZE, peerMonitorFetchReplyHeaders, pm);
     }
+    stmemNodeUnref(&nr);
     return;
 
   completed:
     /* We are fully done with this monitoring request. Clean up */
+    stmemNodeUnref(&nr);
     peerMonitorCompleted(pm);
     return;
 }
@@ -168,9 +173,8 @@ peerMonitorRequest(void *data)
     pm->running.req = requestLink(req);
     pm->running.e = storeCreateEntry(url, req->flags, req->method);
     pm->running.sc = storeClientRegister(pm->running.e, pm);
-    pm->running.buf = memAllocate(MEM_4K_BUF);
     fwdStartPeer(pm->peer, pm->running.e, pm->running.req);
-    storeClientCopy(pm->running.sc, pm->running.e, 0, 0, 4096, pm->running.buf, peerMonitorFetchReplyHeaders, pm);
+    storeClientRef(pm->running.sc, pm->running.e, 0, 0, SM_PAGE_SIZE, peerMonitorFetchReplyHeaders, pm);
     return;
 }
 
@@ -182,7 +186,6 @@ peerMonitorCompleted(PeerMonitor * pm)
     storeClientUnregister(pm->running.sc, pm->running.e, pm);
     storeUnlockObject(pm->running.e);
     requestUnlink(pm->running.req);
-    memFree(pm->running.buf, MEM_4K_BUF);
     if (pm->running.timeout_set) {
 	eventDelete(peerMonitorTimeout, pm);
 	pm->running.timeout_set = 0;

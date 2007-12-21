@@ -61,6 +61,16 @@ typedef size_t squid_file_sz;
 #define SIZEOF_SQUID_FILE_SZ SIZEOF_SIZE_T
 #endif
 
+struct _mem_node_ref {
+    struct _mem_node *node;
+    /*
+     * the caller asked for a specific offset into the object;
+     * this particular offset is the offset into the above mem_node
+     * to get at said data.
+     */
+    int offset;
+};
+
 typedef struct {
     squid_off_t bytes;
     squid_off_t kb;
@@ -163,6 +173,7 @@ typedef struct _iostats iostats;
 typedef struct _MemBuf MemBuf;
 typedef struct _mem_node mem_node;
 typedef struct _mem_hdr mem_hdr;
+typedef struct _mem_node_ref mem_node_ref;
 typedef struct _store_client store_client;
 typedef struct _MemObject MemObject;
 typedef struct _StoreEntry StoreEntry;
@@ -279,6 +290,7 @@ typedef void STRCB(void *their_data, const char *buf, ssize_t len);
 typedef void SIH(storeIOState *, void *);	/* swap in */
 typedef int QS(const void *, const void *);	/* qsort */
 typedef void STCB(void *, char *, ssize_t);	/* store callback */
+typedef void STNCB(void *, struct _mem_node_ref r, ssize_t);	/* new store callback */
 typedef void STHCB(void *, HttpReply *);	/* store callback */
 typedef void STABH(void *);
 typedef void ERCB(int fd, void *, size_t);

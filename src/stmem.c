@@ -135,6 +135,81 @@ stmemAppend(mem_hdr * mem, const char *data, int len)
     }
 }
 
+/*
+ * Fetch a page from the store mem.
+ *
+ * The page data may not start from the same offset given here; the
+ * mem_node reference returned will include a node pointer and offset
+ * into the buffer so the client 'knows' where to start.
+ *
+ * The reference taking is a bit of a hack (and the free'ing is also
+ * quite a bit of a hack!) but it'll have to suffice until a better
+ * buffer management system replaces this stuff.
+ *
+ * Please note that the stmem code doesn't at all attempt to make
+ * sure the memobject you're copying from actually has data where
+ * you've asked for it. the store_client.c and store_swapout.c
+ * routines all do magic to keep that in check.
+ */
+int
+stmemRef(const mem_hdr * mem, squid_off_t offset, mem_node_ref * r)
+{
+    mem_node *p = mem->head;
+    volatile squid_off_t t_off = mem->origin_offset;
+
+    debug(19, 3) ("memRef: offset %" PRINTF_OFF_T "; initial offset in memory %d\n", offset, (int) mem->origin_offset);
+    if (p == NULL)
+	return 0;
+    /* Seek our way into store */
+    while ((t_off + p->len) <= offset) {
+	t_off += p->len;
+	if (!p->next) {
+	    debug(19, 1) ("memRef: p->next == NULL\n");
+	    return 0;
+	}
+	assert(p->next);
+	p = p->next;
+    }
+    r->node = (mem_node *) stmemNodeGet(p);
+
+    r->offset = offset - t_off;
+    assert(r->offset >= 0);
+    assert(r->offset >= 0);
+    assert(p->len + t_off - offset > 0);
+    debug(19, 3) ("memRef: returning node %p, offset %d, %d bytes\n", p, (int) r->offset, (int) (p->len + t_off - offset));
+    return p->len + t_off - offset;
+}
+
+void
+stmemNodeRefCreate(mem_node_ref * r)
+{
+    assert(r->node == NULL);
+    r->node = memAllocate(MEM_MEM_NODE);
+    r->node->uses = 0;
+    r->node->next = NULL;
+    r->node->len = 4096;
+    r->offset = 0;
+}
+
+mem_node_ref
+stmemNodeRef(mem_node_ref * r)
+{
+    mem_node_ref r2;
+    r2 = *r;
+    r2.node->uses++;
+    return r2;
+}
+
+void
+stmemNodeUnref(mem_node_ref * r)
+{
+    if (!r->node)
+	return;
+    stmemNodeFree((void *) r->node);
+    r->node = NULL;
+    r->offset = -1;
+}
+
 ssize_t
 stmemCopy(const mem_hdr * mem, squid_off_t offset, char *buf, size_t size)
 {
