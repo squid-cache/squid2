@@ -609,7 +609,7 @@ storeClientReadHeader(void *data, const char *buf_unused, ssize_t len)
 	debug(20, 3) ("storeClientReadHeader: copying %d bytes of body\n",
 	    (int) copy_sz);
 	debug(20, 8) ("sc %p; node_ref->node %p; data %p; copy size %d; data size %d\n",
-	    sc, sc->node_ref.node, sc->node_ref.node->data, copy_sz, len);
+	    sc, sc->node_ref.node, sc->node_ref.node->data, (int) copy_sz, (int) len);
 	xmemmove(cbuf, cbuf + swap_hdr_sz, copy_sz);
 	if (sc->copy_offset == 0 && len > 0 && memHaveHeaders(mem) == 0)
 	    httpReplyParse(mem->reply, cbuf,
