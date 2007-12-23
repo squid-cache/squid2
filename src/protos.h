@@ -1107,7 +1107,6 @@ extern squid_off_t storeSwapOutObjectBytesOnDisk(const MemObject * mem);
  * store_client.c
  */
 extern store_client *storeClientRegister(StoreEntry * e, void *data);
-extern void storeClientCopy(store_client *, StoreEntry *, squid_off_t, squid_off_t, size_t, char *, STCB *, void *);
 extern void storeClientRef(store_client *, StoreEntry *, squid_off_t, squid_off_t, size_t, STNCB *, void *);
 extern void storeClientCopyHeaders(store_client *, StoreEntry *, STHCB *, void *);
 extern int storeClientCopyPending(store_client *, StoreEntry * e, void *data);

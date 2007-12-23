@@ -1663,8 +1663,6 @@ struct _store_client {
     squid_off_t seen_offset;
     size_t copy_size;
     mem_node_ref node_ref;
-    char *copy_buf;
-    STCB *callback;
     STNCB *new_callback;
     void *callback_data;
     StoreEntry *entry;		/* ptr to the parent StoreEntry, argh! */
