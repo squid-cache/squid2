@@ -328,6 +328,8 @@ storeClientCopy3(StoreEntry * e, store_client * sc)
     assert(STORE_DISK_CLIENT == sc->type);
     assert(!sc->flags.disk_io_pending);
     debug(20, 3) ("storeClientCopy3: reading from STORE\n");
+    /* Just in case there's a node here; free it */
+    stmemNodeUnref(&sc->node_ref);
     storeClientFileRead(sc);
 }
 
@@ -537,6 +539,8 @@ storeClientReadHeader(void *data, const char *buf_unused, ssize_t len)
      * we don't have what the client wants, but at least we now
      * know the swap header size.
      */
+    /* Just in case there's a node here; free it */
+    stmemNodeUnref(&sc->node_ref);
     storeClientFileRead(sc);
 }
 
