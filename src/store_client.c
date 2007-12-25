@@ -364,10 +364,10 @@ storeClientFileRead(store_client * sc)
 static void
 storeClientReadBody(void *data, const char *buf_unused, ssize_t len)
 {
+    char *cbuf = NULL;
     store_client *sc = data;
     MemObject *mem = sc->entry->mem_obj;
     assert(sc->flags.disk_io_pending);
-    char *cbuf = NULL;
 
     sc->flags.disk_io_pending = 0;
     assert(sc->new_callback);
