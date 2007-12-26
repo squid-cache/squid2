@@ -206,6 +206,9 @@
 /* Define to 1 if you have the `malloc' library (-lmalloc). */
 #undef HAVE_LIBMALLOC
 
+/* Define to 1 if you have the `md5' library (-lmd5). */
+#undef HAVE_LIBMD5
+
 /* Define to 1 if you have the `nsl' library (-lnsl). */
 #undef HAVE_LIBNSL
 
@@ -809,6 +812,9 @@
 /* If you want to log Referer request header values, define this. By default,
    they are written to referer.log in the Squid log directory. */
 #undef USE_REFERER_LOG
+
+/* Define this to force use of the internal MD5 implementation */
+#undef USE_SQUID_MD5
 
 /* Define this to include code for SSL encryption. */
 #undef USE_SSL
