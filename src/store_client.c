@@ -429,9 +429,9 @@ storeClientReadHeader(void *data, const char *buf_unused, ssize_t len)
     for (t = tlv_list; t && swap_object_ok; t = t->next) {
 	switch (t->type) {
 	case STORE_META_KEY:
-	    assert(t->length == MD5_DIGEST_CHARS);
+	    assert(t->length == SQUID_MD5_DIGEST_LENGTH);
 	    if (!EBIT_TEST(e->flags, KEY_PRIVATE) &&
-		memcmp(t->value, e->hash.key, MD5_DIGEST_CHARS)) {
+		memcmp(t->value, e->hash.key, SQUID_MD5_DIGEST_LENGTH)) {
 		debug(20, 2) ("storeClientReadHeader: swapin MD5 mismatch\n");
 		debug(20, 2) ("\t%s\n", storeKeyText(t->value));
 		debug(20, 2) ("\t%s\n", storeKeyText(e->hash.key));

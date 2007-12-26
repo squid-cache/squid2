@@ -146,10 +146,10 @@ time_since(const struct timeval *when)
 static void
 md5_calc(uint8_t out[16], void *in, size_t len)
 {
-    MD5_CTX ctx;
-    MD5Init(&ctx);
-    MD5Update(&ctx, in, len);
-    MD5Final(out, &ctx);
+    SQUID_MD5_CTX ctx;
+    SQUID_MD5Init(&ctx);
+    SQUID_MD5Update(&ctx, in, len);
+    SQUID_MD5Final(out, &ctx);
 }
 
 /*

@@ -17,12 +17,12 @@ static void MDString(char *string);
 static void
 MDString(char *string)
 {
-    MD5_CTX context;
+    SQUID_MD5_CTX context;
     unsigned char digest[16];
     unsigned int len = strlen(string);
-    MD5Init(&context);
-    MD5Update(&context, string, len);
-    MD5Final(digest, &context);
+    SQUID_MD5Init(&context);
+    SQUID_MD5Update(&context, string, len);
+    SQUID_MD5Final(digest, &context);
     printf("MD5 (\"%s\") = ", string);
     MDPrint(digest);
     printf("\n");

@@ -409,7 +409,7 @@ storeUfsDirRebuildFromDirectory(void *data)
     LOCAL_ARRAY(char, hdr_buf, SM_PAGE_SIZE);
     StoreEntry *e = NULL;
     StoreEntry tmpe;
-    cache_key key[MD5_DIGEST_CHARS];
+    cache_key key[SQUID_MD5_DIGEST_LENGTH];
     sfileno filn = 0;
     int count;
     int size;
@@ -468,13 +468,13 @@ storeUfsDirRebuildFromDirectory(void *data)
 	    continue;
 	}
 	debug(47, 3) ("storeUfsDirRebuildFromDirectory: successful swap meta unpacking\n");
-	memset(key, '\0', MD5_DIGEST_CHARS);
+	memset(key, '\0', SQUID_MD5_DIGEST_LENGTH);
 	memset(&tmpe, '\0', sizeof(StoreEntry));
 	for (t = tlv_list; t; t = t->next) {
 	    switch (t->type) {
 	    case STORE_META_KEY:
-		assert(t->length == MD5_DIGEST_CHARS);
-		xmemcpy(key, t->value, MD5_DIGEST_CHARS);
+		assert(t->length == SQUID_MD5_DIGEST_LENGTH);
+		xmemcpy(key, t->value, SQUID_MD5_DIGEST_LENGTH);
 		break;
 #if SIZEOF_SQUID_FILE_SZ == SIZEOF_SIZE_T
 	    case STORE_META_STD:
@@ -1250,7 +1250,7 @@ storeUfsDirWriteCleanEntry(SwapDir * sd, const StoreEntry * e)
     s.swap_file_sz = e->swap_file_sz;
     s.refcount = e->refcount;
     s.flags = e->flags;
-    xmemcpy(&s.key, e->hash.key, MD5_DIGEST_CHARS);
+    xmemcpy(&s.key, e->hash.key, SQUID_MD5_DIGEST_LENGTH);
     xmemcpy(state->outbuf + state->outbuf_offset, &s, ss);
     state->outbuf_offset += ss;
     /* buffered write */
@@ -1339,7 +1339,7 @@ storeUfsDirSwapLog(const SwapDir * sd, const StoreEntry * e, int op)
     s->swap_file_sz = e->swap_file_sz;
     s->refcount = e->refcount;
     s->flags = e->flags;
-    xmemcpy(s->key, e->hash.key, MD5_DIGEST_CHARS);
+    xmemcpy(s->key, e->hash.key, SQUID_MD5_DIGEST_LENGTH);
     file_write(ufsinfo->swaplog_fd,
 	-1,
 	s,

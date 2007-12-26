@@ -101,11 +101,11 @@ unsigned int
 url_checksum(const char *url)
 {
     unsigned int ck;
-    MD5_CTX M;
+    SQUID_MD5_CTX M;
     static unsigned char digest[16];
-    MD5Init(&M);
-    MD5Update(&M, (unsigned char *) url, strlen(url));
-    MD5Final(digest, &M);
+    SQUID_MD5Init(&M);
+    SQUID_MD5Update(&M, (unsigned char *) url, strlen(url));
+    SQUID_MD5Final(digest, &M);
     xmemcpy(&ck, digest, sizeof(ck));
     return ck;
 }
