@@ -719,7 +719,7 @@ AC_ARG_WITH(system-md5,
 [
   case "$enableval" in
   no)
-	AC_DEFINE(USE_SQUID_MD5, 1, [Define this to force use of the internal MD5 implementation]);
+	AC_DEFINE(USE_SQUID_MD5, 1, [Define this to force use of the internal MD5 implementation])
 	;;
 ])
 
