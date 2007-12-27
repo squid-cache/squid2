@@ -21,6 +21,7 @@
 #define SQUID_MD5Init MD5_Init
 #define SQUID_MD5Update MD5_Update
 #define SQUID_MD5Final MD5_Final
+#define SQUID_MD5_CTX MD5_CTX
 
 #elif USE_OPENSSL && !HAVE_OPENSSL_MD5_H
 #error Cannot find OpenSSL MD5 headers
@@ -36,7 +37,11 @@
  * fortunately we do not access it directly in the squid code.
  */
 
-/* Hack to adopt Squid to the OpenSSL syntax */
+#define SQUID_MD5Init MD5Init
+#define SQUID_MD5Update MD5Update
+#define SQUID_MD5Final MD5Final
+#define SQUID_MD5_CTX MD5_CTX
+
 #ifdef MD5_DIGEST_LENGTH
 #define SQUID_MD5_DIGEST_LENGTH MD5_DIGEST_LENGTH
 #else
@@ -48,6 +53,7 @@
 /* Turn on internal MD5 code */
 #undef  USE_SQUID_MD5
 #define USE_SQUID_MD5 1
+#endif
 #endif
 
 #if USE_SQUID_MD5
