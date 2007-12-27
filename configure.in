@@ -721,6 +721,7 @@ AC_ARG_WITH(system-md5,
   no)
 	AC_DEFINE(USE_SQUID_MD5, 1, [Define this to force use of the internal MD5 implementation])
 	;;
+  esac
 ])
 
 dnl User may specify OpenSSL is needed from a non-standard location
