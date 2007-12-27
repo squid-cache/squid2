@@ -170,7 +170,9 @@ stmemRef(const mem_hdr * mem, squid_off_t offset, mem_node_ref * r)
 	assert(p->next);
 	p = p->next;
     }
-    r->node = (mem_node *) stmemNodeGet(p);
+    /* XXX this should really be a "reference" function! [ahc] */
+    r->node = p;
+    p->uses++;
 
     r->offset = offset - t_off;
     assert(r->offset >= 0);
