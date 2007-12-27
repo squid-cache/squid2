@@ -368,13 +368,13 @@ sortPeerByRtt(const void *A, const void *B)
 static void
 netdbSaveState(void *foo)
 {
-    LOCAL_ARRAY(char, path, SQUID_MAXPATHLEN);
     Logfile *lf;
     netdbEntry *n;
     net_db_name *x;
     struct timeval start = current_time;
     int count = 0;
-    snprintf(path, SQUID_MAXPATHLEN, "%s/netdb_state", storeSwapDir(0));
+    if (strcmp(Config.netdbFilename, "none") == 0)
+	return;
     /*
      * This was nicer when we were using stdio, but thanks to
      * Solaris bugs, its a bad idea.  fopen can fail if more than
@@ -384,8 +384,8 @@ netdbSaveState(void *foo)
      * unlink() is here because there is currently no way to make
      * logfileOpen() use O_TRUNC.
      */
-    unlink(path);
-    lf = logfileOpen(path, 4096, 0);
+    unlink(Config.netdbFilename);
+    lf = logfileOpen(Config.netdbFilename, 4096, 0);
     if (NULL == lf) {
 	debug(50, 1) ("netdbSaveState: %s: %s\n", path, xstrerror());
 	return;
@@ -418,7 +418,6 @@ netdbSaveState(void *foo)
 static void
 netdbReloadState(void)
 {
-    LOCAL_ARRAY(char, path, SQUID_MAXPATHLEN);
     char *buf;
     char *t;
     char *s;
@@ -430,13 +429,16 @@ netdbReloadState(void)
     struct in_addr addr;
     int count = 0;
     struct timeval start = current_time;
-    snprintf(path, SQUID_MAXPATHLEN, "%s/netdb_state", storeSwapDir(0));
+
+    if (strcmp(Config.netdbFilename, "none") == 0)
+	return;
+
     /*
      * This was nicer when we were using stdio, but thanks to
      * Solaris bugs, its a bad idea.  fopen can fail if more than
      * 256 FDs are open.
      */
-    fd = file_open(path, O_RDONLY | O_BINARY);
+    fd = file_open(Config.netdbFilename, O_RDONLY | O_BINARY);
     if (fd < 0)
 	return;
     if (fstat(fd, &sb) < 0) {

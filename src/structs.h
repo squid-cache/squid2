@@ -580,6 +580,7 @@ struct _SquidConfig {
     int appendDomainLen;
     char *debugOptions;
     char *pidFilename;
+    char *netdbFilename;
     char *mimeTablePathname;
     char *etcHostsPath;
     char *visibleHostname;
