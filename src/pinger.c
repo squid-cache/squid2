@@ -307,7 +307,7 @@ pingerSendEcho(struct in_addr to, int opcode, char *payload, int len)
     icmp->icmp_seq = (u_short) icmp_pkts_sent++;
     echo = (icmpEchoData *) (icmp + 1);
     echo->opcode = (unsigned char) opcode;
-    echo->tv = current_time;
+    memcpy(&echo->tv, &current_time, sizeof(current_time));
     icmp_pktsize += sizeof(struct timeval) + sizeof(char);
     if (payload) {
 	if (len > MAX_PAYLOAD)
@@ -345,6 +345,7 @@ pingerRecv(void)
     struct timeval now;
     icmpEchoData *echo;
     static pingerReplyData preply;
+    struct timeval tv;
 
     if (pkt == NULL)
 	pkt = xmalloc(MAX_PKT_SZ);
@@ -380,7 +381,8 @@ pingerRecv(void)
     preply.from = from.sin_addr;
     preply.opcode = echo->opcode;
     preply.hops = ipHops(ip->ip_ttl);
-    preply.rtt = tvSubMsec(echo->tv, now);
+    memcpy(&tv, &echo->tv, sizeof(tv));
+    preply.rtt = tvSubMsec(tv, now);
     preply.psize = n - iphdrlen - (sizeof(icmpEchoData) - MAX_PKT_SZ);
     pingerSendtoSquid(&preply);
     pingerLog(icmp, from.sin_addr, preply.rtt, preply.hops);
