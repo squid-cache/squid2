@@ -387,7 +387,7 @@ netdbSaveState(void *foo)
     unlink(Config.netdbFilename);
     lf = logfileOpen(Config.netdbFilename, 4096, 0);
     if (NULL == lf) {
-	debug(50, 1) ("netdbSaveState: %s: %s\n", path, xstrerror());
+	debug(50, 1) ("netdbSaveState: %s: %s\n", Config.netdbFilename, xstrerror());
 	return;
     }
     hash_first(addr_table);
