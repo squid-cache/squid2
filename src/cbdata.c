@@ -122,7 +122,7 @@ cbdata_hash(const void *p, unsigned int mod)
 }
 
 #else
-#define OFFSET_OF(type, member) ((int)(char *)&((type *)0L)->member)
+#define OFFSET_OF(type, member) ((size_t)(char *)&((type *)0L)->member)
 #endif
 
 void
