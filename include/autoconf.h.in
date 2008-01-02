@@ -206,6 +206,9 @@
 /* Define to 1 if you have the `malloc' library (-lmalloc). */
 #undef HAVE_LIBMALLOC
 
+/* Define to 1 if you have the `md' library (-lmd). */
+#undef HAVE_LIBMD
+
 /* Define to 1 if you have the `md5' library (-lmd5). */
 #undef HAVE_LIBMD5
 
@@ -248,6 +251,12 @@
 
 /* Define to 1 if you have the <math.h> header file. */
 #undef HAVE_MATH_H
+
+/* Define to 1 if you have the `MD5Init' function. */
+#undef HAVE_MD5INIT
+
+/* Define to 1 if you have the <md5.h> header file. */
+#undef HAVE_MD5_H
 
 /* Define to 1 if you have the `memcpy' function. */
 #undef HAVE_MEMCPY
