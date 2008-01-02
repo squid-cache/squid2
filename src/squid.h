@@ -390,7 +390,7 @@ struct rusage {
 #include <regex.h>
 #endif
 
-#include "md5.h"
+#include "squid_md5.h"
 
 #if USE_SSL
 #include "ssl_support.h"

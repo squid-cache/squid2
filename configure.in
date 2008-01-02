@@ -1649,6 +1649,7 @@ AC_CHECK_HEADERS(
 	sys/file.h \
 	sys/ioctl.h \
 	sys/mount.h \
+	md5.h \
 	sys/md5.h \
 	sys/msg.h \
 	sys/prctl.h \
@@ -2119,11 +2120,13 @@ dnl Check for libcrypt
 dnl Some of our helpers use crypt(3) which may be in libc, or in
 dnl libcrypt (eg FreeBSD)
 AC_CHECK_LIB(crypt, crypt, [CRYPTLIB=" -lcrypt "])
+AC_SUBST(CRYPTLIB)
 
 dnl Solaris10 provides MD5 natively through libmd5
 AC_CHECK_LIB(md5, MD5Init)
 
-AC_SUBST(CRYPTLIB)
+dnl FreeBSD provides MD5 natively through libmd
+AC_CHECK_LIB(md, MD5Init)
 
 dnl Check for libdl, used by auth_modules/PAM
 if test "$with_dl" = "yes"; then
@@ -2351,6 +2354,7 @@ AC_CHECK_FUNCS(\
 	lrand48 \
 	mallinfo \
 	mallocblksize \
+	MD5Init \
 	mallopt \
 	memcpy \
 	memmove \

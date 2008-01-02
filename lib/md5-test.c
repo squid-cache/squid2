@@ -4,11 +4,11 @@
 
 /*
  * COMPILE WITH:
- *      gcc -Wall md5-test.c -I../include md5.o
+ *      gcc -Wall squid_md5-test.c -I../include squid_md5.o
  */
 
 #include "config.h"
-#include "md5.h"
+#include "squid_md5.h"
 #include "stdio.h"
 
 static void MDPrint(unsigned char digest[16]);

@@ -26,11 +26,15 @@
 #elif USE_OPENSSL && !HAVE_OPENSSL_MD5_H
 #error Cannot find OpenSSL MD5 headers
 
-#elif HAVE_SYS_MD5_H
+#elif (HAVE_SYS_MD5_H || HAVE_MD5_H) && HAVE_MD5INIT
 /*
  * Solaris 10 provides MD5 as part of the system.
  */
+#if HAVE_MD5_H
+#include <md5.h>
+#else
 #include <sys/md5.h>
+#endif
 
 /*
  * They also define SQUID_MD5_CTX with different field names

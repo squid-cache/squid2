@@ -29,7 +29,7 @@
  */
 #include "config.h"
 
-#include "md5.h"
+#include "squid_md5.h"
 
 /*
  * Now that we have several alternatives the MD5 files are
