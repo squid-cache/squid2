@@ -144,7 +144,7 @@ time_since(const struct timeval *when)
  *     MD5 digest
  */
 static void
-squid_md5_calc(uint8_t out[16], void *in, size_t len)
+md5_calc(uint8_t out[16], void *in, size_t len)
 {
     SQUID_MD5_CTX ctx;
     SQUID_MD5Init(&ctx);
@@ -185,7 +185,7 @@ result_recv(u_int32_t host, u_short udp_port, char *buffer, int length)
     memcpy(auth->vector, vector, AUTH_VECTOR_LEN);
     secretlen = strlen(secretkey);
     memcpy(buffer + length, secretkey, secretlen);
-    squid_md5_calc(calc_digest, (unsigned char *) auth, length + secretlen);
+    md5_calc(calc_digest, (unsigned char *) auth, length + secretlen);
 
     if (memcmp(reply_digest, calc_digest, AUTH_VECTOR_LEN) != 0) {
 	fprintf(stderr, "Warning: Received invalid reply digest from server\n");
@@ -279,7 +279,7 @@ authenticate(int sockfd, const char *username, const char *passwd)
     u_char *ptr;
     int length;
     char passbuf[MAXPASS];
-    u_char squid_md5buf[256];
+    u_char md5buf[256];
     int secretlen;
     u_char cbc[AUTH_VECTOR_LEN];
     int i, j;
@@ -338,9 +338,9 @@ authenticate(int sockfd, const char *username, const char *passwd)
     memcpy(cbc, auth->vector, AUTH_VECTOR_LEN);
     for (j = 0; j < length; j += AUTH_VECTOR_LEN) {
 	/* Calculate the MD5 Digest */
-	strcpy((char *)squid_md5buf, secretkey);
-	memcpy(squid_md5buf + secretlen, cbc, AUTH_VECTOR_LEN);
-	squid_md5_calc(cbc, squid_md5buf, secretlen + AUTH_VECTOR_LEN);
+	strcpy((char *)md5buf, secretkey);
+	memcpy(md5buf + secretlen, cbc, AUTH_VECTOR_LEN);
+	md5_calc(cbc, md5buf, secretlen + AUTH_VECTOR_LEN);
 
 	/* Xor the password into the MD5 digest */
 	for (i = 0; i < AUTH_VECTOR_LEN; i++) {

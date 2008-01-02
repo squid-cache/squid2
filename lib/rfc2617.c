@@ -124,7 +124,7 @@ DigestCalcHA1(
 	SQUID_MD5Update(&Md5Ctx, pszPassword, strlen(pszPassword));
 	SQUID_MD5Final((unsigned char *)HA1, &Md5Ctx);
     }
-    if (strcasecmp(pszAlg, "squid_md5-sess") == 0) {
+    if (strcasecmp(pszAlg, "md5-sess") == 0) {
 	SQUID_MD5Init(&Md5Ctx);
 	SQUID_MD5Update(&Md5Ctx, HA1, HASHLEN);
 	SQUID_MD5Update(&Md5Ctx, ":", 1);

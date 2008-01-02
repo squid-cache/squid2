@@ -4,7 +4,7 @@
 
 /*
  * COMPILE WITH:
- *      gcc -Wall squid_md5-test.c -I../include squid_md5.o
+ *      gcc -Wall md5-test.c -I../include md5.o
  */
 
 #include "config.h"

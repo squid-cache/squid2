@@ -164,14 +164,3 @@ u_int32_t get_ipaddr(char *host)
 	}
 	return(ntohl(*(u_int32_t *)hp->h_addr));
 }
-
-
-void squid_md5_calc(unsigned char *output, unsigned char *input, unsigned int inlen)
-{
-	SQUID_MD5_CTX	context;
-
-	SQUID_MD5Init(&context);
-	SQUID_MD5Update(&context, input, inlen);
-	SQUID_MD5Final(output, &context);
-}
-
