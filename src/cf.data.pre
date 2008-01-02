@@ -2463,6 +2463,15 @@ DOC_START
 	enabled in which case performance will suffer badly anyway..).
 DOC_END
 
+NAME: netdb_filename
+TYPE: string
+DEFAULT: @DEFAULT_NETDB_FILE@
+LOC: Config.netdbFilename
+DOC_START
+	A filename where Squid stores it's netdb state between restarts.
+	To disable, enter "none".
+DOC_END
+
 COMMENT_START
  OPTIONS FOR FTP GATEWAYING
  -----------------------------------------------------------------------------
