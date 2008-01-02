@@ -446,7 +446,7 @@ wccp2_update_md5_security(char *password, char *ptr, char *packet, int len)
 {
     u_int8_t md5_digest[16];
     char pwd[WCCP2_PASSWORD_LEN];
-    MD5_CTX M;
+    SQUID_MD5_CTX M;
     struct wccp2_security_md5_t *ws;
 
     debug(80, 5) ("wccp2_update_md5_security: called\n");
@@ -469,10 +469,10 @@ wccp2_update_md5_security(char *password, char *ptr, char *packet, int len)
      */
     /* XXX eventually we should be able to kill md5_digest and blit it directly in */
     memset(ws->security_implementation, 0, sizeof(ws->security_implementation));
-    MD5Init(&M);
-    MD5Update(&M, pwd, 8);
-    MD5Update(&M, packet, len);
-    MD5Final(md5_digest, &M);
+    SQUID_MD5Init(&M);
+    SQUID_MD5Update(&M, pwd, 8);
+    SQUID_MD5Update(&M, packet, len);
+    SQUID_MD5Final(md5_digest, &M);
     memcpy(ws->security_implementation, md5_digest, sizeof(md5_digest));
     /* Finished! */
     return 1;
@@ -488,7 +488,7 @@ wccp2_check_security(struct wccp2_service_list_t *srv, char *security, char *pac
     struct wccp2_security_md5_t *ws = (struct wccp2_security_md5_t *) security;
     u_int8_t md5_digest[16], md5_challenge[16];
     char pwd[WCCP2_PASSWORD_LEN];
-    MD5_CTX M;
+    SQUID_MD5_CTX M;
 
     /* Make sure the security type matches what we expect */
     if (ntohl(ws->security_option) != srv->wccp2_security_type) {
@@ -511,10 +511,10 @@ wccp2_check_security(struct wccp2_service_list_t *srv, char *security, char *pac
     /* Take a copy of the challenge: we need to NUL it before comparing */
     memcpy(md5_challenge, ws->security_implementation, 16);
     memset(ws->security_implementation, 0, sizeof(ws->security_implementation));
-    MD5Init(&M);
-    MD5Update(&M, pwd, 8);
-    MD5Update(&M, packet, len);
-    MD5Final(md5_digest, &M);
+    SQUID_MD5Init(&M);
+    SQUID_MD5Update(&M, pwd, 8);
+    SQUID_MD5Update(&M, packet, len);
+    SQUID_MD5Final(md5_digest, &M);
 
     return (memcmp(md5_digest, md5_challenge, 16) == 0);
 }

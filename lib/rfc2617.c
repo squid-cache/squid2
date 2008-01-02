@@ -49,7 +49,7 @@
 #include "config.h"
 #include <string.h>
 #include "rfc2617.h"
-#include "md5.h"
+#include "squid_md5.h"
 
 void
 CvtHex(const HASH Bin, HASHHEX Hex)
@@ -113,25 +113,25 @@ DigestCalcHA1(
     HASHHEX SessionKey
 )
 {
-    MD5_CTX Md5Ctx;
+    SQUID_MD5_CTX Md5Ctx;
 
     if (pszUserName) {
-	MD5Init(&Md5Ctx);
-	MD5Update(&Md5Ctx, pszUserName, strlen(pszUserName));
-	MD5Update(&Md5Ctx, ":", 1);
-	MD5Update(&Md5Ctx, pszRealm, strlen(pszRealm));
-	MD5Update(&Md5Ctx, ":", 1);
-	MD5Update(&Md5Ctx, pszPassword, strlen(pszPassword));
-	MD5Final((unsigned char *)HA1, &Md5Ctx);
+	SQUID_MD5Init(&Md5Ctx);
+	SQUID_MD5Update(&Md5Ctx, pszUserName, strlen(pszUserName));
+	SQUID_MD5Update(&Md5Ctx, ":", 1);
+	SQUID_MD5Update(&Md5Ctx, pszRealm, strlen(pszRealm));
+	SQUID_MD5Update(&Md5Ctx, ":", 1);
+	SQUID_MD5Update(&Md5Ctx, pszPassword, strlen(pszPassword));
+	SQUID_MD5Final((unsigned char *)HA1, &Md5Ctx);
     }
-    if (strcasecmp(pszAlg, "md5-sess") == 0) {
-	MD5Init(&Md5Ctx);
-	MD5Update(&Md5Ctx, HA1, HASHLEN);
-	MD5Update(&Md5Ctx, ":", 1);
-	MD5Update(&Md5Ctx, pszNonce, strlen(pszNonce));
-	MD5Update(&Md5Ctx, ":", 1);
-	MD5Update(&Md5Ctx, pszCNonce, strlen(pszCNonce));
-	MD5Final((unsigned char *)HA1, &Md5Ctx);
+    if (strcasecmp(pszAlg, "squid_md5-sess") == 0) {
+	SQUID_MD5Init(&Md5Ctx);
+	SQUID_MD5Update(&Md5Ctx, HA1, HASHLEN);
+	SQUID_MD5Update(&Md5Ctx, ":", 1);
+	SQUID_MD5Update(&Md5Ctx, pszNonce, strlen(pszNonce));
+	SQUID_MD5Update(&Md5Ctx, ":", 1);
+	SQUID_MD5Update(&Md5Ctx, pszCNonce, strlen(pszCNonce));
+	SQUID_MD5Final((unsigned char *)HA1, &Md5Ctx);
     }
     CvtHex(HA1, SessionKey);
 }
@@ -150,40 +150,40 @@ DigestCalcResponse(
     HASHHEX Response		/* request-digest or response-digest */
 )
 {
-    MD5_CTX Md5Ctx;
+    SQUID_MD5_CTX Md5Ctx;
     HASH HA2;
     HASH RespHash;
     HASHHEX HA2Hex;
 
     /*  calculate H(A2)
      */
-    MD5Init(&Md5Ctx);
-    MD5Update(&Md5Ctx, pszMethod, strlen(pszMethod));
-    MD5Update(&Md5Ctx, ":", 1);
-    MD5Update(&Md5Ctx, pszDigestUri, strlen(pszDigestUri));
+    SQUID_MD5Init(&Md5Ctx);
+    SQUID_MD5Update(&Md5Ctx, pszMethod, strlen(pszMethod));
+    SQUID_MD5Update(&Md5Ctx, ":", 1);
+    SQUID_MD5Update(&Md5Ctx, pszDigestUri, strlen(pszDigestUri));
     if (strcasecmp(pszQop, "auth-int") == 0) {
-	MD5Update(&Md5Ctx, ":", 1);
-	MD5Update(&Md5Ctx, HEntity, HASHHEXLEN);
+	SQUID_MD5Update(&Md5Ctx, ":", 1);
+	SQUID_MD5Update(&Md5Ctx, HEntity, HASHHEXLEN);
     }
-    MD5Final((unsigned char *)HA2, &Md5Ctx);
+    SQUID_MD5Final((unsigned char *)HA2, &Md5Ctx);
     CvtHex(HA2, HA2Hex);
 
     /* calculate response
      */
-    MD5Init(&Md5Ctx);
-    MD5Update(&Md5Ctx, HA1, HASHHEXLEN);
-    MD5Update(&Md5Ctx, ":", 1);
-    MD5Update(&Md5Ctx, pszNonce, strlen(pszNonce));
-    MD5Update(&Md5Ctx, ":", 1);
+    SQUID_MD5Init(&Md5Ctx);
+    SQUID_MD5Update(&Md5Ctx, HA1, HASHHEXLEN);
+    SQUID_MD5Update(&Md5Ctx, ":", 1);
+    SQUID_MD5Update(&Md5Ctx, pszNonce, strlen(pszNonce));
+    SQUID_MD5Update(&Md5Ctx, ":", 1);
     if (*pszQop) {
-	MD5Update(&Md5Ctx, pszNonceCount, strlen(pszNonceCount));
-	MD5Update(&Md5Ctx, ":", 1);
-	MD5Update(&Md5Ctx, pszCNonce, strlen(pszCNonce));
-	MD5Update(&Md5Ctx, ":", 1);
-	MD5Update(&Md5Ctx, pszQop, strlen(pszQop));
-	MD5Update(&Md5Ctx, ":", 1);
+	SQUID_MD5Update(&Md5Ctx, pszNonceCount, strlen(pszNonceCount));
+	SQUID_MD5Update(&Md5Ctx, ":", 1);
+	SQUID_MD5Update(&Md5Ctx, pszCNonce, strlen(pszCNonce));
+	SQUID_MD5Update(&Md5Ctx, ":", 1);
+	SQUID_MD5Update(&Md5Ctx, pszQop, strlen(pszQop));
+	SQUID_MD5Update(&Md5Ctx, ":", 1);
     }
-    MD5Update(&Md5Ctx, HA2Hex, HASHHEXLEN);
-    MD5Final((unsigned char *)RespHash, &Md5Ctx);
+    SQUID_MD5Update(&Md5Ctx, HA2Hex, HASHHEXLEN);
+    SQUID_MD5Final((unsigned char *)RespHash, &Md5Ctx);
     CvtHex(RespHash, Response);
 }

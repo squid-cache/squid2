@@ -359,7 +359,7 @@ memInit(void)
     memDataInit(MEM_STOREENTRY, "StoreEntry", sizeof(StoreEntry), 0);
     memDataInit(MEM_WORDLIST, "wordlist", sizeof(wordlist), 0);
     memDataInit(MEM_CLIENT_INFO, "ClientInfo", sizeof(ClientInfo), 0);
-    memDataInit(MEM_MD5_DIGEST, "MD5 digest", MD5_DIGEST_CHARS, 0);
+    memDataInit(MEM_MD5_DIGEST, "MD5 digest", SQUID_MD5_DIGEST_LENGTH, 0);
     memDataInit(MEM_HELPER_REQUEST, "helper_request",
 	sizeof(helper_request), 0);
     memDataInit(MEM_HELPER_STATEFUL_REQUEST, "helper_stateful_request",

@@ -178,8 +178,8 @@ lib/md5.c:
  * with every copy.
  *
  * To compute the message digest of a chunk of bytes, declare an
- * MD5Context structure, pass it to MD5Init, call MD5Update as
- * needed on buffers full of bytes, and then call MD5Final, which
+ * MD5Context structure, pass it to SQUID_MD5Init, call SQUID_MD5Update as
+ * needed on buffers full of bytes, and then call SQUID_MD5Final, which
  * will fill a supplied 16-byte array with the digest.
  *
  * Changed so as no longer to depend on Colin Plumb's `usual.h' header
@@ -187,8 +187,12 @@ lib/md5.c:
  *  - Ian Jackson <ian@chiark.greenend.org.uk>.
  * Still in the public domain.
  *
- * Changed MD5Update to take a void * for easier use and some other
+ * Changed SQUID_MD5Update to take a void * for easier use and some other
  * minor cleanup. - Henrik Nordstrom <henrik@henriknordstrom.net>.
+ * Still in the public domain.
+ *
+ * Prefixed all symbols with "Squid" so they don't collide with
+ * other libraries.  Henrik Nordstrom <henrik@henriknordstrom.net>.
  * Still in the public domain.
  */
 

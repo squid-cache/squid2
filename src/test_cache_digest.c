@@ -63,13 +63,13 @@ struct _Cache {
 typedef struct _CacheEntry {
     const cache_key *key;
     struct _CacheEntry *next;
-    unsigned char key_arr[MD5_DIGEST_CHARS];
+    unsigned char key_arr[SQUID_MD5_DIGEST_LENGTH];
     /* storeSwapLogData s; */
 } CacheEntry;
 
 /* parsed access log entry */
 typedef struct {
-    cache_key key[MD5_DIGEST_CHARS];
+    cache_key key[SQUID_MD5_DIGEST_LENGTH];
     time_t timestamp;
     short int use_icp;		/* true/false */
 } RawAccessLogEntry;
@@ -211,7 +211,7 @@ cacheEntryCreate(const storeSwapLogData * s)
     CacheEntry *e = xcalloc(1, sizeof(CacheEntry));
     assert(s);
     /* e->s = *s; */
-    xmemcpy(e->key_arr, s->key, MD5_DIGEST_CHARS);
+    xmemcpy(e->key_arr, s->key, SQUID_MD5_DIGEST_LENGTH);
     e->key = &e->key_arr[0];
     return e;
 }

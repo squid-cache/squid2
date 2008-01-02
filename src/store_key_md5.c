@@ -35,7 +35,7 @@
 
 #include "squid.h"
 
-static cache_key null_key[MD5_DIGEST_CHARS];
+static cache_key null_key[SQUID_MD5_DIGEST_LENGTH];
 
 const char *
 storeKeyText(const unsigned char *key)
@@ -43,7 +43,7 @@ storeKeyText(const unsigned char *key)
     static MemBuf mb = MemBufNULL;
     int i;
     memBufReset(&mb);
-    for (i = 0; i < MD5_DIGEST_CHARS; i++)
+    for (i = 0; i < SQUID_MD5_DIGEST_LENGTH; i++)
 	memBufPrintf(&mb, "%02X", *(key + i));
     return mb.buf;
 }
@@ -51,11 +51,11 @@ storeKeyText(const unsigned char *key)
 const cache_key *
 storeKeyScan(const char *buf)
 {
-    static unsigned char digest[MD5_DIGEST_CHARS];
+    static unsigned char digest[SQUID_MD5_DIGEST_LENGTH];
     int i;
     int j = 0;
     char t[3];
-    for (i = 0; i < MD5_DIGEST_CHARS; i++) {
+    for (i = 0; i < SQUID_MD5_DIGEST_LENGTH; i++) {
 	t[0] = *(buf + (j++));
 	t[1] = *(buf + (j++));
 	t[2] = '\0';
@@ -70,7 +70,7 @@ storeKeyHashCmp(const void *a, const void *b)
     const unsigned char *A = a;
     const unsigned char *B = b;
     int i;
-    for (i = 0; i < MD5_DIGEST_CHARS; i++) {
+    for (i = 0; i < SQUID_MD5_DIGEST_LENGTH; i++) {
 	if (A[i] < B[i])
 	    return -1;
 	if (A[i] > B[i])
@@ -94,29 +94,29 @@ storeKeyHashHash(const void *key, unsigned int n)
 const cache_key *
 storeKeyPrivate(const char *url, method_t method, int id)
 {
-    static cache_key digest[MD5_DIGEST_CHARS];
-    MD5_CTX M;
+    static cache_key digest[SQUID_MD5_DIGEST_LENGTH];
+    SQUID_MD5_CTX M;
     assert(id > 0);
     debug(20, 3) ("storeKeyPrivate: %s %s\n",
 	RequestMethods[method].str, url);
-    MD5Init(&M);
-    MD5Update(&M, (unsigned char *) &id, sizeof(id));
-    MD5Update(&M, (unsigned char *) &method, sizeof(method));
-    MD5Update(&M, (unsigned char *) url, strlen(url));
-    MD5Final(digest, &M);
+    SQUID_MD5Init(&M);
+    SQUID_MD5Update(&M, (unsigned char *) &id, sizeof(id));
+    SQUID_MD5Update(&M, (unsigned char *) &method, sizeof(method));
+    SQUID_MD5Update(&M, (unsigned char *) url, strlen(url));
+    SQUID_MD5Final(digest, &M);
     return digest;
 }
 
 const cache_key *
 storeKeyPublic(const char *url, const method_t method)
 {
-    static cache_key digest[MD5_DIGEST_CHARS];
+    static cache_key digest[SQUID_MD5_DIGEST_LENGTH];
     unsigned char m = (unsigned char) method;
-    MD5_CTX M;
-    MD5Init(&M);
-    MD5Update(&M, &m, sizeof(m));
-    MD5Update(&M, (unsigned char *) url, strlen(url));
-    MD5Final(digest, &M);
+    SQUID_MD5_CTX M;
+    SQUID_MD5Init(&M);
+    SQUID_MD5Update(&M, &m, sizeof(m));
+    SQUID_MD5Update(&M, (unsigned char *) url, strlen(url));
+    SQUID_MD5Final(digest, &M);
     return digest;
 }
 
@@ -129,10 +129,10 @@ storeKeyPublicByRequest(request_t * request)
 const cache_key *
 storeKeyPublicByRequestMethod(request_t * request, const method_t method)
 {
-    static cache_key digest[MD5_DIGEST_CHARS];
+    static cache_key digest[SQUID_MD5_DIGEST_LENGTH];
     unsigned char m = (unsigned char) method;
     const char *url;
-    MD5_CTX M;
+    SQUID_MD5_CTX M;
 
     if (request->store_url) {
 	url = request->store_url;
@@ -140,22 +140,22 @@ storeKeyPublicByRequestMethod(request_t * request, const method_t method)
 	url = urlCanonical(request);
     }
 
-    MD5Init(&M);
-    MD5Update(&M, &m, sizeof(m));
-    MD5Update(&M, (unsigned char *) url, strlen(url));
+    SQUID_MD5Init(&M);
+    SQUID_MD5Update(&M, &m, sizeof(m));
+    SQUID_MD5Update(&M, (unsigned char *) url, strlen(url));
     if (request->vary_headers) {
-	MD5Update(&M, (unsigned char *) "\0V", 2);
-	MD5Update(&M, (unsigned char *) request->vary_headers, strlen(request->vary_headers));
+	SQUID_MD5Update(&M, (unsigned char *) "\0V", 2);
+	SQUID_MD5Update(&M, (unsigned char *) request->vary_headers, strlen(request->vary_headers));
 	if (strBuf(request->vary_encoding)) {
-	    MD5Update(&M, (unsigned char *) "\0E", 2);
-	    MD5Update(&M, (unsigned char *) strBuf(request->vary_encoding), strLen(request->vary_encoding));
+	    SQUID_MD5Update(&M, (unsigned char *) "\0E", 2);
+	    SQUID_MD5Update(&M, (unsigned char *) strBuf(request->vary_encoding), strLen(request->vary_encoding));
 	}
     }
     if (request->urlgroup) {
-	MD5Update(&M, (unsigned char *) "\0G", 2);
-	MD5Update(&M, (unsigned char *) request->urlgroup, strlen(request->urlgroup));
+	SQUID_MD5Update(&M, (unsigned char *) "\0G", 2);
+	SQUID_MD5Update(&M, (unsigned char *) request->urlgroup, strlen(request->urlgroup));
     }
-    MD5Final(digest, &M);
+    SQUID_MD5Final(digest, &M);
     return digest;
 }
 
@@ -163,14 +163,14 @@ cache_key *
 storeKeyDup(const cache_key * key)
 {
     cache_key *dup = memAllocate(MEM_MD5_DIGEST);
-    xmemcpy(dup, key, MD5_DIGEST_CHARS);
+    xmemcpy(dup, key, SQUID_MD5_DIGEST_LENGTH);
     return dup;
 }
 
 cache_key *
 storeKeyCopy(cache_key * dst, const cache_key * src)
 {
-    xmemcpy(dst, src, MD5_DIGEST_CHARS);
+    xmemcpy(dst, src, SQUID_MD5_DIGEST_LENGTH);
     return dst;
 }
 
@@ -192,7 +192,7 @@ storeKeyHashBuckets(int nbuckets)
 int
 storeKeyNull(const cache_key * key)
 {
-    if (memcmp(key, null_key, MD5_DIGEST_CHARS) == 0)
+    if (memcmp(key, null_key, SQUID_MD5_DIGEST_LENGTH) == 0)
 	return 1;
     else
 	return 0;
@@ -201,5 +201,5 @@ storeKeyNull(const cache_key * key)
 void
 storeKeyInit(void)
 {
-    memset(null_key, '\0', MD5_DIGEST_CHARS);
+    memset(null_key, '\0', SQUID_MD5_DIGEST_LENGTH);
 }

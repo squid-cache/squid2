@@ -543,7 +543,7 @@ icpCount(void *buf, int which, size_t len, int delay)
 
 #define N_QUERIED_KEYS 8192
 #define N_QUERIED_KEYS_MASK 8191
-static cache_key queried_keys[N_QUERIED_KEYS][MD5_DIGEST_CHARS];
+static cache_key queried_keys[N_QUERIED_KEYS][SQUID_MD5_DIGEST_LENGTH];
 
 int
 icpSetCacheKey(const cache_key * key)

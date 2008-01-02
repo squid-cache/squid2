@@ -469,7 +469,7 @@ storeCossDirWriteCleanEntry(SwapDir * sd, const StoreEntry * e)
     s.swap_file_sz = e->swap_file_sz;
     s.refcount = e->refcount;
     s.flags = e->flags;
-    xmemcpy(&s.key, e->hash.key, MD5_DIGEST_CHARS);
+    xmemcpy(&s.key, e->hash.key, SQUID_MD5_DIGEST_LENGTH);
     xmemcpy(state->outbuf + state->outbuf_offset, &s, ss);
     state->outbuf_offset += ss;
     /* buffered write */
@@ -560,7 +560,7 @@ storeCossDirSwapLog(const SwapDir * sd, const StoreEntry * e, int op)
     s->swap_file_sz = e->swap_file_sz;
     s->refcount = e->refcount;
     s->flags = e->flags;
-    xmemcpy(s->key, e->hash.key, MD5_DIGEST_CHARS);
+    xmemcpy(s->key, e->hash.key, SQUID_MD5_DIGEST_LENGTH);
     file_write(cs->swaplog_fd,
 	-1,
 	s,
@@ -1263,7 +1263,7 @@ storeDirCoss_ParseStripeBuffer(RebuildState * rb)
     squid_off_t *l, len = 0;
     int blocksize = cs->blksz_mask + 1;
     StoreEntry tmpe;
-    cache_key key[MD5_DIGEST_CHARS];
+    cache_key key[SQUID_MD5_DIGEST_LENGTH];
     sfileno filen;
 
     assert(cs->rebuild.rebuilding == 1);
@@ -1299,11 +1299,11 @@ storeDirCoss_ParseStripeBuffer(RebuildState * rb)
 		debug(47, 3) ("Size: %" PRINTF_OFF_T " (len %d)\n", *l, t->length);
 		break;
 	    case STORE_META_KEY:
-		if (t->length != MD5_DIGEST_CHARS) {
+		if (t->length != SQUID_MD5_DIGEST_LENGTH) {
 		    debug(47, 1) ("COSS: %s: stripe %d: offset %d has invalid STORE_META_KEY length. Ignoring object.\n", stripePath(SD), cs->rebuild.curstripe, j);
 		    goto nextobject;
 		}
-		xmemcpy(key, t->value, MD5_DIGEST_CHARS);
+		xmemcpy(key, t->value, SQUID_MD5_DIGEST_LENGTH);
 		break;
 #if SIZEOF_SQUID_FILE_SZ == SIZEOF_SIZE_T
 	    case STORE_META_STD:
