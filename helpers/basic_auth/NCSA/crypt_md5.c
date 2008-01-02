@@ -1,8 +1,8 @@
 /*
  * Shamelessly stolen from linux-pam, and adopted to work with
- * OpenSSL squid_md5 implementation and any magic string
+ * OpenSSL md5 implementation and any magic string
  *
- * Origin2: squid_md5_crypt.c,v 1.1.1.1 2000/01/03 17:34:46 gafton Exp
+ * Origin2: md5_crypt.c,v 1.1.1.1 2000/01/03 17:34:46 gafton Exp
  *
  * ----------------------------------------------------------------------------
  * "THE BEER-WARE LICENSE" (Revision 42):
@@ -20,12 +20,12 @@
 #include "config.h"
 #include "squid_md5.h"
 
-#include "crypt_squid_md5.h"
+#include "crypt_md5.h"
 
 static unsigned char itoa64[] =	/* 0 ... 63 => ascii - 64 */
     "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-static void squid_md5to64(char *s, unsigned long v, int n)
+static void md5to64(char *s, unsigned long v, int n)
 {
     while (--n >= 0) {
 	*s++ = itoa64[v & 0x3f];
@@ -43,7 +43,7 @@ static void squid_md5to64(char *s, unsigned long v, int n)
  * If not the normal UNIX magic $1$ is used.
  */
 
-char *crypt_squid_md5(const char *pw, const char *salt)
+char *crypt_md5(const char *pw, const char *salt)
 {
     const char *magic = "$1$";
     int magiclen = 3;
@@ -143,22 +143,22 @@ char *crypt_squid_md5(const char *pw, const char *salt)
     p = passwd + strlen(passwd);
 
     l = (final[0] << 16) | (final[6] << 8) | final[12];
-    squid_md5to64(p, l, 4);
+    md5to64(p, l, 4);
     p += 4;
     l = (final[1] << 16) | (final[7] << 8) | final[13];
-    squid_md5to64(p, l, 4);
+    md5to64(p, l, 4);
     p += 4;
     l = (final[2] << 16) | (final[8] << 8) | final[14];
-    squid_md5to64(p, l, 4);
+    md5to64(p, l, 4);
     p += 4;
     l = (final[3] << 16) | (final[9] << 8) | final[15];
-    squid_md5to64(p, l, 4);
+    md5to64(p, l, 4);
     p += 4;
     l = (final[4] << 16) | (final[10] << 8) | final[5];
-    squid_md5to64(p, l, 4);
+    md5to64(p, l, 4);
     p += 4;
     l = final[11];
-    squid_md5to64(p, l, 2);
+    md5to64(p, l, 2);
     p += 2;
     *p = '\0';
 
@@ -171,7 +171,7 @@ char *crypt_squid_md5(const char *pw, const char *salt)
 /* Created by Ramon de Carvalho <ramondecarvalho@yahoo.com.br>
    Refined by Rodrigo Rubira Branco <rodrigo@kernelhacking.com>
 */
-char *squid_md5sum(const char *s){
+char *md5sum(const char *s){
    static unsigned char digest[16];
    SQUID_MD5_CTX ctx;
    int idx;
