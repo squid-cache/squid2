@@ -94,7 +94,7 @@ CvtBin(const HASHHEX Hex, HASH Bin)
 	else
 	    Bin[i / 2] |= n;
     }
-    for (; i <= HASHHEXLEN; i++) {
+    for (i = i / 2; i < HASHLEN; i++) {
 	Bin[i] = '\0';
     }
 }

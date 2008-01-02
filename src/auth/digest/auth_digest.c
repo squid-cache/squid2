@@ -741,6 +741,7 @@ authenticateDigestAuthenticateUser(auth_user_request_t * auth_user_request, requ
 	    }
 	} else {
 	    digest_request->flags.credentials_ok = 3;
+	    digest_request->flags.invalid_password = 1;
 	    safe_free(auth_user_request->message);
 	    auth_user_request->message = xstrdup("Incorrect password");
 	    return;
@@ -750,7 +751,6 @@ authenticateDigestAuthenticateUser(auth_user_request_t * auth_user_request, requ
     if (!authDigestNonceIsValid(digest_request->nonce, digest_request->nc)) {
 	debug(29, 3) ("authenticateDigestAuthenticateuser: user '%s' validated OK but nonce stale\n",
 	    digest_user->username);
-	digest_request->flags.nonce_stale = 1;
 	digest_request->flags.credentials_ok = 3;
 	safe_free(auth_user_request->message);
 	auth_user_request->message = xstrdup("Stale nonce");
@@ -781,11 +781,8 @@ authenticateDigestDirection(auth_user_request_t * auth_user_request)
 	return 0;
     case 2:			/* partway through checking. */
 	return -1;
-    case 3:			/* authentication process failed. */
-	if (digest_request->flags.nonce_stale)
-	    /* nonce is stale, send new challenge */
-	    return 1;
-	return -2;
+    case 3:			/* authentication process failed. Challenge. */
+	return 1;
     }
     return -2;
 }
@@ -855,7 +852,7 @@ authenticateDigestFixHeader(auth_user_request_t * auth_user_request, HttpReply *
     digest_nonce_h *nonce = authenticateDigestNonceNew();
     if (auth_user_request && auth_user_request->scheme_data) {
 	digest_request = auth_user_request->scheme_data;
-	stale = digest_request->flags.nonce_stale;
+	stale = !digest_request->flags.invalid_password;
     }
     if (digestConfig->authenticate) {
 	debug(29, 9) ("authenticateFixHeader: Sending type:%d header: 'Digest realm=\"%s\", nonce=\"%s\", qop=\"%s\", stale=%s\n", type, digestConfig->digestAuthRealm, authenticateDigestNonceNonceb64(nonce), QOP_AUTH, stale ? "true" : "false");
@@ -911,6 +908,7 @@ authenticateDigestHandleReply(void *data, char *reply)
     digest_user = auth_user_request->auth_user->scheme_data;
     if (reply && (strncasecmp(reply, "ERR", 3) == 0)) {
 	digest_request->flags.credentials_ok = 3;
+	digest_request->flags.invalid_password = 1;
 	safe_free(auth_user_request->message);
 	if (t && *t)
 	    auth_user_request->message = xstrdup(t);
@@ -1273,10 +1271,7 @@ authenticateDigestDecodeAuth(auth_user_request_t * auth_user_request, const char
 	/* we couldn't find a matching nonce! */
 	debug(29, 4) ("authenticateDigestDecode: Unexpected or invalid nonce received\n");
 	authDigestLogUsername(auth_user_request, username);
-
-	/* we don't need the scheme specific data anymore */
-	authDigestRequestDelete(digest_request);
-	auth_user_request->scheme_data = NULL;
+	auth_user_request->scheme_data = digest_request;
 	return;
     }
     digest_request->nonce = nonce;
@@ -1284,7 +1279,7 @@ authenticateDigestDecodeAuth(auth_user_request_t * auth_user_request, const char
 
     /* check the qop is what we expected. Note that for compatability with 
      * RFC 2069 we should support a missing qop. Tough. */
-    if (!digest_request->qop || strcmp(digest_request->qop, QOP_AUTH)) {
+    if (digest_request->qop && strcmp(digest_request->qop, QOP_AUTH) != 0) {
 	/* we received a qop option we didn't send */
 	debug(29, 4) ("authenticateDigestDecode: Invalid qop option received\n");
 	authDigestLogUsername(auth_user_request, username);
