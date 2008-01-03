@@ -569,6 +569,9 @@ mainInitialize(void)
     debug(1, 1) ("With %d CRT stdio descriptors available\n", _getmaxstdio());
     if (WIN32_Socks_initialized)
 	debug(1, 1) ("Windows sockets initialized\n");
+    if (WIN32_OS_version > _WIN_OS_WINNT) {
+	WIN32_IpAddrChangeMonitorInit();
+    }
 #endif
 
     comm_select_postinit();

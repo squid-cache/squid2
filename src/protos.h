@@ -1406,6 +1406,9 @@ extern int WIN32_pipe(int[2]);
 extern int WIN32_getrusage(int, struct rusage *);
 extern void WIN32_ExceptionHandlerInit(void);
 extern int SquidMain(int, char **);
+#ifdef _SQUID_MSWIN_
+extern DWORD WIN32_IpAddrChangeMonitorInit();
+#endif
 #endif
 
 /* external_acl.c */
