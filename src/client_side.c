@@ -430,6 +430,23 @@ clientCreateStoreEntry(clientHttpRequest * h, method_t m, request_flags flags)
     return e;
 }
 
+/*
+ * This is called by the last client request rewriter chain thing.
+ */
+void
+clientFinishRewriteStuff(clientHttpRequest * http)
+{
+    /* This is the final part of the rewrite chain - this should be broken out! */
+    clientInterpretRequestHeaders(http);
+    /* XXX This really should become a ref-counted string type pointer, not a copy! */
+    fd_note(http->conn->fd, http->uri);
+#if HEADERS_LOG
+    headersLog(0, 1, http->request->method, http->request);
+#endif
+    clientAccessCheck2(http);
+
+}
+
 static void
 clientAccessCheckDone(int answer, void *data)
 {
@@ -1312,6 +1329,7 @@ clientInterpretRequestHeaders(clientHttpRequest * http)
 	    no_cache++;
 	stringClean(&s);
     }
+    assert(request->cache_control == NULL);
     request->cache_control = httpHeaderGetCc(req_hdr);
     if (request->cache_control)
 	if (EBIT_TEST(request->cache_control->mask, CC_NO_CACHE))

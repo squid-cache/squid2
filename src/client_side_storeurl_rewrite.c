@@ -83,10 +83,6 @@ clientStoreURLRewriteDone(void *data, char *result)
 	/* XXX is this actually the right spot to do this? How about revalidation? */
 	//storeEntrySetStoreUrl(http->entry, result);
     }
-    /* This is the final part of the rewrite chain - this should be broken out! */
-    clientInterpretRequestHeaders(http);
-#if HEADERS_LOG
-    headersLog(0, 1, request->method, request);
-#endif
-    clientAccessCheck2(http);
+    /* Since we're the last module in the chain .. */
+    clientFinishRewriteStuff(http);
 }
