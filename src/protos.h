@@ -1482,6 +1482,8 @@ extern const char *xinet_ntoa(const struct in_addr addr);
 extern aclCheck_t *clientAclChecklistCreate(const acl_access * acl, const clientHttpRequest * http);
 extern void clientInterpretRequestHeaders(clientHttpRequest * http);
 extern void clientAccessCheck2(void *data);
+extern void clientFinishRewriteStuff(clientHttpRequest * http);
+
 
 /* client_side_redirect.c */
 extern void clientRedirectAccessCheckDone(int answer, void *data);
