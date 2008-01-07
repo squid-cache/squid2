@@ -325,23 +325,32 @@ update_maxobjsize(void)
 }
 
 int
-parseConfigFile(const char *file_name)
+parseOneConfigFile(const char *file_name, int depth)
 {
     FILE *fp = NULL;
+    const char *orig_cfg_filename = cfg_filename;
+    int orig_config_lineno = config_lineno;
     char *token = NULL;
     char *tmp_line = NULL;
     int tmp_line_len = 0;
     size_t config_input_line_len;
     int err_count = 0;
-    configFreeMemory();
-    default_all();
+    int i;
+
+    debug(3, 1) ("Including Configuration File: %s (depth %d)\n", file_name, depth);
+    if (depth > 16) {
+	debug(0, 0) ("WARNING: can't include %s: includes are nested too deeply (>16)!\n", file_name);
+	return 1;
+    }
     if ((fp = fopen(file_name, "r")) == NULL)
 	fatalf("Unable to open configuration file: %s: %s",
 	    file_name, xstrerror());
 #ifdef _SQUID_WIN32_
     setmode(fileno(fp), O_TEXT);
 #endif
+
     cfg_filename = file_name;
+
     if ((token = strrchr(cfg_filename, '/')))
 	cfg_filename = token + 1;
     memset(config_input_line, '\0', BUFSIZ);
@@ -357,6 +366,16 @@ parseConfigFile(const char *file_name)
 	if (config_input_line[0] == '\0')
 	    continue;
 
+	/* Handle includes here */
+	if (strlen(config_input_line) >= 9 && strncmp(config_input_line, "include", 7) == 0 && (config_input_line[8] == ' ' || config_input_line[8] == '\t')) {
+	    for (i = 8; i < strlen(config_input_line) && (config_input_line[i] == ' ' || config_input_line[i] == '\t'); i++);
+	    if (i >= strlen(config_input_line)) {
+		debug(3, 1) ("WARNING: include at %s:%d is bad\n", file_name, config_lineno);
+		continue;
+	    }
+	    err_count += parseOneConfigFile(config_input_line + i, depth + 1);
+	    continue;
+	}
 	config_input_line_len = strlen(config_input_line);
 	tmp_line = (char *) xrealloc(tmp_line, tmp_line_len + config_input_line_len + 1);
 	strcpy(tmp_line + tmp_line_len, config_input_line);
@@ -369,7 +388,8 @@ parseConfigFile(const char *file_name)
 	}
 	debug(3, 5) ("Processing: '%s'\n", tmp_line);
 	if (!parse_line(tmp_line)) {
-	    debug(3, 0) ("parseConfigFile: line %d unrecognized: '%s'\n",
+	    debug(3, 0) ("parseConfigFile: %s:%d unrecognized: '%s'\n",
+		cfg_filename,
 		config_lineno,
 		config_input_line);
 	    err_count++;
@@ -378,15 +398,29 @@ parseConfigFile(const char *file_name)
 	tmp_line_len = 0;
     }
     fclose(fp);
+    cfg_filename = orig_cfg_filename;
+    config_lineno = orig_config_lineno;
+    return err_count;
+}
+
+int
+parseConfigFile(const char *file_name)
+{
+    int ret;
+
+    configFreeMemory();
+    default_all();
+    ret = parseOneConfigFile(file_name, 0);
     defaults_if_none();
     configDoConfigure();
+
     if (opt_send_signal == -1) {
 	cachemgrRegister("config",
 	    "Current Squid Configuration",
 	    dump_config,
 	    1, 1);
     }
-    return err_count;
+    return ret;
 }
 
 static void
