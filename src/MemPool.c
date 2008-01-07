@@ -274,9 +274,9 @@ memPoolAlloc(MemPool * pool)
 	gb_inc(&TheMeter.saved, pool->obj_size);
 	obj = stackPop(&pool->pstack);
 #if DEBUG_MEMPOOL
-	(void) VALGRIND_MAKE_READABLE(obj, pool->real_obj_size + sizeof(struct mempool_cookie));
+	(void) VALGRIND_MAKE_MEM_DEFINED(obj, pool->real_obj_size + sizeof(struct mempool_cookie));
 #else
-	(void) VALGRIND_MAKE_READABLE(obj, pool->obj_size);
+	(void) VALGRIND_MAKE_MEM_DEFINED(obj, pool->obj_size);
 #endif
 #if DEBUG_MEMPOOL
 	{
@@ -284,7 +284,7 @@ memPoolAlloc(MemPool * pool)
 	    assert(cookie->cookie == MEMPOOL_COOKIE2(obj));
 	    assert(cookie->pool == pool);
 	    cookie->cookie = MEMPOOL_COOKIE(obj);
-	    (void) VALGRIND_MAKE_NOACCESS(cookie, sizeof(cookie));
+	    (void) VALGRIND_MAKE_MEM_NOACCESS(cookie, sizeof(cookie));
 	}
 	if (Config.onoff.zero_buffers || pool->flags.dozero)
 	    memset(obj, 0, pool->obj_size);
@@ -300,7 +300,7 @@ memPoolAlloc(MemPool * pool)
 	    cookie = (struct mempool_cookie *) (((unsigned char *) obj) + pool->real_obj_size);
 	    cookie->cookie = MEMPOOL_COOKIE(obj);
 	    cookie->pool = pool;
-	    (void) VALGRIND_MAKE_NOACCESS(cookie, sizeof(cookie));
+	    (void) VALGRIND_MAKE_MEM_NOACCESS(cookie, sizeof(cookie));
 	}
 #else
 	if (Config.onoff.zero_buffers || pool->flags.dozero)
@@ -319,11 +319,11 @@ memPoolFree(MemPool * pool, void *obj)
     memMeterDec(pool->meter.inuse);
     memMeterDel(TheMeter.inuse, pool->obj_size);
     mem_pool_free_calls++;
-    (void) VALGRIND_CHECK_WRITABLE(obj, pool->obj_size);
+    (void) VALGRIND_CHECK_MEM_IS_ADDRESSABLE(obj, pool->obj_size);
 #if DEBUG_MEMPOOL
     {
 	struct mempool_cookie *cookie = (void *) (((unsigned char *) obj) + pool->real_obj_size);
-	(void) VALGRIND_MAKE_READABLE(cookie, sizeof(cookie));
+	(void) VALGRIND_MAKE_MEM_DEFINED(cookie, sizeof(cookie));
 	assert(cookie->cookie == MEMPOOL_COOKIE(obj));
 	assert(cookie->pool == pool);
 	cookie->cookie = MEMPOOL_COOKIE2(obj);
@@ -335,10 +335,10 @@ memPoolFree(MemPool * pool, void *obj)
 	if (Config.onoff.zero_buffers || pool->flags.dozero)
 #if DEBUG_MEMPOOL
 	    memset(obj, 0xf0, pool->obj_size);
-	(void) VALGRIND_MAKE_NOACCESS(obj, pool->real_obj_size + sizeof(struct mempool_cookie));
+	(void) VALGRIND_MAKE_MEM_NOACCESS(obj, pool->real_obj_size + sizeof(struct mempool_cookie));
 #else
 	    memset(obj, 0, pool->obj_size);
-	(void) VALGRIND_MAKE_NOACCESS(obj, pool->obj_size);
+	(void) VALGRIND_MAKE_MEM_NOACCESS(obj, pool->obj_size);
 #endif
 	stackPush(&pool->pstack, obj);
     } else {
