@@ -648,8 +648,8 @@ ScriptAlias /squid/cgi-bin/ "c:/squid/libexec/"
 	<item>Code cleanups and portability fixes
 	<item>Several minor bugfixes
 	<item>See also the list of <url
-		url="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE16.html"
-			name="squid-2.6.STABLE16 changes"> and the <url url="ChangeLog"
+		url="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE17.html"
+			name="squid-2.6.STABLE17 changes"> and the <url url="ChangeLog"
 				name="ChangeLog"> file for details.
 </itemize>
 
@@ -662,8 +662,8 @@ ScriptAlias /squid/cgi-bin/ "c:/squid/libexec/"
 	<item>License cleanup of edir_digest_auth
 	<item>Code cleanups and portability fixes
 	<item>See also the list of <url
-		url="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE16.html"
-			name="squid-2.6.STABLE16 changes"> and the <url url="ChangeLog"
+		url="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE18.html"
+			name="squid-2.6.STABLE18 changes"> and the <url url="ChangeLog"
 				name="ChangeLog"> file for details.
 </itemize>
 
