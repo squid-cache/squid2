@@ -324,7 +324,7 @@ update_maxobjsize(void)
     store_maxobjsize = ms;
 }
 
-int
+static int
 parseOneConfigFile(const char *file_name, int depth)
 {
     FILE *fp = NULL;
