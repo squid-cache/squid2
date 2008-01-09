@@ -1,6 +1,6 @@
 <!doctype linuxdoc system>
 <article>
-<title>Squid 2.6.STABLE17 release notes</title>
+<title>Squid 2.6.STABLE18 release notes</title>
 <author>Squid Developers</author>
 <date>$Id$</date>
 
@@ -647,6 +647,20 @@ ScriptAlias /squid/cgi-bin/ "c:/squid/libexec/"
 	<item>Documentation cleanups
 	<item>Code cleanups and portability fixes
 	<item>Several minor bugfixes
+	<item>See also the list of <url
+		url="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE16.html"
+			name="squid-2.6.STABLE16 changes"> and the <url url="ChangeLog"
+				name="ChangeLog"> file for details.
+</itemize>
+
+<sect>Key changes squid-2.6.STABLE17 to 2.6.STABLE18
+
+<p>
+<itemize>
+	<item>2 assertion failures related to the fix for SQUID-2007:2
+	<item>Digest authentication bugfixes, fixing random auth popups and failures when using digest authentication (auth_param digest ..)
+	<item>License cleanup of edir_digest_auth
+	<item>Code cleanups and portability fixes
 	<item>See also the list of <url
 		url="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE16.html"
 			name="squid-2.6.STABLE16 changes"> and the <url url="ChangeLog"
