@@ -367,8 +367,8 @@ parseOneConfigFile(const char *file_name, int depth)
 	    continue;
 
 	/* Handle includes here */
-	if (strlen(config_input_line) >= 9 && strncmp(config_input_line, "include", 7) == 0 && (config_input_line[8] == ' ' || config_input_line[8] == '\t')) {
-	    for (i = 8; i < strlen(config_input_line) && (config_input_line[i] == ' ' || config_input_line[i] == '\t'); i++);
+	if (strlen(config_input_line) >= 9 && strncmp(config_input_line, "include", 7) == 0 && (config_input_line[7] == ' ' || config_input_line[7] == '\t')) {
+	    for (i = 7; i < strlen(config_input_line) && (config_input_line[i] == ' ' || config_input_line[i] == '\t'); i++);
 	    if (i >= strlen(config_input_line)) {
 		debug(3, 1) ("WARNING: include at %s:%d is bad\n", file_name, config_lineno);
 		continue;
