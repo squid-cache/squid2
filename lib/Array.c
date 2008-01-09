@@ -142,7 +142,7 @@ arrayGrow(Array * a, int min_capacity)
 void
 arrayShrink(Array *a, int new_count)
 {
-	assert(new_count < a->capacity);
+	assert(new_count <= a->capacity);
 	assert(new_count >= 0);
 	a->count = new_count;
 }
