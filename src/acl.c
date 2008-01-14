@@ -140,6 +140,8 @@ aclStrToType(const char *s)
 	return ACL_URL_PORT;
     if (!strcmp(s, "myport"))
 	return ACL_MY_PORT;
+    if (!strcmp(s, "myportname"))
+	return ACL_MY_PORT_NAME;
     if (!strcmp(s, "maxconn"))
 	return ACL_MAXCONN;
 #if USE_IDENT
@@ -236,6 +238,8 @@ aclTypeToStr(squid_acl type)
 	return "port";
     if (type == ACL_MY_PORT)
 	return "myport";
+    if (type == ACL_MY_PORT_NAME)
+	return "myportname";
     if (type == ACL_MAXCONN)
 	return "maxconn";
 #if USE_IDENT
@@ -1033,6 +1037,9 @@ aclParseAclLine(acl ** head)
     case ACL_URL_PORT:
     case ACL_MY_PORT:
 	aclParsePortRange(&A->data);
+	break;
+    case ACL_MY_PORT_NAME:
+	aclParseWordList(&A->data);
 	break;
 #if USE_IDENT
     case ACL_IDENT:
@@ -1896,6 +1903,13 @@ aclMatchAcl(acl * ae, aclCheck_t * checklist)
     case ACL_MY_PORT:
 	return aclMatchIntegerRange(ae->data, (int) checklist->my_port);
 	/* NOTREACHED */
+    case ACL_MY_PORT_NAME:
+	if (!checklist->conn)
+	    return 0;
+	if (!checklist->conn->port)
+	    return 0;
+	return aclMatchWordList(ae->data, checklist->conn->port->name);
+	/* NOTREACHED */
 #if USE_IDENT
     case ACL_IDENT:
 	if (checklist->rfc931[0]) {
@@ -2567,6 +2581,9 @@ aclDestroyAcls(acl ** head)
 	case ACL_MY_PORT:
 	    aclDestroyIntRange(a->data);
 	    break;
+	case ACL_MY_PORT_NAME:
+	    wordlistDestroy((wordlist **) (void *) &a->data);
+	    break;
 	case ACL_EXTERNAL:
 	    aclDestroyExternal(&a->data);
 	    break;
@@ -2999,6 +3016,8 @@ aclDumpGeneric(const acl * a)
     case ACL_URL_PORT:
     case ACL_MY_PORT:
 	return aclDumpIntRangeList(a->data);
+    case ACL_MY_PORT_NAME:
+	return wordlistDup(a->data);
     case ACL_TYPE:
 	return aclDumpType(a->data);
     case ACL_PROTO:
