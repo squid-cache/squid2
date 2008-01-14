@@ -443,8 +443,10 @@ storeClientReadHeader(void *data, const char *buf_unused, ssize_t len)
 	    break;
 	case STORE_META_URL:
 	    new_url = xstrdup(t->value);
+	    break;
 	case STORE_META_STOREURL:
 	    new_store_url = xstrdup(t->value);
+	    break;
 	case STORE_META_OBJSIZE:
 	    break;
 	case STORE_META_STD:
