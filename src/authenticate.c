@@ -44,6 +44,7 @@ CBDATA_TYPE(auth_user_ip_t);
 
 static void authenticateDecodeAuth(const char *proxy_auth, auth_user_request_t * auth_user_request);
 static auth_acl_t authenticateAuthenticate(auth_user_request_t ** auth_user_request, http_hdr_type headertype, request_t * request, ConnStateData * conn, struct in_addr src_addr);
+static void authenticateAuthUserRequestUnlinkIp(const struct in_addr ipaddr);
 
 /*
  *
@@ -252,10 +253,98 @@ authenticateAuthUserRemoveIpEntry(auth_user_t * auth_user, auth_user_ip_t * ipda
 {
     /* remove the node */
     dlinkDelete(&ipdata->node, &auth_user->ip_list);
+    authenticateAuthUserRequestUnlinkIp(ipdata->ipaddr);
     cbdataFree(ipdata);
     /* catch incipient underflow */
     assert(auth_user->ipcount);
     auth_user->ipcount--;
+}
+
+typedef struct {
+    hash_link hash;		/* must be first */
+    struct in_addr ipaddr;
+    auth_user_request_t *auth_user_request;
+    time_t last_seen;
+} auth_user_request_ip_hash_t;
+MemPool *auth_user_request_ip_pool = NULL;
+hash_table *auth_user_request_ip_hash = NULL;
+
+static unsigned int
+hash_in_addr(const void *a, unsigned int size)
+{
+    const struct in_addr *ipaddr = a;
+    const uint32_t ip = ntohl(ipaddr->s_addr);
+    return ip % size;
+}
+
+static int
+cmp_in_addr(const struct in_addr *a, const struct in_addr *b)
+{
+    const uint32_t ipa = ntohl(a->s_addr);
+    const uint32_t ipb = ntohl(b->s_addr);
+
+    return memcmp(&ipa, &ipb, 4);
+}
+
+static void
+authenticateAuthUserRequestUnlinkIp(const struct in_addr ipaddr)
+{
+    auth_user_request_ip_hash_t *hash_entry;
+
+    if (!auth_user_request_ip_hash)
+	return;
+
+    hash_entry = hash_lookup(auth_user_request_ip_hash, &ipaddr);
+    if (hash_entry) {
+	hash_remove_link(auth_user_request_ip_hash, &hash_entry->hash);
+	authenticateAuthUserRequestUnlock(hash_entry->auth_user_request);
+	memPoolFree(auth_user_request_ip_pool, hash_entry);
+    }
+}
+
+static void
+authenticateAuthUserRequestLinkIp(auth_user_request_t * auth_user_request, const struct in_addr ipaddr)
+{
+    auth_user_request_ip_hash_t *hash_entry;
+
+    if (!Config.authenticateIpShortcircuitTTL)
+	return;
+
+    if (!auth_user_request_ip_hash) {
+	auth_user_request_ip_hash = hash_create((HASHCMP *) cmp_in_addr, 7921, hash_in_addr);
+	auth_user_request_ip_pool = memPoolCreate("auth_user_request_ip_hash_t", sizeof(auth_user_request_ip_hash_t));
+    }
+    authenticateAuthUserRequestUnlinkIp(ipaddr);
+
+    hash_entry = memPoolAlloc(auth_user_request_ip_pool);
+    hash_entry->ipaddr = ipaddr;
+    hash_entry->hash.key = &hash_entry->ipaddr;
+    hash_entry->auth_user_request = auth_user_request;
+    authenticateAuthUserRequestLock(hash_entry->auth_user_request);
+    hash_entry->last_seen = squid_curtime;
+    hash_join(auth_user_request_ip_hash, &hash_entry->hash);
+}
+
+static auth_user_request_t *
+authenticateAuthUserRequestFindByIp(const struct in_addr ipaddr)
+{
+    time_t delta = Config.authenticateIpShortcircuitTTL;
+    auth_user_request_ip_hash_t *hash_entry;
+    auth_user_request_t *auth_user_request = NULL;
+
+    if (!auth_user_request_ip_hash)
+	return NULL;
+
+    hash_entry = hash_lookup(auth_user_request_ip_hash, &ipaddr);
+    if (!hash_entry)
+	return NULL;
+
+    auth_user_request = hash_entry->auth_user_request;
+    if (hash_entry->last_seen + delta < squid_curtime) {
+	authenticateAuthUserRequestUnlinkIp(ipaddr);
+	return NULL;
+    }
+    return hash_entry->auth_user_request;
 }
 
 static void
@@ -288,6 +377,8 @@ authenticateAuthUserRequestSetIp(auth_user_request_t * auth_user_request, struct
 	    authenticateAuthUserRemoveIpEntry(auth_user, ipdata);
 	}
     }
+
+    authenticateAuthUserRequestLinkIp(auth_user_request, ipaddr);
 
     if (found)
 	return;
@@ -408,10 +499,14 @@ authTryGetUser(auth_user_request_t ** auth_user_request, ConnStateData * conn, r
 	return *auth_user_request;
     else if (request && request->auth_user_request)
 	return request->auth_user_request;
-    else if (conn)
+    else if (conn && conn->auth_user_request)
 	return conn->auth_user_request;
-    else
-	return NULL;
+    else {
+	request->auth_user_request = authenticateAuthUserRequestFindByIp(request->client_addr);
+	if (request->auth_user_request)
+	    authenticateAuthUserRequestLock(request->auth_user_request);
+	return request->auth_user_request;
+    }
 }
 
 /* returns one of

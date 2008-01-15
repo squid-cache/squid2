@@ -576,6 +576,7 @@ struct _SquidConfig {
     time_t authenticateGCInterval;
     time_t authenticateTTL;
     time_t authenticateIpTTL;
+    time_t authenticateIpShortcircuitTTL;
     char *appendDomain;
     int appendDomainLen;
     char *debugOptions;
