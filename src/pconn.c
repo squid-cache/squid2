@@ -245,11 +245,11 @@ pconnPop(const char *host, u_short port, const char *domain, struct in_addr *cli
 	p = (struct _pconn *) hptr;
 	assert(p->nfds > 0);
 	fd = p->fds[p->nfds - 1];
+	if (idle)
+	    *idle = p->nfds - 1;
 	pconnRemoveFD(p, fd);
 	commSetSelect(fd, COMM_SELECT_READ, NULL, NULL, 0);
 	commSetTimeout(fd, -1, NULL, NULL);
-	if (idle)
-	    *idle = p->nfds;
     }
     return fd;
 }
