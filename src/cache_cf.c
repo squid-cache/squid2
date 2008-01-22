@@ -2758,6 +2758,7 @@ parse_http_port_specification(http_port_list * s, char *token)
     const struct hostent *hp;
     unsigned short port = 0;
     char *t;
+    s->name = xstrdup(token);
     if ((t = strchr(token, ':'))) {
 	/* host:port */
 	host = token;

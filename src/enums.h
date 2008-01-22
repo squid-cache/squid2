@@ -114,6 +114,7 @@ typedef enum {
     ACL_URL_REGEX,
     ACL_URL_PORT,
     ACL_MY_PORT,
+    ACL_MY_PORT_NAME,
 #if USE_IDENT
     ACL_IDENT,
     ACL_IDENT_REGEX,
