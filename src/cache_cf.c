@@ -331,10 +331,10 @@ parseManyConfigFiles(char *files, int depth)
 {
     int error_count = 0;
     char *saveptr = NULL;
-    char *file = strtok_r(files, w_space, &saveptr);
+    char *file = strwordtok(files, &saveptr);
     while (file != NULL) {
 	error_count += parseOneConfigFile(file, depth);
-	file = strtok_r(NULL, w_space, &saveptr);
+	file = strwordtok(NULL, &saveptr);
     }
     return error_count;
 }
@@ -350,7 +350,6 @@ parseOneConfigFile(const char *file_name, int depth)
     int tmp_line_len = 0;
     size_t config_input_line_len;
     int err_count = 0;
-    int i;
 
     debug(3, 1) ("Including Configuration File: %s (depth %d)\n", file_name, depth);
     if (depth > 16) {
