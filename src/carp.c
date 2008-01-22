@@ -88,7 +88,7 @@ carpInit(void)
 	    continue;
 	/* calculate this peers hash */
 	p->carp.hash = 0;
-	for (t = p->host; *t != 0; t++)
+	for (t = p->name; *t != 0; t++)
 	    p->carp.hash += ROTATE_LEFT(p->carp.hash, 19) + (unsigned int) *t;
 	p->carp.hash += p->carp.hash * 0x62531965;
 	p->carp.hash = ROTATE_LEFT(p->carp.hash, 21);
@@ -157,14 +157,14 @@ carpSelectParent(request_t * request)
 	combined_hash = ROTATE_LEFT(combined_hash, 21);
 	score = combined_hash * tp->carp.load_multiplier;
 	debug(39, 3) ("carpSelectParent: %s combined_hash %u score %.0f\n",
-	    tp->host, combined_hash, score);
+	    tp->name, combined_hash, score);
 	if ((score > high_score) && peerHTTPOkay(tp, request)) {
 	    p = tp;
 	    high_score = score;
 	}
     }
     if (p)
-	debug(39, 2) ("carpSelectParent: selected %s\n", p->host);
+	debug(39, 2) ("carpSelectParent: selected %s\n", p->name);
     return p;
 }
 
@@ -183,7 +183,7 @@ carpCachemgr(StoreEntry * sentry)
 	sumfetches += p->stats.fetches;
     for (p = Config.peers; p; p = p->next) {
 	storeAppendPrintf(sentry, "%24s %10x %10f %10f %10f\n",
-	    p->host, p->carp.hash,
+	    p->name, p->carp.hash,
 	    p->carp.load_multiplier,
 	    p->carp.load_factor,
 	    sumfetches ? (double) p->stats.fetches / sumfetches : -1.0);
