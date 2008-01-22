@@ -132,6 +132,8 @@ static void parse_programline(wordlist **);
 static void free_programline(wordlist **);
 static void dump_programline(StoreEntry *, const char *, const wordlist *);
 
+static int parseOneConfigFile(const char *file_name, int depth);
+
 void
 self_destruct(void)
 {
@@ -325,6 +327,19 @@ update_maxobjsize(void)
 }
 
 static int
+parseManyConfigFiles(char *files, int depth)
+{
+    int error_count = 0;
+    char *saveptr = NULL;
+    char *file = strtok_r(files, w_space, &saveptr);
+    while (file != NULL) {
+	error_count += parseOneConfigFile(file, depth);
+	file = strtok_r(NULL, w_space, &saveptr);
+    }
+    return error_count;
+}
+
+static int
 parseOneConfigFile(const char *file_name, int depth)
 {
     FILE *fp = NULL;
@@ -366,16 +381,6 @@ parseOneConfigFile(const char *file_name, int depth)
 	if (config_input_line[0] == '\0')
 	    continue;
 
-	/* Handle includes here */
-	if (strlen(config_input_line) >= 9 && strncmp(config_input_line, "include", 7) == 0 && (config_input_line[7] == ' ' || config_input_line[7] == '\t')) {
-	    for (i = 7; i < strlen(config_input_line) && (config_input_line[i] == ' ' || config_input_line[i] == '\t'); i++);
-	    if (i >= strlen(config_input_line)) {
-		debug(3, 1) ("WARNING: include at %s:%d is bad\n", file_name, config_lineno);
-		continue;
-	    }
-	    err_count += parseOneConfigFile(config_input_line + i, depth + 1);
-	    continue;
-	}
 	config_input_line_len = strlen(config_input_line);
 	tmp_line = (char *) xrealloc(tmp_line, tmp_line_len + config_input_line_len + 1);
 	strcpy(tmp_line + tmp_line_len, config_input_line);
@@ -387,11 +392,17 @@ parseOneConfigFile(const char *file_name, int depth)
 	    continue;
 	}
 	debug(3, 5) ("Processing: '%s'\n", tmp_line);
-	if (!parse_line(tmp_line)) {
+
+	/* Handle includes here */
+	if (tmp_line_len >= 9 &&
+	    strncmp(tmp_line, "include", 7) == 0 &&
+	    xisspace(tmp_line[7])) {
+	    err_count += parseManyConfigFiles(tmp_line + 8, depth + 1);
+	} else if (!parse_line(tmp_line)) {
 	    debug(3, 0) ("parseConfigFile: %s:%d unrecognized: '%s'\n",
 		cfg_filename,
 		config_lineno,
-		config_input_line);
+		tmp_line);
 	    err_count++;
 	}
 	safe_free(tmp_line);
