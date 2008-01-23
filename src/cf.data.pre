@@ -48,6 +48,20 @@ COMMENT_START
 COMMENT_END
 
 COMMENT_START
+  Configuration options can be included using the "include" directive.
+  Include takes a list of files to include. Quoting is supported.
+
+  For example,
+
+  include /path/to/included/file/squid.acl.config
+
+  Includes can be nested up to a hard-coded depth of 16 levels.
+  This arbitrary restriction is to prevent recursive include references
+  from causing Squid entering an infinite loop whilst trying to load
+  configuration files.
+COMMENT_END
+
+COMMENT_START
  OPTIONS FOR AUTHENTICATION
  -----------------------------------------------------------------------------
 COMMENT_END
@@ -5560,5 +5574,6 @@ DOC_START
 	platforms but it may result in undefined behaviour at the present
 	time.
 DOC_END
+
 
 EOF

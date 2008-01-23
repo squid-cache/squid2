@@ -132,6 +132,8 @@ static void parse_programline(wordlist **);
 static void free_programline(wordlist **);
 static void dump_programline(StoreEntry *, const char *, const wordlist *);
 
+static int parseOneConfigFile(const char *file_name, int depth);
+
 void
 self_destruct(void)
 {
@@ -324,24 +326,45 @@ update_maxobjsize(void)
     store_maxobjsize = ms;
 }
 
-int
-parseConfigFile(const char *file_name)
+static int
+parseManyConfigFiles(char *files, int depth)
+{
+    int error_count = 0;
+    char *saveptr = NULL;
+    char *file = strwordtok(files, &saveptr);
+    while (file != NULL) {
+	error_count += parseOneConfigFile(file, depth);
+	file = strwordtok(NULL, &saveptr);
+    }
+    return error_count;
+}
+
+static int
+parseOneConfigFile(const char *file_name, int depth)
 {
     FILE *fp = NULL;
+    const char *orig_cfg_filename = cfg_filename;
+    int orig_config_lineno = config_lineno;
     char *token = NULL;
     char *tmp_line = NULL;
     int tmp_line_len = 0;
     size_t config_input_line_len;
     int err_count = 0;
-    configFreeMemory();
-    default_all();
+
+    debug(3, 1) ("Including Configuration File: %s (depth %d)\n", file_name, depth);
+    if (depth > 16) {
+	debug(0, 0) ("WARNING: can't include %s: includes are nested too deeply (>16)!\n", file_name);
+	return 1;
+    }
     if ((fp = fopen(file_name, "r")) == NULL)
 	fatalf("Unable to open configuration file: %s: %s",
 	    file_name, xstrerror());
 #ifdef _SQUID_WIN32_
     setmode(fileno(fp), O_TEXT);
 #endif
+
     cfg_filename = file_name;
+
     if ((token = strrchr(cfg_filename, '/')))
 	cfg_filename = token + 1;
     memset(config_input_line, '\0', BUFSIZ);
@@ -368,25 +391,46 @@ parseConfigFile(const char *file_name)
 	    continue;
 	}
 	debug(3, 5) ("Processing: '%s'\n", tmp_line);
-	if (!parse_line(tmp_line)) {
-	    debug(3, 0) ("parseConfigFile: line %d unrecognized: '%s'\n",
+
+	/* Handle includes here */
+	if (tmp_line_len >= 9 &&
+	    strncmp(tmp_line, "include", 7) == 0 &&
+	    xisspace(tmp_line[7])) {
+	    err_count += parseManyConfigFiles(tmp_line + 8, depth + 1);
+	} else if (!parse_line(tmp_line)) {
+	    debug(3, 0) ("parseConfigFile: %s:%d unrecognized: '%s'\n",
+		cfg_filename,
 		config_lineno,
-		config_input_line);
+		tmp_line);
 	    err_count++;
 	}
 	safe_free(tmp_line);
 	tmp_line_len = 0;
     }
     fclose(fp);
+    cfg_filename = orig_cfg_filename;
+    config_lineno = orig_config_lineno;
+    return err_count;
+}
+
+int
+parseConfigFile(const char *file_name)
+{
+    int ret;
+
+    configFreeMemory();
+    default_all();
+    ret = parseOneConfigFile(file_name, 0);
     defaults_if_none();
     configDoConfigure();
+
     if (opt_send_signal == -1) {
 	cachemgrRegister("config",
 	    "Current Squid Configuration",
 	    dump_config,
 	    1, 1);
     }
-    return err_count;
+    return ret;
 }
 
 static void
