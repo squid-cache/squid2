@@ -303,11 +303,14 @@ authenticateAuthUserRequestUnlinkIp(const struct in_addr ipaddr)
 }
 
 static void
-authenticateAuthUserRequestLinkIp(auth_user_request_t * auth_user_request, const struct in_addr ipaddr)
+authenticateAuthUserRequestLinkIp(auth_user_request_t * auth_user_request, const struct in_addr ipaddr, request_t * request)
 {
     auth_user_request_ip_hash_t *hash_entry;
 
     if (!Config.authenticateIpShortcircuitTTL)
+	return;
+
+    if (Config.accessList.auth_ip_shortcircuit && !aclCheckFastRequest(Config.accessList.auth_ip_shortcircuit, request))
 	return;
 
     if (!auth_user_request_ip_hash) {
@@ -348,7 +351,7 @@ authenticateAuthUserRequestFindByIp(const struct in_addr ipaddr)
 }
 
 static void
-authenticateAuthUserRequestSetIp(auth_user_request_t * auth_user_request, struct in_addr ipaddr)
+authenticateAuthUserRequestSetIp(auth_user_request_t * auth_user_request, struct in_addr ipaddr, request_t * request)
 {
     auth_user_ip_t *ipdata, *next;
     auth_user_t *auth_user;
@@ -378,7 +381,7 @@ authenticateAuthUserRequestSetIp(auth_user_request_t * auth_user_request, struct
 	}
     }
 
-    authenticateAuthUserRequestLinkIp(auth_user_request, ipaddr);
+    authenticateAuthUserRequestLinkIp(auth_user_request, ipaddr, request);
 
     if (found)
 	return;
@@ -688,7 +691,7 @@ authenticateAuthenticate(auth_user_request_t ** auth_user_request, http_hdr_type
 	/* lock the user for the request structure link */
 	authenticateAuthUserRequestLock(*auth_user_request);
 	request->auth_user_request = *auth_user_request;
-	authenticateAuthUserRequestSetIp(*auth_user_request, src_addr);
+	authenticateAuthUserRequestSetIp(*auth_user_request, src_addr, request);
     }
     /* Unlock the request - we've authenticated it */
     authenticateAuthUserRequestUnlock(*auth_user_request);

@@ -365,11 +365,6 @@ DOC_START
 	corporate LAN environment with relatively static address assignments.
 DOC_END
 
-COMMENT_START
- ACCESS CONTROLS
- -----------------------------------------------------------------------------
-COMMENT_END
-
 NAME: authenticate_ip_shortcircuit_ttl
 TYPE: time_t
 LOC: Config.authenticateIpShortcircuitTTL
@@ -378,6 +373,11 @@ DOC_START
 	Cache authentication credentials per client IP address for this
 	long. Default is 0 seconds (disabled).
 DOC_END
+
+COMMENT_START
+ ACCESS CONTROLS
+ -----------------------------------------------------------------------------
+COMMENT_END
 
 NAME: external_acl_type
 TYPE: externalAclHelper
@@ -899,6 +899,17 @@ DOC_START
 
 	If you set this parameter to zero (the default), there will be
 	no limit imposed.
+DOC_END
+
+NAME: authenticate_ip_shortcircuit_access
+TYPE: acl_access
+LOC: Config.accessList.auth_ip_shortcircuit
+DEFAULT: none
+DOC_START
+	Access list determining when shortcicuiting the authentication process
+	based on source IP cached credentials is acceptable. Use this to deny
+	using the ip auth cache on requests from child proxies or other source
+	ip's having multiple users.
 DOC_END
 
 COMMENT_START
