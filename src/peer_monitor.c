@@ -74,7 +74,7 @@ peerMonitorFetchReply(void *data, char *buf, ssize_t size)
 {
     PeerMonitor *pm = data;
 
-    if (size == 0 || !cbdataValid(pm->peer)) {
+    if (size <= 0 || !cbdataValid(pm->peer)) {
 	peerMonitorCompleted(pm);
     } else {
 	pm->running.size += size;
