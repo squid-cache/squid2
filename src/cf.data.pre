@@ -49,8 +49,7 @@ COMMENT_END
 
 COMMENT_START
   Configuration options can be included using the "include" directive.
-  Include takes one parameter, an unquoted pathname to a configuration
-  file including the full path.
+  Include takes a list of files to include. Quoting is supported.
 
   For example,
 
