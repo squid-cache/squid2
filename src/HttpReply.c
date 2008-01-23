@@ -172,6 +172,10 @@ httpReplySwapOut(HttpReply * rep, StoreEntry * e)
     Packer p;
     assert(rep && e);
 
+    /* storeBuffer should have been done by the caller, but do it here just in case as things
+     * break badly if not
+     */
+    storeBuffer(e);
     if (rep != e->mem_obj->reply) {
 	httpReplyAbsorb(e->mem_obj->reply, rep);
 	rep = e->mem_obj->reply;
