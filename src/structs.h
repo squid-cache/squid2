@@ -576,6 +576,7 @@ struct _SquidConfig {
     time_t authenticateGCInterval;
     time_t authenticateTTL;
     time_t authenticateIpTTL;
+    time_t authenticateIpShortcircuitTTL;
     char *appendDomain;
     int appendDomainLen;
     char *debugOptions;
@@ -727,6 +728,7 @@ struct _SquidConfig {
 	acl_access *followXFF;
 #endif
 	acl_access *vary_encoding;
+	acl_access *auth_ip_shortcircuit;
     } accessList;
     acl_deny_info_list *denyInfoList;
     struct _authConfig {
