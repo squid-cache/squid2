@@ -1,45 +1,84 @@
-	- cache_peer idle=n option to specify a minimum number of idle
-	  connections to keep open
-	- Imported squidclient fixes from http11 branch
-	- X-Cache-Age header when using act-as-origin
-	- Bug #1843: multicast-siblings cache_peer option for optimising
-	  multicast ICP relations
-	- Small script to verify that translated error pages uses the same %
-	  codes
-	- Changed most temporary & forwarding errors to return 504 Gateway
-	  Timeout
-	- support for FreeBSD accept filters
-	- -I command line option to accept open socket on stdin
-	- Clean up filedescriptor limitations, and handle comm loop
-	  restrictions proper
-	- max_filedescriptor squid.conf option
-	- external_acl_type %URI tag for referencing the complete requested
-	  URI
-	- logformat %rp logging the URL-Path only (excluding hostname)
-	- new logformat tag for logging the outgoing IP address
-	  (tcp_outgoing_address)
-	- Rename cache_dir option read-only to no-store
-	- act-as-origin http_port option, making Squid act as if it was
-	  the origin server
+	- Optimization using reference counted memory cache to avoid repeated
+	  copying of data.
 	- Use the client's DNS lookup if our DNS lookup fails on
-	  transparent requests
-	- Clean up X-Forwarded-For acl_uses_indirect_client to make most
-	  acls behave
-	- Change cachemgr filedescriptors timeout column to seconds
-	- Strengthen the HTTP protocol parser further wrt integer errors
-	- Simplified epoll comm loop
-	- Clean up use of httpReplySetHeaders to be consistent across the
-	  code, and remove the unneeded http_version argument.
-	- Kill the psuedo-support for wais. Was never really implemented.
-	- Optimization to only parse response headers once, reusing the
-	  already parsed headers when building the client reply.
-	- Simple perl library and script for processing access.log files
-	- General code tidyups of HTTP parser and related optimizations
-	- Add "%sn" - a sequence number - to the customlog format
-	- Implementation of an external logfile daemon (ie, logging to
-	  a pipe); UDP logging (based in part on work done by Tim Starling)
+	  transparent requests.
 
 Changes to squid-2.7.STABLE1 (not yet released)
+
+	- General code tidyups of HTTP parser and related optimizations
+	- Simple perl library and script for processing access.log files
+	- Optimization to only parse response headers once, reusing the
+	  already parsed headers when building the client reply.
+	- Kill the psuedo-support for wais. Was never really implemented.
+	- Clean up use of httpReplySetHeaders to be consistent across the
+	  code, and remove the unneeded http_version argument.
+	- Simplified epoll comm loop
+	- Strengthen the HTTP protocol parser further wrt integer errors
+	- Change cachemgr filedescriptors timeout column to seconds
+	- Clean up X-Forwarded-For acl_uses_indirect_client to make most
+	  acls behave
+	- act-as-origin http_port option, making Squid act as if it was
+	  the origin server, and related X-Cache-Age and X-Origin-Date headers
+	- Rename cache_dir option read-only to no-store
+	- new logformat tag for logging the outgoing IP address
+	  (tcp_outgoing_address)
+	- logformat %rp logging the URL-Path only (excluding hostname)
+	- external_acl_type %URI tag for referencing the complete requested
+	  URI
+	- Various old an unused pieces of code trimmed
+	- max_filedescriptor squid.conf option
+	- Clean up filedescriptor limitations, and handle comm loop
+	  restrictions proper
+	- -I command line option to accept open socket on stdin
+	- support for FreeBSD and Linux accept filters
+	- Changed most temporary & forwarding errors to return 504 Gateway
+	  Timeout
+	- Bug #1843: multicast-siblings cache_peer option for optimising
+	  multicast ICP relations
+	- cache_peer idle=n option to specify a minimum number of idle
+	  connections to keep open
+	- http_port allow-direct option to allow direct forwarding in
+	  accelerator mode
+	- Implementation of an external logfile daemon (ie, logging to
+	  a pipe); UDP logging (based in part on work done by Tim Starling)
+	- Optimizations to avoid zero'ing some buffers
+	- Add "%sn" - a sequence number - to the customlog format
+	- Internal cleanups and minor reorganisations
+	- The shipped icp_access and htcp_access rules changed to only
+	  allow local network
+	- url_rewriter interface extended with key=value pairs
+	- Use native MD5 implementation if available. Use --without-system-md5
+	  to disable.
+	- Enable squid to lookup /etc/services for named peer ports.
+	- store URL rewriting/mapping support to tell Squid when the exact
+	  same object exists under multiple requested URLs.
+	- Bug #7: Update headers on 304 responses
+	- Asyncronous cache validation support
+	- external_refresh_check helper, allowing program control over cache
+	  refreshes
+	- ignore_ims_on_miss directive, making Squid ignore If-Modified-Since
+	  and If-None-Match on cache misses
+	- Primitive HTTP/1.1 support, mainly targeted for reverse proxies
+	- Cache-Control stale-while-revalidate and stale-if-error directives
+	- Bug #1893: Variant invalidation on PURGE and HTCP CLR
+	- netdb_filename directive to specify location of netdb state file
+	- Windows port: Handle notification of IP address changes for dial-up
+	  connections
+	- default cache rules removed, allowing caching of query and cgi-bin
+	  responses
+	- Bug #2153: Use the cache_peer name in CARP hashing to support
+	  multiple peers on the same host
+	- myportname ACL for matching the accepting port name
+	- Make visible_hostname a soft error
+	- Ability to cache authentication based on source IP, mainly to
+	  work around NTLM inefficiencies, but other uses possible.
+	- suqid.conf include support
+
+Changes to squid-2.6.STABLE19 (not yet released)
+
+	- Fix tcp_outgoing_address example config to match its description
+	- Bug #2198: assertion failed sc != NULL when using peer monitor
+	  function
 
 Changes to squid-2.6.STABLE18 (10 Jan 2008)
 
