@@ -63,7 +63,7 @@ if [ -f $tmpdir/${PACKAGE}-${VERSION}-${date}.diff ]; then
     echo ${PACKAGE}-${VERSION}-${date}.diff >>${tag}.out
 fi
 
-relnotes=$tmpdir/doc/release-notes/release-`echo $VERSION | cut -d. -f1,2 | cut -d- -f1`.html
+relnotes=$tmpdir/doc/release-notes/release.html
 if [ -f $relnotes ]; then
 	cp -p $relnotes ${PACKAGE}-${VERSION}-${date}-RELEASENOTES.html
 	echo ${PACKAGE}-${VERSION}-${date}-RELEASENOTES.html >>${tag}.out

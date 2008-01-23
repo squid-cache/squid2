@@ -1,0 +1,50 @@
+<!doctype linuxdoc system>
+<article>
+<title>Squid 2.8.DEVEL0 release notes</title>
+<author>Squid Developers</author>
+<date>$Id$</date>
+
+<abstract>
+This document contains the release notes for version 2.8 of Squid.
+Squid is a WWW Cache application developed by the Web Caching community.
+</abstract>
+
+<toc>
+
+<sect>Key changes from squid 2.7
+<p>
+<itemize>
+<item>TO BE WRITTEN
+</itemize>
+
+<sect>Changes to squid.conf
+<p><descrip>
+<tag>TO BE WRITTEN</tag>TO BE WRITEN
+</descrip>
+
+<sect>Known issues
+
+<P>There is a few known issues in this version of Squid which we hope to correct in a later release
+
+<itemize>
+<item>Bug #761: Unstable under load when using diskd
+</itemize>
+
+<sect>Known limitations
+
+<P>In addition there is a set of limitations in this version of Squid which we hope to correct later
+
+<itemize>
+<item>Bug #1420: 302 responses with an Expires header is always cached
+<item>Bug #1059: mime.conf and referenced icons must be within chroot
+<item>Bug #692: tcp_outgoing_address using an ident ACL does not work
+<item>Bug #581: acl max_user_ip and multiple authentication schemes
+<item>Bug #528: miss_access fails on "slow" acl types such as dst.
+<item>Bug #513: squid -F is starting server sockets to early
+<item>Bug #457: does not handle swap.state corruption properly
+<item>Bug #410: unstable if runs out of disk space
+<item>Bug #355: diskd may appear slow on low loads
+<item>Bug #219: delay_pools stops working on -k reconfigure
+</itemize>
+
+</article>

@@ -1,4 +1,4 @@
-DOC	= release-2.6
+DOC	= release
 
 all: html
 
@@ -16,18 +16,30 @@ $(DOC).ps: $(DOC).sgml
 #	latex $(DOC).tex
 #
 
+
+%.txt: %.sgml
+	linuxdoc -B txt -T 2 --filter $<
+
 $(DOC).txt: $(DOC).sgml
-	linuxdoc -B txt -T 2 --filter $(DOC)
+	linuxdoc -B txt -T 2 --filter $<
+
+%.html: %.sgml
+	linuxdoc -B html -T 2 --split=0 $<
+	perl -i -p -e "s%$@%%" $@
+	perl -i -p -e 's%Bug #(\d+)%Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=$$1">#$$1</a>%g' $@
 
 $(DOC).html: $(DOC).sgml
 	linuxdoc -B html -T 2 --split=0 $(DOC)
 	perl -i -p -e "s%$(DOC).html%%" $(DOC).html
 	perl -i -p -e 's%Bug #(\d+)%Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=$$1">#$$1</a>%g' $(DOC).html
 
+%.man: %.sgml
+	linuxdoc -B txt -m $<
+
 $(DOC).man: $(DOC).sgml
 	linuxdoc -B txt -m $(DOC)
 
 clean:
 	rm -f *.html
-	rm -f $(DOC).tex $(DOC).ps $(DOC).dvi $(DOC).aux $(DOC).log $(DOC).toc
-	rm -f $(DOC).txt $(DOC).man
+	rm -f *.tex *.ps *.dvi *.aux *.log *.toc
+	rm -f *.txt *.man

@@ -63,11 +63,11 @@ inst $tmpdir/COPYING		$dst/COPYING.txt
 inst $tmpdir/COPYRIGHT		$dst/COPYRIGHT.txt
 inst $tmpdir/CREDITS		$dst/CREDITS.txt
 inst $tmpdir/ChangeLog		$dst/ChangeLog.txt
-if [ -f $tmpdir/doc/release-notes/release-$RELEASE.html ]; then
-    cat $tmpdir/doc/release-notes/release-$RELEASE.html | sed -e '
+if [ -f $tmpdir/doc/release-notes/release.html ]; then
+    cat $tmpdir/doc/release-notes/release.html | sed -e '
 	s/"ChangeLog"/"ChangeLog.txt"/g;
     ' > $tmpdir/RELEASENOTES.html
-    touch -r $tmpdir/doc/release-notes/release-$RELEASE.html $tmpdir/RELEASENOTES.html
+    touch -r $tmpdir/doc/release-notes/release.html $tmpdir/RELEASENOTES.html
     inst $tmpdir/RELEASENOTES.html $dst/${name}-RELEASENOTES.html
     ln -sf ${name}-RELEASENOTES.html $dst/RELEASENOTES.html
 fi
