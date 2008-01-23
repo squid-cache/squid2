@@ -461,7 +461,7 @@ openIdleConn(peer * peer, const char *domain, struct in_addr outgoing, unsigned 
 	ctimeout,
 	fwdConnectIdleTimeout,
 	idle);
-    commConnectStart(fd, peer->host, peer->http_port, fwdConnectIdleDone, idle, NULL);
+    commConnectStart(fd, peer->host, peer->http_port, fwdConnectIdleDone, idle);
 }
 
 static struct in_addr
