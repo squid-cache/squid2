@@ -1119,8 +1119,7 @@ peerProbeConnect(peer * p)
 	p->host,
 	p->http_port,
 	peerProbeConnectDone,
-	p,
-	NULL);
+	p);
     return ret;
 }
 

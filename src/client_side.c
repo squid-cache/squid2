@@ -3737,7 +3737,7 @@ parseHttpRequest(ConnStateData * conn, HttpMsgBuf * hmsg, method_t * method_p, i
 	    }
 #endif
 	}
-	if (conn->port->transparent && clientNatLookup(conn) == 0)
+	if (!host && !conn->transparent && clientNatLookup(conn) == 0)
 	    conn->transparent = 1;
 	if (!host && conn->transparent) {
 	    port = ntohs(conn->me.sin_port);
