@@ -80,7 +80,7 @@ peerMonitorFetchReply(void *data, mem_node_ref nr, ssize_t size)
 	pm->running.offset += size;
 	storeClientRef(pm->running.sc, pm->running.e, pm->running.offset, pm->running.offset, SM_PAGE_SIZE, peerMonitorFetchReply, pm);
     }
-    stmemNodeFree(&nr);
+    stmemNodeUnref(&nr);
 }
 
 static void
