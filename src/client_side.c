@@ -4600,6 +4600,9 @@ httpAccept(int sock, void *data)
 #endif
 	commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, connState, 0);
 	commSetDefer(fd, clientReadDefer, connState);
+	if (s->tcp_keepalive.enabled) {
+	    commSetTcpKeepalive(fd, s->tcp_keepalive.idle, s->tcp_keepalive.interval, s->tcp_keepalive.timeout);
+	}
 	clientdbEstablished(peer.sin_addr, 1);
 	incoming_sockets_accepted++;
     }
@@ -4758,6 +4761,9 @@ httpsAccept(int sock, void *data)
 	if (aclCheckFast(Config.accessList.identLookup, &identChecklist))
 	    identStart(&me, &peer, clientIdentDone, connState);
 #endif
+	if (s->http.tcp_keepalive.enabled) {
+	    commSetTcpKeepalive(fd, s->http.tcp_keepalive.idle, s->http.tcp_keepalive.interval, s->http.tcp_keepalive.timeout);
+	}
 	clientdbEstablished(peer.sin_addr, 1);
 	incoming_sockets_accepted++;
 	httpsAcceptSSL(connState, s->sslContext);

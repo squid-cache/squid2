@@ -2868,6 +2868,23 @@ parse_http_port_option(http_port_list * s, char *token)
 	s->allow_direct = 1;
     } else if (strcmp(token, "http11") == 0) {
 	s->http11 = 1;
+    } else if (strcmp(token, "tcpkeepalive") == 0) {
+	s->tcp_keepalive.enabled = 1;
+    } else if (strncmp(token, "tcpkeepalive=", 13) == 0) {
+	char *t = token + 13;
+	s->tcp_keepalive.enabled = 1;
+	s->tcp_keepalive.idle = atoi(t);
+	t = strchr(t, ',');
+	if (t) {
+	    t++;
+	    s->tcp_keepalive.interval = atoi(t);
+	    t = strchr(t, ',');
+	}
+	if (t) {
+	    t++;
+	    s->tcp_keepalive.timeout = atoi(t);
+	    t = strchr(t, ',');
+	}
     } else {
 	self_destruct();
     }
@@ -2955,6 +2972,13 @@ dump_generic_http_port(StoreEntry * e, const char *n, const http_port_list * s)
 #endif
     if (s->http11)
 	storeAppendPrintf(e, " http11");
+    if (s->tcp_keepalive.enabled) {
+	if (s->tcp_keepalive.idle || s->tcp_keepalive.interval || s->tcp_keepalive.timeout) {
+	    storeAppendPrintf(e, " tcp_keepalive=%d,%d,%d", s->tcp_keepalive.idle, s->tcp_keepalive.interval, s->tcp_keepalive.timeout);
+	} else {
+	    storeAppendPrintf(e, " tcp_keepalive");
+	}
+    }
 }
 static void
 dump_http_port_list(StoreEntry * e, const char *n, const http_port_list * s)
