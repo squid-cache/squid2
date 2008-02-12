@@ -712,7 +712,7 @@ fwdConnectStart(void *data)
      * peer, then don't cache, and use the IP that the client's DNS lookup
      * returned
      */
-    if (fwdState->request->flags.transparent && fwdState->n_tries && (NULL == fs->peer)) {
+    if (fwdState->request->flags.transparent && (fwdState->n_tries > 1) && (NULL == fs->peer)) {
 	storeRelease(fwdState->entry);
 	commConnectStart(fd, host, port, fwdConnectDone, fwdState, &fwdState->request->my_addr);
     } else {
