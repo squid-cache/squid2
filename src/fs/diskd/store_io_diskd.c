@@ -198,7 +198,10 @@ storeDiskdRead(SwapDir * SD, storeIOState * sio, char *buf, size_t size, squid_o
     char *rbuf;
     diskdstate_t *diskdstate = sio->fsstate;
     debug(79, 3) ("storeDiskdRead: dirno %d, fileno %08X\n", sio->swap_dirn, sio->swap_filen);
-    assert(!diskdstate->flags.close_request);
+    if (diskdstate->flags.close_request) {
+	debug(79, 2) ("storeDiskRead: closing, so ignore!\n");
+	return;
+    }
     if (!cbdataValid(sio))
 	return;
     if (diskdstate->flags.reading) {
@@ -239,6 +242,11 @@ storeDiskdWrite(SwapDir * SD, storeIOState * sio, char *buf, size_t size, squid_
     diskdstate_t *diskdstate = sio->fsstate;
     debug(79, 3) ("storeDiskdWrite: dirno %d, fileno %08X\n", SD->index, sio->swap_filen);
     assert(!diskdstate->flags.close_request);
+    if (diskdstate->flags.close_request) {
+	debug(79, 2) ("storeDiskWrite: closing, so ignore!\n");
+	free_func(buf);
+	return;
+    }
     if (!cbdataValid(sio)) {
 	free_func(buf);
 	return;
@@ -363,6 +371,10 @@ storeDiskdReadDone(diomsg * M)
     int valid;
     statCounter.syscalls.disk.reads++;
     diskdstate->flags.reading = 0;
+    if (diskdstate->flags.close_request) {
+	debug(79, 2) ("storeDiskReadDone: closing, so ignore!\n");
+	return;
+    }
     valid = cbdataValid(sio->read.callback_data);
     cbdataUnlock(sio->read.callback_data);
     debug(79, 3) ("storeDiskdReadDone: dirno %d, fileno %08x status %d\n",
@@ -404,7 +416,8 @@ storeDiskdWriteDone(diomsg * M)
 	sio->swap_dirn, sio->swap_filen, M->status);
     if (M->status < 0) {
 	diskd_stats.write.fail++;
-	storeDiskdIOCallback(sio, DISK_ERROR);
+	if (!diskdstate->flags.close_request)
+	    storeDiskdIOCallback(sio, DISK_ERROR);
 	return;
     }
     diskd_stats.write.success++;
