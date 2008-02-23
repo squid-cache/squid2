@@ -2,7 +2,7 @@
 <article>
 <title>Squid 2.7.STABLE1 release notes</title>
 <author>Squid Developers</author>
-<date>$Id$</date>
+<date>$Id$
 
 <abstract>
 This document contains the release notes for version 2.7 of Squid.
@@ -12,14 +12,92 @@ Squid is a WWW Cache application developed by the Web Caching community.
 <toc>
 
 <sect>Key changes from squid 2.6
+
 <p>
-<itemize>
-<item>TO BE WRITTEN
+  <itemize>
+    <item>
+        Primitive support for HTTP/1.1 chunked encoded replies; various servers
+        return chunked encoded replies to HTTP/1.0 requests.
+    </item>
+    <item>
+        A number of performance improvements; including request/reply parser,
+	eliminating various redundant data copies and some completely rewritten
+	sections.
+    </item>
+    <item>
+        Support for WAIS has been removed.
+    </item>
+    <item>
+        "act-as-origin" option for http_port - Squid can now emulate an origin
+	server when acting as an accelerator.
+    </item>
+    <item>
+        "min-size" option for cache_dir - the minimum object size to store in
+	a cache directory. Previously objects of any size up to a "max-size"
+	maximum size would be considered as candidated for storing in a store_dir;
+	this option allows the administrator to tune various stores for small
+	and large objects rather than trying to tune it for both.
+    </item>
+    <item>
+        Support for Solaris /dev/poll for network IO - more efficient than
+	poll() or select() and backwards compatible to Solaris 7. This must
+	be manually enabled during configure by specifying "--enable-devpoll".
+    </item>
+    <item>
+        Support for FreeBSD accept filters. Use "accept_filter httpready"
+	in squid.conf to enable this.
+    </item>
+    <item>
+        A semi-modular logging framework has been introduced, which both
+	allows for more efficient non-blocking logging with the supplied logging
+	daemon, but also allows for third-party modules to intercept the squid
+	logs and process them. An example "UDP" logging helper, thanks to the
+	Wikimedia Foundation, is included.
+    </item>
+    <item>
+        Support for rewriting URLs into canonical forms when storing and retrieving
+	objects. A common practice seen in Content Delivery Networks is to serve
+	the same content from a variety of different URLs or hosts; this makes
+	efficient caching difficult. The store URL rewriting framework allows the
+	administrator to rewrite a variety of URLs into one canonical form, so
+	matching content from a variety of sources can be stored and retrieved
+	as if they came from the same source, whilst still fetching the content
+	from the original destination.
+
+	See the "storeurl_rewrite_program" option for more information, and
+	http://wiki.squid-cache.org/Features/StoreURLRewrite for some examples.
+    </item>
+    <item>
+        Object revalidation can now occur in the background. Cache validation can
+	now occur in the background without requiring an active client to drive it.
+	Stale content being revalidated can be served in situ whilst the object
+	is being refreshed. See the "max_stale" and "refresh_pattern" options for more
+	information.
+    </item>
+    <item>
+        introduce a new option, "zero_buffers", which controls whether Squid will
+	zero the memory used for buffers and other data structures before use.
+	This may or may not improve performance on specific workloads.
+    </item>
+    <item>
+        Cache authentication based on source IP address. This reduces the pressure
+	on external authenticators which may not be able to keep up under high load -
+	NTLM/winbind is a good example of this. See the "authenticate_ip_shortcircuit_access"
+	and "authenticate_ip_shortcircuit_ttl" options for more information.
+    </item>
+    <item>
+        A long-standing bug in diskd has been fixed - Bug #761. This caused a crash
+	during periods of high disk IO.
+    </item>
+    <item>
+        Support for configuration file includes has been added. "include" can now be
+	used to include a configuration file or a glob of configuration files in a
+	directory.
+    </item>
 </itemize>
 
 <sect>Changes to squid.conf
-<p><descrip>
-<tag>TO BE WRITTEN</tag>TO BE WRITEN
+(TODO)
 </descrip>
 
 <sect>Known issues
@@ -27,7 +105,7 @@ Squid is a WWW Cache application developed by the Web Caching community.
 <P>There is a few known issues in this version of Squid which we hope to correct in a later release
 
 <itemize>
-<item>Bug #761: Unstable under load when using diskd
+(TODO)
 </itemize>
 
 <sect>Known limitations
@@ -35,6 +113,7 @@ Squid is a WWW Cache application developed by the Web Caching community.
 <P>In addition there is a set of limitations in this version of Squid which we hope to correct later
 
 <itemize>
+(TODO)
 <item>Bug #1420: 302 responses with an Expires header is always cached
 <item>Bug #1059: mime.conf and referenced icons must be within chroot
 <item>Bug #692: tcp_outgoing_address using an ident ACL does not work
@@ -47,4 +126,213 @@ Squid is a WWW Cache application developed by the Web Caching community.
 <item>Bug #219: delay_pools stops working on -k reconfigure
 </itemize>
 
+<sect>Other issues
+
+<P>Ipfilter 4.x compile problem on HP Tru64
+<itemize>
+    <item>Running configure --enable-ipf-transparent on an HP Tru64 5.1B system with ipfilter 4.x installed, the following error can occur:
+    <verb>
+      checking if IP-Filter header files are installed... no
+      WARNING: Cannot find necessary IP-Filter header files
+               Transparent Proxy support WILL NOT be enabled</verb>
+    To fix the problem first check if the ip_fil.h, ip_compat.h, ip_nat.h and ipl.h files are present in
+    /usr/include/netinet and copy them from ipfilter source tree if needed.
+    Don't forget to fix files permission and ownership after the copy.<newline>
+    If the error still persist, run configure making it skip the ip_compat.h test:<newline>
+    <verb>
+    env ac_cv_header_netinet_ip_compat_h=yes ./configure --enable-ipf-transparent</verb>
+    <item>On Sun Solaris 10, ipfilter 4.0.22 is provided with the OS, but related include files (ip_fil.h, ip_compat.h, ip_nat.h, ipl.h) are missing.<newline>
+      Before running configure --enable-ipf-transparent, they must be downloaded from the
+      <url url="http://cvs.opensolaris.org/source/xref/usr/src/common/ipf/" name="OpenSolaris Web Site">
+      in the /usr/include local directory. Don't forget to fix files permission and ownership after the download.
+</itemize>
+
+
+<sect>Windows support
+<P>This Squid version can run on Windows as a system service using the Cygwin emulation environment, 
+or can be compiled in Windows native mode using the MinGW + MSYS development environment. Windows NT 4 SP4 and later are supported.<newline>
+On Windows 2000 and later the service is configured to use the Windows Service Recovery option
+restarting automatically after 60 seconds.
+<descrip>
+
+<tag>Usage</tag>
+
+Some new command line options was added for the Windows service support:<newline>
+
+The service installation is made with -i command line switch, it's possible to use -f switch at
+the same time for specify a different config-file settings for the Squid Service that will be
+stored on the Windows Registry.
+
+A new -n switch specify the Windows Service Name, so multiple Squid instance are allowed.
+<em/"Squid"/ is the default when the switch is not used.
+
+So, to install the service, the syntax is: 
+
+<verb>squid -i [-f file] [-n name]</verb>
+
+Service uninstallation is made with -r command line switch with the appropriate -n switch.
+
+The -k switch family must be used with the appropriate -f and -n switches, so the syntax is: 
+
+<verb>squid -k command [-f file] -n service-name</verb>
+where <em/service-name/ is the name specified with -n options at service install time.
+
+To use the Squid original command line, the new -O switch must be used ONCE, the syntax is: 
+
+<verb>squid -O cmdline [-n service-name]</verb>
+If multiple service command line options must be specified, use quote. The -n switch is
+needed only when a non default service name is in use.
+
+Don't use the "Start parameters" in the Windows 2000/XP/2003 Service applet: they are
+specific to Windows services functionality and Squid is not designed for understand they.
+
+In the following example the command line of the "squidsvc" Squid service is set to "-D -u 3130": 
+
+<verb>squid -O "-D -u 3130" -n squidsvc</verb>
+</descrip>
+
+<descrip>
+<tag>PSAPI.DLL (Process Status Helper) Considerations</tag>
+
+The process status helper functions make it easier for you to obtain information about
+processes and device drivers running on Microsoft® Windows NT®/Windows® 2000. These
+functions are available in PSAPI.DLL, which is distributed in the Microsoft® Platform
+Software Development Kit (SDK). The same information is generally available through the
+performance data in the registry, but it is more difficult to get to it. PSAPI.DLL is
+freely redistributable.
+
+PSAPI.DLL is available only on Windows NT, 2000, XP and 2003. The implementation in Squid is
+aware of this, and try to use it only on the right platform.
+
+On Windows NT PSAPI.DLL can be found as component of many applications, if you need it,
+you can find it on Windows NT Resource KIT. If you have problem, it can be
+downloaded from here:
+<url url="http://download.microsoft.com/download/platformsdk/Redist/4.0.1371.1/NT4/EN-US/psinst.EXE" name="http://download.microsoft.com/download/platformsdk/Redist/4.0.1371.1/NT4/EN-US/psinst.EXE">
+
+On Windows 2000 and later it is available installing the Windows Support Tools, located on the
+Support\Tools folder of the installation Windows CD-ROM.
+</descrip>
+
+<descrip>
+<tag>Registry DNS lookup</tag>
+On Windows platforms, if no value is specified in the <em/dns_nameservers/ option on
+squid.conf or in the /etc/resolv.conf file, the list of DNS name servers are
+taken from the Windows registry, both static and dynamic DHCP configurations
+are supported.
+</descrip>
+
+<descrip>
+<tag>Compatibility Notes</tag>
+<itemize>
+<item>It's recommended to use '/' char in Squid paths instead of '\'
+<item>Paths with spaces (like 'C:\Programs Files\Squid) are NOT supported by Squid
+<item>When using ACL like 'acl aclname acltype "file"' the file must be in DOS text
+format (CR+LF) and the full Windows path must be specified, for example:
+
+<verb>acl blocklist url_regex -i "c:/squid/etc/blocked1.txt"</verb>
+
+<item>The Windows equivalent of '/dev/null' is 'NUL'
+<item>Squid doesn't know how to run external helpers based on scripts, like .bat, .cmd,
+.vbs, .pl, etc. So in squid.conf the interpreter path must be always specified, for example:
+
+<verb>redirect_program c:/perl/bin/perl.exe c:/squid/libexec/redir.pl
+redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd</verb>
+<item>When Squid runs in command line mode, the launching user account must have administrative privilege on the system
+<item>"Start parameters" in the Windows 2000/XP/2003 Service applet cannot be used
+<item>Building with MinGW, when the configure option --enable-truncate is used, Squid cannot run on Windows NT, only Windows 2000 and later are supported
+</itemize>
+</descrip>
+
+<descrip>
+<tag>Known Limitations:</tag>
+<itemize>
+<item>Squid features not operational:<newline>
+<itemize>
+<item>DISKD: still needs to be ported<newline>
+<item>WCCP: cannot work because user space GRE support on Windows is missing<newline>
+<item>Transparent Proxy: missing Windows non commercial interception driver<newline>
+</itemize>
+<item>Some code sections can make blocking calls.
+<item>Some external helpers may not work.
+<item>File Descriptors number hard-limited to 2048 when building with MinGW.
+</itemize>
+</descrip>
+
+<descrip>
+<tag>Building Squid on Windows:</tag>
+A reasonably recent release of <url url="http://www.cygwin.com/" name="Cygwin"> or <url url="http://www.mingw.org/" name="MinGW"> is needed.<newline>
+The usage of the Cygwin environment is very similar to other Unix/Linux environments, and -devel version of libraries must be installed.<newline>
+For the MinGW environment, the packages MSYS, MinGW and msysDTK must be installed. Some additional libraries and tools must be downloaded separately:<newline><newline>
+OpenSSL: <url url="http://www.slproweb.com/products/Win32OpenSSL.html" name="Shining Light Productions Win32 OpenSSL"><newline>
+libcrypt: <url url="http://sourceforge.net/projects/mingwrep/" name="MinGW packages repository"><newline>
+db-1.85: <url url="http://tinycobol.org/download.html" name="TinyCOBOL download area"><newline>
+uudecode: <url url="http://unxutils.sourceforge.net/" name="Native Win32 ports of some GNU utilities"><newline><newline>
+When running configure, --disable-wccp and --disable-wccpv2 options should always specified to avoid compile errors.<newline>
+<itemize>
+<item>New configure options:<newline>
+<itemize>
+<item>--enable-win32-service<newline>
+</itemize>
+<item>Updated configure options:<newline>
+<itemize>
+<item>--enable-arp-acl<newline>
+<item>--enable-default-hostsfile<newline>
+</itemize>
+<item>Unsupported configure options:<newline>
+<itemize>
+<item>--enable-coss-aio-ops: On Windows Posix AIO is not available<newline>
+<item>--with-large-files: No suitable build environment is available on both Cygwin and MinGW, but --enable-large-cache-files works fine<newline>
+</itemize>
+<item>Recommended configure minimal options for Windows:<newline>
+<itemize>
+<item>--prefix=c:/squid --disable-wccp --disable-wccpv2 --enable-win32-service --enable-default-hostsfile=none
+</itemize>
+</itemize>
+<newline>
+Before build Squid with SSL support, some operations are needed (in the following example OpenSSL is installed in C:\OpenSSL and MinGW in C:\MinGW):
+<itemize>
+<item>Copy C:\OpenSSL\lib\MinGW content to C:\MinGW\lib<newline>
+<item>Copy C:\OpenSSL\include\openssl content to C:\MinGW\include\openssl<newline>
+<item>Rename C:\MinGW\lib\ssleay32.a to C:\MinGW\lib\libssleay32.a<newline>
+</itemize>
+
+</descrip>
+
+<descrip>
+<tag>Using cache manager on Windows:</tag>
+On Windows, cache manager (cachemgr.cgi) can be used with Microsoft IIS or Apache.<newline>
+Some specific configuration could be needed:<newline>
+<itemize>
+<item>IIS 6 (Windows 2003):<newline>
+<itemize>
+<item>On IIS 6.0 all CGI extensions are denied by default for security reason, so the following configuration is needed:<newline>
+<itemize>
+<item>Create a cgi-bin Directory
+<item>Define the cgi-bin IIS Virtual Directory with read and CGI execute IIS
+permissions, ASP scripts are not needed. This automatically defines a
+cgi-bin IIS web application 
+<item>Copy cachemgr.cgi into cgi-bin directory and look to file permissions:
+the IIS system account and SYSTEM must be able to read and execute the file
+<item>In IIS manager go to Web Service extensions and add a new Web Service
+Extension called <em/"Squid Cachemgr"/, add the cachemgr.cgi file and set the
+extension status to <em/Allowed/
+</itemize>
+</itemize>
+<item>Apache:<newline>
+<itemize>
+<item>On Windows, cachemgr.cgi needs to create a temporary file, so Apache must be instructed
+ to pass the TMP and TEMP Windows environment variables to CGI applications:<newline>
+<verb>
+ScriptAlias /squid/cgi-bin/ "c:/squid/libexec/"
+&lt;Location /squid/cgi-bin/cachemgr.cgi&gt;
+    PassEnv TMP TEMP
+    Order allow,deny
+    Allow from workstation.example.com
+&lt;/Location&gt;
+</verb>
+</itemize>
+</itemize>
+</descrip>
+
 </article>
+
