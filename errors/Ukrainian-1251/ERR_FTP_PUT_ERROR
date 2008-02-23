@@ -1,27 +1,26 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <HTML><HEAD><META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1251">
-<TITLE>ПОМИЛКА: FTP PUT/upload закінчився невдало</TITLE>
+<TITLE>ПОМИЛКА: Команда FTP PUT/upload завершилась невдало</TITLE>
 <STYLE type="text/css"><!--BODY{background-color:#ffffff;font-family:verdana,sans-serif}PRE{font-family:sans-serif}--></STYLE>
 </HEAD><BODY>
 <H1>ПОМИЛКА</H1>
-<H2>FTP PUT/upload закінчився невдало.</H2>
+<H2>FTP PUT/upload завершилась невдало</H2>
 <HR noshade size="1px">
 <P>
-Під час доставки файла по адресу:
+Під час доставки файла за адресою:
 <A HREF="%U">%U</A>
 <P>
-Squid надіслав наступну FTP команду:
+Squid послав наступну FTP команду:
 <PRE><STRONG>
         %f
 </STRONG></PRE>
-і отримав у відповідь:
+і потім отримав таку відповідь
 <PRE><STRONG>
         %F
 </STRONG></PRE>
 <P>
-Що значить:
+Це означає що:
 <PRE>
-Перевірте шлях, права доступу, вільне місце і попробуйте знову.
+Вам слід перевірити шлях, права доступу, вільне місце і після цього спробувати знову.
 </PRE>
-</P>
-
+<P>Вашим адміністратором кешу є <A HREF="mailto:%w">%w</A>.
