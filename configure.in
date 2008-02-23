@@ -1617,6 +1617,7 @@ AC_CHECK_HEADERS(
 	fcntl.h \
 	fnmatch.h \
 	getopt.h \
+	glob.h \
 	gnumalloc.h \
 	grp.h \
 	libc.h \
@@ -2350,6 +2351,7 @@ AC_CHECK_FUNCS(\
 	getrusage \
 	getspnam \
 	gettimeofday \
+	glob \
 	kqueue \
 	lrand48 \
 	mallinfo \
