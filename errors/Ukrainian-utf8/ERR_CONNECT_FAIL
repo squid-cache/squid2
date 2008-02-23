@@ -1,27 +1,27 @@
-﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <HTML><HEAD><META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
-<TITLE>ПОМИЛКА: Запитане URL не може бути отримано</TITLE>
+<TITLE>ПОМИЛКА: Запрошений URL не може бути доставлений</TITLE>
 <STYLE type="text/css"><!--BODY{background-color:#ffffff;font-family:verdana,sans-serif}PRE{font-family:sans-serif}--></STYLE>
 </HEAD><BODY>
 <H1>ПОМИЛКА</H1>
-<H2>Запитане URL не може бути отримано</H2>
+<H2>Запрошений URL не може бути доставлений</H2>
 <HR noshade size="1px">
 <P>
-Під час отримання URL:
+Під час доставки URL:
 <A HREF="%U">%U</A>
 <P>
-Сталася наступна помилка:
+Виникла наступна помилка:
 <UL>
 <LI>
 <STRONG>
-Не вдалося встановити з'єднання.
+Не вдалось встановити з'єднання
 </STRONG>
 </UL>
 
 <P>
-Була отримана відповідь:
+Система повідомляє:
 <PRE><I>    %E</I></PRE>
 
 <P>
-Віддалений хост або мережа не відповідають. Будь-ласка, повторіть запит.
-</P>
+Віддалені хост чи мережа не відповідають. Будь-ласка, повторіть свій запит ще раз.
+<P>Вашим адміністратором кешу є <A HREF="mailto:%w">%w</A>.

@@ -42,7 +42,10 @@ LANGUAGES	= \
 		Spanish \
 		Swedish \
 		Traditional_Chinese \
-		Turkish
+		Turkish \
+		Ukrainian-1251 \
+		Ukrainian-koi8-u \
+		Ukrainian-utf8
 
 install-data-local:
 	@for l in $(INSTALL_LANGUAGES); do \
