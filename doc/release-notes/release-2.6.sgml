@@ -1,6 +1,6 @@
 <!doctype linuxdoc system>
 <article>
-<title>Squid 2.6.STABLE18 release notes</title>
+<title>Squid 2.6.STABLE19 release notes</title>
 <author>Squid Developers</author>
 <date>$Id$</date>
 
@@ -664,6 +664,21 @@ ScriptAlias /squid/cgi-bin/ "c:/squid/libexec/"
 	<item>See also the list of <url
 		url="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE18.html"
 			name="squid-2.6.STABLE18 changes"> and the <url url="ChangeLog"
+				name="ChangeLog"> file for details.
+</itemize>
+
+<sect>Key changes squid-2.6.STABLE18 to 2.6.STABLE19
+
+<p>
+<itemize>
+	<item>Bugzilla #761 : Handle recursive completion operations in diskd.
+	<item>Bug #2198: assertion failed sc != NULL when using peer monitor function
+	<item>Sort cache list in wccpv2 to ensure a consistent hash allocation across all services
+	<item>Updated Ukrainan error pages
+	<item>Documentation fixes
+	<item>See also the list of <url
+		url="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE19.html"
+			name="squid-2.6.STABLE19 changes"> and the <url url="ChangeLog"
 				name="ChangeLog"> file for details.
 </itemize>
 
