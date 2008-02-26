@@ -181,3 +181,287 @@ redirectShutdown(void)
     helperFree(redirectors);
     redirectors = NULL;
 }
+
+/*
+ * Redirect
+ */
+typedef struct _tokendesc {
+    const char *fmt;
+    rewrite_token_type type;
+} tokendesc;
+
+static const tokendesc tokendescs[] =
+{
+    {">a", RFT_CLIENT_IPADDRESS},
+    {"la", RFT_LOCAL_IPADDRESS},
+    {"lp", RFT_LOCAL_PORT},
+    {"ts", RFT_EPOCH_SECONDS},
+    {"tu", RFT_TIME_SUBSECONDS},
+    {"un", RFT_USERNAME},
+    {"ul", RFT_USERLOGIN},
+    {"ui", RFT_USERIDENT},
+    {"us", RFT_USERSSL},
+    {"ue", RFT_EXTERNALACL_USER},
+    {"rm", RFT_METHOD},
+    {"ru", RFT_URL},
+    {"rp", RFT_URLPATH},
+    {"rP", RFT_PROTOCOL},
+    {"rh", RFT_URLHOST},
+    {"rH", RFT_HDRHOST},
+    {"ea", RFT_EXTERNALACL_LOGSTR},
+    {NULL, RFT_UNKNOWN}
+};
+
+static const char *const tokenNames[] =
+{
+    "RFT_UNKNOWN",
+    "RFT_STRING",
+    "RFT_CLIENT_IPADDRESS",
+    "RFT_LOCAL_IPADDRESS",
+    "RFT_LOCAL_PORT",
+    "RFT_EPOCH_SECONDS",
+    "RFT_TIME_SUBSECONDS",
+    "RFT_REQUEST_HEADER",
+    "RFT_USERNAME",
+    "RFT_USERLOGIN",
+    "RFT_USERIDENT",
+    "RFT_USERSSL",
+    "RFT_EXTERNALACL_USER",
+    "RFT_METHOD",
+    "RFT_PROTOCOL",
+    "RFT_URL",
+    "RFT_URLPATH",
+    "RFT_URLHOST",
+    "RFT_HDRHOST",
+    "RFT_EXTERNALACL_TAG",
+    "RFT_EXTERNALACL_LOGSTR"
+};
+
+static const tokendesc *
+findToken(const char *str)
+{
+    int16_t token = *(int16_t *) str;
+    const tokendesc *ptoken = tokendescs;
+    for (; ptoken->fmt != NULL; ++ptoken)
+	if (*(int16_t *) ptoken->fmt == token)
+	    break;
+    if (ptoken->fmt == NULL)
+	return NULL;
+    return ptoken;
+}
+
+rewritetoken *
+newRedirectTokenStr(rewrite_token_type type, const char *str, size_t str_len,
+    int urlEncode)
+{
+    debug(85, 3) ("newRedirectTokenStr(%s, '%s', %u)\n",
+	tokenNames[type], str, str_len);
+    rewritetoken *dev = (rewritetoken *) xmalloc(sizeof(*dev));
+    dev->type = type;
+    dev->str = str;
+    dev->str_len = str_len;
+    dev->urlEncode = urlEncode;
+    dev->next = NULL;
+    return dev;
+}
+
+rewritetoken *
+newRedirectToken(const char **str, int urlEncode)
+{
+    debug(85, 5) ("newRedirectToken(%s)\n", *str);
+    const tokendesc *ptoken = findToken(*str);
+    if (ptoken == NULL) {
+	debug(85, 3) ("newRedirectToken: %s => NULL\n", *str);
+	return NULL;
+    }
+    debug(85, 5) ("newRedirectToken: %s => %s\n", *str, tokenNames[ptoken->type]);
+    rewritetoken *dev = newRedirectTokenStr(ptoken->type, NULL, 0, urlEncode);
+    *str += 2;
+    return dev;
+}
+
+rewritetoken *
+rewriteURLCompile(const char *urlfmt)
+{
+    rewritetoken *head = NULL;
+    rewritetoken **tail = &head;
+    rewritetoken *_new = NULL;
+    debug(85, 3) ("rewriteURLCompile(%s)\n", urlfmt);
+    const char *stt = urlfmt;
+    while (*urlfmt != '\0') {
+	while (*urlfmt != '\0' && *urlfmt != '%')
+	    ++urlfmt;
+	if (urlfmt != stt) {
+	    _new = newRedirectTokenStr(RFT_STRING,
+		xstrndup(stt, urlfmt - stt + 1), urlfmt - stt, 0);
+	    *tail = _new;
+	    tail = &_new->next;
+	    if (*urlfmt == '\0')
+		break;
+	    stt = ++urlfmt;
+	}
+	int urlEncode = 0;
+	switch (urlfmt[0]) {
+	case '#':
+	    stt = ++urlfmt;
+	    urlEncode = 1;
+	    break;
+	case '%':
+	    stt = ++urlfmt;
+	    _new = newRedirectTokenStr(RFT_STRING, xstrdup("%"), 1, 0);
+	    *tail = _new;
+	    tail = &_new->next;
+	    continue;
+	    break;
+	}
+	_new = newRedirectToken(&urlfmt, urlEncode);
+	*tail = _new;
+	tail = &_new->next;
+	stt = urlfmt;
+    }
+    return head;
+}
+
+char *
+xreacat(char *str, size_t * len,
+    const char *append, size_t applen)
+{
+    //TODO: garana: move xreacat to lib/util.c
+    if (!applen)
+	applen = strlen(append);
+    if (str == NULL)
+	assert((*len) == 0);
+    str = (char *) xrealloc(str, *len + applen + 1);
+    strncpy(str + *len, append, applen);
+    *len += applen;
+    str[*len] = 0;
+    return str;
+}
+
+char *
+xreacatUL(char *str, size_t * len, unsigned long x)
+{
+    //TODO: garana: move xreacatUL to lib/util.c
+    char tmpstr[12];
+    snprintf(tmpstr, sizeof(tmpstr), "%lu", x);
+    tmpstr[11] = '\0';
+    return xreacat(str, len, tmpstr, strlen(tmpstr));
+}
+
+char *
+internalRedirectProcessURL(clientHttpRequest * req, rewritetoken * head)
+{
+    char *dev = NULL;
+    size_t len = 0;
+    debug(85, 5) ("internalRedirectProcessURL: start\n");
+    for (; head != NULL; head = head->next) {
+	const char *str = NULL;	/* string to append */
+	size_t str_len = 0;
+	int do_ulong = 0;
+	unsigned long ulong = 0;
+	const char *ulong_fmt = "%lu";
+	debug(85, 5) ("internalRedirectProcessURL: token=%s str=%s urlEncode=%s\n",
+	    tokenNames[head->type], head->str, head->urlEncode ? "true" : "false");
+	switch (head->type) {
+	case RFT_STRING:
+	    str = head->str;
+	    str_len = head->str_len;
+	    break;
+	case RFT_CLIENT_IPADDRESS:
+	    str = inet_ntoa(req->conn->peer.sin_addr);
+	    break;
+	case RFT_LOCAL_IPADDRESS:
+	    str = inet_ntoa(req->conn->me.sin_addr);
+	    break;
+	case RFT_LOCAL_PORT:
+	    ulong = ntohs(req->conn->me.sin_port);
+	    do_ulong = 1;
+	    break;
+	case RFT_EPOCH_SECONDS:
+	    ulong = current_time.tv_sec;
+	    do_ulong = 1;
+	    break;
+	case RFT_TIME_SUBSECONDS:
+	    ulong = current_time.tv_usec / 1000;
+	    do_ulong = 1;
+	    ulong_fmt = "%03lu";
+	    break;
+	case RFT_USERNAME:
+	    if (req->request->auth_user_request)
+		str = authenticateUserUsername(req->request->auth_user_request->auth_user);
+
+	    if (!str || !*str)
+		str = req->conn->rfc931;
+
+#ifdef USE_SSL
+	    if ((!str || !*str) && req->conn != NULL)
+		str = sslGetUserEmail(fd_table[req->conn->fd].ssl);
+#endif
+
+	    if (!str || !*str)
+		str = req->request->extacl_user;
+
+	    break;
+	case RFT_USERLOGIN:
+	    str = req->request->login;
+	    break;
+	case RFT_USERIDENT:
+	    str = req->conn->rfc931;
+	    break;
+	case RFT_USERSSL:
+#ifdef USE_SSL
+	    if (req->conn != NULL)
+		str = sslGetUserEmail(fd_table[req->conn->fd].ssl);
+#endif
+	    break;
+	case RFT_EXTERNALACL_USER:
+	    str = req->request->extacl_user;
+	    break;
+	case RFT_METHOD:
+	    str = RequestMethods[req->request->method].str;
+	    break;
+	case RFT_PROTOCOL:
+	    str = ProtocolStr[req->request->protocol];
+	    break;
+	case RFT_URL:
+	    str = req->uri;
+	    break;
+	case RFT_URLPATH:
+	    str = req->request->urlpath.buf;
+	    break;
+	case RFT_URLHOST:
+	    str = req->request->host;
+	    break;
+	case RFT_HDRHOST:
+	    str = httpHeaderGetStr(&req->request->header, HDR_HOST);
+	    break;
+	case RFT_EXTERNALACL_LOGSTR:
+	    str = req->request->extacl_log.buf;
+	    break;
+	default:
+	    assert(0 && "Invalid rewrite token type");
+	    break;
+	}
+
+	if (do_ulong) {
+	    char tmpstr[12];
+	    int nbytes = snprintf(tmpstr, 12, "%lu", ulong);
+	    assert(nbytes > 0);
+	    dev = xreacat(dev, &len, tmpstr, nbytes);
+	} else {
+	    if ((str == NULL) || (*str == '\0'))
+		str = "-";
+
+	    if (str_len == 0)
+		str_len = strlen(str);
+
+	    if (head->urlEncode) {
+		str = rfc1738_escape_part(str);
+		str_len = strlen(str);
+	    }
+	    dev = xreacat(dev, &len, str, str_len);
+	}
+    }
+    debug(85, 5) ("internalRedirectProcessURL: done: %s\n", dev);
+    return dev;
+}

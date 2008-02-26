@@ -796,4 +796,31 @@ typedef enum {
     ST_OP_CREATE
 } store_op_t;
 
+/*
+ * Rewrite format tokens
+ */
+typedef enum {
+    RFT_UNKNOWN = 0,
+    RFT_STRING,
+    RFT_CLIENT_IPADDRESS,
+    RFT_LOCAL_IPADDRESS,
+    RFT_LOCAL_PORT,
+    RFT_EPOCH_SECONDS,
+    RFT_TIME_SUBSECONDS,
+    RFT_REQUEST_HEADER,
+    RFT_USERNAME,
+    RFT_USERLOGIN,
+    RFT_USERIDENT,
+    RFT_USERSSL,
+    RFT_EXTERNALACL_USER,
+    RFT_METHOD,
+    RFT_PROTOCOL,
+    RFT_URL,
+    RFT_URLPATH,
+    RFT_URLHOST,
+    RFT_HDRHOST,
+    RFT_EXTERNALACL_TAG,
+    RFT_EXTERNALACL_LOGSTR
+} rewrite_token_type;
+
 #endif /* SQUID_ENUMS_H */

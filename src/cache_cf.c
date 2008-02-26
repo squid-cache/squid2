@@ -131,6 +131,9 @@ static void free_https_port_list(https_port_list **);
 static int check_null_https_port_list(const https_port_list *);
 #endif
 #endif /* USE_SSL */
+static void parse_rewrite(rewrite ** rewrites);
+static void dump_rewrite(StoreEntry * entry, const char *n, rewrite * reds);
+static void free_rewrite(rewrite ** reds);
 static void parse_programline(wordlist **);
 static void free_programline(wordlist **);
 static void dump_programline(StoreEntry *, const char *, const wordlist *);
@@ -3407,4 +3410,58 @@ static void
 dump_programline(StoreEntry * entry, const char *name, const wordlist * line)
 {
     dump_wordlist(entry, name, line);
+}
+
+static void
+parse_rewrite(rewrite ** rewrites)
+{
+    char *dsturl;
+    rewrite *red;
+
+    red = (rewrite *) xcalloc(1, sizeof(*red));
+
+    if ((dsturl = strtok(NULL, w_space)) == NULL)
+	self_destruct();
+
+    if (!strcmp(dsturl, "-")) {
+	red->tokens = NULL;
+	red->dsturl = NULL;
+    } else {
+	red->tokens = rewriteURLCompile(dsturl);
+	red->dsturl = xstrdup(dsturl);
+    }
+
+    aclParseAclList(&red->aclList);
+
+    //garana: TODO check red->aclList is not empty
+    //garana: TODO check Client.Program.rewrite == NULL
+    while (*rewrites)
+	rewrites = &(*rewrites)->next;
+    *rewrites = red;
+}
+
+static void
+dump_rewrite(StoreEntry * entry, const char *n, rewrite * reds)
+{
+    rewrite *red;
+
+    //TODO: garana: check this function.
+    for (red = reds; red != NULL; red = red->next) {
+	storeAppendPrintf(entry, "%s %s", n, red->dsturl);
+	dump_acl_list(entry, red->aclList);
+	storeAppendPrintf(entry, "\n");
+    }
+}
+
+static void
+free_rewrite(rewrite ** reds)
+{
+    while (*reds) {
+	rewrite *red = *reds;
+	*reds = red->next;
+
+	safe_free(red->dsturl);
+
+	xfree(red);
+    }
 }

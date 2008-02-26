@@ -230,6 +230,8 @@ typedef struct _Logfile Logfile;
 typedef struct _logformat_token logformat_token;
 typedef struct _logformat logformat;
 typedef struct _customlog customlog;
+typedef struct _rewrite rewrite;
+typedef struct _rewritetoken rewritetoken;
 typedef struct _RemovalPolicy RemovalPolicy;
 typedef struct _RemovalPolicyWalker RemovalPolicyWalker;
 typedef struct _RemovalPurgeWalker RemovalPurgeWalker;

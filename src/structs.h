@@ -723,6 +723,7 @@ struct _SquidConfig {
 	acl_access *url_rewrite;
 	acl_access *storeurl_rewrite;
 	acl_access *location_rewrite;
+	acl_access *rewrite;
 	acl_access *reply;
 	acl_address *outgoing_address;
 	acl_tos *outgoing_tos;
@@ -834,6 +835,7 @@ struct _SquidConfig {
 #endif
     time_t refresh_stale_window;
     int umask;
+    rewrite *rewrites;
     int max_filedescriptors;
     char *accept_filter;
 };
@@ -2596,6 +2598,21 @@ struct _HttpMsgBuf {
 struct rms {
     char *str;
     int len;
+};
+
+struct _rewritetoken {
+    rewrite_token_type type;
+    const char *str;
+    size_t str_len;
+    int urlEncode;
+    rewritetoken *next;
+};
+
+struct _rewrite {
+    char *dsturl;
+    rewritetoken *tokens;
+    acl_list *aclList;
+    rewrite *next;
 };
 
 #endif /* SQUID_STRUCTS_H */

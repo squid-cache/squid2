@@ -49,6 +49,7 @@ extern char config_input_line[BUFSIZ];
 extern const char *AclMatchedName;	/* NULL */
 extern const char *DefaultConfigFile;	/* DEFAULT_CONFIG_FILE */
 extern rms_t RequestMethods[];
+extern const char *RequestMethodStr[];
 extern const char *ProtocolStr[];
 extern const char *cfg_filename;	/* NULL */
 extern const char *const appname;	/* "squid" */

@@ -2651,6 +2651,69 @@ DOC_START
 
 DOC_END
 
+NAME: rewrite_access
+TYPE: acl_access
+DEFAULT: none
+DEFAULT_IF_NONE: deny all
+LOC: Config.accessList.rewrite
+DOC_START
+	If defined, this access list specifies which requests are
+	processed by rewrite directives.  By default no requests
+	are processed.
+DOC_END
+
+NAME: rewrite
+TYPE: rewrite
+LOC: Config.rewrites
+DEFAULT: none
+DOC_START
+	Secifiy an internal redirection rule.  If rewrite_program is defined
+	Then these rules are ignored.
+	
+	redirect dsturl acl [acl [acl ..]]
+
+	A redirect is applied when all acls are matched.
+
+	If dsturl is "-" the redirect does nothing.
+	
+	dsturl may start with a status code sent directly to user.  Valid
+	status codes:
+
+	  301:http://....    Means respond with a 301 to user.
+	  302:http://....    Means respond with a 302 to user.
+	  303:http://....    Means respond with a 303 to user.
+	  307:http://....    Means respond with a 307 to user.
+
+	dsturl may have format codes preceeded by %.
+	Format:
+
+		%[#][argument]formatcode
+
+		#	URL quoted output format
+
+	Valid format codes:
+
+		>a	Client source IP address
+		la	Local IP address (http_port)
+		lp	Local port number (http_port)
+		ts	Seconds since epoch
+		tu	subsecond time (milliseconds, %03d)
+		un	User name
+		ul	User login from authentication
+		ui	User name from ident
+		ue	User name from external acl
+		rm	Request method (GET/POST etc)
+		ru	Request URL
+		rp	Request path
+		rh	Request host from URL
+		rH	Request Host header
+		rP	Request protocol
+		et	Tag returned by external acl
+		ea	Log string returned by external acl
+		%	a literal % character
+
+DOC_END
+
 NAME: url_rewrite_program redirect_program
 TYPE: programline
 LOC: Config.Program.url_rewrite.command

@@ -39,6 +39,24 @@
 /* Local functions */
 
 void
+clientInternalRedirectAccessCheckDone(int answer, void *data)
+{
+    clientHttpRequest *http = data;
+    rewrite *rew = NULL;
+    if (answer == ACCESS_ALLOWED)
+	for (rew = Config.rewrites; rew != NULL; rew = rew->next)
+	    if (aclMatchAclList(rew->aclList, http->acl_checklist))
+		break;
+    char *rurl = NULL;
+    if (rew)
+	rurl = internalRedirectProcessURL(http, rew->tokens);
+    clientRedirectDone(http, rurl);
+    http->acl_checklist = NULL;
+    if (rurl)
+	xfree(rurl);
+}
+
+void
 clientRedirectAccessCheckDone(int answer, void *data)
 {
     clientHttpRequest *http = data;
@@ -54,6 +72,12 @@ clientRedirectStart(clientHttpRequest * http)
 {
     debug(33, 5) ("clientRedirectStart: '%s'\n", http->uri);
     if (Config.Program.url_rewrite.command == NULL) {
+	http->redirect_state = REDIRECT_PENDING;
+	if (Config.rewrites != NULL) {
+	    http->acl_checklist = clientAclChecklistCreate(Config.accessList.rewrite, http);
+	    aclNBCheck(http->acl_checklist, clientInternalRedirectAccessCheckDone, http);
+	    return;
+	}
 	clientRedirectDone(http, NULL);
 	return;
     }
