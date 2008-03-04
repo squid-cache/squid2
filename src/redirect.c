@@ -250,12 +250,12 @@ findToken(const char *str)
     return ptoken;
 }
 
-rewritetoken *
+static rewritetoken *
 newRedirectTokenStr(rewrite_token_type type, const char *str, size_t str_len,
     int urlEncode)
 {
     debug(85, 3) ("newRedirectTokenStr(%s, '%s', %u)\n",
-	tokenNames[type], str, str_len);
+	tokenNames[type], str, (unsigned) str_len);
     rewritetoken *dev = (rewritetoken *) xmalloc(sizeof(*dev));
     dev->type = type;
     dev->str = str;
@@ -265,7 +265,7 @@ newRedirectTokenStr(rewrite_token_type type, const char *str, size_t str_len,
     return dev;
 }
 
-rewritetoken *
+static rewritetoken *
 newRedirectToken(const char **str, int urlEncode)
 {
     debug(85, 5) ("newRedirectToken(%s)\n", *str);
@@ -322,7 +322,7 @@ rewriteURLCompile(const char *urlfmt)
     return head;
 }
 
-char *
+static char *
 xreacat(char *str, size_t * len,
     const char *append, size_t applen)
 {
@@ -338,7 +338,8 @@ xreacat(char *str, size_t * len,
     return str;
 }
 
-char *
+#if UNUSED_CODE
+static char *
 xreacatUL(char *str, size_t * len, unsigned long x)
 {
     //TODO: garana: move xreacatUL to lib/util.c
@@ -347,6 +348,7 @@ xreacatUL(char *str, size_t * len, unsigned long x)
     tmpstr[11] = '\0';
     return xreacat(str, len, tmpstr, strlen(tmpstr));
 }
+#endif
 
 char *
 internalRedirectProcessURL(clientHttpRequest * req, rewritetoken * head)

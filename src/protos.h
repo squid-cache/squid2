@@ -1490,9 +1490,7 @@ extern void clientFinishRewriteStuff(clientHttpRequest * http);
 
 
 /* client_side_redirect.c */
-extern void clientRedirectAccessCheckDone(int answer, void *data);
 extern void clientRedirectStart(clientHttpRequest * http);
-extern void clientRedirectDone(void *data, char *result);
 
 /* client_side_storeurl_rewrite.c */
 extern void clientStoreURLRewriteAccessCheckDone(int answer, void *data);

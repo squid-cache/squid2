@@ -37,8 +37,9 @@
 
 
 /* Local functions */
+static void clientRedirectDone(void *data, char *result);
 
-void
+static void
 clientInternalRedirectAccessCheckDone(int answer, void *data)
 {
     clientHttpRequest *http = data;
@@ -56,7 +57,7 @@ clientInternalRedirectAccessCheckDone(int answer, void *data)
 	xfree(rurl);
 }
 
-void
+static void
 clientRedirectAccessCheckDone(int answer, void *data)
 {
     clientHttpRequest *http = data;
@@ -89,7 +90,7 @@ clientRedirectStart(clientHttpRequest * http)
     }
 }
 
-void
+static void
 clientRedirectDone(void *data, char *result)
 {
     clientHttpRequest *http = data;
