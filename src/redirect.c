@@ -254,9 +254,9 @@ static rewritetoken *
 newRedirectTokenStr(rewrite_token_type type, const char *str, size_t str_len,
     int urlEncode)
 {
+    rewritetoken *dev = (rewritetoken *) xmalloc(sizeof(*dev));
     debug(85, 3) ("newRedirectTokenStr(%s, '%s', %u)\n",
 	tokenNames[type], str, (unsigned) str_len);
-    rewritetoken *dev = (rewritetoken *) xmalloc(sizeof(*dev));
     dev->type = type;
     dev->str = str;
     dev->str_len = str_len;
@@ -268,14 +268,15 @@ newRedirectTokenStr(rewrite_token_type type, const char *str, size_t str_len,
 static rewritetoken *
 newRedirectToken(const char **str, int urlEncode)
 {
-    debug(85, 5) ("newRedirectToken(%s)\n", *str);
+    rewritetoken *dev;
     const tokendesc *ptoken = findToken(*str);
+    debug(85, 5) ("newRedirectToken(%s)\n", *str);
     if (ptoken == NULL) {
 	debug(85, 3) ("newRedirectToken: %s => NULL\n", *str);
 	return NULL;
     }
     debug(85, 5) ("newRedirectToken: %s => %s\n", *str, tokenNames[ptoken->type]);
-    rewritetoken *dev = newRedirectTokenStr(ptoken->type, NULL, 0, urlEncode);
+    dev = newRedirectTokenStr(ptoken->type, NULL, 0, urlEncode);
     *str += 2;
     return dev;
 }
@@ -286,9 +287,10 @@ rewriteURLCompile(const char *urlfmt)
     rewritetoken *head = NULL;
     rewritetoken **tail = &head;
     rewritetoken *_new = NULL;
-    debug(85, 3) ("rewriteURLCompile(%s)\n", urlfmt);
     const char *stt = urlfmt;
+    debug(85, 3) ("rewriteURLCompile(%s)\n", urlfmt);
     while (*urlfmt != '\0') {
+	int urlEncode = 0;
 	while (*urlfmt != '\0' && *urlfmt != '%')
 	    ++urlfmt;
 	if (urlfmt != stt) {
@@ -300,7 +302,6 @@ rewriteURLCompile(const char *urlfmt)
 		break;
 	    stt = ++urlfmt;
 	}
-	int urlEncode = 0;
 	switch (urlfmt[0]) {
 	case '#':
 	    stt = ++urlfmt;

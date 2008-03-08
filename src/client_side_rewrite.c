@@ -44,11 +44,11 @@ clientInternalRedirectAccessCheckDone(int answer, void *data)
 {
     clientHttpRequest *http = data;
     rewrite *rew = NULL;
+    char *rurl = NULL;
     if (answer == ACCESS_ALLOWED)
 	for (rew = Config.rewrites; rew != NULL; rew = rew->next)
 	    if (aclMatchAclList(rew->aclList, http->acl_checklist))
 		break;
-    char *rurl = NULL;
     if (rew)
 	rurl = internalRedirectProcessURL(http, rew->tokens);
     clientRedirectDone(http, rurl);
