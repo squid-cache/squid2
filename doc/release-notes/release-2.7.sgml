@@ -94,10 +94,38 @@ Squid is a WWW Cache application developed by the Web Caching community.
 	used to include a configuration file or a glob of configuration files in a
 	directory.
     </item>
+    <item>
+        The default rules to not cache dynamic content from cgi-bin and query URLs
+	have been altered. Previously, the "cache" ACL was used to mark requests
+	as non-cachable - this is enforced even on dynamic content which returns
+	cachability information. This has changed in Squid-2.7 to use the default
+	refresh pattern. Dynamic content is now cached if it is marked as cachable.
+	You should remove the default configuration lines with QUERY (acl, and cache)
+	and replace them with the correct refresh_pattern entries.
+    </item>
 </itemize>
 
 <sect>Changes to squid.conf
-(TODO)
+
+  <itemize>
+    <item>accept_filter</item>
+    <item>authenticate_ip_shortcircuit_access</item>
+    <item>authenticate_ip_shortcircuit_ttl</item>
+    <item>external_refresh_check</item>
+    <item>ignore_expect_100</item>
+    <item>ignore_ims_on_miss</item>
+    <item>logfile_daemon</item>
+    <item>max_filedescriptors max_filedesc</item>
+    <item>max_stale</item>
+    <item>netdb_filename</item>
+    <item>server_http11</item>
+    <item>storeurl_access</item>
+    <item>storeurl_rewrite_children</item>
+    <item>storeurl_rewrite_concurrency</item>
+    <item>storeurl_rewrite_program</item>
+    <item>update_headers</item>
+    <item>zero_buffers</item>
+  </itemize> 
 </descrip>
 
 <sect>Known issues
@@ -105,7 +133,12 @@ Squid is a WWW Cache application developed by the Web Caching community.
 <P>There is a few known issues in this version of Squid which we hope to correct in a later release
 
 <itemize>
-(TODO)
+<item>Bug #2251 compiling squid on mingw error on --with-large-files
+<item>Bug #2248 storeurl_rewrite mismatched when object stored on memory
+<item>Bug #2192 Internal representation of accelerator URI doesn't include port
+<item>Bug #2171 Async refresh and sibling peers
+<item>Bug #2112 Squid does not send If-None-Match tag for cache revalidation
+<item>Bug #2160	Cache hits on objects with headers > 4KB
 </itemize>
 
 <sect>Known limitations
@@ -113,7 +146,7 @@ Squid is a WWW Cache application developed by the Web Caching community.
 <P>In addition there is a set of limitations in this version of Squid which we hope to correct later
 
 <itemize>
-(TODO)
+<item>Bug #2208 HTTP/1.1 Support detail
 <item>Bug #1420: 302 responses with an Expires header is always cached
 <item>Bug #1059: mime.conf and referenced icons must be within chroot
 <item>Bug #692: tcp_outgoing_address using an ident ACL does not work

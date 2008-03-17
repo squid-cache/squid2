@@ -676,6 +676,8 @@ ScriptAlias /squid/cgi-bin/ "c:/squid/libexec/"
 	<item>Sort cache list in wccpv2 to ensure a consistent hash allocation across all services
 	<item>Updated Ukrainan error pages
 	<item>Documentation fixes
+	<item>squid_radius_auth failed to process more than 256 requests
+	<item>Make range_offset_limit 0 disable local range processing as documented
 	<item>See also the list of <url
 		url="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE19.html"
 			name="squid-2.6.STABLE19 changes"> and the <url url="ChangeLog"
