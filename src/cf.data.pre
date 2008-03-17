@@ -3179,7 +3179,8 @@ TYPE: onoff
 DEFAULT: on
 LOC: Config.onoff.cache_vary
 DOC_START
-	Set to off to disable caching of Vary:in objects.
+	When 'cache_vary' is set to off, response that have a
+	Vary header will not be stored in the cache.
 DOC_END
 
 NAME: broken_vary_encoding
