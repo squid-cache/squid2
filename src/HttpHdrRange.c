@@ -482,8 +482,11 @@ httpHdrRangeOffsetLimit(HttpHdrRange * range)
     if (NULL == range)
 	/* not a range request */
 	return 0;
-    if (-1 == Config.rangeOffsetLimit)
+    if (!Config.rangeOffsetLimit)
 	/* disabled */
+	return 1;
+    if (-1 == Config.rangeOffsetLimit)
+	/* forced */
 	return 0;
     if (Config.rangeOffsetLimit >= httpHdrRangeFirstOffset(range))
 	/* below the limit */
