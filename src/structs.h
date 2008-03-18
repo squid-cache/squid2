@@ -838,6 +838,7 @@ struct _SquidConfig {
     rewrite *rewrites;
     int max_filedescriptors;
     char *accept_filter;
+    int incoming_rate;
 };
 
 struct _SquidConfig2 {

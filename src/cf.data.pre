@@ -1280,6 +1280,17 @@ DOC_START
 	to off when using this directive in such configurations.
 DOC_END
 
+NAME: incoming_rate
+TYPE: int
+DEFAULT: 30
+LOC: Config.incoming_rate
+DOC_START
+	This directive controls how aggressive Squid should accept new
+	connections compared to processing existing connections. 
+	The lower number the more frequent Squid will look for new
+	incoming requests.
+DOC_END
+
 COMMENT_START
  SSL OPTIONS
  -----------------------------------------------------------------------------
