@@ -1273,17 +1273,6 @@ DOC_START
 	to off when using this directive in such configurations.
 DOC_END
 
-NAME: incoming_rate
-TYPE: int
-DEFAULT: 30
-LOC: Config.incoming_rate
-DOC_START
-	This directive controls how aggressive Squid should accept new
-	connections compared to processing existing connections. 
-	The lower number the more frequent Squid will look for new
-	incoming requests.
-DOC_END
-
 COMMENT_START
  SSL OPTIONS
  -----------------------------------------------------------------------------
@@ -4950,46 +4939,6 @@ COMMENT_START
  -----------------------------------------------------------------------------
 COMMENT_END
 
-NAME: incoming_icp_average
-TYPE: int
-DEFAULT: 6
-LOC: Config.comm_incoming.icp_average
-DOC_NONE
-
-NAME: incoming_http_average
-TYPE: int
-DEFAULT: 4
-LOC: Config.comm_incoming.http_average
-DOC_NONE
-
-NAME: incoming_dns_average
-TYPE: int
-DEFAULT: 4
-LOC: Config.comm_incoming.dns_average
-DOC_NONE
-
-NAME: min_icp_poll_cnt
-TYPE: int
-DEFAULT: 8
-LOC: Config.comm_incoming.icp_min_poll
-DOC_NONE
-
-NAME: min_dns_poll_cnt
-TYPE: int
-DEFAULT: 8
-LOC: Config.comm_incoming.dns_min_poll
-DOC_NONE
-
-NAME: min_http_poll_cnt
-TYPE: int
-DEFAULT: 8
-LOC: Config.comm_incoming.http_min_poll
-DOC_START
-	Heavy voodoo here.  I can't even believe you are reading this.
-	Are you crazy?  Don't even think about adjusting these unless
-	you understand the algorithms in comm_select.c first!
-DOC_END
-
 NAME: max_filedescriptors max_filedesc
 TYPE: int
 DEFAULT: 0
@@ -5045,6 +4994,17 @@ DOC_START
 	Size of receive buffer to set for TCP sockets.  Probably just
 	as easy to change your kernel's default.  Set to zero to use
 	the default buffer size.
+DOC_END
+
+NAME: incoming_rate
+TYPE: int
+DEFAULT: 30
+LOC: Config.incoming_rate
+DOC_START
+	This directive controls how aggressive Squid should accept new
+	connections compared to processing existing connections. 
+	The lower number the more frequent Squid will look for new
+	incoming requests.
 DOC_END
 
 COMMENT_START

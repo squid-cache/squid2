@@ -765,14 +765,6 @@ struct _SquidConfig {
 #if DELAY_POOLS
     delayConfig Delay;
 #endif
-    struct {
-	int icp_average;
-	int dns_average;
-	int http_average;
-	int icp_min_poll;
-	int dns_min_poll;
-	int http_min_poll;
-    } comm_incoming;
     int max_open_disk_fds;
     int uri_whitespace;
     squid_off_t rangeOffsetLimit;
