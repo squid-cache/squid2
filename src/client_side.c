@@ -2416,7 +2416,7 @@ clientCacheHit(void *data, HttpReply * rep)
 	debug(33, 2) ("clientProcessHit: offline HIT\n");
 	http->log_type = LOG_TCP_OFFLINE_HIT;
 	stale = 0;
-    } else if (stale == -2) {
+    } else if (stale == -2 && !clientOnlyIfCached(http)) {
 	debug(33, 2) ("clientProcessHit: stale-while-revalidate needs revalidation\n");
 	clientAsyncRefresh(http);
 	http->log_type = LOG_TCP_STALE_HIT;
