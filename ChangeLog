@@ -77,6 +77,12 @@ Changes to squid-2.7.STABLE1 (not yet released)
 	  work around NTLM inefficiencies, but other uses possible.
 	- squid.conf include support
 	- squid_ldap_group option to strip kerberos realm from username
+	- Bug #1888: Add incoming_rate directive to control how often to
+	  check incoming connections
+	- Bug #2263: Custom log formats fail to log file sizes >2GB
+	  properly on 32-bit platforms
+	- Fix stripping NT domain in squid_ldap_group
+	- Removed obsolete advanced comm tuning knobs
 
 Changes to squid-2.6.STABLE19 (19 Mar 2008)
 

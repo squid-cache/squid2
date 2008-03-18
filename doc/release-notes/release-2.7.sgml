@@ -114,9 +114,16 @@ Squid is a WWW Cache application developed by the Web Caching community.
     <item>external_refresh_check</item>
     <item>ignore_expect_100</item>
     <item>ignore_ims_on_miss</item>
+    <item>incoming_dns_averags</item>
+    <item>incoming_http_average</item>
+    <item>incoming_icp_average</item>
+    <item>incoming_rate</item>
     <item>logfile_daemon</item>
     <item>max_filedescriptors max_filedesc</item>
     <item>max_stale</item>
+    <item>min_dns_poll_cnt</item>
+    <item>min_http_poll_cnt</item>
+    <item>min_icp_poll_cnt</item>
     <item>netdb_filename</item>
     <item>server_http11</item>
     <item>storeurl_access</item>
