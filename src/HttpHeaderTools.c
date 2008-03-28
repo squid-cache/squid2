@@ -259,6 +259,10 @@ strListGetItem(const String * str, char del, const char **item, int *ilen, const
 
     /* skip leading ws (ltrim) */
     *pos += xcountws(*pos);
+
+    /* skip leading delimiters */
+    *pos += strspn(*pos, delim[0]);
+
     *item = *pos;		/* remember item's start */
     /* find next delimiter */
     do {
