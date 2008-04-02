@@ -424,7 +424,12 @@ getOutgoingAddr(request_t * request)
     aclCheck_t ch;
     memset(&ch, '\0', sizeof(aclCheck_t));
     if (request) {
-	ch.src_addr = request->client_addr;
+#if FOLLOW_X_FORWARDED_FOR
+	if (Config.onoff.acl_uses_indirect_client) {
+	    ch.src_addr = request->indirect_client_addr;
+	} else
+#endif /* FOLLOW_X_FORWARDED_FOR */
+	    ch.src_addr = request->client_addr;
 	ch.my_addr = request->my_addr;
 	ch.my_port = request->my_port;
 	ch.request = request;
@@ -438,7 +443,12 @@ getOutgoingTOS(request_t * request)
     aclCheck_t ch;
     memset(&ch, '\0', sizeof(aclCheck_t));
     if (request) {
-	ch.src_addr = request->client_addr;
+#if FOLLOW_X_FORWARDED_FOR
+	if (Config.onoff.acl_uses_indirect_client) {
+	    ch.src_addr = request->indirect_client_addr;
+	} else
+#endif /* FOLLOW_X_FORWARDED_FOR */
+	    ch.src_addr = request->client_addr;
 	ch.my_addr = request->my_addr;
 	ch.my_port = request->my_port;
 	ch.request = request;
