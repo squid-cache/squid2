@@ -242,6 +242,14 @@ struct _body_size {
     squid_off_t maxsize;
 };
 
+struct _delay_body_size {
+    dlink_node node;
+    acl_access *access_list;
+    squid_off_t maxsize;
+    ushort pool;
+};
+
+
 struct _http_version_t {
     unsigned int major;
     unsigned int minor;
@@ -480,6 +488,7 @@ struct _SquidConfig {
     squid_off_t maxRequestBodySize;
     squid_off_t maxReplyHeaderSize;
     dlink_list ReplyBodySize;
+    dlink_list DelayBodySize;
     struct {
 	u_short icp;
 #if USE_HTCP
@@ -1261,6 +1270,8 @@ struct _clientHttpRequest {
     } redirect;
     dlink_node active;
     squid_off_t maxBodySize;
+    squid_off_t delayMaxBodySize;
+    ushort delayAssignedPool;
     mem_node_ref nr;
     STHCB *header_callback;	/* Temporarily here for storeClientCopyHeaders */
     StoreEntry *header_entry;	/* Temporarily here for storeClientCopyHeaders */

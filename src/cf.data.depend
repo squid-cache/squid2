@@ -49,6 +49,7 @@ wccp2_service
 wccp2_service_info
 wordlist
 body_size_t		acl
+delay_body_size_t	acl
 programline
 extension_method
 errormap

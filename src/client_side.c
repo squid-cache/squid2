@@ -2681,6 +2681,39 @@ clientMaxBodySize(request_t * request, clientHttpRequest * http, HttpReply * rep
     }
 }
 
+#if DELAY_POOLS
+/*
+ * Calculates the delay maximum size allowed for an HTTP response
+ */
+static void
+clientDelayMaxBodySize(request_t * request, clientHttpRequest * http, HttpReply * reply)
+{
+    delay_body_size *dbs;
+    aclCheck_t *checklist;
+    if (http->log_type == LOG_TCP_DENIED)
+	return;
+    dbs = (delay_body_size *) Config.DelayBodySize.head;
+    while (dbs) {
+	checklist = clientAclChecklistCreate(dbs->access_list, http);
+
+	checklist->reply = reply;
+	if (1 != aclCheckFast(dbs->access_list, checklist)) {
+	    /* deny - skip this entry */
+	    dbs = (delay_body_size *) dbs->node.next;
+	} else {
+	    /* Allow - use this entry */
+	    http->delayMaxBodySize = dbs->maxsize;
+	    http->delayAssignedPool = dbs->pool;
+	    dbs = NULL;
+	    debug(58, 3) ("httpDelayBodyBuildSize: Setting delayMaxBodySize to %ld\n",
+		(long int) http->delayMaxBodySize);
+	}
+	aclChecklistFree(checklist);
+    }
+}
+
+#endif
+
 static int
 clientReplyBodyTooLarge(clientHttpRequest * http, squid_off_t clen)
 {
@@ -2692,6 +2725,20 @@ clientReplyBodyTooLarge(clientHttpRequest * http, squid_off_t clen)
 	return 1;		/* too large */
     return 0;
 }
+
+#if DELAY_POOLS
+static int
+clientDelayBodyTooLarge(clientHttpRequest * http, squid_off_t clen)
+{
+    if (0 == http->delayMaxBodySize)
+	return 0;		/* disabled */
+    if (clen < 0)
+	return 0;		/* unknown */
+    if (clen > http->delayMaxBodySize)
+	return 1;		/* too large */
+    return 0;
+}
+#endif
 
 static int
 clientRequestBodyTooLarge(squid_off_t clen)
@@ -2783,6 +2830,9 @@ clientSendHeaders(void *data, HttpReply * rep)
 	return;
     }
     clientMaxBodySize(http->request, http, rep);
+#if DELAY_POOLS
+    clientDelayMaxBodySize(http->request, http, rep);
+#endif
     if (http->log_type != LOG_TCP_DENIED && clientReplyBodyTooLarge(http, rep->content_length)) {
 	ErrorState *err = errorCon(ERR_TOO_BIG, HTTP_FORBIDDEN, http->orig_request);
 	storeClientUnregister(http->sc, http->entry, http);
@@ -3251,6 +3301,16 @@ clientWriteComplete(int fd, char *bufnotused, size_t size, int errflag, void *da
 	/* 4096 is a margin for the HTTP headers included in out.offset */
 	comm_close(fd);
     } else {
+#if DELAY_POOLS
+	debug(33, 5) ("clientWriteComplete : Normal\n");
+	if (clientDelayBodyTooLarge(http, http->out.offset - 4096)) {
+	    debug(33, 5) ("clientWriteComplete: we should put this into the pool: DelayId=%i\n",
+		http->sc->delay_id);
+	    delayUnregisterDelayIdPtr(&http->sc->delay_id);
+	    delaySetStoreClient(http->sc, delayPoolClient(http->delayAssignedPool,
+		    (in_addr_t) http->conn->peer.sin_addr.s_addr));
+	}
+#endif
 	/* More data will be coming from primary server; register with 
 	 * storage manager. */
 	if (EBIT_TEST(entry->flags, ENTRY_ABORTED))

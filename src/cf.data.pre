@@ -3959,6 +3959,7 @@ IFDEF: DELAY_POOLS
 LOC: Config.Delay
 DOC_START
 	This is used to determine which delay pool a request falls into.
+	It operates on the HTTP request and not the HTTP reply.
 
 	delay_access is sorted per pool and the matching starts with pool 1,
 	then pool 2, ..., and finally pool N. The first delay pool where the
@@ -4049,6 +4050,29 @@ DOC_START
 	networks only have buckets associated with them once they have been
 	"seen" by squid).
 DOC_END
+
+NAME: delay_body_max_size
+COMMENT: bytes delay_pool allow|deny acl acl...
+TYPE: delay_body_size_t
+IFDEF: DELAY_POOLS
+DEFAULT: none
+LOC: Config.DelayBodySize
+DOC_START
+        This option allows for a limit to be placed on replies before the
+	request is placed in a delay pool. It operates on the HTTP request,
+	not the HTTP reply.
+
+        It can be used to prevent users from downloading very large files at
+        high speed. When the delay headers are received, the reply_body_max_size
+        lines are processed, and the first line with a result of "allow" is used
+        as the maximum body size for this reply to be unassigned in delay_pool.
+	The client connection is inserted into the delay pool once the amount
+	of data sent to the client exceeds the value specified.
+
+	There will be no limit imposed by a rule if the "bytes" value is set to 0.
+DOC_END
+
+
 
 COMMENT_START
  WCCPv1 AND WCCPv2 CONFIGURATION OPTIONS

@@ -2510,6 +2510,30 @@ parse_body_size_t(dlink_list * bodylist)
     dlinkAddTail(bs, &bs->node, bodylist);
 }
 
+#if DELAY_POOLS
+CBDATA_TYPE(delay_body_size);
+
+static void
+parse_delay_body_size_t(dlink_list * bodylist)
+{
+    delay_body_size *dbs;
+    ushort pool;
+    CBDATA_INIT_TYPE(delay_body_size);
+    dbs = cbdataAlloc(delay_body_size);
+    dbs->maxsize = GetOffT();
+
+    parse_ushort(&pool);
+    if (pool < 1 || pool > Config.Delay.pools) {
+	debug(3, 0) ("parse_delay_body_size_t: Ignoring pool %d not in 1 .. %d\n", pool, Config.Delay.pools);
+	return;
+    }
+    dbs->pool = pool - 1;
+    aclParseAccessLine(&dbs->access_list);
+
+    dlinkAddTail(dbs, &dbs->node, bodylist);
+}
+#endif
+
 static void
 dump_body_size_t(StoreEntry * entry, const char *name, dlink_list bodylist)
 {
@@ -2533,6 +2557,32 @@ dump_body_size_t(StoreEntry * entry, const char *name, dlink_list bodylist)
     }
 }
 
+#if DELAY_POOLS
+static void
+dump_delay_body_size_t(StoreEntry * entry, const char *name, dlink_list bodylist)
+{
+    delay_body_size *dbs;
+    dbs = (delay_body_size *) bodylist.head;
+    while (dbs) {
+	acl_list *l;
+	acl_access *head = dbs->access_list;
+	while (head != NULL) {
+	    storeAppendPrintf(entry, "%s %" PRINTF_OFF_T " %u %s",
+		name, dbs->maxsize, dbs->pool,
+		head->allow ? "Allow" : "Deny");
+	    for (l = head->acl_list; l != NULL; l = l->next) {
+		storeAppendPrintf(entry, " %s%s",
+		    l->op ? null_string : "!",
+		    l->acl->name);
+	    }
+	    storeAppendPrintf(entry, "\n");
+	    head = head->next;
+	}
+	dbs = (delay_body_size *) dbs->node.next;
+    }
+}
+#endif
+
 static void
 free_body_size_t(dlink_list * bodylist)
 {
@@ -2548,11 +2598,38 @@ free_body_size_t(dlink_list * bodylist)
     }
 }
 
+#if DELAY_POOLS
+static void
+free_delay_body_size_t(dlink_list * bodylist)
+{
+    delay_body_size *dbs, *tempnode;
+    dbs = (delay_body_size *) bodylist->head;
+    while (dbs) {
+	dbs->maxsize = 0;
+	dbs->pool = 0;
+	aclDestroyAccessList(&dbs->access_list);
+	tempnode = (delay_body_size *) dbs->node.next;
+	dlinkDelete(&dbs->node, bodylist);
+	cbdataFree(dbs);
+	dbs = tempnode;
+    }
+}
+#endif
+
+
 static int
 check_null_body_size_t(dlink_list bodylist)
 {
     return bodylist.head == NULL;
 }
+
+#if DELAY_POOLS
+static int
+check_null_delay_body_size_t(dlink_list bodylist)
+{
+    return bodylist.head == NULL;
+}
+#endif
 
 
 static void

@@ -41,6 +41,7 @@
 struct _class1DelayPool {
     int class;
     int aggregate;
+    uint64_t aggregate_bytes;
 };
 
 #define IND_MAP_SZ 256
@@ -48,12 +49,14 @@ struct _class1DelayPool {
 struct _class2DelayPool {
     int class;
     int aggregate;
+    uint64_t aggregate_bytes;
     /* OK: -1 is terminator.  individual[255] is always host 255. */
     /* 255 entries + 1 terminator byte */
     unsigned char individual_map[IND_MAP_SZ];
     unsigned char individual_255_used;
     /* 256 entries */
     int individual[IND_MAP_SZ];
+    uint64_t individual_bytes[IND_MAP_SZ];
 };
 
 #define NET_MAP_SZ 256
@@ -62,18 +65,21 @@ struct _class2DelayPool {
 struct _class3DelayPool {
     int class;
     int aggregate;
+    uint64_t aggregate_bytes;
     /* OK: -1 is terminator.  network[255] is always host 255. */
     /* 255 entries + 1 terminator byte */
     unsigned char network_map[NET_MAP_SZ];
     unsigned char network_255_used;
     /* 256 entries */
     int network[256];
+    uint64_t network_bytes[256];
     /* 256 sets of (255 entries + 1 terminator byte) */
     unsigned char individual_map[NET_MAP_SZ][IND_MAP_SZ];
     /* Pack this into one bit per net */
     unsigned char individual_255_used[32];
     /* largest entry = (255<<8)+255 = 65535 */
     int individual[C3_IND_SZ];
+    uint64_t individual_bytes[C3_IND_SZ];
 };
 
 typedef struct _class1DelayPool class1DelayPool;
@@ -308,11 +314,7 @@ delayClient(clientHttpRequest * http)
 {
     request_t *r;
     aclCheck_t ch;
-    int i;
-    int j;
-    unsigned int host;
-    unsigned short pool, position;
-    unsigned char class, net;
+    ushort pool;
     assert(http);
     r = http->request;
 
@@ -329,13 +331,25 @@ delayClient(clientHttpRequest * http)
     }
     if (pool == Config.Delay.pools)
 	return delayId(0, 0);
+    return delayPoolClient(pool, ch.src_addr.s_addr);
+}
+
+delay_id
+delayPoolClient(unsigned short pool, in_addr_t addr)
+{
+    int i;
+    int j;
+    unsigned int host;
+    unsigned short position;
+    unsigned char class, net;
     class = Config.Delay.class[pool];
+    debug(77, 2) ("delayPoolClient: pool %u , class %u\n", pool, class);
     if (class == 0)
 	return delayId(0, 0);
     if (class == 1)
 	return delayId(pool + 1, 0);
     if (class == 2) {
-	host = ntohl(ch.src_addr.s_addr) & 0xff;
+	host = ntohl(addr) & 0xff;
 	if (host == 255) {
 	    if (!delay_data[pool].class2->individual_255_used) {
 		delay_data[pool].class2->individual_255_used = 1;
@@ -361,7 +375,7 @@ delayClient(clientHttpRequest * http)
 	return delayId(pool + 1, i);
     }
     /* class == 3 */
-    host = ntohl(ch.src_addr.s_addr) & 0xffff;
+    host = ntohl(addr) & 0xffff;
     net = host >> 8;
     host &= 0xff;
     if (net == 255) {
@@ -622,15 +636,25 @@ delayBytesIn(delay_id d, int qty)
     switch (class) {
     case 1:
 	delay_data[pool].class1->aggregate -= qty;
+
+	delay_data[pool].class1->aggregate_bytes += qty;
 	return;
     case 2:
 	delay_data[pool].class2->aggregate -= qty;
 	delay_data[pool].class2->individual[position] -= qty;
+
+	delay_data[pool].class2->aggregate_bytes += qty;
+	delay_data[pool].class2->individual_bytes[position] += qty;
 	return;
     case 3:
 	delay_data[pool].class3->aggregate -= qty;
 	delay_data[pool].class3->network[position >> 8] -= qty;
 	delay_data[pool].class3->individual[position] -= qty;
+
+	delay_data[pool].class3->aggregate_bytes += qty;
+	delay_data[pool].class3->network_bytes[position >> 8] += qty;
+	delay_data[pool].class3->individual_bytes[position] += qty;
+
 	return;
     }
     fatalf("delayBytesWanted: Invalid class %d\n", class);
@@ -687,7 +711,7 @@ delaySetStoreClient(store_client * sc, delay_id delay_id)
 }
 
 static void
-delayPoolStatsAg(StoreEntry * sentry, delaySpecSet * rate, int ag)
+delayPoolStatsAg(StoreEntry * sentry, delaySpecSet * rate, int ag, uint64_t bytes)
 {
     /* note - always pass delaySpecSet's by reference as may be incomplete */
     if (rate->aggregate.restore_bps == -1) {
@@ -697,7 +721,8 @@ delayPoolStatsAg(StoreEntry * sentry, delaySpecSet * rate, int ag)
     storeAppendPrintf(sentry, "\tAggregate:\n");
     storeAppendPrintf(sentry, "\t\tMax: %d\n", rate->aggregate.max_bytes);
     storeAppendPrintf(sentry, "\t\tRestore: %d\n", rate->aggregate.restore_bps);
-    storeAppendPrintf(sentry, "\t\tCurrent: %d\n\n", ag);
+    storeAppendPrintf(sentry, "\t\tCurrent: %d\n", ag);
+    storeAppendPrintf(sentry, "\t\tBytes Transferred: %" PRIu64 "\n\n", bytes);
 }
 
 static void
@@ -707,7 +732,7 @@ delayPoolStats1(StoreEntry * sentry, unsigned short pool)
     delaySpecSet *rate = Config.Delay.rates[pool];
 
     storeAppendPrintf(sentry, "Pool: %d\n\tClass: 1\n\n", pool + 1);
-    delayPoolStatsAg(sentry, rate, delay_data[pool].class1->aggregate);
+    delayPoolStatsAg(sentry, rate, delay_data[pool].class1->aggregate, delay_data[pool].class1->aggregate_bytes);
 }
 
 static void
@@ -720,7 +745,7 @@ delayPoolStats2(StoreEntry * sentry, unsigned short pool)
     unsigned int i;
 
     storeAppendPrintf(sentry, "Pool: %d\n\tClass: 2\n\n", pool + 1);
-    delayPoolStatsAg(sentry, rate, class2->aggregate);
+    delayPoolStatsAg(sentry, rate, class2->aggregate, class2->aggregate_bytes);
     if (rate->individual.restore_bps == -1) {
 	storeAppendPrintf(sentry, "\tIndividual:\n\t\tDisabled.\n\n");
 	return;
@@ -732,12 +757,12 @@ delayPoolStats2(StoreEntry * sentry, unsigned short pool)
     for (i = 0; i < IND_MAP_SZ; i++) {
 	if (class2->individual_map[i] == 255)
 	    break;
-	storeAppendPrintf(sentry, "%d:%d ", class2->individual_map[i],
-	    class2->individual[i]);
+	storeAppendPrintf(sentry, "%d:%d (%" PRIu64 ") ", class2->individual_map[i],
+	    class2->individual[i], class2->individual_bytes[i]);
 	shown = 1;
     }
     if (class2->individual_255_used) {
-	storeAppendPrintf(sentry, "%d:%d ", 255, class2->individual[255]);
+	storeAppendPrintf(sentry, "%d:%d (%" PRIu64 ")", 255, class2->individual[255], class2->individual_bytes[255]);
 	shown = 1;
     }
     if (!shown)
@@ -756,7 +781,7 @@ delayPoolStats3(StoreEntry * sentry, unsigned short pool)
     unsigned int j;
 
     storeAppendPrintf(sentry, "Pool: %d\n\tClass: 3\n\n", pool + 1);
-    delayPoolStatsAg(sentry, rate, class3->aggregate);
+    delayPoolStatsAg(sentry, rate, class3->aggregate, class3->aggregate_bytes);
     if (rate->network.restore_bps == -1) {
 	storeAppendPrintf(sentry, "\tNetwork:\n\t\tDisabled.");
     } else {
@@ -767,12 +792,12 @@ delayPoolStats3(StoreEntry * sentry, unsigned short pool)
 	for (i = 0; i < NET_MAP_SZ; i++) {
 	    if (class3->network_map[i] == 255)
 		break;
-	    storeAppendPrintf(sentry, "%d:%d ", class3->network_map[i],
-		class3->network[i]);
+	    storeAppendPrintf(sentry, "%d:%d (%" PRIu64 ") ", class3->network_map[i],
+		class3->network[i], class3->network_bytes[i]);
 	    shown = 1;
 	}
 	if (class3->network_255_used) {
-	    storeAppendPrintf(sentry, "%d:%d ", 255, class3->network[255]);
+	    storeAppendPrintf(sentry, "%d:%d (%" PRIu64 ") ", 255, class3->network[255], class3->network_bytes[255]);
 	    shown = 1;
 	}
 	if (!shown)
@@ -795,11 +820,11 @@ delayPoolStats3(StoreEntry * sentry, unsigned short pool)
 	for (j = 0; j < IND_MAP_SZ; j++) {
 	    if (class3->individual_map[i][j] == 255)
 		break;
-	    storeAppendPrintf(sentry, "%d:%d ", class3->individual_map[i][j],
-		class3->individual[(i << 8) | j]);
+	    storeAppendPrintf(sentry, "%d:%d (%" PRIu64 ") ", class3->individual_map[i][j],
+		class3->individual[(i << 8) | j], class3->individual_bytes[(i << 8) | j]);
 	}
 	if (class3->individual_255_used[i / 8] & (1 << (i % 8))) {
-	    storeAppendPrintf(sentry, "%d:%d ", 255, class3->individual[(i << 8) | 255]);
+	    storeAppendPrintf(sentry, "%d:%d (%" PRIu64 ") ", 255, class3->individual[(i << 8) | 255], class3->individual_bytes[(i << 8) | 255]);
 	}
 	storeAppendPrintf(sentry, "\n");
     }

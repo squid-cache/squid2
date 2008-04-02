@@ -522,6 +522,7 @@ extern time_t httpReplyExpires(const HttpReply * rep);
 extern int httpReplyHasCc(const HttpReply * rep, http_hdr_cc_type type);
 extern void httpRedirectReply(HttpReply *, http_status, const char *);
 extern squid_off_t httpReplyBodySize(method_t, const HttpReply *);
+extern squid_off_t httpDelayBodySize(method_t, const HttpReply *);
 extern HttpReply *httpReplyClone(HttpReply * src);
 
 /* Http Request */
@@ -1324,6 +1325,7 @@ extern void delaySetNoDelay(int fd);
 extern void delayClearNoDelay(int fd);
 extern int delayIsNoDelay(int fd);
 extern delay_id delayClient(clientHttpRequest *);
+extern delay_id delayPoolClient(unsigned short pool, in_addr_t client);
 extern EVH delayPoolsUpdate;
 extern int delayBytesWanted(delay_id d, int min, int max);
 extern void delayBytesIn(delay_id, int qty);
