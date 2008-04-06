@@ -361,12 +361,24 @@ storeClientFileRead(store_client * sc)
     }
 }
 
+/*
+ * Try to parse the header.
+ * return -1 on error, 0 on more required, +1 on completed.
+ */
+static int
+storeClientParseHeader(store_client * sc, const char *b, int l)
+{
+    if (sc->copy_offset == 0 && l > 0 && memHaveHeaders(sc->entry->mem_obj) == 0)
+	return httpReplyParse(sc->entry->mem_obj->reply, b, headersEnd(b, l));
+    else
+	return 1;
+}
+
 static void
 storeClientReadBody(void *data, const char *buf_unused, ssize_t len)
 {
     char *cbuf = NULL;
     store_client *sc = data;
-    MemObject *mem = sc->entry->mem_obj;
     assert(sc->flags.disk_io_pending);
 
     sc->flags.disk_io_pending = 0;
@@ -376,8 +388,7 @@ storeClientReadBody(void *data, const char *buf_unused, ssize_t len)
     /* XXX update how much data in that mem page is active; argh this should be done in a storage layer */
     sc->node_ref.node->len = len;
     debug(20, 3) ("storeClientReadBody: len %d\n", (int) len);
-    if (sc->copy_offset == 0 && len > 0 && memHaveHeaders(mem) == 0)
-	httpReplyParse(mem->reply, cbuf, headersEnd(cbuf, len));
+    (void) storeClientParseHeader(sc, cbuf, len);
     storeClientCallback(sc, len);
 }
 
@@ -532,8 +543,7 @@ storeClientReadHeader(void *data, const char *buf_unused, ssize_t len)
 	    sc, sc->node_ref.node, sc->node_ref.node->data, (int) copy_sz, (int) len);
 	xmemmove(cbuf, cbuf + swap_hdr_sz, copy_sz);
 	if (sc->copy_offset == 0 && len > 0 && memHaveHeaders(mem) == 0)
-	    httpReplyParse(mem->reply, cbuf,
-		headersEnd(cbuf, copy_sz));
+	    (void) storeClientParseHeader(sc, cbuf, copy_sz);
 	storeClientCallback(sc, copy_sz);
 	return;
     }
