@@ -101,6 +101,7 @@ static hash_table *delay_id_ptr_hash = NULL;
 static long memory_used = 0;
 
 static OBJH delayPoolStats;
+static OBJH delayPoolStatsNew;
 
 static unsigned int
 delayIdPtrHash(const void *key, unsigned int n)
@@ -142,6 +143,7 @@ delayPoolsInit(void)
     delay_pools_last_update = getCurrentTime();
     delay_no_delay = xcalloc(1, Squid_MaxFD);
     cachemgrRegister("delay", "Delay Pool Levels", delayPoolStats, 0, 1);
+    cachemgrRegister("delay2", "Delay Pool Statistics", delayPoolStatsNew, 0, 1);
 }
 
 void
@@ -711,32 +713,58 @@ delaySetStoreClient(store_client * sc, delay_id delay_id)
 }
 
 static void
-delayPoolStatsAg(StoreEntry * sentry, delaySpecSet * rate, int ag, uint64_t bytes)
+delayPoolStatsAg(StoreEntry * sentry, int pool, int type, delaySpecSet * rate, int ag, uint64_t bytes)
 {
     /* note - always pass delaySpecSet's by reference as may be incomplete */
     if (rate->aggregate.restore_bps == -1) {
-	storeAppendPrintf(sentry, "\tAggregate:\n\t\tDisabled.\n\n");
+	if (type == 1)
+	    storeAppendPrintf(sentry, "\tAggregate:\n\t\tDisabled.\n\n");
 	return;
     }
-    storeAppendPrintf(sentry, "\tAggregate:\n");
-    storeAppendPrintf(sentry, "\t\tMax: %d\n", rate->aggregate.max_bytes);
-    storeAppendPrintf(sentry, "\t\tRestore: %d\n", rate->aggregate.restore_bps);
-    storeAppendPrintf(sentry, "\t\tCurrent: %d\n", ag);
-    storeAppendPrintf(sentry, "\t\tBytes Transferred: %" PRIu64 "\n\n", bytes);
+    if (type == 1) {
+	storeAppendPrintf(sentry, "\tAggregate:\n");
+	storeAppendPrintf(sentry, "\t\tMax: %d\n", rate->aggregate.max_bytes);
+	storeAppendPrintf(sentry, "\t\tRestore: %d\n", rate->aggregate.restore_bps);
+	storeAppendPrintf(sentry, "\t\tCurrent: %d\n", ag);
+    } else {
+	storeAppendPrintf(sentry, "pools.pool.%d.max=%d\n", pool + 1, rate->aggregate.max_bytes);
+	storeAppendPrintf(sentry, "pools.pool.%d.restore=%d\n", pool + 1, rate->aggregate.restore_bps);
+	storeAppendPrintf(sentry, "pools.pool.%d.current=%d\n", pool + 1, ag);
+	storeAppendPrintf(sentry, "pools.pool.%d.bytes=%" PRIu64 "\n", pool + 1, bytes);
+    }
 }
 
 static void
-delayPoolStats1(StoreEntry * sentry, unsigned short pool)
+delayPoolStats1(StoreEntry * sentry, int type, unsigned short pool)
 {
     /* must be a reference only - partially malloc()d struct */
     delaySpecSet *rate = Config.Delay.rates[pool];
 
-    storeAppendPrintf(sentry, "Pool: %d\n\tClass: 1\n\n", pool + 1);
-    delayPoolStatsAg(sentry, rate, delay_data[pool].class1->aggregate, delay_data[pool].class1->aggregate_bytes);
+    if (type == 1) {
+	storeAppendPrintf(sentry, "Pool: %d\n\tClass: 1\n\n", pool + 1);
+    } else {
+	storeAppendPrintf(sentry, "pools.pool.%d.class=1\n", pool + 1);
+    }
+    delayPoolStatsAg(sentry, pool, type, rate, delay_data[pool].class1->aggregate, delay_data[pool].class1->aggregate_bytes);
+    storeAppendPrintf(sentry, "\n");
 }
 
 static void
-delayPoolStats2(StoreEntry * sentry, unsigned short pool)
+delayPoolStats2Individual(StoreEntry * sentry, int type, unsigned short pool, int i)
+{
+    class2DelayPool *class2 = delay_data[pool].class2;
+
+    if (type == 1) {
+	storeAppendPrintf(sentry, "%d:%d ", class2->individual_map[i],
+	    class2->individual[i]);
+    } else {
+	storeAppendPrintf(sentry, "pools.pool.%d.individuals.%d.rate=%d\n", pool + 1, class2->individual_map[i], class2->individual[i]);
+	storeAppendPrintf(sentry, "pools.pool.%d.individuals.%d.bytes=%" PRIu64 "\n", pool + 1, class2->individual_map[i], class2->individual_bytes[i]);
+    }
+}
+
+static void
+delayPoolStats2(StoreEntry * sentry, int type, unsigned short pool)
 {
     /* must be a reference only - partially malloc()d struct */
     delaySpecSet *rate = Config.Delay.rates[pool];
@@ -744,105 +772,160 @@ delayPoolStats2(StoreEntry * sentry, unsigned short pool)
     unsigned char shown = 0;
     unsigned int i;
 
-    storeAppendPrintf(sentry, "Pool: %d\n\tClass: 2\n\n", pool + 1);
-    delayPoolStatsAg(sentry, rate, class2->aggregate, class2->aggregate_bytes);
+    if (type == 1)
+	storeAppendPrintf(sentry, "Pool: %d\n\tClass: 2\n\n", pool + 1);
+    else
+	storeAppendPrintf(sentry, "pools.pool.%d.class=2\n", pool + 1);
+
+    delayPoolStatsAg(sentry, pool, type, rate, class2->aggregate, class2->aggregate_bytes);
     if (rate->individual.restore_bps == -1) {
-	storeAppendPrintf(sentry, "\tIndividual:\n\t\tDisabled.\n\n");
+	if (type == 1)
+	    storeAppendPrintf(sentry, "\tIndividual:\n\t\tDisabled.\n\n");
 	return;
     }
-    storeAppendPrintf(sentry, "\tIndividual:\n");
-    storeAppendPrintf(sentry, "\t\tMax: %d\n", rate->individual.max_bytes);
-    storeAppendPrintf(sentry, "\t\tRate: %d\n", rate->individual.restore_bps);
-    storeAppendPrintf(sentry, "\t\tCurrent: ");
+    if (type == 1) {
+	storeAppendPrintf(sentry, "\tIndividual:\n");
+	storeAppendPrintf(sentry, "\t\tMax: %d\n", rate->individual.max_bytes);
+	storeAppendPrintf(sentry, "\t\tRate: %d\n", rate->individual.restore_bps);
+	storeAppendPrintf(sentry, "\t\tCurrent: ");
+    } else {
+	storeAppendPrintf(sentry, "pools.pool.%d.individual.max=%d\n", pool + 1, rate->individual.max_bytes);
+	storeAppendPrintf(sentry, "pools.pool.%d.individual.rate=%d\n", pool + 1, rate->individual.restore_bps);
+    }
     for (i = 0; i < IND_MAP_SZ; i++) {
 	if (class2->individual_map[i] == 255)
 	    break;
-	storeAppendPrintf(sentry, "%d:%d (%" PRIu64 ") ", class2->individual_map[i],
-	    class2->individual[i], class2->individual_bytes[i]);
+	delayPoolStats2Individual(sentry, type, pool, i);
 	shown = 1;
     }
     if (class2->individual_255_used) {
-	storeAppendPrintf(sentry, "%d:%d (%" PRIu64 ")", 255, class2->individual[255], class2->individual_bytes[255]);
+	delayPoolStats2Individual(sentry, type, pool, 255);
 	shown = 1;
     }
-    if (!shown)
+    if (type == 1 && !shown)
 	storeAppendPrintf(sentry, "Not used yet.");
     storeAppendPrintf(sentry, "\n\n");
 }
 
+
 static void
-delayPoolStats3(StoreEntry * sentry, unsigned short pool)
+delayPoolStats3Network(StoreEntry * e, int type, unsigned short pool, int i)
+{
+    class3DelayPool *class3 = delay_data[pool].class3;
+
+    if (type == 1) {
+	storeAppendPrintf(e, "%d:%d ", class3->network_map[i],
+	    class3->network[i]);
+    } else {
+	storeAppendPrintf(e, "pools.pool.%d.networks.%d.rate=%d\n", pool + 1, class3->network_map[i], class3->network[i]);;
+	storeAppendPrintf(e, "pools.pool.%d.networks.%d.bytes=%" PRIu64 "\n", pool + 1, class3->network_map[i], class3->network_bytes[i]);
+    }
+}
+
+static void
+delayPoolStats3Individual(StoreEntry * e, int type, unsigned short pool, int i, int j)
+{
+    class3DelayPool *class3 = delay_data[pool].class3;
+
+    if (type == 1) {
+	storeAppendPrintf(e, "%d:%d ", class3->individual_map[i][j],
+	    class3->individual[(i << 8) | j]);
+    } else {
+	storeAppendPrintf(e, "pools.pool.%d.networks.%d.individuals.%d.rate=%d\n", pool + 1, class3->network_map[i], class3->individual_map[i][j], class3->individual[(i << 8) | j]);
+	storeAppendPrintf(e, "pools.pool.%d.networks.%d.individuals.%d.bytes=%" PRIu64 "\n", pool + 1, class3->network_map[i], class3->individual_map[i][j], class3->individual_bytes[(i << 8) | j]);
+    }
+}
+
+static int
+delayPoolStats3IndNetwork(StoreEntry * sentry, int type, unsigned short pool, int i)
+{
+    int j;
+    int shown = 0;
+    class3DelayPool *class3 = delay_data[pool].class3;
+
+    if (type == 1)
+	storeAppendPrintf(sentry, "\t\tCurrent [Network %d]: ", class3->network_map[i]);
+    shown = 1;
+
+    for (j = 0; j < IND_MAP_SZ; j++) {
+	if (class3->individual_map[i][j] == 255)
+	    break;
+	delayPoolStats3Individual(sentry, type, pool, i, j);
+	shown = 1;
+    }
+    if (class3->individual_255_used[i / 8] & (1 << (i % 8))) {
+	delayPoolStats3Individual(sentry, type, pool, i, 255);
+	shown = 1;
+    }
+    if (type == 1)
+	storeAppendPrintf(sentry, "\n");
+    return shown;
+}
+
+static void
+delayPoolStats3(StoreEntry * sentry, int type, unsigned short pool)
 {
     /* fully malloc()d struct in this case only */
     delaySpecSet *rate = Config.Delay.rates[pool];
     class3DelayPool *class3 = delay_data[pool].class3;
     unsigned char shown = 0;
     unsigned int i;
-    unsigned int j;
 
-    storeAppendPrintf(sentry, "Pool: %d\n\tClass: 3\n\n", pool + 1);
-    delayPoolStatsAg(sentry, rate, class3->aggregate, class3->aggregate_bytes);
-    if (rate->network.restore_bps == -1) {
+    if (type == 1)
+	storeAppendPrintf(sentry, "Pool: %d\n\tClass: 3\n\n", pool + 1);
+    else
+	storeAppendPrintf(sentry, "pools.pool.%d.class=3\n", pool + 1);
+    delayPoolStatsAg(sentry, pool, type, rate, class3->aggregate, class3->aggregate_bytes);
+    if ((type == 1) && rate->network.restore_bps == -1) {
 	storeAppendPrintf(sentry, "\tNetwork:\n\t\tDisabled.");
     } else {
-	storeAppendPrintf(sentry, "\tNetwork:\n");
-	storeAppendPrintf(sentry, "\t\tMax: %d\n", rate->network.max_bytes);
-	storeAppendPrintf(sentry, "\t\tRate: %d\n", rate->network.restore_bps);
-	storeAppendPrintf(sentry, "\t\tCurrent: ");
+	if (type == 1) {
+	    storeAppendPrintf(sentry, "\tNetwork:\n");
+	    storeAppendPrintf(sentry, "\t\tMax: %d\n", rate->network.max_bytes);
+	    storeAppendPrintf(sentry, "\t\tRate: %d\n", rate->network.restore_bps);
+	    storeAppendPrintf(sentry, "\t\tCurrent: ");
+	} else {
+	    storeAppendPrintf(sentry, "pools.pool.%d.network.max=%d\n", pool + 1, rate->network.max_bytes);
+	    storeAppendPrintf(sentry, "pools.pool.%d.network.rate=%d\n", pool + 1, rate->network.restore_bps);
+	}
 	for (i = 0; i < NET_MAP_SZ; i++) {
 	    if (class3->network_map[i] == 255)
 		break;
-	    storeAppendPrintf(sentry, "%d:%d (%" PRIu64 ") ", class3->network_map[i],
-		class3->network[i], class3->network_bytes[i]);
+	    delayPoolStats3Network(sentry, type, pool, i);
 	    shown = 1;
 	}
 	if (class3->network_255_used) {
-	    storeAppendPrintf(sentry, "%d:%d (%" PRIu64 ") ", 255, class3->network[255], class3->network_bytes[255]);
+	    delayPoolStats3Network(sentry, type, pool, 255);
 	    shown = 1;
 	}
-	if (!shown)
+	if ((type == 1) && !shown)
 	    storeAppendPrintf(sentry, "Not used yet.");
     }
-    storeAppendPrintf(sentry, "\n\n");
+    if (type == 1)
+	storeAppendPrintf(sentry, "\n\n");
     shown = 0;
     if (rate->individual.restore_bps == -1) {
-	storeAppendPrintf(sentry, "\tIndividual:\n\t\tDisabled.\n\n");
+	if (type == 1)
+	    storeAppendPrintf(sentry, "\tIndividual:\n\t\tDisabled.\n\n");
 	return;
     }
-    storeAppendPrintf(sentry, "\tIndividual:\n");
-    storeAppendPrintf(sentry, "\t\tMax: %d\n", rate->individual.max_bytes);
-    storeAppendPrintf(sentry, "\t\tRate: %d\n", rate->individual.restore_bps);
+    if (type == 1) {
+	storeAppendPrintf(sentry, "\tIndividual:\n");
+	storeAppendPrintf(sentry, "\t\tMax: %d\n", rate->individual.max_bytes);
+	storeAppendPrintf(sentry, "\t\tRate: %d\n", rate->individual.restore_bps);
+    } else {
+	storeAppendPrintf(sentry, "pools.pool.%d.individual.max=%d\n", pool + 1, rate->individual.max_bytes);
+	storeAppendPrintf(sentry, "pools.pool.%d.individual.rate=%d\n", pool + 1, rate->individual.restore_bps);
+    }
     for (i = 0; i < NET_MAP_SZ; i++) {
 	if (class3->network_map[i] == 255)
 	    break;
-	storeAppendPrintf(sentry, "\t\tCurrent [Network %d]: ", class3->network_map[i]);
-	shown = 1;
-	for (j = 0; j < IND_MAP_SZ; j++) {
-	    if (class3->individual_map[i][j] == 255)
-		break;
-	    storeAppendPrintf(sentry, "%d:%d (%" PRIu64 ") ", class3->individual_map[i][j],
-		class3->individual[(i << 8) | j], class3->individual_bytes[(i << 8) | j]);
-	}
-	if (class3->individual_255_used[i / 8] & (1 << (i % 8))) {
-	    storeAppendPrintf(sentry, "%d:%d (%" PRIu64 ") ", 255, class3->individual[(i << 8) | 255], class3->individual_bytes[(i << 8) | 255]);
-	}
-	storeAppendPrintf(sentry, "\n");
+	shown |= delayPoolStats3IndNetwork(sentry, type, pool, i);
     }
-    if (class3->network_255_used) {
-	storeAppendPrintf(sentry, "\t\tCurrent [Network 255]: ");
-	shown = 1;
-	for (j = 0; j < IND_MAP_SZ; j++) {
-	    if (class3->individual_map[255][j] == 255)
-		break;
-	    storeAppendPrintf(sentry, "%d:%d ", class3->individual_map[255][j],
-		class3->individual[(255 << 8) | j]);
-	}
-	if (class3->individual_255_used[255 / 8] & (1 << (255 % 8))) {
-	    storeAppendPrintf(sentry, "%d:%d ", 255, class3->individual[(255 << 8) | 255]);
-	}
-	storeAppendPrintf(sentry, "\n");
-    }
-    if (!shown)
+    if (class3->network_255_used)
+	shown |= delayPoolStats3IndNetwork(sentry, type, pool, 255);
+
+    if ((type == 1) && !shown)
 	storeAppendPrintf(sentry, "\t\tCurrent [All networks]: Not used yet.\n");
     storeAppendPrintf(sentry, "\n");
 }
@@ -860,19 +943,45 @@ delayPoolStats(StoreEntry * sentry)
 	    storeAppendPrintf(sentry, "\tMisconfigured pool.\n\n");
 	    break;
 	case 1:
-	    delayPoolStats1(sentry, i);
+	    delayPoolStats1(sentry, 1, i);
 	    break;
 	case 2:
-	    delayPoolStats2(sentry, i);
+	    delayPoolStats2(sentry, 1, i);
 	    break;
 	case 3:
-	    delayPoolStats3(sentry, i);
+	    delayPoolStats3(sentry, 1, i);
 	    break;
 	default:
 	    assert(0);
 	}
     }
     storeAppendPrintf(sentry, "Memory Used: %d bytes\n", (int) memory_used);
+}
+
+static void
+delayPoolStatsNew(StoreEntry * e)
+{
+    unsigned short i;
+
+    storeAppendPrintf(e, "pools.npools=%d\n\n", Config.Delay.pools);
+    for (i = 0; i < Config.Delay.pools; i++) {
+	switch (Config.Delay.class[i]) {
+	case 0:
+	    storeAppendPrintf(e, "pools.pool.%d.class=0\n\n", i + 1);
+	    break;
+	case 1:
+	    delayPoolStats1(e, 2, i);
+	    break;
+	case 2:
+	    delayPoolStats2(e, 2, i);
+	    break;
+	case 3:
+	    delayPoolStats3(e, 2, i);
+	    break;
+	default:
+	    assert(0);
+	}
+    }
 }
 
 #endif
