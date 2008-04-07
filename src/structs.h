@@ -1273,8 +1273,6 @@ struct _clientHttpRequest {
     squid_off_t delayMaxBodySize;
     ushort delayAssignedPool;
     mem_node_ref nr;
-    STHCB *header_callback;	/* Temporarily here for storeClientCopyHeaders */
-    StoreEntry *header_entry;	/* Temporarily here for storeClientCopyHeaders */
     int is_modified;
 };
 
@@ -1680,6 +1678,8 @@ struct _store_client {
     mem_node_ref node_ref;
     STNCB *new_callback;
     void *callback_data;
+    STHCB *header_callback;
+    void *header_cbdata;
     StoreEntry *entry;		/* ptr to the parent StoreEntry, argh! */
     storeIOState *swapin_sio;
     struct {

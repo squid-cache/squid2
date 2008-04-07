@@ -167,31 +167,6 @@ static int modifiedSince(StoreEntry *, request_t *);
 static StoreEntry *clientCreateStoreEntry(clientHttpRequest *, method_t, request_flags);
 static inline int clientNatLookup(ConnStateData * conn);
 
-/* Temporary here while restructuring stuff */
-static void
-storeClientCopyHeadersCB(void *data, mem_node_ref nr, ssize_t size)
-{
-    clientHttpRequest *http = data;
-    assert(http->header_callback);
-    assert(http->header_entry);
-    stmemNodeUnref(&nr);
-    if (!http->header_entry)
-	return;
-    if (size < 0 || !memHaveHeaders(http->header_entry->mem_obj)) {
-	http->header_callback(data, NULL);
-	return;
-    }
-    http->header_callback(data, http->header_entry->mem_obj->reply);
-}
-void
-storeClientCopyHeaders(store_client * sc, StoreEntry * e, STHCB * callback, void *callback_data)
-{
-    clientHttpRequest *http = callback_data;
-    http->header_callback = callback;
-    http->header_entry = e;
-    storeClientRef(http->sc, e, 0, 0, SM_PAGE_SIZE, storeClientCopyHeadersCB, http);
-}
-
 #if USE_IDENT
 static void
 clientIdentDone(const char *ident, void *data)

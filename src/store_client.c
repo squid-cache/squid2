@@ -739,3 +739,31 @@ CheckQuickAbort(StoreEntry * entry)
     statCounter.aborted_requests++;
     storeAbort(entry);
 }
+
+static void
+storeClientCopyHeadersCB(void *data, mem_node_ref nr, ssize_t size)
+{
+    store_client *sc = data;
+    assert(sc->header_cbdata);
+    assert(sc->header_callback);
+    stmemNodeUnref(&nr);
+    /* XXX should cbdata lock/unlock the cbdata? */
+    if (size < 0 || !memHaveHeaders(sc->entry->mem_obj)) {
+	sc->header_callback(sc->header_cbdata, NULL);
+	return;
+    }
+    sc->header_callback(sc->header_cbdata, sc->entry->mem_obj->reply);
+}
+
+/*
+ * This is the eventual API which store clients should use to fetch the headers.
+ */
+void
+storeClientCopyHeaders(store_client * sc, StoreEntry * e, STHCB * callback, void *callback_data)
+{
+    sc->header_callback = callback;
+    sc->header_cbdata = callback_data;
+
+    /* This kicks off either the memory read, waiting for the data to appear, or the disk read */
+    storeClientRef(sc, e, 0, 0, SM_PAGE_SIZE, storeClientCopyHeadersCB, sc);
+}
