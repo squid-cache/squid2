@@ -47,7 +47,6 @@ struct _PeerMonitor {
 	store_client *sc;
 	int size;
 	http_status status;
-	int hdr_size;
 	int offset;
 	char *buf;
 	int timeout_set;
@@ -87,7 +86,8 @@ static void
 peerMonitorFetchReplyHeaders(void *data, char *buf, ssize_t size)
 {
     PeerMonitor *pm = data;
-    size_t hdr_size;
+    HttpReply *reply;
+    http_status status;
 
     if (EBIT_TEST(pm->running.e->flags, ENTRY_ABORTED))
 	goto completed;
@@ -96,25 +96,20 @@ peerMonitorFetchReplyHeaders(void *data, char *buf, ssize_t size)
     if (!cbdataValid(pm->peer))
 	goto completed;
 
-    if ((hdr_size = headersEnd(buf, size))) {
-	http_status status;
-	HttpReply *reply = pm->running.e->mem_obj->reply;
-	assert(reply);
-	/* httpReplyParse(reply, buf, hdr_size); */
-	status = reply->sline.status;
-	pm->running.status = status;
-	if (status != HTTP_OK)
-	    goto completed;
-	pm->running.size = size - hdr_size;
+    reply = pm->running.e->mem_obj->reply;
+    assert(reply);
+    status = reply->sline.status;
+    pm->running.status = status;
+    if (status != HTTP_OK)
+	goto completed;
+    if (size > reply->hdr_sz) {
+	pm->running.size = size - reply->hdr_sz;
 	pm->running.offset = size;
-	storeClientCopy(pm->running.sc, pm->running.e, pm->running.offset, pm->running.offset, 4096, buf, peerMonitorFetchReply, pm);
     } else {
-	/* need more data, do we have space? */
-	if (size >= 4096)
-	    goto completed;
-	else
-	    storeClientCopy(pm->running.sc, pm->running.e, size, 0, 4096, buf, peerMonitorFetchReplyHeaders, pm);
+	pm->running.size = 0;
+	pm->running.offset = reply->hdr_sz;
     }
+    storeClientCopy(pm->running.sc, pm->running.e, pm->running.offset, pm->running.offset, 4096, buf, peerMonitorFetchReply, pm);
     return;
 
   completed:

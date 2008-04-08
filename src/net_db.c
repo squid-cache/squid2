@@ -560,29 +560,21 @@ netdbExchangeHandleReply(void *data, char *buf, ssize_t size)
     p = buf;
     if (0 == ex->used) {
 	/* skip reply headers */
-	if ((hdr_sz = headersEnd(p, size))) {
-	    debug(38, 5) ("netdbExchangeHandleReply: hdr_sz = %ld\n", (long int) hdr_sz);
-	    rep = ex->e->mem_obj->reply;
-	    if (0 == rep->sline.status)
-		httpReplyParse(rep, buf, hdr_sz);
-	    debug(38, 3) ("netdbExchangeHandleReply: reply status %d\n",
-		rep->sline.status);
-	    if (HTTP_OK != rep->sline.status) {
-		netdbExchangeDone(ex);
-		return;
-	    }
-	    assert(size >= hdr_sz);
-	    ex->used += hdr_sz;
+	rep = ex->e->mem_obj->reply;
+	hdr_sz = rep->hdr_sz;
+	debug(38, 5) ("netdbExchangeHandleReply: hdr_sz = %ld\n", (long int) hdr_sz);
+	debug(38, 3) ("netdbExchangeHandleReply: reply status %d\n",
+	    rep->sline.status);
+	if (HTTP_OK != rep->sline.status) {
+	    netdbExchangeDone(ex);
+	    return;
+	}
+	ex->used += hdr_sz;
+	if (size < hdr_sz) {
 	    size -= hdr_sz;
 	    p += hdr_sz;
 	} else {
-	    if (size >= ex->buf_sz) {
-		debug(38, 3) ("netdbExchangeHandleReply: Too big HTTP header, aborting\n");
-		netdbExchangeDone(ex);
-		return;
-	    } else {
-		size = 0;
-	    }
+	    size = 0;
 	}
     }
     debug(38, 5) ("netdbExchangeHandleReply: start parsing loop, size = %ld\n",

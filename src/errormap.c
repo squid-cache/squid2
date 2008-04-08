@@ -113,7 +113,8 @@ static void
 errorMapFetchHeaders(void *data, char *buf, ssize_t size)
 {
     ErrorMapState *state = data;
-    size_t hdr_size;
+    HttpReply *reply;
+    http_status status;
 
     if (EBIT_TEST(state->e->flags, ENTRY_ABORTED))
 	goto abort;
@@ -122,27 +123,16 @@ errorMapFetchHeaders(void *data, char *buf, ssize_t size)
     if (!cbdataValid(state->callback_data))
 	goto abort;
 
-    if ((hdr_size = headersEnd(buf, size))) {
-	http_status status;
-	/* httpReplyParse(reply, buf, hdr_size); */
-	HttpReply *reply = state->e->mem_obj->reply;
-	assert(reply);
-	status = reply->sline.status;
-	if (status != HTTP_OK)
-	    goto abort;
-	/* Send object to caller (cbdataValid verified above) */
-	state->callback(state->e, hdr_size, httpHeaderGetSize(&reply->header, HDR_CONTENT_LENGTH), state->callback_data);
-	errorMapFetchComplete(state);
-	goto done;
-    }
-    if (size >= 4096) {
-	/* Not enought space for reply headers */
+    reply = state->e->mem_obj->reply;
+
+    status = reply->sline.status;
+    if (status != HTTP_OK)
 	goto abort;
-    }
-    /* Need more data */
-    storeClientCopy(state->sc, state->e, size, 0, 4096, state->buf, errorMapFetchHeaders, state);
-  done:
+    /* Send object to caller (cbdataValid verified above) */
+    state->callback(state->e, reply->hdr_sz, httpHeaderGetSize(&reply->header, HDR_CONTENT_LENGTH), state->callback_data);
+    errorMapFetchComplete(state);
     return;
+
   abort:
     errorMapFetchAbort(state);
     return;
