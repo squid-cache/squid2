@@ -177,7 +177,6 @@ urnHandleReply(void *data, mem_node_ref nr, ssize_t size)
     StoreEntry *e = urnState->entry;
     StoreEntry *urlres_e = urnState->urlres_e;
     const char *s = NULL;
-    size_t k;
     HttpReply *rep;
     url_entry *urls;
     url_entry *u;
@@ -210,17 +209,6 @@ urnHandleReply(void *data, mem_node_ref nr, ssize_t size)
 	    urnState);
 	return;
     }
-    /* we know its STORE_OK */
-    k = headersEnd(buf, size);
-    if (0 == k) {
-	debug(52, 1) ("urnHandleReply: didn't find end-of-headers for %s\n",
-	    storeUrl(e));
-	stmemNodeUnref(&nr);
-	return;
-    }
-    s = buf + k;
-    assert(urlres_e->mem_obj->reply);
-    httpReplyParse(urlres_e->mem_obj->reply, buf, k);
     debug(52, 3) ("mem->reply exists, code=%d.\n",
 	urlres_e->mem_obj->reply->sline.status);
     if (urlres_e->mem_obj->reply->sline.status != HTTP_OK) {
@@ -231,13 +219,27 @@ urnHandleReply(void *data, mem_node_ref nr, ssize_t size)
 	stmemNodeUnref(&nr);
 	return;
     }
-    while (xisspace(*s))
+    /* Make sure the data is null terminated so we can parse it as a string */
+    if (size == SM_PAGE_SIZE)
+	size--;
+    s = buf + urlres_e->mem_obj->reply->hdr_sz;
+    size -= urlres_e->mem_obj->reply->hdr_sz;
+    if (size < 0)
+	goto error;
+    while (size > 0 && xisspace(*s)) {
 	s++;
-    urls = urnParseReply(s, urnState->request->method);
+	size--;
+    }
+    {
+	char *t = xstrndup(s, size);
+	urls = urnParseReply(t, urnState->request->method);
+	safe_free(t);
+    }
     for (i = 0; NULL != urls[i].url; i++)
 	urlcnt++;
     debug(52, 3) ("urnHandleReply: Counted %d URLs\n", i);
     if (urls == NULL) {		/* unkown URN error */
+      error:
 	debug(52, 3) ("urnHandleReply: unknown URN %s\n", storeUrl(e));
 	err = errorCon(ERR_URN_RESOLVE, HTTP_NOT_FOUND, urnState->request);
 	err->url = xstrdup(storeUrl(e));

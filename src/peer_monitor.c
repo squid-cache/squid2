@@ -47,7 +47,6 @@ struct _PeerMonitor {
 	store_client *sc;
 	int size;
 	http_status status;
-	int hdr_size;
 	int offset;
 	int timeout_set;
     } running;
@@ -87,8 +86,9 @@ static void
 peerMonitorFetchReplyHeaders(void *data, mem_node_ref nr, ssize_t size)
 {
     PeerMonitor *pm = data;
-    size_t hdr_size;
     const char *buf = NULL;
+    http_status status;
+    HttpReply *reply;
 
     if (EBIT_TEST(pm->running.e->flags, ENTRY_ABORTED))
 	goto completed;
@@ -99,25 +99,20 @@ peerMonitorFetchReplyHeaders(void *data, mem_node_ref nr, ssize_t size)
 
     buf = nr.node->data + nr.offset;
 
-    if ((hdr_size = headersEnd(buf, size))) {
-	http_status status;
-	HttpReply *reply = pm->running.e->mem_obj->reply;
-	assert(reply);
-	/* httpReplyParse(reply, buf, hdr_size); */
-	status = reply->sline.status;
-	pm->running.status = status;
-	if (status != HTTP_OK)
-	    goto completed;
-	pm->running.size = size - hdr_size;
+    reply = pm->running.e->mem_obj->reply;
+    assert(reply);
+    status = reply->sline.status;
+    pm->running.status = status;
+    if (status != HTTP_OK)
+	goto completed;
+    if (size > reply->hdr_sz) {
+	pm->running.size = size - reply->hdr_sz;
 	pm->running.offset = size;
-	storeClientRef(pm->running.sc, pm->running.e, pm->running.offset, pm->running.offset, SM_PAGE_SIZE, peerMonitorFetchReply, pm);
     } else {
-	/* need more data, do we have space? */
-	if (size >= SM_PAGE_SIZE)
-	    goto completed;
-	else
-	    storeClientRef(pm->running.sc, pm->running.e, size, 0, SM_PAGE_SIZE, peerMonitorFetchReplyHeaders, pm);
+	pm->running.size = 0;
+	pm->running.offset = reply->hdr_sz;
     }
+    storeClientRef(pm->running.sc, pm->running.e, pm->running.offset, pm->running.offset, SM_PAGE_SIZE, peerMonitorFetchReply, pm);
     stmemNodeUnref(&nr);
     return;
 

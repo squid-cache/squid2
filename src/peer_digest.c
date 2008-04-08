@@ -333,14 +333,15 @@ peerDigestRequest(PeerDigest * pd)
     storeClientRef(fetch->sc, e, 0, 0, SM_PAGE_SIZE, peerDigestFetchReply, fetch);
 }
 
-/* wait for full http headers to be received then parse them */
+/* wait for full http headers to be received */
 static void
 peerDigestFetchReply(void *data, mem_node_ref nr, ssize_t size)
 {
     const char *buf = nr.node->data + nr.offset;
     DigestFetchState *fetch = data;
     PeerDigest *pd = fetch->pd;
-    size_t hdr_size;
+    http_status status;
+    HttpReply *reply;
     assert(pd && buf);
     assert(!fetch->offset);
     assert(size <= nr.node->len - nr.offset);
@@ -348,63 +349,53 @@ peerDigestFetchReply(void *data, mem_node_ref nr, ssize_t size)
     if (peerDigestFetchedEnough(fetch, buf, size, "peerDigestFetchReply"))
 	goto finish;
 
-    if ((hdr_size = headersEnd(buf, size))) {
-	http_status status;
-	HttpReply *reply = fetch->entry->mem_obj->reply;
-	assert(reply);
-	httpReplyParse(reply, buf, hdr_size);
-	status = reply->sline.status;
-	debug(72, 3) ("peerDigestFetchReply: %s status: %d, expires: %ld (%+d)\n",
-	    strBuf(pd->host), status,
-	    (long int) reply->expires, (int) (reply->expires - squid_curtime));
+    reply = fetch->entry->mem_obj->reply;
+    assert(reply);
+    status = reply->sline.status;
+    debug(72, 3) ("peerDigestFetchReply: %s status: %d, expires: %ld (%+d)\n",
+	strBuf(pd->host), status,
+	(long int) reply->expires, (int) (reply->expires - squid_curtime));
 
-	/* this "if" is based on clientHandleIMSReply() */
-	if (status == HTTP_NOT_MODIFIED) {
-	    request_t *r = NULL;
-	    /* our old entry is fine */
-	    assert(fetch->old_entry);
-	    if (!fetch->old_entry->mem_obj->request)
-		fetch->old_entry->mem_obj->request = r =
-		    requestLink(fetch->entry->mem_obj->request);
-	    assert(fetch->old_entry->mem_obj->request);
-	    httpReplyUpdateOnNotModified(fetch->old_entry->mem_obj->reply, reply);
-	    storeTimestampsSet(fetch->old_entry);
-	    /* get rid of 304 reply */
-	    storeClientUnregister(fetch->sc, fetch->entry, fetch);
-	    storeUnlockObject(fetch->entry);
-	    fetch->entry = fetch->old_entry;
+    /* this "if" is based on clientHandleIMSReply() */
+    if (status == HTTP_NOT_MODIFIED) {
+	request_t *r = NULL;
+	/* our old entry is fine */
+	assert(fetch->old_entry);
+	if (!fetch->old_entry->mem_obj->request)
+	    fetch->old_entry->mem_obj->request = r =
+		requestLink(fetch->entry->mem_obj->request);
+	assert(fetch->old_entry->mem_obj->request);
+	httpReplyUpdateOnNotModified(fetch->old_entry->mem_obj->reply, reply);
+	storeTimestampsSet(fetch->old_entry);
+	/* get rid of 304 reply */
+	storeClientUnregister(fetch->sc, fetch->entry, fetch);
+	storeUnlockObject(fetch->entry);
+	fetch->entry = fetch->old_entry;
+	fetch->old_entry = NULL;
+	/* preserve request -- we need its size to update counters */
+	/* requestUnlink(r); */
+	/* fetch->entry->mem_obj->request = NULL; */
+    } else if (status == HTTP_OK) {
+	/* get rid of old entry if any */
+	if (fetch->old_entry) {
+	    debug(72, 3) ("peerDigestFetchReply: got new digest, releasing old one\n");
+	    storeClientUnregister(fetch->old_sc, fetch->old_entry, fetch);
+	    storeReleaseRequest(fetch->old_entry);
+	    storeUnlockObject(fetch->old_entry);
 	    fetch->old_entry = NULL;
-	    /* preserve request -- we need its size to update counters */
-	    /* requestUnlink(r); */
-	    /* fetch->entry->mem_obj->request = NULL; */
-	} else if (status == HTTP_OK) {
-	    /* get rid of old entry if any */
-	    if (fetch->old_entry) {
-		debug(72, 3) ("peerDigestFetchReply: got new digest, releasing old one\n");
-		storeClientUnregister(fetch->old_sc, fetch->old_entry, fetch);
-		storeReleaseRequest(fetch->old_entry);
-		storeUnlockObject(fetch->old_entry);
-		fetch->old_entry = NULL;
-	    }
-	} else {
-	    /* some kind of a bug */
-	    peerDigestFetchAbort(fetch, buf, httpStatusLineReason(&reply->sline));
-	    goto finish;
 	}
-	/* must have a ready-to-use store entry if we got here */
-	/* can we stay with the old in-memory digest? */
-	if (status == HTTP_NOT_MODIFIED && fetch->pd->cd)
-	    peerDigestFetchStop(fetch, buf, "Not modified");
-	else
-	    storeClientRef(fetch->sc, fetch->entry,	/* have to swap in */
-		0, 0, SM_PAGE_SIZE, peerDigestSwapInHeaders, fetch);
     } else {
-	/* need more data, do we have space? */
-	if (size >= SM_PAGE_SIZE)
-	    peerDigestFetchAbort(fetch, buf, "reply header too big");
-	else
-	    storeClientRef(fetch->sc, fetch->entry, size, 0, SM_PAGE_SIZE, peerDigestFetchReply, fetch);
+	/* some kind of a bug */
+	peerDigestFetchAbort(fetch, buf, httpStatusLineReason(&reply->sline));
+	goto finish;
     }
+    /* must have a ready-to-use store entry if we got here */
+    /* can we stay with the old in-memory digest? */
+    if (status == HTTP_NOT_MODIFIED && fetch->pd->cd)
+	peerDigestFetchStop(fetch, buf, "Not modified");
+    else
+	storeClientRef(fetch->sc, fetch->entry,		/* have to swap in */
+	    0, 0, SM_PAGE_SIZE, peerDigestSwapInHeaders, fetch);
   finish:
     stmemNodeUnref(&nr);
 }
@@ -416,34 +407,22 @@ peerDigestSwapInHeaders(void *data, mem_node_ref nr, ssize_t size)
 
     const char *buf = nr.node->data + nr.offset;
     DigestFetchState *fetch = data;
-    size_t hdr_size;
     assert(size <= nr.node->len - nr.offset);
 
     if (peerDigestFetchedEnough(fetch, buf, size, "peerDigestSwapInHeaders"))
 	goto finish;
 
     assert(!fetch->offset);
-    if ((hdr_size = headersEnd(buf, size))) {
-	assert(fetch->entry->mem_obj->reply);
-	if (!fetch->entry->mem_obj->reply->sline.status)
-	    httpReplyParse(fetch->entry->mem_obj->reply, buf, hdr_size);
-	if (fetch->entry->mem_obj->reply->sline.status != HTTP_OK) {
-	    debug(72, 1) ("peerDigestSwapInHeaders: %s status %d got cached!\n",
-		strBuf(fetch->pd->host), fetch->entry->mem_obj->reply->sline.status);
-	    peerDigestFetchAbort(fetch, buf, "internal status error");
-	    goto finish;
-	}
-	fetch->offset += hdr_size;
-	storeClientRef(fetch->sc, fetch->entry, size, fetch->offset,
-	    SM_PAGE_SIZE, peerDigestSwapInCBlock, fetch);
-    } else {
-	/* need more data, do we have space? */
-	if (size >= SM_PAGE_SIZE)
-	    peerDigestFetchAbort(fetch, buf, "stored header too big");
-	else
-	    storeClientRef(fetch->sc, fetch->entry, size, 0, SM_PAGE_SIZE,
-		peerDigestSwapInHeaders, fetch);
+    assert(fetch->entry->mem_obj->reply);
+    if (fetch->entry->mem_obj->reply->sline.status != HTTP_OK) {
+	debug(72, 1) ("peerDigestSwapInHeaders: %s status %d got cached!\n",
+	    strBuf(fetch->pd->host), fetch->entry->mem_obj->reply->sline.status);
+	peerDigestFetchAbort(fetch, buf, "internal status error");
+	goto finish;
     }
+    fetch->offset += fetch->entry->mem_obj->reply->hdr_sz;
+    storeClientRef(fetch->sc, fetch->entry, size, fetch->offset,
+	SM_PAGE_SIZE, peerDigestSwapInCBlock, fetch);
   finish:
     stmemNodeUnref(&nr);
 }
