@@ -2623,15 +2623,6 @@ check_null_body_size_t(dlink_list bodylist)
     return bodylist.head == NULL;
 }
 
-#if DELAY_POOLS
-static int
-check_null_delay_body_size_t(dlink_list bodylist)
-{
-    return bodylist.head == NULL;
-}
-#endif
-
-
 static void
 parse_kb_size_t(squid_off_t * var)
 {
