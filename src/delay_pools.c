@@ -328,7 +328,7 @@ delayClient(clientHttpRequest * http)
 	return delayId(0, 0);
     }
     for (pool = 0; pool < Config.Delay.pools; pool++) {
-	if (aclCheckFast(Config.Delay.access[pool], &ch))
+	if (Config.Delay.access[pool] && aclCheckFast(Config.Delay.access[pool], &ch))
 	    break;
     }
     if (pool == Config.Delay.pools)
