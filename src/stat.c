@@ -1470,6 +1470,7 @@ statClientRequests(StoreEntry * s)
     ConnStateData *conn;
     StoreEntry *e;
     int fd;
+    int x;
     for (i = ClientActiveRequests.head; i; i = i->next) {
 	const char *p = NULL;
 	http = i->data;
@@ -1522,7 +1523,23 @@ statClientRequests(StoreEntry * s)
 	    p = dash_str;
 	storeAppendPrintf(s, "username %s\n", p);
 #if DELAY_POOLS
-	storeAppendPrintf(s, "delay_pool %d\n", delayClient(http) >> 16);
+	x = http->sc->delay_id;
+	/*
+	 * The delayid is a 32 bit number - top 16 bits is pool, lower 16 bits is position in pool.
+	 * The id can be 0 in case of "no pool". Not only that; pools start from 1 and go up
+	 * in squid.conf; they start from 0 and go up in the config array and delay pools ids!
+	 * So this convoluted magic is to truely represent which pool the request is assigned to,
+	 * -1 being "no pool".
+	 */
+	if (x == 0)
+	    x = -1;
+	else
+	    x = (x >> 16);
+	storeAppendPrintf(s, "active delay_pool %d\n", x);
+	if (http->delayMaxBodySize > 0)
+	    storeAppendPrintf(s, "delayed delay_pool %d; transfer threshold %" PRINTF_OFF_T " bytes\n",
+		http->delayAssignedPool + 1,
+		http->delayMaxBodySize);
 #endif
 	storeAppendPrintf(s, "\n");
     }
