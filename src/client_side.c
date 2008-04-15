@@ -3818,41 +3818,31 @@ parseHttpRequest(ConnStateData * conn, HttpMsgBuf * hmsg, method_t * method_p, i
 	}
 	if (*url != '/') {
 	    /* Fully qualified URL. Nothing special to do */
-	} else if (vhost && (t = mime_get_header(req_hdr, "Host"))) {
-	    char *portstr = strchr(t, ':');
-	    int port = 0;
-	    size_t url_sz = strlen(url) + 32 + Config.appendDomainLen + strlen(t);
-	    if (portstr) {
-		*portstr++ = '\0';
-		port = atoi(portstr);
-	    }
-	    if (vport && !port)
+	} else if (conn->port->accel) {
+	    const char *host = NULL;
+	    int port;
+	    size_t url_sz;
+	    if (vport > 0)
 		port = vport;
-	    http->uri = xcalloc(url_sz, 1);
-	    if (vport)
-		snprintf(http->uri, url_sz, "%s://%s:%d%s",
-		    conn->port->protocol, t, port, url);
 	    else
+		port = htons(http->conn->me.sin_port);
+	    if (vhost && (t = mime_get_header(req_hdr, "Host")))
+		host = t;
+	    else if (conn->port->defaultsite)
+		host = conn->port->defaultsite;
+	    else if (vport == -1)
+		host = inet_ntoa(http->conn->me.sin_addr);
+	    else
+		host = getMyHostname();
+	    url_sz = strlen(url) + 32 + Config.appendDomainLen + strlen(host);
+	    http->uri = xcalloc(url_sz, 1);
+	    if (strchr(host, ':'))
 		snprintf(http->uri, url_sz, "%s://%s%s",
 		    conn->port->protocol, t, url);
+	    else
+		snprintf(http->uri, url_sz, "%s://%s:%d%s",
+		    conn->port->protocol, host, port, url);
 	    debug(33, 5) ("VHOST REWRITE: '%s'\n", http->uri);
-	} else if (conn->port->defaultsite) {
-	    size_t url_sz = strlen(url) + 32 + Config.appendDomainLen +
-	    strlen(conn->port->defaultsite);
-	    http->uri = xcalloc(url_sz, 1);
-	    snprintf(http->uri, url_sz, "%s://%s%s",
-		conn->port->protocol, conn->port->defaultsite, url);
-	    debug(33, 5) ("DEFAULTSITE REWRITE: '%s'\n", http->uri);
-	} else if (vport) {
-	    /* Put the local socket IP address as the hostname.
-	     */
-	    size_t url_sz = strlen(url) + 32 + Config.appendDomainLen;
-	    http->uri = xcalloc(url_sz, 1);
-	    snprintf(http->uri, url_sz, "%s://%s:%d%s",
-		http->conn->port->protocol,
-		inet_ntoa(http->conn->me.sin_addr),
-		vport, url);
-	    debug(33, 5) ("VPORT REWRITE: '%s'\n", http->uri);
 	} else if (internalCheck(url)) {
 	    goto internal;
 	} else {
