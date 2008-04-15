@@ -1080,8 +1080,12 @@ DOC_START
 			Expires: headers. Implies accel.
 
 	   http11	Enables HTTP/1.1 support to clients. The HTTP/1.1
-			support is still incomplete, but should work with
-			most clients.
+			support is still incomplete with an internal HTTP/1.0
+			hop, but should work with most clients. The main
+			HTTP/1.1 features missing due to this is forwarding
+			of requests using chunked transfer encoding (results
+			in 411) and forwarding of 1xx responses (silently
+			dropped)
 
 	   name=	Specifies a internal name for the port. Defaults to
 			the port specification (port or addr:port)
@@ -1123,22 +1127,8 @@ DOC_START
 
 	Options:
 
-	   accel	Accelerator mode. Also needs at least one of
-	   	        defaultsite or vhost.
-
-	   defaultsite=	The name of the https site presented on
-			this port. Implies accel.
-
-	   vhost	Accelerator mode using Host header for virtual
-			domain support. Requires a wildcard certificate
-			or other certificate valid for more than one domain.
-			Implies accel.
-
-	   urlgroup=	Default urlgroup to mark requests with (see
-			also acl urlgroup and url_rewrite_program).
-
-	   protocol=	Protocol to reconstruct accelerated requests with.
-			Defaults to https.
+	In addition to the options specified for http_port the folling
+	SSL related options is supported:
 
 	   cert=	Path to SSL certificate (PEM format).
 
@@ -1201,14 +1191,6 @@ DOC_START
 				client certificate chain.
 
 	   sslcontext=	SSL session ID context identifier.
-
-	   vport	Accelerator with IP based virtual host support.
-
-	   vport=NN	As above, but uses specified port number rather
-			than the https_port number. Implies accel.
-
-	   name=	Specifies a internal name for the port. Defaults to
-			the port specification (port or addr:port)
 
 DOC_END
 
@@ -1696,7 +1678,9 @@ DOC_START
 		     that should be kept open to this peer.
 
 		     use http11 to send requests using HTTP/1.1 to this peer.
-		     The HTTP/1.1 support is still incomplete.
+		     Note: The HTTP/1.1 support is still incomplete, with an
+		     internal HTTP/1.0 hop. As result 1xx responses will not
+		     be forwarded.
 DOC_END
 
 NAME: cache_peer_domain cache_host_domain
@@ -3474,7 +3458,9 @@ DEFAULT: off
 DOC_START
 	This option enables the use ot HTTP/1.1 on outgoing "direct" requests.
 	See also the http11 cache_peer option.
-	Note: The HTTP/1.1 support is still incomplete.
+	Note: The HTTP/1.1 support is still incomplete, with an
+	internal HTTP/1.0 hop. As result 1xx responses will not
+	be forwarded.
 DOC_END
 
 NAME: ignore_expect_100
