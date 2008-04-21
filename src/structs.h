@@ -376,6 +376,12 @@ struct _http_port_list {
 #endif
     unsigned int act_as_origin;	/* Fake Date: headers in accelerator mode */
     unsigned int allow_direct:1;	/* Allow direct forwarding in accelerator mode */
+    struct {
+	unsigned int enabled;
+	unsigned int idle;
+	unsigned int interval;
+	unsigned int timeout;
+    } tcp_keepalive;
 };
 
 #if USE_SSL
