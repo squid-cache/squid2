@@ -2769,6 +2769,38 @@ clientSendHeaders(void *data, HttpReply * rep)
 	return;
     }
     assert(http->out.offset == 0);
+
+    if (Config.zph_mode != ZPH_OFF) {
+	int tos = 0;
+
+	if (!isTcpHit(http->log_type))
+	    tos = 0;
+	else if (Config.zph_local)
+	    tos = Config.zph_local;
+	else if (Config.zph_sibling && http->request->hier.code == SIBLING_HIT)		/* sibling hit */
+	    tos = Config.zph_sibling;
+	else if (Config.zph_parent && http->request->hier.code == PARENT_HIT)	/* parent hit */
+	    tos = Config.zph_parent;
+	if (conn->tos_priority != tos) {
+	    conn->tos_priority = tos;
+	    switch (Config.zph_mode) {
+	    case ZPH_OFF:
+		break;
+	    case ZPH_TOS:
+		commSetTos(fd, tos);
+		break;
+	    case ZPH_PRIORITY:
+		commSetSocketPriority(fd, tos);
+		break;
+	    case ZPH_OPTION:
+		{
+		    uint16_t value = tos;
+		    commSetIPOption(fd, Config.zph_option, &value, sizeof(value));
+		}
+		break;
+	    }
+	}
+    }
     rep = http->reply = clientCloneReply(http, rep);
     if (!rep) {
 	ErrorState *err = errorCon(ERR_INVALID_RESP, HTTP_BAD_GATEWAY, http->orig_request);

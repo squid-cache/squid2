@@ -810,6 +810,16 @@ struct _SquidConfig {
     int sleep_after_fork;	/* microseconds */
     time_t minimum_expiry_time;	/* seconds */
     external_acl *externalAclHelperList;
+    enum zph_mode {
+	ZPH_OFF = 0,
+	ZPH_TOS,
+	ZPH_PRIORITY,
+	ZPH_OPTION
+    } zph_mode;
+    int zph_local;
+    int zph_sibling;
+    int zph_parent;
+    int zph_option;
     errormap *errorMapList;
 #if USE_SSL
     struct {
@@ -1304,6 +1314,7 @@ struct _ConnStateData {
 	int auth;		/* pinned for www authentication */
 	peer *peer;		/* peer the connection goes via */
     } pinning;
+    int tos_priority;		/* Used by zph to avoid updating the tos/priority when not needed */
 };
 
 struct _ipcache_addrs {

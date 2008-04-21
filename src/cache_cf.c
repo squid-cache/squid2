@@ -71,6 +71,9 @@ static void dump_logformat(StoreEntry * entry, const char *name, logformat * def
 static void dump_access_log(StoreEntry * entry, const char *name, customlog * definitions);
 static void free_logformat(logformat ** definitions);
 static void free_access_log(customlog ** definitions);
+static void parse_zph_mode(enum zph_mode *mode);
+static void dump_zph_mode(StoreEntry * entry, const char *name, enum zph_mode mode);
+static void free_zph_mode(enum zph_mode *mode);
 
 
 static struct cache_dir_option common_cachedir_options[] =
@@ -3403,4 +3406,50 @@ static void
 dump_programline(StoreEntry * entry, const char *name, const wordlist * line)
 {
     dump_wordlist(entry, name, line);
+}
+
+static void
+parse_zph_mode(enum zph_mode *mode)
+{
+    char *token = strtok(NULL, w_space);
+    if (!token)
+	self_destruct();
+    if (strcmp(token, "off") == 0)
+	*mode = ZPH_OFF;
+    else if (strcmp(token, "tos") == 0)
+	*mode = ZPH_TOS;
+    else if (strcmp(token, "priority") == 0)
+	*mode = ZPH_PRIORITY;
+    else if (strcmp(token, "option") == 0)
+	*mode = ZPH_OPTION;
+    else {
+	debug(3, 0) ("WARNING: unsupported zph_mode argument '%s'\n", token);
+    }
+}
+
+static void
+dump_zph_mode(StoreEntry * entry, const char *name, enum zph_mode mode)
+{
+    const char *modestr = "unknown";
+    switch (mode) {
+    case ZPH_OFF:
+	modestr = "off";
+	break;
+    case ZPH_TOS:
+	modestr = "tos";
+	break;
+    case ZPH_PRIORITY:
+	modestr = "priority";
+	break;
+    case ZPH_OPTION:
+	modestr = "option";
+	break;
+    }
+    storeAppendPrintf(entry, "%s %s\n", name, modestr);
+}
+
+static void
+free_zph_mode(enum zph_mode *mode)
+{
+    *mode = ZPH_OFF;
 }

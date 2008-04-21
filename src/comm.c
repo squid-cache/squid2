@@ -1104,6 +1104,59 @@ commSetTcpKeepalive(int fd, int idle, int interval, int timeout)
 	debug(5, 1) ("commSetKeepalive: FD %d: %s\n", fd, xstrerror());
 }
 
+int
+commSetTos(int fd, int tos)
+{
+    int res;
+    fde *F = &fd_table[fd];
+    if (F->tos == tos)
+	return 0;
+    F->tos = tos;
+#ifdef IP_TOS
+    res = setsockopt(fd, IPPROTO_IP, IP_TOS, &tos, sizeof(tos));
+#else
+    errno = ENOSYS;
+    res = -1;
+#endif
+    if (res < 0)
+	debug(33, 1) ("sommSetTos: FD %d: %s\n", fd, xstrerror());
+    return res;
+}
+
+int
+commSetSocketPriority(int fd, int prio)
+{
+    int res;
+#ifdef SO_PRIORITY
+    res = setsockopt(fd, SOL_SOCKET, SO_PRIORITY, &prio, sizeof(prio));
+#else
+    errno = ENOSYS;
+    res = -1;
+#endif
+    if (res < 0)
+	debug(33, 1) ("sommSetSocketPriority: FD %d: %s\n", fd, xstrerror());
+    return res;
+}
+
+int
+commSetIPOption(int fd, uint8_t option, void *value, size_t size)
+{
+    int res;
+#ifdef IP_OPTIONS
+    char data[16];
+    data[0] = option;
+    data[1] = size;
+    memcpy(&data[2], value, size);
+    res = setsockopt(fd, IPPROTO_IP, IP_OPTIONS, data, size + 2);
+#else
+    errno = ENOSYS;
+    res = -1;
+#endif
+    if (res < 0)
+	debug(33, 1) ("sommSetSocketPriority: FD %d: %s\n", fd, xstrerror());
+    return res;
+}
+
 void
 comm_init(void)
 {
