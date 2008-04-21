@@ -50,10 +50,10 @@ static STCB peerDigestFetchReply;
 static STCB peerDigestSwapInHeaders;
 static STCB peerDigestSwapInCBlock;
 static STCB peerDigestSwapInMask;
-static int peerDigestFetchedEnough(DigestFetchState * fetch, char *buf, ssize_t size, const char *step_name);
-static void peerDigestFetchStop(DigestFetchState * fetch, char *buf, const char *reason);
-static void peerDigestFetchAbort(DigestFetchState * fetch, char *buf, const char *reason);
-static void peerDigestReqFinish(DigestFetchState * fetch, char *buf, int, int, int, const char *reason, int err);
+static int peerDigestFetchedEnough(DigestFetchState * fetch, ssize_t size, const char *step_name);
+static void peerDigestFetchStop(DigestFetchState * fetch, const char *reason);
+static void peerDigestFetchAbort(DigestFetchState * fetch, const char *reason);
+static void peerDigestReqFinish(DigestFetchState * fetch, int, int, int, const char *reason, int err);
 static void peerDigestPDFinish(DigestFetchState * fetch, int pcb_valid, int err);
 static void peerDigestFetchFinish(DigestFetchState * fetch, int err);
 static void peerDigestFetchSetStats(DigestFetchState * fetch);
@@ -328,9 +328,9 @@ peerDigestRequest(PeerDigest * pd)
     /* push towards peer cache */
     debug(72, 3) ("peerDigestRequest: forwarding to fwdStart...\n");
     fwdStart(-1, e, req);
-    cbdataLock(fetch);
     cbdataLock(fetch->pd);
-    storeClientCopy(fetch->sc, e, 0, 0, 4096, memAllocate(MEM_4K_BUF),
+    fetch->buf = memAllocate(MEM_4K_BUF);
+    storeClientCopy(fetch->sc, e, 0, 0, 4096, fetch->buf,
 	peerDigestFetchReply, fetch);
 }
 
@@ -342,16 +342,18 @@ peerDigestFetchReply(void *data, char *buf, ssize_t size)
     PeerDigest *pd = fetch->pd;
     size_t hdr_size;
     assert(pd && buf);
-    assert(!fetch->offset);
 
-    if (peerDigestFetchedEnough(fetch, buf, size, "peerDigestFetchReply"))
+    if (peerDigestFetchedEnough(fetch, size, "peerDigestFetchReply"))
 	return;
 
-    if ((hdr_size = headersEnd(buf, size))) {
+    fetch->buf_used += size;
+    fetch->offset += size;
+
+    if ((hdr_size = headersEnd(fetch->buf, fetch->buf_used))) {
 	http_status status;
 	HttpReply *reply = fetch->entry->mem_obj->reply;
 	assert(reply);
-	httpReplyParse(reply, buf, hdr_size);
+	httpReplyParse(reply, fetch->buf, hdr_size);
 	status = reply->sline.status;
 	debug(72, 3) ("peerDigestFetchReply: %s status: %d, expires: %ld (%+d)\n",
 	    strBuf(pd->host), status,
@@ -371,8 +373,11 @@ peerDigestFetchReply(void *data, char *buf, ssize_t size)
 	    /* get rid of 304 reply */
 	    storeClientUnregister(fetch->sc, fetch->entry, fetch);
 	    storeUnlockObject(fetch->entry);
+	    /* And prepare to swap in old entry if needed */
 	    fetch->entry = fetch->old_entry;
 	    fetch->old_entry = NULL;
+	    fetch->sc = fetch->old_sc;
+	    fetch->old_sc = NULL;
 	    /* preserve request -- we need its size to update counters */
 	    /* requestUnlink(r); */
 	    /* fetch->entry->mem_obj->request = NULL; */
@@ -387,22 +392,25 @@ peerDigestFetchReply(void *data, char *buf, ssize_t size)
 	    }
 	} else {
 	    /* some kind of a bug */
-	    peerDigestFetchAbort(fetch, buf, httpStatusLineReason(&reply->sline));
+	    peerDigestFetchAbort(fetch, httpStatusLineReason(&reply->sline));
 	    return;
 	}
 	/* must have a ready-to-use store entry if we got here */
 	/* can we stay with the old in-memory digest? */
 	if (status == HTTP_NOT_MODIFIED && fetch->pd->cd)
-	    peerDigestFetchStop(fetch, buf, "Not modified");
-	else
+	    peerDigestFetchStop(fetch, "Not modified");
+	else {
+	    fetch->offset = 0;
+	    fetch->buf_used = 0;
 	    storeClientCopy(fetch->sc, fetch->entry,	/* have to swap in */
-		0, 0, SM_PAGE_SIZE, buf, peerDigestSwapInHeaders, fetch);
+		0, 0, SM_PAGE_SIZE, fetch->buf, peerDigestSwapInHeaders, fetch);
+	}
     } else {
 	/* need more data, do we have space? */
-	if (size >= SM_PAGE_SIZE)
-	    peerDigestFetchAbort(fetch, buf, "reply header too big");
+	if (fetch->buf_used >= SM_PAGE_SIZE)
+	    peerDigestFetchAbort(fetch, "reply header too big");
 	else
-	    storeClientCopy(fetch->sc, fetch->entry, size, 0, SM_PAGE_SIZE, buf,
+	    storeClientCopy(fetch->sc, fetch->entry, fetch->offset, fetch->offset, SM_PAGE_SIZE - fetch->buf_used, fetch->buf + fetch->buf_used,
 		peerDigestFetchReply, fetch);
     }
 }
@@ -414,30 +422,33 @@ peerDigestSwapInHeaders(void *data, char *buf, ssize_t size)
     DigestFetchState *fetch = data;
     size_t hdr_size;
 
-    if (peerDigestFetchedEnough(fetch, buf, size, "peerDigestSwapInHeaders"))
+    if (peerDigestFetchedEnough(fetch, size, "peerDigestSwapInHeaders"))
 	return;
 
-    assert(!fetch->offset);
-    if ((hdr_size = headersEnd(buf, size))) {
+    fetch->buf_used += size;
+    fetch->offset += size;
+
+    if ((hdr_size = headersEnd(fetch->buf, fetch->buf_used))) {
 	assert(fetch->entry->mem_obj->reply);
 	if (!fetch->entry->mem_obj->reply->sline.status)
-	    httpReplyParse(fetch->entry->mem_obj->reply, buf, hdr_size);
+	    httpReplyParse(fetch->entry->mem_obj->reply, fetch->buf, hdr_size);
 	if (fetch->entry->mem_obj->reply->sline.status != HTTP_OK) {
 	    debug(72, 1) ("peerDigestSwapInHeaders: %s status %d got cached!\n",
 		strBuf(fetch->pd->host), fetch->entry->mem_obj->reply->sline.status);
-	    peerDigestFetchAbort(fetch, buf, "internal status error");
+	    peerDigestFetchAbort(fetch, "internal status error");
 	    return;
 	}
-	fetch->offset += hdr_size;
-	storeClientCopy(fetch->sc, fetch->entry, size, fetch->offset,
-	    SM_PAGE_SIZE, buf,
+	fetch->offset = hdr_size;
+	fetch->buf_used = 0;
+	storeClientCopy(fetch->sc, fetch->entry, fetch->offset, fetch->offset,
+	    SM_PAGE_SIZE, fetch->buf,
 	    peerDigestSwapInCBlock, fetch);
     } else {
 	/* need more data, do we have space? */
-	if (size >= SM_PAGE_SIZE)
-	    peerDigestFetchAbort(fetch, buf, "stored header too big");
+	if (fetch->buf_used >= SM_PAGE_SIZE)
+	    peerDigestFetchAbort(fetch, "stored header too big");
 	else
-	    storeClientCopy(fetch->sc, fetch->entry, size, 0, SM_PAGE_SIZE, buf,
+	    storeClientCopy(fetch->sc, fetch->entry, fetch->offset, fetch->offset, SM_PAGE_SIZE - fetch->buf_used, fetch->buf + fetch->buf_used,
 		peerDigestSwapInHeaders, fetch);
     }
 }
@@ -447,37 +458,40 @@ peerDigestSwapInCBlock(void *data, char *buf, ssize_t size)
 {
     DigestFetchState *fetch = data;
 
-    if (peerDigestFetchedEnough(fetch, buf, size, "peerDigestSwapInCBlock"))
+    if (peerDigestFetchedEnough(fetch, size, "peerDigestSwapInCBlock"))
 	return;
 
-    if (size >= StoreDigestCBlockSize) {
+    fetch->buf_used += size;
+    fetch->offset += size;
+
+    if (fetch->buf_used >= StoreDigestCBlockSize) {
 	PeerDigest *pd = fetch->pd;
 	HttpReply *rep = fetch->entry->mem_obj->reply;
-	const squid_off_t seen = fetch->offset + size;
 
 	assert(pd && rep);
-	if (peerDigestSetCBlock(pd, buf)) {
+	if (peerDigestSetCBlock(pd, fetch->buf)) {
 	    /* XXX: soon we will have variable header size */
-	    fetch->offset += StoreDigestCBlockSize;
+	    fetch->offset -= fetch->buf_used - StoreDigestCBlockSize;
 	    /* switch to CD buffer and fetch digest guts */
-	    memFree(buf, MEM_4K_BUF);
-	    buf = NULL;
+	    memFree(fetch->buf, MEM_4K_BUF);
+	    fetch->buf = buf = NULL;
+	    fetch->buf_used = 0;
 	    assert(pd->cd->mask);
 	    storeClientCopy(fetch->sc, fetch->entry,
-		seen,
+		fetch->offset,
 		fetch->offset,
 		pd->cd->mask_size,
 		pd->cd->mask,
 		peerDigestSwapInMask, fetch);
 	} else {
-	    peerDigestFetchAbort(fetch, buf, "invalid digest cblock");
+	    peerDigestFetchAbort(fetch, "invalid digest cblock");
 	}
     } else {
 	/* need more data, do we have space? */
-	if (size >= SM_PAGE_SIZE)
-	    peerDigestFetchAbort(fetch, buf, "digest cblock too big");
+	if (fetch->buf_used >= SM_PAGE_SIZE)
+	    peerDigestFetchAbort(fetch, "digest cblock too big");
 	else
-	    storeClientCopy(fetch->sc, fetch->entry, size, 0, SM_PAGE_SIZE, buf,
+	    storeClientCopy(fetch->sc, fetch->entry, fetch->offset, fetch->offset, SM_PAGE_SIZE - fetch->buf_used, fetch->buf + fetch->buf_used,
 		peerDigestSwapInCBlock, fetch);
     }
 }
@@ -489,7 +503,7 @@ peerDigestSwapInMask(void *data, char *buf, ssize_t size)
     PeerDigest *pd;
 
     /* NOTE! buf points to the middle of pd->cd->mask! */
-    if (peerDigestFetchedEnough(fetch, NULL, size, "peerDigestSwapInMask"))
+    if (peerDigestFetchedEnough(fetch, size, "peerDigestSwapInMask"))
 	return;
 
     pd = fetch->pd;
@@ -501,7 +515,7 @@ peerDigestSwapInMask(void *data, char *buf, ssize_t size)
 	debug(72, 2) ("peerDigestSwapInMask: Done! Got %" PRINTF_OFF_T ", expected %d\n",
 	    fetch->mask_offset, pd->cd->mask_size);
 	assert(fetch->mask_offset == pd->cd->mask_size);
-	assert(peerDigestFetchedEnough(fetch, NULL, 0, "peerDigestSwapInMask"));
+	assert(peerDigestFetchedEnough(fetch, 0, "peerDigestSwapInMask"));
     } else {
 	const size_t buf_sz = pd->cd->mask_size - fetch->mask_offset;
 	assert(buf_sz > 0);
@@ -515,7 +529,7 @@ peerDigestSwapInMask(void *data, char *buf, ssize_t size)
 }
 
 static int
-peerDigestFetchedEnough(DigestFetchState * fetch, char *buf, ssize_t size, const char *step_name)
+peerDigestFetchedEnough(DigestFetchState * fetch, ssize_t size, const char *step_name)
 {
     PeerDigest *pd = NULL;
     const char *host = "<unknown>";	/* peer host */
@@ -558,8 +572,10 @@ peerDigestFetchedEnough(DigestFetchState * fetch, char *buf, ssize_t size, const
     if (!reason && !size) {
 	if (!pd->cd)
 	    reason = "null digest?!";
+	else if (fetch->buf_used)
+	    reason = "premature end of digest header?!";
 	else if (fetch->mask_offset != pd->cd->mask_size)
-	    reason = "premature end of digest?!";
+	    reason = "premature end of digest mask?!";
 	else if (!peerDigestUseful(pd))
 	    reason = "useless digest";
 	else
@@ -570,8 +586,7 @@ peerDigestFetchedEnough(DigestFetchState * fetch, char *buf, ssize_t size, const
 	const int level = strstr(reason, "?!") ? 1 : 3;
 	debug(72, level) ("%s: peer %s, exiting after '%s'\n",
 	    step_name, host, reason);
-	peerDigestReqFinish(fetch, buf,
-	    fcb_valid, pdcb_valid, pcb_valid, reason, !no_bug);
+	peerDigestReqFinish(fetch, fcb_valid, pdcb_valid, pcb_valid, reason, !no_bug);
     } else {
 	/* paranoid check */
 	assert(fcb_valid && pdcb_valid && pcb_valid);
@@ -582,27 +597,27 @@ peerDigestFetchedEnough(DigestFetchState * fetch, char *buf, ssize_t size, const
 /* call this when all callback data is valid and fetch must be stopped but
  * no error has occurred (e.g. we received 304 reply and reuse old digest) */
 static void
-peerDigestFetchStop(DigestFetchState * fetch, char *buf, const char *reason)
+peerDigestFetchStop(DigestFetchState * fetch, const char *reason)
 {
     assert(reason);
     debug(72, 2) ("peerDigestFetchStop: peer %s, reason: %s\n",
 	strBuf(fetch->pd->host), reason);
-    peerDigestReqFinish(fetch, buf, 1, 1, 1, reason, 0);
+    peerDigestReqFinish(fetch, 1, 1, 1, reason, 0);
 }
 
 /* call this when all callback data is valid but something bad happened */
 static void
-peerDigestFetchAbort(DigestFetchState * fetch, char *buf, const char *reason)
+peerDigestFetchAbort(DigestFetchState * fetch, const char *reason)
 {
     assert(reason);
     debug(72, 2) ("peerDigestFetchAbort: peer %s, reason: %s\n",
 	strBuf(fetch->pd->host), reason);
-    peerDigestReqFinish(fetch, buf, 1, 1, 1, reason, 1);
+    peerDigestReqFinish(fetch, 1, 1, 1, reason, 1);
 }
 
 /* complete the digest transfer, update stats, unlock/release everything */
 static void
-peerDigestReqFinish(DigestFetchState * fetch, char *buf,
+peerDigestReqFinish(DigestFetchState * fetch,
     int fcb_valid, int pdcb_valid, int pcb_valid,
     const char *reason, int err)
 {
@@ -631,8 +646,6 @@ peerDigestReqFinish(DigestFetchState * fetch, char *buf,
 	peerDigestPDFinish(fetch, pcb_valid, err);
     if (fcb_valid)
 	peerDigestFetchFinish(fetch, err);
-    if (buf)
-	memFree(buf, MEM_4K_BUF);
 }
 
 
@@ -706,7 +719,10 @@ peerDigestFetchFinish(DigestFetchState * fetch, int err)
     fetch->entry = NULL;
     fetch->request = NULL;
     assert(fetch->pd == NULL);
-    cbdataUnlock(fetch);
+    if (fetch->buf) {
+	memFree(fetch->buf, MEM_4K_BUF);
+	fetch->buf = NULL;
+    }
     cbdataFree(fetch);
 }
 

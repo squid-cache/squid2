@@ -1336,6 +1336,8 @@ struct _DigestFetchState {
 	int msg;
 	int bytes;
     } sent, recv;
+    char *buf;
+    size_t buf_used;
 };
 
 /* statistics for cache digests and other hit "predictors" */
