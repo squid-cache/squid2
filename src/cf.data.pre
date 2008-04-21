@@ -1264,6 +1264,57 @@ DOC_START
 	to off when using this directive in such configurations.
 DOC_END
 
+NAME: zph_mode
+TYPE: zph_mode
+DEFAULT: off
+LOC: Config.zph_mode
+DOC_START
+	This option enables packet level marking of HIT/MISS responses,
+	either using IP TOS or socket priority.
+	    off		Feature disabled
+	    tos		Set the IP TOS field
+	    priority	Set the socket priority (may get mapped to TOS by OS,
+			otherwise only usable in local rulesets)
+
+	See also tcp_outgoing_tos for details/requirements about TOS usage.
+DOC_END
+
+NAME: zph_local
+TYPE: int
+DEFAULT: 0
+LOC: Config.zph_local
+DOC_START
+	Allows you to select a TOS/Diffserv/Priority value to mark local hits.
+	Default: 0 (disabled).
+DOC_END
+
+NAME: zph_sibling
+TYPE: int
+DEFAULT: 0
+LOC: Config.zph_sibling
+DOC_START
+	Allows you to select a TOS/Diffserv/Priority value to mark sibling hits.
+	Default: 0 (disabled).
+DOC_END
+
+NAME: zph_parent
+TYPE: int
+DEFAULT: 0
+LOC: Config.zph_parent
+DOC_START
+	Allows you to select a TOS/Diffserv/Priority value to mark parent hits. 
+	Default: 0 (disabled).
+DOC_END
+
+NAME: zph_option
+TYPE: int
+DEFAULT: 136
+LOC: Config.zph_option
+DOC_START
+	The IP option to use when zph_mode is set to "option". Defaults to
+	136 which is officially registered as "SATNET Stream ID".
+DOC_END
+
 COMMENT_START
  SSL OPTIONS
  -----------------------------------------------------------------------------

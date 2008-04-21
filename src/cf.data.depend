@@ -55,3 +55,4 @@ extension_method
 errormap
 refreshCheckHelper
 rewrite			acl
+zph_mode
