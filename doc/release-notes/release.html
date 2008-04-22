@@ -18,45 +18,213 @@ Squid is a WWW Cache application developed by the Web Caching community.</EM>
 <P>
 <H2><A NAME="toc2">2.</A> <A HREF="#s2">Changes to squid.conf</A></H2>
 
+<UL>
+<LI><A NAME="toc2.1">2.1</A> <A HREF="#ss2.1">Added directives</A>
+<LI><A NAME="toc2.2">2.2</A> <A HREF="#ss2.2">Changed directives</A>
+<LI><A NAME="toc2.3">2.3</A> <A HREF="#ss2.3">Removed directives</A>
+</UL>
 <P>
-<H2><A NAME="toc3">3.</A> <A HREF="#s3">Known issues</A></H2>
+<H2><A NAME="toc3">3.</A> <A HREF="#s3">Known issues &amp; limitations</A></H2>
 
+<UL>
+<LI><A NAME="toc3.1">3.1</A> <A HREF="#ss3.1">Known issues</A>
+<LI><A NAME="toc3.2">3.2</A> <A HREF="#ss3.2">Known limitations</A>
+</UL>
 <P>
-<H2><A NAME="toc4">4.</A> <A HREF="#s4">Known limitations</A></H2>
+<H2><A NAME="toc4">4.</A> <A HREF="#s4">Windows support</A></H2>
 
+<UL>
+<LI><A NAME="toc4.1">4.1</A> <A HREF="#ss4.1">Usage</A>
+<LI><A NAME="toc4.2">4.2</A> <A HREF="#ss4.2">PSAPI.DLL (Process Status Helper) Considerations</A>
+<LI><A NAME="toc4.3">4.3</A> <A HREF="#ss4.3">Registry DNS lookup</A>
+<LI><A NAME="toc4.4">4.4</A> <A HREF="#ss4.4">Compatibility Notes</A>
+<LI><A NAME="toc4.5">4.5</A> <A HREF="#ss4.5">Known Limitations:</A>
+<LI><A NAME="toc4.6">4.6</A> <A HREF="#ss4.6">Using cache manager on Windows:</A>
+</UL>
 
 <HR>
 <H2><A NAME="s1">1.</A> <A HREF="#toc1">Key changes from squid 2.6</A></H2>
 
+<P>This section describes the main news since the 2.6 release</P>
 <P>
 <UL>
-<LI>TO BE WRITTEN</LI>
+<LI>Experimental support for HTTP/1.1, mainly targeted at reverse proxy
+installations. Not yet HTTP/1.1 compliant hoewever.</LI>
+<LI>A number of performance improvements; including request/reply parser,
+eliminating various redundant data copies and some completely rewritten
+sections.</LI>
+<LI>Support for WAIS has been removed.</LI>
+<LI>"act-as-origin" option for http_port - Squid can now emulate an origin
+server when acting as an accelerator.</LI>
+<LI>"min-size" option for cache_dir - the minimum object size to store in
+a cache directory. Previously objects of any size up to a "max-size"
+maximum size would be considered as candidated for storing in a store_dir;
+this option allows the administrator to tune various stores for small
+and large objects rather than trying to tune it for both.</LI>
+<LI>Support for Solaris /dev/poll for network IO - more efficient than
+poll() or select() and backwards compatible to Solaris 7. This must
+be manually enabled during configure by specifying "--enable-devpoll".</LI>
+<LI>Support for FreeBSD accept filters. Use "accept_filter httpready"
+in squid.conf to enable this.</LI>
+<LI>A semi-modular logging framework has been introduced, which both
+allows for more efficient non-blocking logging with the supplied logging
+daemon, but also allows for third-party modules to intercept the squid
+logs and process them. An example "UDP" logging helper, thanks to the
+Wikimedia Foundation, is included.</LI>
+<LI>Support for rewriting URLs into canonical forms when storing and retrieving
+objects. A common practice seen in Content Delivery Networks is to serve
+the same content from a variety of different URLs or hosts; this makes
+efficient caching difficult. The store URL rewriting framework allows the
+administrator to rewrite a variety of URLs into one canonical form, so
+matching content from a variety of sources can be stored and retrieved
+as if they came from the same source, whilst still fetching the content
+from the original destination.
+
+See the "storeurl_rewrite_program" option for more information, and
+http://wiki.squid-cache.org/Features/StoreURLRewrite for some examples.</LI>
+<LI>Object revalidation can now occur in the background. Cache validation can
+now occur in the background without requiring an active client to drive it.
+Stale content being revalidated can be served in situ whilst the object
+is being refreshed. See the "max_stale" and "refresh_pattern" options for more
+information.</LI>
+<LI>introduce a new option, "zero_buffers", which controls whether Squid will
+zero the memory used for buffers and other data structures before use.
+This may or may not improve performance on specific workloads.</LI>
+<LI>Cache authentication based on source IP address. This reduces the pressure
+on external authenticators which may not be able to keep up under high load -
+NTLM/winbind is a good example of this. See the "authenticate_ip_shortcircuit_access"
+and "authenticate_ip_shortcircuit_ttl" options for more information.</LI>
+<LI>Support for configuration file includes has been added. "include" can now be
+used to include a configuration file or a glob of configuration files in a
+directory.</LI>
+<LI>The default rules to not cache dynamic content from cgi-bin and query URLs
+have been altered. Previously, the "cache" ACL was used to mark requests
+as non-cachable - this is enforced even on dynamic content which returns
+cachability information. This has changed in Squid-2.7 to use the default
+refresh pattern. Dynamic content is now cached if it is marked as cachable.
+You should remove the default configuration lines with QUERY (acl, and cache)
+and replace them with the correct refresh_pattern entries.</LI>
+<LI>Accelerator mode support cleaned up to behave more consistent when
+combining multiple accelerator mode options</LI>
+<LI>Zero Penalty Hit support, allowing cache misses to be marked by custom
+TOS/priority values, useful when using packet shaping/prioritization
+outside Squid and needing to separate cache hits from misses.</LI>
 </UL>
 </P>
 
 <H2><A NAME="s2">2.</A> <A HREF="#toc2">Changes to squid.conf</A></H2>
 
+<P>This release has a number of changes and additions to squid.conf</P>
+
+<H2><A NAME="ss2.1">2.1</A> <A HREF="#toc2.1">Added directives</A>
+</H2>
+
 <P>
 <DL>
-<DT><B>TO BE WRITTEN</B><DD><P>TO BE WRITEN</P>
+<DT><B>acl myportname</B><DD><P>new acl matching the incoming port name</P>
+
+<DT><B>authenticate_ip_shortcircuit_ttl</B><DD>
+<DT><B>authenticate_ip_shortcircuit_access</B><DD><P>controls the new IP based authentication cache.</P>
+
+<DT><B>zph_mode</B><DD>
+<DT><B>zph_local</B><DD>
+<DT><B>zph_sibling</B><DD>
+<DT><B>zph_parent</B><DD>
+<DT><B>zph_option</B><DD><P>controls the Zero Penalty Hit support</P>
+
+<DT><B>update_headers</B><DD><P>optimization to skip updating on-disk headers</P>
+
+<DT><B>logfile_daemon</B><DD><P>new log file daemon support</P>
+
+<DT><B>netdb_filename</B><DD><P>sas hardcoded to the first cache_dir</P>
+<DT><B>storeurl_rewrite_program</B><DD>
+<DT><B>storeurl_rewrite_children</B><DD>
+<DT><B>storeurl_rewrite_concurrency</B><DD>
+<DT><B>storeurl_access</B><DD>
+<P>controls the new store URL rewrite functionality</P>
+
+<DT><B>rewrite_access</B><DD>
+<DT><B>rewrite</B><DD><P>controls the new builtin URL rewrite functionality</P>
+
+<DT><B>max_stale</B><DD>
+<DT><B>server_http11</B><DD>
+<DT><B>ignore_expect_100</B><DD><P>Experimental HTTP/1.1 support knobs</P>
+
+<DT><B>external_refresh_check</B><DD><P>new helper to allow custom cache validations in accelerator setups</P>
+<DT><B>delay_body_max_size</B><DD><P>new way of using delay pools based on response size</P>
+
+<DT><B>ignore_ims_on_miss</B><DD><P>optimization mainly targeted for accelerator setups</P>
+<DT><B>max_filedescriptors</B><DD><P>can now be set runtime. Was previously hardcoded at build time and further limited by ulimit</P>
+<DT><B>accept_filter</B><DD><P>optimization to avoid waking Squid up until a request has been received</P>
+<DT><B>incoming_rate</B><DD><P>new tuning knob for high traffic conditions</P>
+<DT><B>zero_buffers</B><DD><P>tuning knob to disable a new optimization</P>
 </DL>
 </P>
 
-<H2><A NAME="s3">3.</A> <A HREF="#toc3">Known issues</A></H2>
+<H2><A NAME="ss2.2">2.2</A> <A HREF="#toc2.2">Changed directives</A>
+</H2>
 
-<P>There is a few known issues in this version of Squid which we hope to correct in a later release</P>
+<P>
+<DL>
+<DT><B>cache</B><DD><P>Suggested defaults modified</P>
+<DT><B>cache_dir</B><DD><P>the "read-only" option has been renamed to "no-store" to better reflect the functionality</P>
+<DT><B>cache_peer</B><DD><P>new multicast-siblings option, enabling multicast ICP sibling relations</P>
+<P>new idle=n option to keep a minimum pool of idle connections</P>
+<P>new http11 option to enable experimental HTTP/1.1 support</P>
+<DT><B>external_acl_type</B><DD><P>New %URI format tag</P>
+<DT><B>acl</B><DD><P>Suggested defaults cleaned up, defines a new "localnet" acl with RFC1918 addresses</P>
+<P>new "myportname" acl type matching the http_port name</P>
+<DT><B>icp_access</B><DD><P>Suggested defaults cleaned up, now requires configuration to use ICP</P>
+<DT><B>htcp_access</B><DD><P>Suggested defaults cleaned up, now requires configuration to use HTCP</P>
+<DT><B>http_access</B><DD><P>Suggested defaults cleaned up, using a new "localnet" acl.</P>
+<DT><B>http_port</B><DD><P>Accelerator mode options cleaned up (accel, defaultsite, vport, vhost and combinations thereof)</P>
+<P>new "allow-direct" option</P>
+<P>new "act-as-origin" option</P>
+<P>new "http11" option (experimental)</P>
+<P>new "name=" option</P>
+<P>nee "keepalive=" option</P>
+<DT><B>https_port</B><DD><P>See http_port.</P>
+<DT><B>logformat</B><DD><P>New format codes: oa (Our outgoing IP address), rp (Request URL-Path), sn (Unique sequence number)</P>
+<DT><B>refresh_pattern</B><DD><P>Several new options: stale-while-revalidate, ignore-stale-while-revalidate, max-stale, negative-ttl</P>
+<P>Suggested defaults adjusted to match the changes in the cache directive.</P>
+<DT><B>url_rewrite_program</B><DD><P>Future protocol change adding key=value pairs after the requests</P>
+</DL>
+</P>
+
+<H2><A NAME="ss2.3">2.3</A> <A HREF="#toc2.3">Removed directives</A>
+</H2>
+
+<P>
+<DL>
+<DT><B>incoming_icp_average</B><DD>
+<DT><B>incoming_http_average</B><DD>
+<DT><B>incoming_dns_average</B><DD>
+<DT><B>min_icp_poll_cnt</B><DD>
+<DT><B>min_dns_poll_cnt</B><DD>
+<DT><B>min_http_poll_cnt</B><DD><P>the above tuning knobs no longer have any effect and has been removed.</P>
+</DL>
+</P>
+
+<H2><A NAME="s3">3.</A> <A HREF="#toc3">Known issues &amp; limitations</A></H2>
+
+<P>There is a few known issues and limitations in this release of Squid</P>
+
+<H2><A NAME="ss3.1">3.1</A> <A HREF="#toc3.1">Known issues</A>
+</H2>
+
 <P>
 <UL>
-<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=761">#761</a>: Unstable under load when using diskd</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=2248">#2248</a> storeurl_rewrite mismatched when object stored on memory</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=2112">#2112</a> Squid does not send If-None-Match tag for cache revalidation</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=2160">#2160</a>   Cache hits on objects with headers &gt; 4KB</LI>
 </UL>
 </P>
 
-<H2><A NAME="s4">4.</A> <A HREF="#toc4">Known limitations</A></H2>
+<H2><A NAME="ss3.2">3.2</A> <A HREF="#toc3.2">Known limitations</A>
+</H2>
 
-<P>In addition there is a set of limitations in this version of Squid which we hope to correct later</P>
 <P>
 <UL>
-<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1420">#1420</a>: 302 responses with an Expires header is always cached</LI>
 <LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1059">#1059</a>: mime.conf and referenced icons must be within chroot</LI>
 <LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=692">#692</a>: tcp_outgoing_address using an ident ACL does not work</LI>
 <LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=581">#581</a>: acl max_user_ip and multiple authentication schemes</LI>
@@ -67,6 +235,161 @@ Squid is a WWW Cache application developed by the Web Caching community.</EM>
 <LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=355">#355</a>: diskd may appear slow on low loads</LI>
 <LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=219">#219</a>: delay_pools stops working on -k reconfigure</LI>
 </UL>
+</P>
+
+<H2><A NAME="s4">4.</A> <A HREF="#toc4">Windows support</A></H2>
+
+<P>This Squid version can run on Windows as a system service using the Cygwin emulation environment, 
+or can be compiled in Windows native mode using the MinGW + MSYS development environment. Windows NT 4 SP4 and later are supported.</P>
+<P>On Windows 2000 and later the service is configured to use the Windows Service Recovery option
+restarting automatically after 60 seconds.</P>
+
+<H2><A NAME="ss4.1">4.1</A> <A HREF="#toc4.1">Usage</A>
+</H2>
+
+<P>Some new command line options was added for the Windows service support:</P>
+<P>The service installation is made with -i command line switch, it's possible to use -f switch at
+the same time for specify a different config-file settings for the Squid Service that will be
+stored on the Windows Registry.</P>
+<P>A new -n switch specify the Windows Service Name, so multiple Squid instance are allowed.
+<EM>"Squid"</EM> is the default when the switch is not used.</P>
+<P>So, to install the service, the syntax is: </P>
+
+<P>
+<PRE>
+squid -i [-f file] [-n name]
+</PRE>
+</P>
+<P>Service uninstallation is made with -r command line switch with the appropriate -n switch.</P>
+<P>The -k switch family must be used with the appropriate -f and -n switches, so the syntax is: </P>
+<P>
+<PRE>
+squid -k command [-f file] -n service-name
+</PRE>
+
+where <EM>service-name</EM> is the name specified with -n options at service install time.</P>
+<P>To use the Squid original command line, the new -O switch must be used ONCE, the syntax is: </P>
+<P>
+<PRE>
+squid -O cmdline [-n service-name]
+</PRE>
+
+If multiple service command line options must be specified, use quote. The -n switch is
+needed only when a non default service name is in use.</P>
+<P>Don't use the "Start parameters" in the Windows 2000/XP/2003 Service applet: they are
+specific to Windows services functionality and Squid is not designed for understand they.</P>
+<P>In the following example the command line of the "squidsvc" Squid service is set to "-D -u 3130": </P>
+<P>
+<PRE>
+squid -O "-D -u 3130" -n squidsvc
+</PRE>
+</P>
+
+<H2><A NAME="ss4.2">4.2</A> <A HREF="#toc4.2">PSAPI.DLL (Process Status Helper) Considerations</A>
+</H2>
+
+<P>The process status helper functions make it easier for you to obtain information about
+processes and device drivers running on Microsoft® Windows NT®/Windows® 2000. These
+functions are available in PSAPI.DLL, which is distributed in the Microsoft® Platform
+Software Development Kit (SDK). The same information is generally available through the
+performance data in the registry, but it is more difficult to get to it. PSAPI.DLL is
+freely redistributable.</P>
+<P>PSAPI.DLL is available only on Windows NT, 2000, XP and 2003. The implementation in Squid is
+aware of this, and try to use it only on the right platform.</P>
+<P>On Windows NT PSAPI.DLL can be found as component of many applications, if you need it,
+you can find it on Windows NT Resource KIT. If you have problem, it can be
+downloaded from here:
+<A HREF="http://download.microsoft.com/download/platformsdk/Redist/4.0.1371.1/NT4/EN-US/psinst.EXE">http://download.microsoft.com/download/platformsdk/Redist/4.0.1371.1/NT4/EN-US/psinst.EXE</A></P>
+<P>On Windows 2000 and later it is available installing the Windows Support Tools, located on the
+Support\Tools folder of the installation Windows CD-ROM.</P>
+
+<H2><A NAME="ss4.3">4.3</A> <A HREF="#toc4.3">Registry DNS lookup</A>
+</H2>
+
+<P>On Windows platforms, if no value is specified in the <EM>dns_nameservers</EM> option on
+squid.conf or in the /etc/resolv.conf file, the list of DNS name servers are
+taken from the Windows registry, both static and dynamic DHCP configurations
+are supported.</P>
+
+<H2><A NAME="ss4.4">4.4</A> <A HREF="#toc4.4">Compatibility Notes</A>
+</H2>
+
+<P>
+<UL>
+<LI>It's recommended to use '/' char in Squid paths instead of '\'</LI>
+<LI>Paths with spaces (like 'C:\Programs Files\Squid) are NOT supported by Squid</LI>
+<LI>When using ACL like 'acl aclname acltype "file"' the file must be in DOS text
+format (CR+LF) and the full Windows path must be specified, for example:
+
+<PRE>
+acl blocklist url_regex -i "c:/squid/etc/blocked1.txt"
+</PRE>
+
+</LI>
+<LI>The Windows equivalent of '/dev/null' is 'NUL'</LI>
+<LI>Squid doesn't know how to run external helpers based on scripts, like .bat, .cmd,
+.vbs, .pl, etc. So in squid.conf the interpreter path must be always specified, for example:
+
+<PRE>
+redirect_program c:/perl/bin/perl.exe c:/squid/libexec/redir.pl
+redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd
+</PRE>
+</LI>
+<LI>When Squid runs in command line mode, the launching user account must have administrative privilege on the system</LI>
+<LI>"Start parameters" in the Windows 2000/XP/2003 Service applet cannot be used</LI>
+<LI>Building with MinGW, when the configure option --enable-truncate is used, Squid cannot run on Windows NT, only Windows 2000 and later are supported</LI>
+</UL>
+</P>
+
+<H2><A NAME="ss4.5">4.5</A> <A HREF="#toc4.5">Known Limitations:</A>
+</H2>
+
+<P>
+<UL>
+<LI>DISKD: still needs to be ported</LI>
+<LI>WCCP: cannot work because user space GRE support on Windows is missing</LI>
+<LI>Transparent Proxy: missing Windows non commercial interception driver</LI>
+<LI>Some code sections can make blocking calls.</LI>
+<LI>Some external helpers may not work.</LI>
+<LI>File Descriptors number hard-limited to 2048 when building with MinGW.</LI>
+</UL>
+</P>
+
+<H2><A NAME="ss4.6">4.6</A> <A HREF="#toc4.6">Using cache manager on Windows:</A>
+</H2>
+
+<P>On Windows, cache manager (cachemgr.cgi) can be used with Microsoft IIS or Apache.
+Some specific configuration could be needed:</P>
+
+<H3>IIS 6 (Windows 2003)</H3>
+
+<P>On IIS 6.0 all CGI extensions are denied by default for security reason, so the following configuration is needed:</P>
+<P>
+<UL>
+<LI>Create a cgi-bin Directory</LI>
+<LI>Define the cgi-bin IIS Virtual Directory with read and CGI execute IIS
+permissions, ASP scripts are not needed. This automatically defines a
+cgi-bin IIS web application </LI>
+<LI>Copy cachemgr.cgi into cgi-bin directory and look to file permissions:
+the IIS system account and SYSTEM must be able to read and execute the file</LI>
+<LI>In IIS manager go to Web Service extensions and add a new Web Service
+Extension called <EM>"Squid Cachemgr"</EM>, add the cachemgr.cgi file and set the
+extension status to <EM>Allowed</EM></LI>
+</UL>
+</P>
+
+<H3>Apache:</H3>
+
+<P>On Windows, cachemgr.cgi needs to create a temporary file, so Apache must be instructed
+to pass the TMP and TEMP Windows environment variables to CGI applications:
+<PRE>
+ScriptAlias /squid/cgi-bin/ "c:/squid/libexec/"
+&lt;Location /squid/cgi-bin/cachemgr.cgi&gt;
+    PassEnv TMP TEMP
+    Order allow,deny
+    Allow from workstation.example.com
+&lt;/Location&gt;
+</PRE>
 </P>
 
 </BODY>

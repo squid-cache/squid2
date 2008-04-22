@@ -75,6 +75,27 @@ Changes to squid-2.7.STABLE1 (not yet released)
 	  properly on 32-bit platforms
 	- Fix stripping NT domain in squid_ldap_group
 	- Removed obsolete advanced comm tuning knobs
+	- Bug #2192: Confusing and inconsistent relations between accelerator
+	  mode options
+	- TCP keepalive support
+	- Support for tos/priority marking of cache hits (zph)
+
+Changes to squid-2.6.STABLE20 (22 Apr 2008)
+
+	- Bug #2263: Custom log formats fail to log file sizes >2GB properly
+	  on 32-bit platforms
+	- Fix stripping NT domain in squid_ldap_group
+	- Bug #2278: Cache-Control: max-stale=0 forwarded wrongly as max-stale
+	(without delta)
+	- Bug #2283: Fails to parse chunked encoding using chunk extensions
+	- Bug #420: Deal properly with empty list HTTP header members
+	- Windows Server 2008 support
+	- Bug #1886: tcp_outgoing_address acl doesn't work with indirect
+	  source address (follow-x-forwarded-for)
+	- Bug #2296: Stuck in 100% CPU when fetching an corrupt peer digest
+	- Add support for the resolv.conf domain directive, and also
+	  automatically derived default domain
+	- minimum_icp_query_timeout directive
 
 Changes to squid-2.6.STABLE19 (19 Mar 2008)
 
