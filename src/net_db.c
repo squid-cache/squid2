@@ -562,7 +562,7 @@ netdbExchangeHandleReply(void *data, mem_node_ref nr, ssize_t size)
     if (0 == ex->used) {
 	/* skip reply headers */
 	rep = ex->e->mem_obj->reply;
-	hdrs_sz = rep->hdr_sz;
+	hdr_sz = rep->hdr_sz;
 	debug(38, 5) ("netdbExchangeHandleReply: hdr_sz = %ld\n", (long int) hdr_sz);
 	debug(38, 3) ("netdbExchangeHandleReply: reply status %d\n",
 	    rep->sline.status);
