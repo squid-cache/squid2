@@ -234,7 +234,7 @@ pingerOpen(void)
 	exit(1);
     }
     icmp_ident = getpid() & 0xffff;
-    debug(42, 0) ("pinger: ICMP socket opened\n");
+    debug(42, 0) ("pingerOpen: ICMP socket opened\n");
 #ifdef _SQUID_MSWIN_
     socket_to_squid =
 	WSASocket(FROM_PROTOCOL_INFO, FROM_PROTOCOL_INFO, FROM_PROTOCOL_INFO,
@@ -256,16 +256,16 @@ pingerOpen(void)
     memset(buf, 0, sizeof(buf));
     x = recv(socket_to_squid, buf, sizeof(buf), 0);
     if (x < 3) {
-	debug(42, 0) ("icmpOpen: recv: %s\n", xstrerror());
+	debug(42, 0) ("pingerOpen: recv: %s\n", xstrerror());
 	exit(1);
     }
     x = send(socket_to_squid, buf, strlen(buf), 0);
     if (x < 3 || strncmp("OK\n", buf, 3)) {
-	debug(42, 0) ("icmpOpen: recv: %s\n", xstrerror());
+	debug(42, 0) ("pingerOpen: recv: %s\n", xstrerror());
 	exit(1);
     }
     getCurrentTime();
-    debug(42, 0) ("pinger: Squid socket opened\n");
+    debug(42, 0) ("pingerOpen: Squid socket opened\n");
 #endif
 }
 
@@ -475,7 +475,7 @@ pingerSendtoSquid(pingerReplyData * preply)
 {
     int len = sizeof(pingerReplyData) - MAX_PKT_SZ + preply->psize;
     if (send(socket_to_squid, (char *) preply, len, 0) < 0) {
-	debug(42, 0) ("pinger: send: %s\n", xstrerror());
+	debug(42, 0) ("pingerSendtoSquid: send: %s\n", xstrerror());
 	pingerClose();
 	exit(1);
     }

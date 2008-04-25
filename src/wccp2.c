@@ -1589,7 +1589,7 @@ parse_wccp2_service(void *v)
     }
     /* Snarf the type */
     if ((t = strtok(NULL, w_space)) == NULL) {
-	debug(80, 0) ("wccp2ParseServiceInfo: missing service info type (standard|dynamic)\n");
+	debug(80, 0) ("parse_wccp2_service: missing service info type (standard|dynamic)\n");
 	self_destruct();
     }
     if (strcmp(t, "standard") == 0) {
@@ -1597,14 +1597,14 @@ parse_wccp2_service(void *v)
     } else if (strcmp(t, "dynamic") == 0) {
 	service = WCCP2_SERVICE_DYNAMIC;
     } else {
-	debug(80, 0) ("wccp2ParseServiceInfo: bad service info type (expected standard|dynamic, got %s)\n", t);
+	debug(80, 0) ("parse_wccp2_service: bad service info type (expected standard|dynamic, got %s)\n", t);
 	self_destruct();
     }
 
     /* Snarf the ID */
     service_id = GetInteger();
     if (service_id < 0 || service_id > 255) {
-	debug(80, 0) ("wccp2ParseServiceInfo: service info id %d is out of range (0..255)\n", service_id);
+	debug(80, 0) ("parse_wccp2_service: service info id %d is out of range (0..255)\n", service_id);
 	self_destruct();
     }
     memset(wccp_password, 0, sizeof(wccp_password));

@@ -734,7 +734,7 @@ comm_reset_close(int fd)
     L.l_onoff = 1;
     L.l_linger = 0;
     if (setsockopt(fd, SOL_SOCKET, SO_LINGER, (char *) &L, sizeof(L)) < 0)
-	debug(5, 0) ("commResetTCPClose: FD %d: %s\n", fd, xstrerror());
+	debug(5, 0) ("comm_reset_close: FD %d: %s\n", fd, xstrerror());
     F->flags.close_request = 1;
     comm_close(fd);
 }
@@ -772,7 +772,7 @@ comm_close_ssl(int fd, void *unused)
 static void
 comm_close_ssl_timeout(int fd, void *unused)
 {
-    debug(5, 1) ("comm_close_ssl: FD %d: timeout\n", fd);
+    debug(5, 1) ("comm_close_ssl_timeout: FD %d: timeout\n", fd);
     comm_close_ssl_finish(fd);
 }
 
@@ -1098,23 +1098,23 @@ commSetTcpKeepalive(int fd, int idle, int interval, int timeout)
     if (timeout && interval) {
 	int count = (timeout + interval - 1) / interval;
 	if (setsockopt(fd, IPPROTO_TCP, TCP_KEEPCNT, &count, sizeof(on)) < 0)
-	    debug(5, 1) ("commSetKeepalive: FD %d: %s\n", fd, xstrerror());
+	    debug(5, 1) ("commSetTcpKeepalive: FD %d: %s\n", fd, xstrerror());
     }
 #endif
 #ifdef TCP_KEEPIDLE
     if (idle) {
 	if (setsockopt(fd, IPPROTO_TCP, TCP_KEEPIDLE, &idle, sizeof(on)) < 0)
-	    debug(5, 1) ("commSetKeepalive: FD %d: %s\n", fd, xstrerror());
+	    debug(5, 1) ("commSetTcpKeepalive: FD %d: %s\n", fd, xstrerror());
     }
 #endif
 #ifdef TCP_KEEPINTVL
     if (interval) {
 	if (setsockopt(fd, IPPROTO_TCP, TCP_KEEPINTVL, &interval, sizeof(on)) < 0)
-	    debug(5, 1) ("commSetKeepalive: FD %d: %s\n", fd, xstrerror());
+	    debug(5, 1) ("commSetTcpKeepalive: FD %d: %s\n", fd, xstrerror());
     }
 #endif
     if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (char *) &on, sizeof(on)) < 0)
-	debug(5, 1) ("commSetKeepalive: FD %d: %s\n", fd, xstrerror());
+	debug(5, 1) ("commSetTcpKeepalive: FD %d: %s\n", fd, xstrerror());
 }
 
 int
@@ -1132,7 +1132,7 @@ commSetTos(int fd, int tos)
     res = -1;
 #endif
     if (res < 0)
-	debug(33, 1) ("sommSetTos: FD %d: %s\n", fd, xstrerror());
+	debug(33, 1) ("commSetTos: FD %d: %s\n", fd, xstrerror());
     return res;
 }
 
@@ -1147,7 +1147,7 @@ commSetSocketPriority(int fd, int prio)
     res = -1;
 #endif
     if (res < 0)
-	debug(33, 1) ("sommSetSocketPriority: FD %d: %s\n", fd, xstrerror());
+	debug(33, 1) ("commSetSocketPriority: FD %d: %s\n", fd, xstrerror());
     return res;
 }
 
@@ -1166,7 +1166,7 @@ commSetIPOption(int fd, uint8_t option, void *value, size_t size)
     res = -1;
 #endif
     if (res < 0)
-	debug(33, 1) ("sommSetSocketPriority: FD %d: %s\n", fd, xstrerror());
+	debug(33, 1) ("commSetIPOption: FD %d: %s\n", fd, xstrerror());
     return res;
 }
 
@@ -1281,7 +1281,7 @@ comm_write_header(int fd, const char *buf, int size, const char *header, size_t 
     debug(5, 5) ("comm_write_header: FD %d: sz %d: hndl %p: data %p.\n",
 	fd, size, handler, handler_data);
     if (state->valid) {
-	debug(5, 1) ("comm_write: fd_table[%d].rwstate.valid == true!\n", fd);
+	debug(5, 1) ("comm_write_header: fd_table[%d].rwstate.valid == true!\n", fd);
 	fd_table[fd].rwstate.valid = 0;
     }
     state->buf = (char *) buf;

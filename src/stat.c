@@ -1362,7 +1362,7 @@ statMedianSvc(int interval, int which)
 	x = statHistDeltaMedian(&l->dns.svc_time, &f->dns.svc_time);
 	break;
     default:
-	debug(49, 5) ("get_median_val: unknown type.\n");
+	debug(49, 5) ("statMedianSvc: unknown type.\n");
 	x = 0;
     }
     return x;

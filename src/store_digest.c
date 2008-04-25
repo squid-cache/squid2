@@ -342,7 +342,7 @@ storeDigestRewriteStart(void *datanotused)
     assert(store_digest);
     /* prevent overlapping if rewrite schedule is too tight */
     if (sd_state.rewrite_lock) {
-	debug(71, 1) ("storeDigestRewrite: overlap detected, consider increasing rewrite period\n");
+	debug(71, 1) ("storeDigestRewriteStart: overlap detected, consider increasing rewrite period\n");
 	return;
     }
     debug(71, 2) ("storeDigestRewriteStart: start rewrite #%d\n", sd_state.rewrite_count + 1);

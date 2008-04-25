@@ -238,7 +238,7 @@ diskHandleWrite(int fd, void *notused)
 	/* q might become NULL from write failure above */
 	q->buf_offset += len;
 	if (q->buf_offset > q->len)
-	    debug(50, 1) ("diskHandleWriteComplete: q->buf_offset > q->len (%p,%d, %d, %d FD %d)\n",
+	    debug(50, 1) ("diskHandleWrite: q->buf_offset > q->len (%p,%d, %d, %d FD %d)\n",
 		q, (int) q->buf_offset, (int) q->len, len, fd);
 	assert(q->buf_offset <= q->len);
 	if (q->buf_offset == q->len) {

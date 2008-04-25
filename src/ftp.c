@@ -1990,7 +1990,7 @@ ftpAcceptDataConnection(int fd, void *data)
 	}
     }
     if (fd < 0) {
-	debug(9, 1) ("ftpHandleDataAccept: comm_accept(%d): %s\n", fd, xstrerror());
+	debug(9, 1) ("ftpAcceptDataConnection: comm_accept(%d): %s\n", fd, xstrerror());
 	/* XXX Need to set error message */
 	ftpFail(ftpState);
 	return;
@@ -2334,7 +2334,7 @@ ftpWriteTransferDone(FtpStateData * ftpState)
     int code = ftpState->ctrl.replycode;
     debug(9, 3) ("This is ftpWriteTransferDone\n");
     if (!(code == 226 || code == 250)) {
-	debug(9, 1) ("ftpReadTransferDone: Got code %d after sending data\n",
+	debug(9, 1) ("ftpWriteTransferDone: Got code %d after sending data\n",
 	    code);
 	ftpFailed(ftpState, ERR_FTP_PUT_ERROR);
 	return;

@@ -555,7 +555,7 @@ helperStatefulShutdown(statefulhelper * hlp)
 	if (hIpc) {
 	    if (WaitForSingleObject(hIpc, 5000) != WAIT_OBJECT_0) {
 		getCurrentTime();
-		debug(84, 1) ("helperShutdown: WARNING: %s #%d (%s,%ld) "
+		debug(84, 1) ("helperStatefulShutdown: WARNING: %s #%d (%s,%ld) "
 		    "didn't exit in 5 seconds\n",
 		    hlp->id_name, no, hlp->cmdline->key, (long int) pid);
 	    }
@@ -841,7 +841,7 @@ helperStatefulHandleRead(int fd, void *data)
 	if (cbdataValid(r->data)) {
 	    r->callback(r->data, srv, srv->buf);
 	} else {
-	    debug(84, 1) ("StatefulHandleRead: no callback data registered\n");
+	    debug(84, 1) ("helperStatefulHandleRead: no callback data registered\n");
 	}
 	helperStatefulRequestFree(r);
     }

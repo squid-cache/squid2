@@ -2538,7 +2538,7 @@ clientPackRange(clientHttpRequest * http,
     /*
      * append content
      */
-    debug(33, 3) ("clientPackRangeHdr: appending %ld bytes\n", (long int) copy_sz);
+    debug(33, 3) ("clientPackRange: appending %ld bytes\n", (long int) copy_sz);
     memBufAppend(mb, *buf, copy_sz);
     /*
      * update offsets

@@ -171,7 +171,7 @@ errorMapStart(const errormap * map, request_t * client_req, HttpReply * reply, c
 	return 0;
     req = urlParse(METHOD_GET, (char *) errorUrl);
     if (!req) {
-	debug(0, 0) ("error_map: Invalid error URL '%s'\n", errorUrl);
+	debug(0, 0) ("errorMapStart: Invalid error URL '%s'\n", errorUrl);
 	return 0;
     }
     req->urlgroup = xstrdup("error");

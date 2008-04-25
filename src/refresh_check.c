@@ -483,7 +483,7 @@ refreshCheckSubmit(StoreEntry * entry, REFRESHCHECK * callback, void *callback_d
 	/* No pending lookup found. Sumbit to helper */
 	/* Check for queue overload */
 	if (refreshCheckOverload(def)) {
-	    debug(84, 1) ("refreshCheckLookup: queue overload\n");
+	    debug(84, 1) ("refreshCheckSubmit: queue overload\n");
 	    cbdataFree(state);
 	    callback(callback_data, 0, "Overload");
 	    return;
