@@ -97,7 +97,13 @@ int _free_osfhnd(int);
 size_t
 getpagesize()
 {
-    return 4096;
+    static DWORD system_pagesize = 0;
+    if (!system_pagesize) {
+	SYSTEM_INFO system_info;
+	GetSystemInfo(&system_info);
+	system_pagesize = system_info.dwPageSize;
+    }
+    return system_pagesize;
 }
 
 int64_t
@@ -247,7 +253,7 @@ chroot(const char *dirname)
  * an in_addr structure.  Returns 0 on failure,
  * and 1 on success.
  */
-int 
+int
 inet_aton(const char *cp, struct in_addr *addr)
 {
     if (cp == NULL || addr == NULL) {
