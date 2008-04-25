@@ -696,6 +696,7 @@ ScriptAlias /squid/cgi-bin/ "c:/squid/libexec/"
         <item>Add support for the resolv.conf domain directive, and also
           automatically derived default domain
         <item>minimum_icp_query_timeout directive
+	<item>Bug #2329: Range header ignored on HIT
 	<item>And some other trivial/cosmetic changes
 	<item>See also the list of <url
 		url="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE20.html"
