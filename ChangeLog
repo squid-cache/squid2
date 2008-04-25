@@ -88,7 +88,7 @@ Changes to squid-2.7.STABLE1 (not yet released)
 	- TCP keepalive support
 	- Support for tos/priority marking of cache hits (zph)
 
-Changes to squid-2.6.STABLE20 (not yet released)
+Changes to squid-2.6.STABLE20 (25 Apr 2008)
 
 	- Bug #2263: Custom log formats fail to log file sizes >2GB properly
 	  on 32-bit platforms
@@ -104,6 +104,7 @@ Changes to squid-2.6.STABLE20 (not yet released)
 	- Add support for the resolv.conf domain directive, and also
 	  automatically derived default domain
 	- minimum_icp_query_timeout directive
+	- Bug #2329: Range header ignored on HIT
 
 Changes to squid-2.6.STABLE19 (19 Mar 2008)
 
