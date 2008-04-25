@@ -313,7 +313,7 @@ idnsParseResolvConf(void)
 static void
 idnsParseWIN32SearchList(const char *Separator)
 {
-    BYTE *t;
+    char *t;
     char *token;
     HKEY hndKey;
 
@@ -324,22 +324,41 @@ idnsParseWIN32SearchList(const char *Separator)
 	DWORD Size = 0;
 	LONG Result;
 	Result =
+	    RegQueryValueEx(hndKey, "Domain", NULL, &Type, NULL,
+	    &Size);
+
+	if (Result == ERROR_SUCCESS && Size) {
+	    t = (char *) xmalloc(Size);
+	    RegQueryValueEx(hndKey, "Domain", NULL, &Type, (LPBYTE) t,
+		&Size);
+	    debug(78, 1) ("Adding domain %s from Registry\n", t);
+	    idnsAddPathComponent(t);
+	    xfree(t);
+	}
+	Result =
 	    RegQueryValueEx(hndKey, "SearchList", NULL, &Type, NULL,
 	    &Size);
 
 	if (Result == ERROR_SUCCESS && Size) {
 	    t = (unsigned char *) xmalloc(Size);
-	    RegQueryValueEx(hndKey, "SearchList", NULL, &Type, t,
+	    RegQueryValueEx(hndKey, "SearchList", NULL, &Type, (LPBYTE) t,
 		&Size);
 	    token = strtok((char *) t, Separator);
+	    idnsFreeSearchpath();
 
 	    while (token) {
 		idnsAddPathComponent(token);
 		debug(78, 1) ("Adding domain %s from Registry\n", token);
 		token = strtok(NULL, Separator);
 	    }
+	    xfree(t);
 	}
 	RegCloseKey(hndKey);
+    }
+    if (npc == 0 && ((const char *) t = getMyHostname())) {
+	t = strchr(t, '.');
+	if (t)
+	    idnsAddPathComponent(t + 1);
     }
 }
 
@@ -350,7 +369,6 @@ idnsParseWIN32Registry(void)
     char *token;
     HKEY hndKey, hndKey2;
 
-    idnsFreeNameservers();
     switch (WIN32_OS_version) {
     case _WIN_OS_WINNT:
 	/* get nameservers from the Windows NT registry */
@@ -374,6 +392,7 @@ idnsParseWIN32Registry(void)
 			token);
 		    token = strtok(NULL, ", ");
 		}
+		xfree(t);
 	    }
 	    Result =
 		RegQueryValueEx(hndKey, "NameServer", NULL, &Type, NULL, &Size);
@@ -387,6 +406,7 @@ idnsParseWIN32Registry(void)
 		    idnsAddNameserver(token);
 		    token = strtok(NULL, ", ");
 		}
+		xfree(t);
 	    }
 	    RegCloseKey(hndKey);
 	}
@@ -431,6 +451,7 @@ idnsParseWIN32Registry(void)
 				idnsAddNameserver(token);
 				token = strtok(NULL, ", ");
 			    }
+			    xfree(t);
 			}
 			Result =
 			    RegQueryValueEx(hndKey2, "NameServer", NULL, &Type,
@@ -446,6 +467,7 @@ idnsParseWIN32Registry(void)
 				idnsAddNameserver(token);
 				token = strtok(NULL, ", ");
 			    }
+			    xfree(t);
 			}
 			RegCloseKey(hndKey2);
 		    }
@@ -477,6 +499,7 @@ idnsParseWIN32Registry(void)
 		    idnsAddNameserver(token);
 		    token = strtok(NULL, ", ");
 		}
+		xfree(t);
 	    }
 	    RegCloseKey(hndKey);
 	}
