@@ -2248,7 +2248,7 @@ clientCacheHit(void *data, HttpReply * rep)
 	break;
     case VARY_MATCH:
 	/* This is the correct entity for this request. Continue */
-	debug(33, 2) ("clientProcessHit: Vary MATCH!\n");
+	debug(33, 2) ("clientCacheHit: Vary MATCH!\n");
 	break;
     case VARY_OTHER:
 	{
@@ -2269,7 +2269,7 @@ clientCacheHit(void *data, HttpReply * rep)
 	    /* Note: varyEvalyateMatch updates the request with vary information
 	     * so we only get here once. (it also takes care of cancelling loops)
 	     */
-	    debug(33, 2) ("clientProcessHit: Vary detected!\n");
+	    debug(33, 2) ("clientCacheHit: Vary detected!\n");
 	    return;
 	}
     case VARY_RESTART:
@@ -2282,14 +2282,14 @@ clientCacheHit(void *data, HttpReply * rep)
 	return;
     case VARY_CANCEL:
 	/* varyEvaluateMatch found a object loop. Process as miss */
-	debug(33, 1) ("clientProcessHit: Vary object loop!\n");
+	debug(33, 1) ("clientCacheHit: Vary object loop!\n");
 	storeClientUnregister(http->sc, e, http);
 	http->sc = NULL;
 	clientProcessMiss(http);
 	return;
     case VARY_EXPIRED:
 	/* Variant is expired. Delete it and process as a miss. */
-	debug(33, 2) ("clientProcessHit: Variant expired, deleting\n");
+	debug(33, 2) ("clientCacheHit: Variant expired, deleting\n");
 	storeClientUnregister(http->sc, e, http);
 	http->sc = NULL;
 	storeRelease(e);
@@ -2374,26 +2374,26 @@ clientCacheHit(void *data, HttpReply * rep)
 	}
     }
     stale = refreshCheckHTTPStale(e, r);
-    debug(33, 2) ("clientProcessHit: refreshCheckHTTPStale returned %d\n", stale);
+    debug(33, 2) ("clientCacheHit: refreshCheckHTTPStale returned %d\n", stale);
     if (stale == 0) {
-	debug(33, 2) ("clientProcessHit: HIT\n");
+	debug(33, 2) ("clientCacheHit: HIT\n");
     } else if (stale == -1 && Config.refresh_stale_window > 0 && e->mem_obj->refresh_timestamp + Config.refresh_stale_window > squid_curtime) {
-	debug(33, 2) ("clientProcessHit: refresh_stale HIT\n");
+	debug(33, 2) ("clientCacheHit: refresh_stale HIT\n");
 	http->log_type = LOG_TCP_STALE_HIT;
 	stale = 0;
     } else if (stale == -2 && e->mem_obj->refresh_timestamp + e->mem_obj->stale_while_revalidate >= squid_curtime) {
-	debug(33, 2) ("clientProcessHit: stale-while-revalidate HIT\n");
+	debug(33, 2) ("clientCacheHit: stale-while-revalidate HIT\n");
 	http->log_type = LOG_TCP_STALE_HIT;
 	stale = 0;
     } else if (stale && http->flags.internal) {
-	debug(33, 2) ("clientProcessHit: internal HIT\n");
+	debug(33, 2) ("clientCacheHit: internal HIT\n");
 	stale = 0;
     } else if (stale && Config.onoff.offline) {
-	debug(33, 2) ("clientProcessHit: offline HIT\n");
+	debug(33, 2) ("clientCacheHit: offline HIT\n");
 	http->log_type = LOG_TCP_OFFLINE_HIT;
 	stale = 0;
     } else if (stale == -2 && !clientOnlyIfCached(http)) {
-	debug(33, 2) ("clientProcessHit: stale-while-revalidate needs revalidation\n");
+	debug(33, 2) ("clientCacheHit: stale-while-revalidate needs revalidation\n");
 	clientAsyncRefresh(http);
 	http->log_type = LOG_TCP_STALE_HIT;
 	stale = 0;
@@ -2538,7 +2538,7 @@ clientPackRange(clientHttpRequest * http,
     /*
      * append content
      */
-    debug(33, 3) ("clientPackRange: appending %ld bytes\n", (long int) copy_sz);
+    debug(33, 3) ("clientPackRangeHdr: appending %ld bytes\n", (long int) copy_sz);
     memBufAppend(mb, *buf, copy_sz);
     /*
      * update offsets
@@ -2650,7 +2650,7 @@ clientMaxBodySize(request_t * request, clientHttpRequest * http, HttpReply * rep
 	    /* Allow - use this entry */
 	    http->maxBodySize = bs->maxsize;
 	    bs = NULL;
-	    debug(58, 3) ("httpReplyBodyBuildSize: Setting maxBodySize to %ld\n", (long int) http->maxBodySize);
+	    debug(58, 3) ("clientMaxBodySize: Setting maxBodySize to %ld\n", (long int) http->maxBodySize);
 	}
 	aclChecklistFree(checklist);
     }
@@ -2680,7 +2680,7 @@ clientDelayMaxBodySize(request_t * request, clientHttpRequest * http, HttpReply 
 	    http->delayMaxBodySize = dbs->maxsize;
 	    http->delayAssignedPool = dbs->pool;
 	    dbs = NULL;
-	    debug(58, 3) ("httpDelayBodyBuildSize: Setting delayMaxBodySize to %ld\n",
+	    debug(58, 3) ("clientDelayMaxBodySize: Setting delayMaxBodySize to %ld\n",
 		(long int) http->delayMaxBodySize);
 	}
 	aclChecklistFree(checklist);
@@ -2778,11 +2778,11 @@ clientSendHeaders(void *data, HttpReply * rep)
     assert(http->request != NULL);
     dlinkDelete(&http->active, &ClientActiveRequests);
     dlinkAdd(http, &http->active, &ClientActiveRequests);
-    debug(33, 5) ("clientSendMoreHeaderData: FD %d '%s'\n", fd, storeUrl(entry));
+    debug(33, 5) ("clientSendHeaders: FD %d '%s'\n", fd, storeUrl(entry));
     assert(conn->reqs.head != NULL);
     if (DLINK_HEAD(conn->reqs) != http) {
 	/* there is another object in progress, defer this one */
-	debug(33, 2) ("clientSendMoreHeaderData: Deferring %s\n", storeUrl(entry));
+	debug(33, 2) ("clientSendHeaders: Deferring %s\n", storeUrl(entry));
 	return;
     } else if (http->request->flags.reset_tcp) {
 	comm_reset_close(fd);
@@ -2862,7 +2862,7 @@ clientSendHeaders(void *data, HttpReply * rep)
      * - [ahc]
      */
     http->range_iter.prefix_size = rep->hdr_sz;
-    debug(33, 3) ("clientSendMoreHeaderData: %d bytes of headers\n", rep->hdr_sz);
+    debug(33, 3) ("clientSendHeaders: %d bytes of headers\n", rep->hdr_sz);
     clientHttpLocationRewriteCheck(http);
 }
 
@@ -3959,8 +3959,8 @@ clientTryParseRequest(ConnStateData * conn)
     /* Limit the number of concurrent requests to 2 */
     for (n = conn->reqs.head, nrequests = 0; n; n = n->next, nrequests++);
     if (nrequests >= (Config.onoff.pipeline_prefetch ? 2 : 1)) {
-	debug(33, 3) ("clientReadRequest: FD %d max concurrent requests reached\n", fd);
-	debug(33, 5) ("clientReadRequest: FD %d defering new request until one is done\n", fd);
+	debug(33, 3) ("clientTryParseRequest: FD %d max concurrent requests reached\n", fd);
+	debug(33, 5) ("clientTryParseRequest: FD %d defering new request until one is done\n", fd);
 	conn->defer.until = squid_curtime + 100;	/* Reset when a request is complete */
 	return 0;
     }
@@ -3979,7 +3979,7 @@ clientTryParseRequest(ConnStateData * conn)
 	conn->nrequests++;
 	commSetTimeout(fd, Config.Timeout.lifetime, clientLifetimeTimeout, http);
 	if (parser_return_code < 0) {
-	    debug(33, 1) ("clientReadRequest: FD %d (%s:%d) Invalid Request\n", fd, fd_table[fd].ipaddr, fd_table[fd].remote_port);
+	    debug(33, 1) ("clientTryParseRequest: FD %d (%s:%d) Invalid Request\n", fd, fd_table[fd].ipaddr, fd_table[fd].remote_port);
 	    err = errorCon(ERR_INVALID_REQ, HTTP_BAD_REQUEST, NULL);
 	    err->src_addr = conn->peer.sin_addr;
 	    err->request_hdrs = xstrdup(conn->in.buf);
@@ -4287,7 +4287,7 @@ clientEatRequestBodyHandler(char *buf, ssize_t size, void *data)
 	clientProcessBody(conn);
     } else {
 	if (http->request->flags.proxy_keepalive) {
-	    debug(33, 5) ("clientWriteComplete: FD %d Keeping Alive\n", conn->fd);
+	    debug(33, 5) ("clientEatRequestBodyHandler: FD %d Keeping Alive\n", conn->fd);
 	    clientKeepaliveNextRequest(http);
 	} else {
 	    comm_close(conn->fd);
@@ -4754,7 +4754,7 @@ httpsAcceptSSL(ConnStateData * connState, SSL_CTX * sslContext)
     int fd = connState->fd;
     if ((ssl = SSL_new(sslContext)) == NULL) {
 	int ssl_error = ERR_get_error();
-	debug(83, 1) ("httpsAccept: Error allocating handle: %s\n",
+	debug(83, 1) ("httpsAcceptSSL: Error allocating handle: %s\n",
 	    ERR_error_string(ssl_error, NULL));
 	comm_close(fd);
 	return;

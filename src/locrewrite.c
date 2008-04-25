@@ -55,7 +55,7 @@ locationRewriteHandleReply(void *data, char *reply)
     rewriteStateData *r = data;
     int valid;
     char *t;
-    debug(29, 5) ("rewriteHandleRead: {%s}\n", reply ? reply : "<NULL>");
+    debug(29, 5) ("locationRewriteHandleReply: {%s}\n", reply ? reply : "<NULL>");
     if (reply) {
 	if ((t = strchr(reply, ' ')))
 	    *t = '\0';

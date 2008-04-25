@@ -559,7 +559,7 @@ snmpDecodePacket(snmp_request_t * rq)
     if ((snmp_coexist_V2toV1(PDU)) && (Community) && (allow)) {
 	rq->community = Community;
 	rq->PDU = PDU;
-	debug(49, 5) ("snmpAgentParse: reqid=[%d]\n", PDU->reqid);
+	debug(49, 5) ("snmpDecodePacket: reqid=[%d]\n", PDU->reqid);
 	snmpConstructReponse(rq);
     } else {
 	debug(49, 1) ("Failed SNMP agent query from : %s.\n",

@@ -203,11 +203,11 @@ void
 peerDigestNotePeerGone(PeerDigest * pd)
 {
     if (pd->flags.requested) {
-	debug(72, 2) ("peerDigest: peer %s gone, will destroy after fetch.\n",
+	debug(72, 2) ("peerDigestNotePeerGone: peer %s gone, will destroy after fetch.\n",
 	    strBuf(pd->host));
 	/* do nothing now, the fetching chain will notice and take action */
     } else {
-	debug(72, 2) ("peerDigest: peer %s is gone, destroying now.\n",
+	debug(72, 2) ("peerDigestNotePeerGone: peer %s is gone, destroying now.\n",
 	    strBuf(pd->host));
 	peerDigestDestroy(pd);
     }
@@ -732,9 +732,9 @@ peerDigestFetchSetStats(DigestFetchState * fetch)
     fetch->expires = fetch->entry->expires;
     fetch->resp_time = squid_curtime - fetch->start_time;
 
-    debug(72, 3) ("peerDigestFetchFinish: recv %d bytes in %d secs\n",
+    debug(72, 3) ("peerDigestFetchSetStats: recv %d bytes in %d secs\n",
 	fetch->recv.bytes, (int) fetch->resp_time);
-    debug(72, 3) ("peerDigestFetchFinish: expires: %ld (%+d), lmt: %ld (%+d)\n",
+    debug(72, 3) ("peerDigestFetchSetStats: expires: %ld (%+d), lmt: %ld (%+d)\n",
 	(long int) fetch->expires, (int) (fetch->expires - squid_curtime),
 	(long int) fetch->entry->lastmod, (int) (fetch->entry->lastmod - squid_curtime));
 }

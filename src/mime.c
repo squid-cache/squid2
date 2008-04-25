@@ -79,7 +79,7 @@ mime_get_header_field(const char *mime, const char *name, const char *prefix)
 	return NULL;
     assert(NULL != name);
 
-    debug(25, 5) ("mime_get_header: looking for '%s'\n", name);
+    debug(25, 5) ("mime_get_header_field: looking for '%s'\n", name);
 
     for (p = mime; *p; p += strcspn(p, "\n\r")) {
 	if (strcmp(p, "\r\n\r\n") == 0 || strcmp(p, "\n\n") == 0)
@@ -94,7 +94,7 @@ mime_get_header_field(const char *mime, const char *name, const char *prefix)
 	if (l > GET_HDR_SZ)
 	    l = GET_HDR_SZ;
 	xstrncpy(header, p, l);
-	debug(25, 5) ("mime_get_header: checking '%s'\n", header);
+	debug(25, 5) ("mime_get_header_field: checking '%s'\n", header);
 	q = header;
 	q += namelen;
 	if (*q == ':')
@@ -107,7 +107,7 @@ mime_get_header_field(const char *mime, const char *name, const char *prefix)
 	    got = !strncasecmp(q, prefix, preflen) && !xisalpha(q[preflen]);
 	}
 	if (got) {
-	    debug(25, 5) ("mime_get_header: returning '%s'\n", q);
+	    debug(25, 5) ("mime_get_header_field: returning '%s'\n", q);
 	    return q;
 	}
     }

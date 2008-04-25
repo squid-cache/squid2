@@ -1283,7 +1283,7 @@ aclParseAclList(acl_list ** head)
 	    L->op = 0;
 	    t++;
 	}
-	debug(28, 3) ("aclParseAccessLine: looking for ACL name '%s'\n", t);
+	debug(28, 3) ("aclParseAclList: looking for ACL name '%s'\n", t);
 	a = aclFindByName(t);
 	if (a == NULL) {
 	    debug(28, 0) ("ACL name '%s' not defined!\n", t);
@@ -1723,7 +1723,7 @@ aclAuthenticated(aclCheck_t * checklist)
     /* Note: this fills in checklist->auth_user_request when applicable (auth incomplete) */
     switch (authenticateTryToAuthenticateAndSetAuthUser(&checklist->auth_user_request, headertype, checklist->request, checklist->conn, checklist->src_addr)) {
     case AUTH_ACL_CANNOT_AUTHENTICATE:
-	debug(28, 4) ("aclMatchAcl: returning  0 user authenticated but not authorised.\n");
+	debug(28, 4) ("aclAuthenticated: returning  0 user authenticated but not authorised.\n");
 	return 0;
     case AUTH_AUTHENTICATED:
 	if (checklist->auth_user_request) {
@@ -1733,11 +1733,11 @@ aclAuthenticated(aclCheck_t * checklist)
 	return 1;
 	break;
     case AUTH_ACL_HELPER:
-	debug(28, 4) ("aclMatchAcl: returning 0 sending credentials to helper.\n");
+	debug(28, 4) ("aclAuthenticated: returning 0 sending credentials to helper.\n");
 	checklist->state[ACL_PROXY_AUTH] = ACL_LOOKUP_NEEDED;
 	return -1;
     case AUTH_ACL_CHALLENGE:
-	debug(28, 4) ("aclMatchAcl: returning 0 sending authentication challenge.\n");
+	debug(28, 4) ("aclAuthenticated: returning 0 sending authentication challenge.\n");
 	checklist->state[ACL_PROXY_AUTH] = ACL_PROXY_AUTH_NEEDED;
 	return -1;
     default:
@@ -1984,7 +1984,7 @@ aclMatchAcl(acl * ae, aclCheck_t * checklist)
 	    }
 	    return 0;
 	} else if (checklist->state[ACL_DST_ASN] == ACL_LOOKUP_NONE) {
-	    debug(28, 3) ("asnMatchAcl: Can't yet compare '%s' ACL for '%s'\n",
+	    debug(28, 3) ("aclMatchAcl: Can't yet compare '%s' ACL for '%s'\n",
 		ae->name, r->host);
 	    checklist->state[ACL_DST_ASN] = ACL_LOOKUP_NEEDED;
 	} else {

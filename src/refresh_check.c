@@ -456,7 +456,7 @@ refreshCheckSubmit(StoreEntry * entry, REFRESHCHECK * callback, void *callback_d
 	callback(callback_data, 0, NULL);
 	return;
     }
-    debug(84, 2) ("refreshCheckLookup: for '%s'\n", key);
+    debug(84, 2) ("refreshCheckSubmit: for '%s'\n", key);
 
     /* Check for a pending lookup to hook into */
     for (node = def->queue.head; node; node = node->next) {

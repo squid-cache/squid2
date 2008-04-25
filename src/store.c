@@ -868,7 +868,7 @@ storeLocateVaryCallback(LocateVaryState * state)
 	state->buf = NULL;
     }
     cbdataFree(state);
-    debug(11, 2) ("storeLocateVary: DONE\n");
+    debug(11, 2) ("storeLocateVaryCallback: DONE\n");
 }
 
 static void

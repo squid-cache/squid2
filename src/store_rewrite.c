@@ -57,7 +57,7 @@ storeurlHandleReply(void *data, char *reply)
     storeurlStateData *r = data;
     int valid;
     char *t;
-    debug(61, 5) ("storeurlHandleRead: {%s}\n", reply ? reply : "<NULL>");
+    debug(61, 5) ("storeurlHandleReply: {%s}\n", reply ? reply : "<NULL>");
     if (reply) {
 	if ((t = strchr(reply, ' ')))
 	    *t = '\0';

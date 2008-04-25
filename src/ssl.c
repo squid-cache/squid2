@@ -429,7 +429,7 @@ sslConnectDone(int fd, int status, void *data)
 	hierarchyNote(&sslState->request->hier, sslState->servers->code,
 	    sslState->host);
     if (status == COMM_ERR_DNS) {
-	debug(26, 4) ("sslConnect: Unknown host: %s\n", sslState->host);
+	debug(26, 4) ("sslConnectDone: Unknown host: %s\n", sslState->host);
 	comm_close(fd);
 	err = errorCon(ERR_DNS_FAIL, HTTP_GATEWAY_TIMEOUT, request);
 	*sslState->status_ptr = HTTP_NOT_FOUND;

@@ -281,7 +281,7 @@ ftpStateFreed(void *data)
     FtpStateData *ftpState = data;
     if (ftpState == NULL)
 	return;
-    debug(9, 3) ("ftpStateFree: %s\n", storeUrl(ftpState->entry));
+    debug(9, 3) ("ftpStateFreed: %s\n", storeUrl(ftpState->entry));
     storeUnlockObject(ftpState->entry);
     if (ftpState->reply_hdr) {
 	memFree(ftpState->reply_hdr, MEM_8K_BUF);
