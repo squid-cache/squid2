@@ -242,7 +242,7 @@ httpHdrRangeParseInit(HttpHdrRange * range, const String * str)
     if (strNCaseCmp(*str, "bytes=", 6))
 	return 0;
     /* skip "bytes="; hack! */
-    pos = strBuf(*str) + 5;
+    pos = strBuf(*str) + 6;
     /* iterate through comma separated list */
     while (strListGetItem(str, ',', &item, &ilen, &pos)) {
 	HttpHdrRangeSpec *spec = httpHdrRangeSpecParseCreate(item, ilen);
