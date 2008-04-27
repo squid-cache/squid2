@@ -36,8 +36,7 @@
 
 #include "util.h"
 
-/* The following code section is part of an EXPERIMENTAL native */
-/* Windows NT/2000 Squid port - Compiles only on MS Visual C++  */
+/* The following code section is part of the native Windows Squid port */
 #if defined(_SQUID_MSWIN_)
 
 #undef strerror
@@ -791,4 +790,4 @@ WIN32_maperror(unsigned long WIN32_oserrno)
     else
 	errno = EINVAL;
 }
-#endif
+#endif /* _SQUID_MSWIN_ */
