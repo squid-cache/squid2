@@ -382,10 +382,10 @@ idnsParseWIN32Registry(void)
 		RegQueryValueEx(hndKey, "DhcpNameServer", NULL, &Type, NULL,
 		&Size);
 	    if (Result == ERROR_SUCCESS && Size) {
-		t = (unsigned char *) xmalloc(Size);
+		t = (char *) xmalloc(Size);
 		RegQueryValueEx(hndKey, "DhcpNameServer", NULL, &Type, t,
 		    &Size);
-		token = strtok((char *) t, ", ");
+		token = strtok(t, ", ");
 		while (token) {
 		    idnsAddNameserver(token);
 		    debug(78, 1) ("Adding DHCP nameserver %s from Registry\n",
@@ -397,9 +397,9 @@ idnsParseWIN32Registry(void)
 	    Result =
 		RegQueryValueEx(hndKey, "NameServer", NULL, &Type, NULL, &Size);
 	    if (Result == ERROR_SUCCESS && Size) {
-		t = (unsigned char *) xmalloc(Size);
+		t = (char *) xmalloc(Size);
 		RegQueryValueEx(hndKey, "NameServer", NULL, &Type, t, &Size);
-		token = strtok((char *) t, ", ");
+		token = strtok(t, ", ");
 		while (token) {
 		    debug(78, 1) ("Adding nameserver %s from Registry\n",
 			token);
@@ -440,10 +440,10 @@ idnsParseWIN32Registry(void)
 			    RegQueryValueEx(hndKey2, "DhcpNameServer", NULL,
 			    &Type, NULL, &Size);
 			if (Result == ERROR_SUCCESS && Size) {
-			    t = (unsigned char *) xmalloc(Size);
+			    t = (char *) xmalloc(Size);
 			    RegQueryValueEx(hndKey2, "DhcpNameServer", NULL,
 				&Type, t, &Size);
-			    token = strtok((char *) t, ", ");
+			    token = strtok(t, ", ");
 			    while (token) {
 				debug(78, 1)
 				    ("Adding DHCP nameserver %s from Registry\n",
@@ -457,10 +457,10 @@ idnsParseWIN32Registry(void)
 			    RegQueryValueEx(hndKey2, "NameServer", NULL, &Type,
 			    NULL, &Size);
 			if (Result == ERROR_SUCCESS && Size) {
-			    t = (unsigned char *) xmalloc(Size);
+			    t = (char *) xmalloc(Size);
 			    RegQueryValueEx(hndKey2, "NameServer", NULL, &Type,
 				t, &Size);
-			    token = strtok((char *) t, ", ");
+			    token = strtok(t, ", ");
 			    while (token) {
 				debug(78, 1) ("Adding nameserver %s from Registry\n",
 				    token);
@@ -490,9 +490,9 @@ idnsParseWIN32Registry(void)
 	    Result =
 		RegQueryValueEx(hndKey, "NameServer", NULL, &Type, NULL, &Size);
 	    if (Result == ERROR_SUCCESS && Size) {
-		t = (unsigned char *) xmalloc(Size);
+		t = (char *) xmalloc(Size);
 		RegQueryValueEx(hndKey, "NameServer", NULL, &Type, t, &Size);
-		token = strtok((char *) t, ", ");
+		token = strtok(t, ", ");
 		while (token) {
 		    debug(78, 1) ("Adding nameserver %s from Registry\n",
 			token);
