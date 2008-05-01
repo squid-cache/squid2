@@ -36,6 +36,7 @@ noinst_LIBRARIES = \
 	@LIBREGEX@ \
 	$(LIBSSPWIN32)
 EXTRA_libmiscutil_a_SOURCES = \
+	dirent.c \
 	snprintf.c \
 	strsep.c \
 	win32lib.c
