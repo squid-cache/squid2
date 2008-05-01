@@ -37,6 +37,7 @@ noinst_LIBRARIES = \
 	$(LIBSSPWIN32)
 EXTRA_libmiscutil_a_SOURCES = \
 	dirent.c \
+	getopt.c \
 	snprintf.c \
 	strsep.c \
 	win32lib.c
