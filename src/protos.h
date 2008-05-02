@@ -147,6 +147,7 @@ extern int isTcpHit(log_type);
 extern void clientPinConnection(ConnStateData * conn, int fd, const request_t * request, peer * peer, int auth);
 extern int clientGetPinnedInfo(const ConnStateData * conn, const request_t * request, peer ** peer);
 extern int clientGetPinnedConnection(ConnStateData * conn, const request_t * request, const peer * peer, int *auth);
+extern void clientReassignDelaypools(void);
 
 extern int commSetNonBlocking(int fd);
 extern int commUnsetNonBlocking(int fd);

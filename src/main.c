@@ -438,6 +438,9 @@ mainReconfigure(void)
 #if USE_WCCPv2
     wccp2Init();
 #endif
+#if DELAY_POOLS
+    clientReassignDelaypools();
+#endif
     serverConnectionsOpen();
     neighbors_init();
     storeDirOpenSwapLogs();

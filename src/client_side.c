@@ -5217,3 +5217,21 @@ clientGetPinnedConnection(ConnStateData * conn, const request_t * request, const
     comm_remove_close_handler(fd, clientPinnedConnectionClosed, conn);
     return fd;
 }
+
+#if DELAY_POOLS
+void
+clientReassignDelaypools(void)
+{
+    dlink_node *i;
+    for (i = ClientActiveRequests.head; i; i = i->next) {
+	clientHttpRequest *http = i->data;
+	assert(http);
+	if (http->sc && http->log_type != LOG_TCP_DENIED && http->log_type != LOG_TAG_NONE)
+	    delaySetStoreClient(http->sc, delayClient(http));
+	if (http->reply)
+	    http->delayMaxBodySize = 0;
+	http->delayAssignedPool = 0;
+	clientDelayMaxBodySize(http->request, http, http->reply);
+    }
+}
+#endif
