@@ -340,10 +340,10 @@ idnsParseWIN32SearchList(const char *Separator)
 	    &Size);
 
 	if (Result == ERROR_SUCCESS && Size) {
-	    t = (unsigned char *) xmalloc(Size);
+	    t = (char *) xmalloc(Size);
 	    RegQueryValueEx(hndKey, "SearchList", NULL, &Type, (LPBYTE) t,
 		&Size);
-	    token = strtok((char *) t, Separator);
+	    token = strtok(t, Separator);
 	    idnsFreeSearchpath();
 
 	    while (token) {
