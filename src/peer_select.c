@@ -368,7 +368,7 @@ peerGetSomeNeighbor(ps_state * ps)
     if ((p = netdbClosestParent(request))) {
 	code = CLOSEST_PARENT;
     } else if (peerSelectIcpPing(request, ps->direct, entry)) {
-	debug(44, 3) ("peerSelect: Doing ICP pings\n");
+	debug(44, 3) ("peerGetSomeNeighbor: Doing ICP pings\n");
 	ps->ping.start = current_time;
 	ps->ping.n_sent = neighborsUdpPing(request,
 	    entry,
@@ -378,7 +378,7 @@ peerGetSomeNeighbor(ps_state * ps)
 	    &ps->ping.timeout);
 	if (ps->ping.n_sent == 0)
 	    debug(44, 0) ("WARNING: neighborsUdpPing returned 0\n");
-	debug(44, 3) ("peerSelect: %d ICP replies expected, RTT %d msec\n",
+	debug(44, 3) ("peerGetSomeNeighbor: %d ICP replies expected, RTT %d msec\n",
 	    ps->ping.n_replies_expected, ps->ping.timeout);
 	if (ps->ping.n_replies_expected > 0) {
 	    entry->ping_status = PING_WAITING;
@@ -392,7 +392,7 @@ peerGetSomeNeighbor(ps_state * ps)
     }
     if (code != HIER_NONE) {
 	assert(p);
-	debug(44, 3) ("peerSelect: %s/%s\n", hier_strings[code], p->host);
+	debug(44, 3) ("peerGetSomeNeighbor: %s/%s\n", hier_strings[code], p->host);
 	peerAddFwdServer(&ps->servers, p, code);
     }
     entry->ping_status = PING_DONE;
@@ -413,7 +413,7 @@ peerGetSomeNeighborReplies(ps_state * ps)
     assert(ps->direct != DIRECT_YES);
     if (peerCheckNetdbDirect(ps)) {
 	code = CLOSEST_DIRECT;
-	debug(44, 3) ("peerSelect: %s/%s\n", hier_strings[code], request->host);
+	debug(44, 3) ("peerGetSomeNeighborReplies: %s/%s\n", hier_strings[code], request->host);
 	peerAddFwdServer(&ps->servers, NULL, code);
 	return;
     }
@@ -433,7 +433,7 @@ peerGetSomeNeighborReplies(ps_state * ps)
 	code = FIRST_PARENT_MISS;
     }
     if (p && code != HIER_NONE) {
-	debug(44, 3) ("peerSelect: %s/%s\n", hier_strings[code], p->host);
+	debug(44, 3) ("peerGetSomeNeighborReplies: %s/%s\n", hier_strings[code], p->host);
 	peerAddFwdServer(&ps->servers, p, code);
     }
 }
@@ -484,7 +484,7 @@ peerGetSomeParent(ps_state * ps)
 	code = ANY_OLD_PARENT;
     }
     if (code != HIER_NONE) {
-	debug(44, 3) ("peerSelect: %s/%s\n", hier_strings[code], p->host);
+	debug(44, 3) ("peerGetSomeParent: %s/%s\n", hier_strings[code], p->host);
 	peerAddFwdServer(&ps->servers, p, code);
     }
 }

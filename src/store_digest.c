@@ -218,7 +218,7 @@ storeDigestAddable(const StoreEntry * e)
     /* still here? check staleness */
     /* Note: We should use the time of the next rebuild, not (cur_time+period) */
     if (refreshCheckDigest(e, Config.digest.rebuild_period)) {
-	debug(71, 6) ("storeDigestAdd: entry expires within %d secs, ignoring\n",
+	debug(71, 6) ("storeDigestAddable: entry expires within %d secs, ignoring\n",
 	    (int) Config.digest.rebuild_period);
 	return 0;
     }
@@ -342,10 +342,10 @@ storeDigestRewriteStart(void *datanotused)
     assert(store_digest);
     /* prevent overlapping if rewrite schedule is too tight */
     if (sd_state.rewrite_lock) {
-	debug(71, 1) ("storeDigestRewrite: overlap detected, consider increasing rewrite period\n");
+	debug(71, 1) ("storeDigestRewriteStart: overlap detected, consider increasing rewrite period\n");
 	return;
     }
-    debug(71, 2) ("storeDigestRewrite: start rewrite #%d\n", sd_state.rewrite_count + 1);
+    debug(71, 2) ("storeDigestRewriteStart: start rewrite #%d\n", sd_state.rewrite_count + 1);
     /* make new store entry */
     url = internalStoreUri("/squid-internal-periodic/", StoreDigestFileName);
     flags = null_request_flags;
@@ -354,7 +354,7 @@ storeDigestRewriteStart(void *datanotused)
     assert(e);
     sd_state.rewrite_lock = cbdataAlloc(generic_cbdata);
     sd_state.rewrite_lock->data = e;
-    debug(71, 3) ("storeDigestRewrite: url: %s key: %s\n", url, storeKeyText(e->hash.key));
+    debug(71, 3) ("storeDigestRewriteStart: url: %s key: %s\n", url, storeKeyText(e->hash.key));
     e->mem_obj->request = requestLink(urlParse(METHOD_GET, url));
     /* wait for rebuild (if any) to finish */
     if (sd_state.rebuild_lock) {
@@ -379,7 +379,7 @@ storeDigestRewriteResume(void)
     /* fake reply */
     httpReplyReset(e->mem_obj->reply);
     httpReplySetHeaders(e->mem_obj->reply, 200, "Cache Digest OK", "application/cache-digest", store_digest->mask_size + sizeof(sd_state.cblock), squid_curtime, squid_curtime + Config.digest.rewrite_period);
-    debug(71, 3) ("storeDigestRewrite: entry expires on %ld (%+d)\n",
+    debug(71, 3) ("storeDigestRewriteResume: entry expires on %ld (%+d)\n",
 	(long int) e->mem_obj->reply->expires, (int) (e->mem_obj->reply->expires - squid_curtime));
     storeBuffer(e);
     httpReplySwapOut(e->mem_obj->reply, e);

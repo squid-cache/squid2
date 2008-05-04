@@ -781,7 +781,7 @@ httpAppendBody(HttpStateData * httpState, const char *buf, ssize_t len, int buff
      * connection.
      */
     if (!httpState->flags.request_sent) {
-	debug(11, 1) ("httpReadReply: Request not yet fully sent \"%s %s\"\n",
+	debug(11, 1) ("httpAppendBody: Request not yet fully sent \"%s %s\"\n",
 	    RequestMethods[orig_request->method].str,
 	    storeUrl(entry));
 	keep_alive = 0;
@@ -1558,7 +1558,7 @@ httpRequestBodyHandler(char *buf, ssize_t size, void *data)
     if (size > 0) {
 	if (httpState->reply_hdr_state >= 2 && !httpState->flags.abuse_detected) {
 	    httpState->flags.abuse_detected = 1;
-	    debug(11, 1) ("httpSendRequestEntryDone: Likely proxy abuse detected '%s' -> '%s'\n",
+	    debug(11, 1) ("httpRequestBodyHandler: Likely proxy abuse detected '%s' -> '%s'\n",
 		inet_ntoa(httpState->orig_request->client_addr),
 		storeUrl(httpState->entry));
 	    if (httpState->entry->mem_obj->reply->sline.status == HTTP_INVALID_HEADER) {

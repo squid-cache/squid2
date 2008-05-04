@@ -409,7 +409,7 @@ parseOneConfigFile(const char *file_name, int depth)
 	tmp_line_len += config_input_line_len;
 
 	if (tmp_line[tmp_line_len - 1] == '\\') {
-	    debug(3, 5) ("parseConfigFile: tmp_line='%s'\n", tmp_line);
+	    debug(3, 5) ("parseOneConfigFile: tmp_line='%s'\n", tmp_line);
 	    tmp_line[--tmp_line_len] = '\0';
 	    continue;
 	}
@@ -1124,7 +1124,7 @@ parse_delay_pool_access(delayConfig * cfg)
 
     parse_ushort(&pool);
     if (pool < 1 || pool > cfg->pools) {
-	debug(3, 0) ("parse_delay_pool_rates: Ignoring pool %d not in 1 .. %d\n", pool, cfg->pools);
+	debug(3, 0) ("parse_delay_pool_access: Ignoring pool %d not in 1 .. %d\n", pool, cfg->pools);
 	return;
     }
     aclParseAccessLine(&cfg->access[pool - 1]);
@@ -2340,7 +2340,7 @@ parse_refreshpattern(refresh_t ** head)
 	} else if (!strcmp(token, "ignore-stale-while-revalidate")) {
 	    ignore_stale_while_revalidate = 1;
 	} else {
-	    debug(22, 0) ("redreshAddToList: Unknown option '%s': %s\n",
+	    debug(22, 0) ("parse_refreshpattern: Unknown option '%s': %s\n",
 		pattern, token);
 	}
     }
@@ -2349,7 +2349,7 @@ parse_refreshpattern(refresh_t ** head)
 	regerror(errcode, &comp, errbuf, sizeof errbuf);
 	debug(22, 0) ("%s line %d: %s\n",
 	    cfg_filename, config_lineno, config_input_line);
-	debug(22, 0) ("refreshAddToList: Invalid regular expression '%s': %s\n",
+	debug(22, 0) ("parse_refreshpattern: Invalid regular expression '%s': %s\n",
 	    pattern, errbuf);
 	return;
     }

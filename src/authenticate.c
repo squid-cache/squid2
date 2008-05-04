@@ -1097,7 +1097,7 @@ authenticateUserCacheRestart(void)
     while ((usernamehash = ((auth_user_hash_pointer *) hash_next(proxy_auth_username_cache)))) {
 	auth_user = usernamehash->auth_user;
 	username = authenticateUserUsername(auth_user);
-	debug(29, 5) ("authenticateUserCacheRestat: Clearing cache ACL results for user: %s\n", username);
+	debug(29, 5) ("authenticateUserCacheRestart: Clearing cache ACL results for user: %s\n", username);
 	aclCacheMatchFlush(&auth_user->proxy_match_cache);
     }
 

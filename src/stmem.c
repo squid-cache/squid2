@@ -101,7 +101,7 @@ stmemAppend(mem_hdr * mem, const char *data, int len)
     mem_node *p;
     int avail_len;
     int len_to_copy;
-    debug(19, 6) ("memAppend: len %d\n", len);
+    debug(19, 6) ("stmemAppend: len %d\n", len);
     /* Does the last block still contain empty space? 
      * If so, fill out the block before dropping into the
      * allocation loop */
@@ -144,7 +144,7 @@ stmemCopy(const mem_hdr * mem, squid_off_t offset, char *buf, size_t size)
     char *ptr_to_buf = NULL;
     int bytes_from_this_packet = 0;
     int bytes_into_this_packet = 0;
-    debug(19, 6) ("memCopy: offset %" PRINTF_OFF_T ": size %d\n", offset, (int) size);
+    debug(19, 6) ("stmemCopy: offset %" PRINTF_OFF_T ": size %d\n", offset, (int) size);
     if (p == NULL)
 	return 0;
     assert(size > 0);
@@ -152,7 +152,7 @@ stmemCopy(const mem_hdr * mem, squid_off_t offset, char *buf, size_t size)
     while ((t_off + p->len) < offset) {
 	t_off += p->len;
 	if (!p->next) {
-	    debug(19, 1) ("memCopy: p->next == NULL\n");
+	    debug(19, 1) ("stmemCopy: p->next == NULL\n");
 	    return 0;
 	}
 	assert(p->next);

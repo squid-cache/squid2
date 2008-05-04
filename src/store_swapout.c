@@ -124,7 +124,7 @@ storeSwapOutMaintainMemObject(StoreEntry * e)
      * still writing to disk or not
      */
     lowest_offset = storeLowestMemReaderOffset(e);
-    debug(20, 7) ("storeSwapOut: lowest_offset = %" PRINTF_OFF_T "\n",
+    debug(20, 7) ("storeSwapOutMaintainMemObject: lowest_offset = %" PRINTF_OFF_T "\n",
 	lowest_offset);
     if (!swapout_able)
 	new_mem_lo = lowest_offset;

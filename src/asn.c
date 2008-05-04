@@ -304,7 +304,7 @@ static void
 asStateFree(void *data)
 {
     ASState *asState = data;
-    debug(53, 3) ("asnStateFree: %s\n", storeUrl(asState->entry));
+    debug(53, 3) ("asStateFree: %s\n", storeUrl(asState->entry));
     storeClientUnregister(asState->sc, asState->entry, asState);
     storeUnlockObject(asState->entry);
     requestUnlink(asState->request);
