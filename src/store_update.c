@@ -65,6 +65,7 @@ free_StoreUpdateState(void *data)
     if (state->newentry) {
 	/* Set to NULL on completion, so we only get here in abnormal situations */
 	storeRelease(state->newentry);
+	storeComplete(state->newentry);
 	storeUnlockObject(state->newentry);
     }
 }
