@@ -146,7 +146,7 @@ storeClientCallback(store_client * sc, ssize_t sz)
     /* This code "transfers" its ownership (and reference) of the node_ref to the caller. Ugly, but works. */
     sc->node_ref.node = NULL;
     sc->node_ref.offset = -1;
-    new_callback(cbdata, nr, sz);
+    new_callback(cbdata, nr, XMIN(sc->copy_size, sz));
     cbdataUnlock(cbdata);
 }
 
