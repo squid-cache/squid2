@@ -3870,7 +3870,7 @@ parseHttpRequest(ConnStateData * conn, HttpMsgBuf * hmsg, method_t * method_p, i
 	    http->uri = xcalloc(url_sz, 1);
 	    if (strchr(host, ':'))
 		snprintf(http->uri, url_sz, "%s://%s%s",
-		    conn->port->protocol, t, url);
+		    conn->port->protocol, host, url);
 	    else
 		snprintf(http->uri, url_sz, "%s://%s:%d%s",
 		    conn->port->protocol, host, port, url);
