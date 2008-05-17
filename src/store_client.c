@@ -150,7 +150,7 @@ storeClientCallback(store_client * sc, ssize_t sz)
     if (sz < 0)
 	new_callback(cbdata, nr, -1);
     else
-	new_callback(cbdata, nr, sc->copy_size);
+	new_callback(cbdata, nr, XMIN(sz, sc->copy_size));
     cbdataUnlock(cbdata);
 }
 
