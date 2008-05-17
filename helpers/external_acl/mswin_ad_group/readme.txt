@@ -1,6 +1,6 @@
 
 This is the readme.txt file for mswin_check_ad_group, an external
-helper fo the External ACL Scheme for Squid.
+helper for the External ACL Scheme for Squid.
 
 
 This helper must be used in with an authentication scheme (tipically 
