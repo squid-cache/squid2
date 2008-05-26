@@ -2669,7 +2669,46 @@ TYPE: programline
 LOC: Config.Program.store_rewrite.command
 DEFAULT: none
 DOC_START
+	Specify the location of the executable for the Store URL rewriter.
+	The Store URL rewriter allows URLs to be "normalised" ; mapping
+	multiple URLs to a single URL representation for cache operations.
 
+	For example, if you request an object at:
+
+	http://srv1.example.com/image.gif
+
+	and a subsequent request for:
+
+	http://srv2.example.com/image.gif
+
+	then Squid will treat these both as different URLs and cache them
+	seperately.
+
+	This is almost the normal case, but an increasing number of sites
+	distribute the same content between multiple frontend hosts.
+	The Store URL rewriter allows you to rewrite these URLs to one URL
+	to use for cache operations, but not -fetches-. Fetches are still
+	made from the original site, but stored with the store URL rewritten
+	URL as the store key.
+
+	For each requested URL rewriter will receive on line with the format
+
+	URL <SP> client_ip "/" fqdn <SP> user <SP> method <SP> urlgroup
+	 [<SP> kvpairs] <NL>
+
+	In the future, the rewriter interface will be extended with
+	key=value pairs ("kvpairs" shown above).  Rewriter programs
+	should be prepared to receive and possibly ignore additional
+	whitespace-separated tokens on each input line.
+
+	And the rewriter may return a rewritten URL. The other components of
+	the request line does not need to be returned (ignored if they are).
+
+	By default, a Store URL rewriter is not used.
+
+	Please note - the normal URL rewriter rewrites Squid's _destination_
+	URL - ie, what it fetches. The Store URL rewriter rewrites Squid's
+	_store_ URL - ie, what it uses to store and retrieve objects.
 DOC_END
 
 NAME: storeurl_rewrite_children
