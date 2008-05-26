@@ -962,7 +962,7 @@ httpReadReply(int fd, void *data)
 		    MemBuf mb;
 		    HttpReply *reply = entry->mem_obj->reply;
 		    httpReplyReset(reply);
-		    httpBuildVersion(&reply->sline.version, 1, 0);
+		    httpBuildVersion(&reply->sline.version, 0, 9);
 		    reply->sline.status = HTTP_OK;
 		    httpHeaderPutTime(&reply->header, HDR_DATE, squid_curtime);
 		    mb = httpReplyPack(reply);
