@@ -1,4 +1,4 @@
-Changes to squid-2.7.STABLE1 (not yet released)
+Changes to squid-2.7.STABLE1 (27 May 2008)
 
 	- General code tidyups of HTTP parser and related optimizations
 	- Simple perl library and script for processing access.log files
