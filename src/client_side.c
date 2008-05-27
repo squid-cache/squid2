@@ -5183,10 +5183,6 @@ clientReassignDelaypools(void)
 	assert(http);
 	if (http->sc && http->log_type != LOG_TCP_DENIED && http->log_type != LOG_TAG_NONE)
 	    delaySetStoreClient(http->sc, delayClient(http));
-	if (http->reply)
-	    http->delayMaxBodySize = 0;
-	http->delayAssignedPool = 0;
-	clientDelayMaxBodySize(http->request, http, http->reply);
     }
 }
 #endif
