@@ -56,3 +56,4 @@ errormap
 refreshCheckHelper
 rewrite			acl
 zph_mode
+forwarded_for

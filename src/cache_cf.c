@@ -2823,6 +2823,58 @@ free_errormap(errormap ** head)
     }
 }
 
+static void
+parse_forwarded_for(forwarded_for_mode * mode)
+{
+    char *token = strtok(NULL, w_space);
+    if (!token)
+	self_destruct();
+    if (strcmp(token, "on") == 0)
+	*mode = FORWARDED_FOR_ON;
+    else if (strcmp(token, "off") == 0)
+	*mode = FORWARDED_FOR_OFF;
+    else if (strcmp(token, "unknown") == 0)
+	*mode = FORWARDED_FOR_OFF;
+    else if (strcmp(token, "transparent") == 0)
+	*mode = FORWARDED_FOR_TRANSPARENT;
+    else if (strcmp(token, "delete") == 0)
+	*mode = FORWARDED_FOR_DELETE;
+    else if (strcmp(token, "truncate") == 0)
+	*mode = FORWARDED_FOR_TRUNCATE;
+    else
+	self_destruct();
+}
+
+static void
+dump_forwarded_for(StoreEntry * entry, const char *name, forwarded_for_mode mode)
+{
+    const char *modestr = "unknown";
+    switch (mode) {
+    case FORWARDED_FOR_OFF:
+	modestr = "off";
+	break;
+    case FORWARDED_FOR_ON:
+	modestr = "on";
+	break;
+    case FORWARDED_FOR_TRANSPARENT:
+	modestr = "transparent";
+	break;
+    case FORWARDED_FOR_DELETE:
+	modestr = "delete";
+	break;
+    case FORWARDED_FOR_TRUNCATE:
+	modestr = "truncate";
+	break;
+    }
+    storeAppendPrintf(entry, "%s %s\n", name, modestr);
+}
+
+static void
+free_forwarded_for(forwarded_for_mode * mode)
+{
+    *mode = FORWARDED_FOR_ON;
+}
+
 #include "cf_parser.h"
 
 peer_t

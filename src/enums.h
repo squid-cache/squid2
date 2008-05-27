@@ -823,4 +823,12 @@ typedef enum {
     RFT_EXTERNALACL_LOGSTR
 } rewrite_token_type;
 
+typedef enum {
+    FORWARDED_FOR_ON,
+    FORWARDED_FOR_OFF,
+    FORWARDED_FOR_TRANSPARENT,
+    FORWARDED_FOR_DELETE,
+    FORWARDED_FOR_TRUNCATE
+} forwarded_for_mode;
+
 #endif /* SQUID_ENUMS_H */
