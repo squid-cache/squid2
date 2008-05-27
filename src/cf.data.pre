@@ -1004,6 +1004,121 @@ DOC_START
 DOC_END
 
 COMMENT_START
+ SSL OPTIONS
+ -----------------------------------------------------------------------------
+COMMENT_END
+
+NAME: ssl_unclean_shutdown
+IFDEF: USE_SSL
+TYPE: onoff
+DEFAULT: off
+LOC: Config.SSL.unclean_shutdown
+DOC_START
+	Some browsers (especially MSIE) bugs out on SSL shutdown
+	messages.
+DOC_END
+
+NAME: ssl_engine
+IFDEF: USE_SSL
+TYPE: string
+LOC: Config.SSL.ssl_engine
+DEFAULT: none
+DOC_START
+	The OpenSSL engine to use. You will need to set this if you
+	would like to use hardware SSL acceleration for example.
+DOC_END
+
+NAME: sslproxy_client_certificate
+IFDEF: USE_SSL
+DEFAULT: none
+LOC: Config.ssl_client.cert
+TYPE: string
+DOC_START
+	Client SSL Certificate to use when proxying https:// URLs
+DOC_END
+
+NAME: sslproxy_client_key
+IFDEF: USE_SSL
+DEFAULT: none
+LOC: Config.ssl_client.key
+TYPE: string
+DOC_START
+	Client SSL Key to use when proxying https:// URLs
+DOC_END
+
+NAME: sslproxy_version
+IFDEF: USE_SSL
+DEFAULT: 1
+LOC: Config.ssl_client.version
+TYPE: int
+DOC_START
+	SSL version level to use when proxying https:// URLs
+DOC_END
+
+NAME: sslproxy_options
+IFDEF: USE_SSL
+DEFAULT: none
+LOC: Config.ssl_client.options
+TYPE: string
+DOC_START
+	SSL engine options to use when proxying https:// URLs
+DOC_END
+
+NAME: sslproxy_cipher
+IFDEF: USE_SSL
+DEFAULT: none
+LOC: Config.ssl_client.cipher
+TYPE: string
+DOC_START
+	SSL cipher list to use when proxying https:// URLs
+DOC_END
+
+NAME: sslproxy_cafile
+IFDEF: USE_SSL
+DEFAULT: none
+LOC: Config.ssl_client.cafile
+TYPE: string
+DOC_START
+	file containing CA certificates to use when verifying server
+	certificates while proxying https:// URLs
+DOC_END
+
+NAME: sslproxy_capath
+IFDEF: USE_SSL
+DEFAULT: none
+LOC: Config.ssl_client.capath
+TYPE: string
+DOC_START
+	directory containing CA certificates to use when verifying
+	server certificates while proxying https:// URLs
+DOC_END
+
+NAME: sslproxy_flags
+IFDEF: USE_SSL
+DEFAULT: none
+LOC: Config.ssl_client.flags
+TYPE: string
+DOC_START
+	Various flags modifying the use of SSL while proxying https:// URLs:
+	    DONT_VERIFY_PEER    Accept certificates even if they fail to
+				verify.
+	    NO_DEFAULT_CA       Don't use the default CA list built in
+				to OpenSSL.
+DOC_END
+
+NAME: sslpassword_program
+IFDEF: USE_SSL
+DEFAULT: none
+LOC: Config.Program.ssl_password
+TYPE: string
+DOC_START
+	Specify a program used for entering SSL key passphrases
+	when using encrypted SSL certificate keys. If not specified
+	keys must either be unencrypted, or Squid started with the -N
+	option to allow it to query interactively for the passphrase.
+DOC_END
+
+COMMENT_START
  NETWORK OPTIONS
  -----------------------------------------------------------------------------
 COMMENT_END
@@ -1313,121 +1428,6 @@ LOC: Config.zph_option
 DOC_START
 	The IP option to use when zph_mode is set to "option". Defaults to
 	136 which is officially registered as "SATNET Stream ID".
-DOC_END
-
-COMMENT_START
- SSL OPTIONS
- -----------------------------------------------------------------------------
-COMMENT_END
-
-NAME: ssl_unclean_shutdown
-IFDEF: USE_SSL
-TYPE: onoff
-DEFAULT: off
-LOC: Config.SSL.unclean_shutdown
-DOC_START
-	Some browsers (especially MSIE) bugs out on SSL shutdown
-	messages.
-DOC_END
-
-NAME: ssl_engine
-IFDEF: USE_SSL
-TYPE: string
-LOC: Config.SSL.ssl_engine
-DEFAULT: none
-DOC_START
-	The OpenSSL engine to use. You will need to set this if you
-	would like to use hardware SSL acceleration for example.
-DOC_END
-
-NAME: sslproxy_client_certificate
-IFDEF: USE_SSL
-DEFAULT: none
-LOC: Config.ssl_client.cert
-TYPE: string
-DOC_START
-	Client SSL Certificate to use when proxying https:// URLs
-DOC_END
-
-NAME: sslproxy_client_key
-IFDEF: USE_SSL
-DEFAULT: none
-LOC: Config.ssl_client.key
-TYPE: string
-DOC_START
-	Client SSL Key to use when proxying https:// URLs
-DOC_END
-
-NAME: sslproxy_version
-IFDEF: USE_SSL
-DEFAULT: 1
-LOC: Config.ssl_client.version
-TYPE: int
-DOC_START
-	SSL version level to use when proxying https:// URLs
-DOC_END
-
-NAME: sslproxy_options
-IFDEF: USE_SSL
-DEFAULT: none
-LOC: Config.ssl_client.options
-TYPE: string
-DOC_START
-	SSL engine options to use when proxying https:// URLs
-DOC_END
-
-NAME: sslproxy_cipher
-IFDEF: USE_SSL
-DEFAULT: none
-LOC: Config.ssl_client.cipher
-TYPE: string
-DOC_START
-	SSL cipher list to use when proxying https:// URLs
-DOC_END
-
-NAME: sslproxy_cafile
-IFDEF: USE_SSL
-DEFAULT: none
-LOC: Config.ssl_client.cafile
-TYPE: string
-DOC_START
-	file containing CA certificates to use when verifying server
-	certificates while proxying https:// URLs
-DOC_END
-
-NAME: sslproxy_capath
-IFDEF: USE_SSL
-DEFAULT: none
-LOC: Config.ssl_client.capath
-TYPE: string
-DOC_START
-	directory containing CA certificates to use when verifying
-	server certificates while proxying https:// URLs
-DOC_END
-
-NAME: sslproxy_flags
-IFDEF: USE_SSL
-DEFAULT: none
-LOC: Config.ssl_client.flags
-TYPE: string
-DOC_START
-	Various flags modifying the use of SSL while proxying https:// URLs:
-	    DONT_VERIFY_PEER    Accept certificates even if they fail to
-				verify.
-	    NO_DEFAULT_CA       Don't use the default CA list built in
-				to OpenSSL.
-DOC_END
-
-NAME: sslpassword_program
-IFDEF: USE_SSL
-DEFAULT: none
-LOC: Config.Program.ssl_password
-TYPE: string
-DOC_START
-	Specify a program used for entering SSL key passphrases
-	when using encrypted SSL certificate keys. If not specified
-	keys must either be unencrypted, or Squid started with the -N
-	option to allow it to query interactively for the passphrase.
 DOC_END
 
 COMMENT_START
