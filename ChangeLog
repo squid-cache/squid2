@@ -6,7 +6,7 @@
 	- Use the client's DNS lookup if our DNS lookup fails on
 	  transparent requests.
 
-Changes to squid-2.7.STABLE1 (not yet released)
+Changes to squid-2.7.STABLE1 (27 May 2008)
 
 	- General code tidyups of HTTP parser and related optimizations
 	- Simple perl library and script for processing access.log files
@@ -87,6 +87,14 @@ Changes to squid-2.7.STABLE1 (not yet released)
 	  mode options
 	- TCP keepalive support
 	- Support for tos/priority marking of cache hits (zph)
+	- Make --with-large-files try to build 64-bit if possible
+	- Windows port: allow build of squid_session on Windows
+	- Updated mswin_check_lm_group documentation
+	- Bug #2350: Memory allocation problem in restoreCapabilities()
+	- Bug #1955: Clarify refresh_pattern override-expire option
+	- Correct Via response header when seeing an HTTP/0.9 response
+	- Bug #219: Reassign delay pools after reconfigure
+	- Bug #2223: flexible handling of x-forwarded-for
 
 Changes to squid-2.6.STABLE20 (25 Apr 2008)
 

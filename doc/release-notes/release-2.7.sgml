@@ -223,6 +223,9 @@ Squid is a WWW Cache application developed by the Web Caching community.
     <p>Suggested defaults adjusted to match the changes in the cache directive.
     <tag>url_rewrite_program</tag>
     <p>Future protocol change adding key=value pairs after the requests
+    <tag>forwarded_for</tag>
+    <p>Has several new modes, allowing one to finetune how/if the requesting
+    client IP should be forwarded in X-Forwarded-For
 </descrip>
 
 <sect1>Removed directives
