@@ -84,6 +84,9 @@ Changes to squid-2.7.STABLE1 (not yet released)
 	- Updated mswin_check_lm_group documentation
 	- Bug #2350: Memory allocation problem in restoreCapabilities()
 	- Bug #1955: Clarify refresh_pattern override-expire option
+	- Correct Via response header when seeing an HTTP/0.9 response
+	- Bug #219: Reassign delay pools after reconfigure
+	- Bug #2223: flexible handling of x-forwarded-for
 
 Changes to squid-2.6.STABLE20 (25 Apr 2008)
 

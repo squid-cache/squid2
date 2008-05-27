@@ -188,6 +188,8 @@ outside Squid and needing to separate cache hits from misses.</LI>
 <DT><B>refresh_pattern</B><DD><P>Several new options: stale-while-revalidate, ignore-stale-while-revalidate, max-stale, negative-ttl</P>
 <P>Suggested defaults adjusted to match the changes in the cache directive.</P>
 <DT><B>url_rewrite_program</B><DD><P>Future protocol change adding key=value pairs after the requests</P>
+<DT><B>forwarded_for</B><DD><P>Has several new modes, allowing one to finetune how/if the requesting
+client IP should be forwarded in X-Forwarded-For</P>
 </DL>
 </P>
 
