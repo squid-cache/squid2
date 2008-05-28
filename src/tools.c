@@ -1361,7 +1361,7 @@ restoreCapabilities(int keep)
     cap_user_header_t head = xcalloc(1, sizeof(*head));
     cap_user_data_t cap = xcalloc(1, sizeof(*cap));
 
-    head->version = _LINUX_CAPABILITY_VERSION;
+    head->version = _LINUX_CAPABILITY_VERSION_1;
     if (capget(head, cap) != 0) {
 	debug(50, 1) ("Can't get current capabilities\n");
 	goto nocap;
