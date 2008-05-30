@@ -1358,6 +1358,9 @@ static void
 restoreCapabilities(int keep)
 {
 #if defined(_SQUID_LINUX_) && HAVE_SYS_CAPABILITY_H
+#ifndef _LINUX_CAPABILITY_VERSION_1
+#define _LINUX_CAPABILITY_VERSION_1 _LINUX_CAPABILITY_VERSION
+#endif
     cap_user_header_t head = xcalloc(1, sizeof(*head));
     cap_user_data_t cap = xcalloc(1, sizeof(*cap));
 
@@ -1366,7 +1369,7 @@ restoreCapabilities(int keep)
 	debug(50, 1) ("Can't get current capabilities\n");
 	goto nocap;
     }
-    if (head->version != _LINUX_CAPABILITY_VERSION) {
+    if (head->version != _LINUX_CAPABILITY_VERSION_1) {
 	debug(50, 1) ("Invalid capability version %d (expected %d)\n", head->version, _LINUX_CAPABILITY_VERSION);
 	goto nocap;
     }
