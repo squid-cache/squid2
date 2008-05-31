@@ -348,6 +348,7 @@ are supported.
 <p><itemize>
 <item>It's recommended to use '/' char in Squid paths instead of '\'
 <item>Paths with spaces (like 'C:\Programs Files\Squid) are NOT supported by Squid
+<item>Include wildcard patterns in squid.conf are NOT supported on Windows
 <item>When using ACL like 'acl aclname acltype "file"' the file must be in DOS text
 format (CR+LF) and the full Windows path must be specified, for example:
 
