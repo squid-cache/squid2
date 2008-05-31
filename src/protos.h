@@ -940,6 +940,8 @@ extern StoreEntry *storeGetPublicByRequestMethod(request_t * request, const meth
 extern StoreEntry *storeCreateEntry(const char *, request_flags, method_t);
 extern void storeSetPublicKey(StoreEntry *);
 extern void storeComplete(StoreEntry *);
+extern void storeRequestFailed(StoreEntry *, ErrorState * err);
+
 extern void storeInit(void);
 extern void storeAbort(StoreEntry *);
 extern void storeAppend(StoreEntry *, const char *, int);

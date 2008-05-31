@@ -100,15 +100,7 @@ fwdStateFree(FwdState * fwdState)
     fwdLog(fwdState);
 #endif
     if (e->store_status == STORE_PENDING) {
-	if (e->mem_obj->inmem_hi == 0) {
-	    assert(fwdState->err);
-	    errorAppendEntry(e, fwdState->err);
-	    fwdState->err = NULL;
-	} else {
-	    EBIT_CLR(e->flags, ENTRY_FWD_HDR_WAIT);
-	    storeReleaseRequest(e);
-	    storeComplete(e);
-	}
+	storeRequestFailed(e, fwdState->err);
     }
     if (EBIT_TEST(e->flags, ENTRY_DEFER_READ))
 	storeResetDefer(e);

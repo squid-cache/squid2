@@ -646,6 +646,11 @@ httpAppendBody(HttpStateData * httpState, const char *buf, ssize_t len, int buff
     int complete = httpState->eof;
     int keep_alive = !httpState->eof;
     storeBuffer(entry);
+    if (len == 0 && httpState->eof && httpState->flags.chunked) {
+	fwdFail(httpState->fwd, errorCon(ERR_INVALID_RESP, HTTP_BAD_GATEWAY, httpState->fwd->request));
+	comm_close(fd);
+	return;
+    }
     while (len > 0) {
 	if (httpState->chunk_size > 0) {
 	    size_t size = len;
@@ -669,6 +674,7 @@ httpAppendBody(HttpStateData * httpState, const char *buf, ssize_t len, int buff
 	    len -= size;
 	    if (strLen(httpState->chunkhdr) > 256) {
 		debug(11, 1) ("Oversized chunk header on port %d, url %s\n", comm_local_port(fd), entry->mem_obj->url);
+		fwdFail(httpState->fwd, errorCon(ERR_INVALID_RESP, HTTP_BAD_GATEWAY, httpState->fwd->request));
 		comm_close(fd);
 		return;
 	    }
@@ -678,18 +684,18 @@ httpAppendBody(HttpStateData * httpState, const char *buf, ssize_t len, int buff
 		    char *end = NULL;
 		    int badchunk = 0;
 		    debug(11, 3) ("Chunk header '%s'\n", strBuf(httpState->chunkhdr));
+		    errno = 0;
 		    httpState->chunk_size = strto_off_t(strBuf(httpState->chunkhdr), &end, 16);
-		    if (end == strBuf(httpState->chunkhdr))
+		    if (errno)
 			badchunk = 1;
 		    while (end && (*end == '\r' || *end == ' ' || *end == '\t'))
 			end++;
-		    if (httpState->chunk_size < 0 || !end || (*end != '\n' && *end != ';')) {
-			debug(11, 0) ("Invalid chunk header '%s'\n", strBuf(httpState->chunkhdr));
+		    if (httpState->chunk_size < 0 || badchunk || !end || (*end != '\n' && *end != ';')) {
+			debug(11, 1) ("Invalid chunk header '%s'\n", strBuf(httpState->chunkhdr));
+			fwdFail(httpState->fwd, errorCon(ERR_INVALID_RESP, HTTP_BAD_GATEWAY, httpState->fwd->request));
 			comm_close(fd);
 			return;
 		    }
-		    if (badchunk)
-			continue;	/* Skip blank lines */
 		    debug(11, 2) ("Chunk size %" PRINTF_OFF_T "\n", httpState->chunk_size);
 		    if (httpState->chunk_size == 0) {
 			debug(11, 3) ("Processing trailer\n");
