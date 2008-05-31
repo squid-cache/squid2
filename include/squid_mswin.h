@@ -167,6 +167,7 @@ typedef unsigned long ino_t;
 
 typedef unsigned short in_port_t;
 typedef unsigned short int ushort;
+typedef unsigned int in_addr_t;
 typedef int uid_t;
 typedef int gid_t;
 
