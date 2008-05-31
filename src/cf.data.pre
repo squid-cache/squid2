@@ -3274,17 +3274,24 @@ DOC_START
 DOC_END
 
 NAME: request_body_max_size
-COMMENT: (KB)
-TYPE: b_size_t
-DEFAULT: 0 KB
-LOC: Config.maxRequestBodySize
+COMMENT: bytes allow|deny acl acl...
+TYPE: body_size_t
+DEFAULT: none
+DEFAULT_IF_NONE: 0 allow all
+LOC: Config.RequestBodySize
 DOC_START
-	This specifies the maximum size for an HTTP request body.
-	In other words, the maximum size of a PUT/POST request.
-	A user who attempts to send a request with a body larger
-	than this limit receives an "Invalid Request" error message.
-	If you set this parameter to a zero (the default), there will
-	be no limit imposed.
+	This option specifies the maximum size of a request body in bytes.
+	It can be used to prevent users from uploading very large files. When
+	the request headers are received, the request_body_max_size lines are
+	processed, and the first line with a result of "allow" is used as the
+	maximum body size for this request.  This size is checked against the
+	content-length value in the request headers.  If the content length
+	value is larger than the allowed size, the request is denied and the
+	user receives an error message that says "the request or reply is too
+	large."
+
+	If you set this parameter to zero (the default), there will be
+	no limit imposed.
 DOC_END
 
 NAME: broken_posts

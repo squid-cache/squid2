@@ -151,7 +151,7 @@ static int clientCheckContentLength(request_t * r);
 static DEFER httpAcceptDefer;
 static log_type clientProcessRequest2(clientHttpRequest * http);
 static int clientReplyBodyTooLarge(clientHttpRequest *, squid_off_t clen);
-static int clientRequestBodyTooLarge(squid_off_t clen);
+static int clientRequestBodyTooLarge(clientHttpRequest *, request_t *);
 static void clientProcessBody(ConnStateData * conn);
 static void clientEatRequestBody(clientHttpRequest *);
 static void clientAccessCheck(void *data);
@@ -2715,14 +2715,45 @@ clientDelayBodyTooLarge(clientHttpRequest * http, squid_off_t clen)
 }
 #endif
 
-static int
-clientRequestBodyTooLarge(squid_off_t clen)
+/*
+ * Calculates the maximum size allowed for an HTTP request body
+ */
+static void
+clientMaxRequestBodySize(request_t * request, clientHttpRequest * http)
 {
-    if (0 == Config.maxRequestBodySize)
+    body_size *bs;
+    aclCheck_t *checklist;
+    if (http->log_type == LOG_TCP_DENIED)
+	return;
+    bs = (body_size *) Config.RequestBodySize.head;
+    http->maxRequestBodySize = 0;
+    while (bs) {
+	checklist = clientAclChecklistCreate(bs->access_list, http);
+	if (aclCheckFast(bs->access_list, checklist) != 1) {
+	    /* deny - skip this entry */
+	    bs = (body_size *) bs->node.next;
+	} else {
+	    /* Allow - use this entry */
+	    http->maxRequestBodySize = bs->maxsize;
+	    bs = NULL;
+	    debug(58, 3) ("clientMaxRequestBodySize: Setting maxRequestBodySize to %ld\n", (long int) http->maxRequestBodySize);
+	}
+	aclChecklistFree(checklist);
+    }
+}
+
+static int
+clientRequestBodyTooLarge(clientHttpRequest * http, request_t * request)
+{
+
+    if (http->maxRequestBodySize == -1) {
+	clientMaxRequestBodySize(request, http);
+    }
+    if (0 == http->maxRequestBodySize)
 	return 0;		/* disabled */
-    if (clen < 0)
+    if (request->content_length < 0)
 	return 0;		/* unknown, bug? */
-    if (clen > Config.maxRequestBodySize)
+    if (request->content_length > http->maxRequestBodySize)
 	return 1;		/* too large */
     return 0;
 }
@@ -3767,6 +3798,7 @@ parseHttpRequest(ConnStateData * conn, HttpMsgBuf * hmsg, method_t * method_p, i
     http->start = current_time;
     http->req_sz = prefix_sz;
     http->range_iter.boundary = StringNull;
+    http->maxRequestBodySize = -1;
     dlinkAdd(http, &http->active, &ClientActiveRequests);
 
     debug(33, 5) ("parseHttpRequest: Request Header is\n%s\n", hmsg->buf + hmsg->req_end);
@@ -4083,7 +4115,7 @@ clientTryParseRequest(ConnStateData * conn)
 	    request->body_reader_data = conn;
 	    cbdataLock(conn);
 	    /* Is it too large? */
-	    if (clientRequestBodyTooLarge(request->content_length)) {
+	    if (clientRequestBodyTooLarge(http, request)) {
 		err = errorCon(ERR_TOO_BIG, HTTP_REQUEST_ENTITY_TOO_LARGE, request);
 		http->log_type = LOG_TCP_DENIED;
 		http->entry = clientCreateStoreEntry(http,

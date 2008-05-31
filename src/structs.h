@@ -486,8 +486,8 @@ struct _SquidConfig {
 #endif
     } Timeout;
     squid_off_t maxRequestHeaderSize;
-    squid_off_t maxRequestBodySize;
     squid_off_t maxReplyHeaderSize;
+    dlink_list RequestBodySize;
     dlink_list ReplyBodySize;
     dlink_list DelayBodySize;
     struct {
@@ -1280,6 +1280,7 @@ struct _clientHttpRequest {
 	char *location;
     } redirect;
     dlink_node active;
+    squid_off_t maxRequestBodySize;
     squid_off_t maxBodySize;
     squid_off_t delayMaxBodySize;
     ushort delayAssignedPool;
