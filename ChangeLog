@@ -1,10 +1,35 @@
-	- TCP keepalive support
+Incomplete:
+	- Bug #1893: Variant invalidation on PURGE and HTCP CLR
+	- Use the client's DNS lookup if our DNS lookup fails on
+	  transparent requests.
+	- Bug #2160: Cache hits on objects with more than 4KB headers
+
+Done:
+	- request_body_max_size now acl driven
+	- Delayed delay pool assignment to catch big downloads of unknown
+	  lenght
+	- Internal URL rewriter support
 	- Stricter MemPool debug mode detecting double free and filling freed
 	  objects with garbage
 	- Optimization using reference counted memory cache to avoid repeated
 	  copying of data.
-	- Use the client's DNS lookup if our DNS lookup fails on
-	  transparent requests.
+
+Pending backport:
+
+	- Bug #2283: Properly abort invalid/truncated messages
+	- Windows port: add support for crypt function
+
+Changes to squid-2.7.STABLE2 (31 May 2008)
+
+	- Resolved merge conflict in Bug #219: Reassign delay pools after
+	  reconfigure
+	- Back out incomplete patch for Bug #1893: Variant invalidation on
+	  PURGE and HTCP CLR
+	- Bug #2350: Linux Capabilities version mismatch causing startup crash
+	  on newer kernels
+	- Fix build error on Windows: in_addr_t is not available.
+	- Bug #2360: Move the SSL options before https_port so it gets
+	  inherited proper
 
 Changes to squid-2.7.STABLE1 (27 May 2008)
 
