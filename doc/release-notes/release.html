@@ -2,10 +2,10 @@
 <HTML>
 <HEAD>
  <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.21">
- <TITLE>Squid 2.7.STABLE1 release notes</TITLE>
+ <TITLE>Squid 2.7.STABLE2 release notes</TITLE>
 </HEAD>
 <BODY>
-<H1>Squid 2.7.STABLE1 release notes</H1>
+<H1>Squid 2.7.STABLE2 release notes</H1>
 
 <H2>Squid Developers</H2>$Id$
 <HR>
@@ -41,6 +41,9 @@ Squid is a WWW Cache application developed by the Web Caching community.</EM>
 <LI><A NAME="toc4.5">4.5</A> <A HREF="#ss4.5">Known Limitations:</A>
 <LI><A NAME="toc4.6">4.6</A> <A HREF="#ss4.6">Using cache manager on Windows:</A>
 </UL>
+<P>
+<H2><A NAME="toc5">5.</A> <A HREF="#s5">Key changes in squid-2.7.STABLE2</A></H2>
+
 
 <HR>
 <H2><A NAME="s1">1.</A> <A HREF="#toc1">Key changes from squid 2.6</A></H2>
@@ -320,6 +323,7 @@ are supported.</P>
 <UL>
 <LI>It's recommended to use '/' char in Squid paths instead of '\'</LI>
 <LI>Paths with spaces (like 'C:\Programs Files\Squid) are NOT supported by Squid</LI>
+<LI>Include wildcard patterns in squid.conf are NOT supported on Windows</LI>
 <LI>When using ACL like 'acl aclname acltype "file"' the file must be in DOS text
 format (CR+LF) and the full Windows path must be specified, for example:
 
@@ -392,6 +396,19 @@ ScriptAlias /squid/cgi-bin/ "c:/squid/libexec/"
     Allow from workstation.example.com
 &lt;/Location&gt;
 </PRE>
+</P>
+
+<H2><A NAME="s5">5.</A> <A HREF="#toc5">Key changes in squid-2.7.STABLE2</A></H2>
+
+<P>
+<UL>
+<LI>Compile error if --enable-delaypools used</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1893">#1893</a>: Variant invalidation support removed again, caused a lot content to not get cached.</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=2350">#2350</a>: Linux Capabilities version mismatch causing startup crash on newer kernels</LI>
+<LI>See also the list of 
+<A HREF="http://www.squid-cache.org/Versions/v2/2.7/changesets/SQUID_2_7_STABLE2.html">squid-2.7.STABLE2 changes</A> and the 
+<A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
+</UL>
 </P>
 
 </BODY>
