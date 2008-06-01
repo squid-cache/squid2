@@ -170,8 +170,6 @@ Squid is a WWW Cache application developed by the Web Caching community.
 
     <tag>external_refresh_check</tag>
     <p>new helper to allow custom cache validations in accelerator setups
-    <tag>delay_body_max_size</tag>
-    <p>new way of using delay pools based on response size
 
     <tag>ignore_ims_on_miss</tag>
     <p>optimization mainly targeted for accelerator setups
@@ -271,7 +269,6 @@ Squid is a WWW Cache application developed by the Web Caching community.
 <item>Bug #457: does not handle swap.state corruption properly
 <item>Bug #410: unstable if runs out of disk space
 <item>Bug #355: diskd may appear slow on low loads
-<item>Bug #219: delay_pools stops working on -k reconfigure
 </itemize>
 
 <sect>Windows support

@@ -154,7 +154,6 @@ outside Squid and needing to separate cache hits from misses.</LI>
 <DT><B>ignore_expect_100</B><DD><P>Experimental HTTP/1.1 support knobs</P>
 
 <DT><B>external_refresh_check</B><DD><P>new helper to allow custom cache validations in accelerator setups</P>
-<DT><B>delay_body_max_size</B><DD><P>new way of using delay pools based on response size</P>
 
 <DT><B>ignore_ims_on_miss</B><DD><P>optimization mainly targeted for accelerator setups</P>
 <DT><B>max_filedescriptors</B><DD><P>can now be set runtime. Was previously hardcoded at build time and further limited by ulimit</P>
@@ -238,7 +237,6 @@ client IP should be forwarded in X-Forwarded-For</P>
 <LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=457">#457</a>: does not handle swap.state corruption properly</LI>
 <LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=410">#410</a>: unstable if runs out of disk space</LI>
 <LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=355">#355</a>: diskd may appear slow on low loads</LI>
-<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=219">#219</a>: delay_pools stops working on -k reconfigure</LI>
 </UL>
 </P>
 
