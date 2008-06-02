@@ -362,6 +362,7 @@ WIN32_Abort(int sig)
     WIN32_Exit();
 }
 
+#ifdef _SQUID_MSWIN_
 void
 WIN32_IpAddrChangeMonitorExit()
 {
@@ -372,6 +373,7 @@ WIN32_IpAddrChangeMonitorExit()
 	CloseHandle(NotifyAddrChange_thread);
     }
 }
+#endif
 
 void
 WIN32_Exit()
