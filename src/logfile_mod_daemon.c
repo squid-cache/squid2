@@ -266,8 +266,12 @@ logfile_mod_daemon_close(Logfile * lf)
     l_daemon_t *ll = (l_daemon_t *) lf->data;
     debug(50, 1) ("Logfile Daemon: closing log %s\n", lf->path);
     logfileFlush(lf);
-    fd_close(ll->rfd);
-    fd_close(ll->wfd);
+    if (ll->rfd == ll->wfd)
+	comm_close(ll->rfd);
+    else {
+	comm_close(ll->rfd);
+	comm_close(ll->wfd);
+    }
     kill(ll->pid, SIGTERM);
     eventDelete(logfileFlushEvent, lf);
     xfree(ll);
