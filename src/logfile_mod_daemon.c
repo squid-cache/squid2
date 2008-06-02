@@ -268,16 +268,15 @@ logfile_mod_daemon_close(Logfile * lf)
     logfileFlush(lf);
     if (ll->rfd == ll->wfd)
 	comm_close(ll->rfd);
-}
-else {
-    comm_close(ll->rfd);
-    comm_close(ll->wfd);
-}
-kill(ll->pid, SIGTERM);
-eventDelete(logfileFlushEvent, lf);
-xfree(ll);
-lf->data = NULL;
-cbdataUnlock(lf);
+    else {
+	comm_close(ll->rfd);
+	comm_close(ll->wfd);
+    }
+    kill(ll->pid, SIGTERM);
+    eventDelete(logfileFlushEvent, lf);
+    xfree(ll);
+    lf->data = NULL;
+    cbdataUnlock(lf);
 }
 
 static void
