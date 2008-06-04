@@ -31,6 +31,7 @@ Changes to squid-2.7.STABLE3 (Not yet released)
 	- Bug #2366: Fix assertion/FD leak during logfile_mod_daemon rotate.
 	- delay_body_max_size is not in 2.7 (2.8 feature) and bug #219 delay
 	  pools on -k reconfigure has been fixed
+	- Fix build error on Solaris using gcc and --with-large-files
 
 Changes to squid-2.7.STABLE2 (31 May 2008)
 
