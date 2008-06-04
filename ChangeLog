@@ -1,3 +1,16 @@
+Changes to squid-2.7.STABLE3 (Not yet released)
+
+	- Windows port: add support for crypt function
+	- Bug #2372: Segmentation fault if netdb_filename could not be written
+	- Windows port: add option for control of IP address changes
+	  notification in squid.conf
+	- Windows port: always shutdown winsocks on program termination
+	- Windows port: configure enhancements on MinGW and Cygwin
+	- Windows port: fix build error on Cygwin
+	- Bug #2366: Fix assertion/FD leak during logfile_mod_daemon rotate.
+	- delay_body_max_size is not in 2.7 (2.8 feature) and bug #219 delay
+	  pools on -k reconfigure has been fixed
+
 Changes to squid-2.7.STABLE2 (31 May 2008)
 
 	- Resolved merge conflict in Bug #219: Reassign delay pools after
