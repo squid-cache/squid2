@@ -53,7 +53,6 @@ logfileOpen(const char *path, size_t bufsz, int fatal_flag)
 
     CBDATA_INIT_TYPE(Logfile);
     lf = cbdataAlloc(Logfile);
-    cbdataLock(lf);
     xstrncpy(lf->path, path, MAXPATHLEN);
     patharg = path;
 
@@ -75,8 +74,14 @@ logfileOpen(const char *path, size_t bufsz, int fatal_flag)
     } else {
 	ret = logfile_mod_stdio_open(lf, patharg, bufsz, fatal_flag);
     }
-    if (fatal_flag && !ret) {
-	fatalf("logfileOpen: path %s: couldn't open!\n", path);
+    if (!ret) {
+	if (fatal_flag)
+	    fatalf("logfileOpen: path %s: couldn't open!\n", path);
+	else
+	    debug(50, 1) ("logfileOpen: path %s: couldn't open!\n", path);
+	lf->f_close(lf);
+	cbdataFree(lf);
+	return NULL;
     }
     assert(lf->data != NULL);
 
@@ -92,7 +97,6 @@ logfileClose(Logfile * lf)
     debug(50, 1) ("logfileClose: closing log %s\n", lf->path);
     lf->f_flush(lf);
     lf->f_close(lf);
-    cbdataUnlock(lf);
     cbdataFree(lf);
 }
 

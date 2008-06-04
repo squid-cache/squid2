@@ -160,6 +160,13 @@ logfile_mod_syslog_open(Logfile * lf, const char *path, size_t bufsz, int fatal_
 {
     l_syslog_t *ll;
 
+    lf->f_close = logfile_mod_syslog_close;
+    lf->f_linewrite = logfile_mod_syslog_writeline;
+    lf->f_linestart = logfile_mod_syslog_linestart;
+    lf->f_lineend = logfile_mod_syslog_lineend;
+    lf->f_flush = logfile_mod_syslog_flush;
+    lf->f_rotate = logfile_mod_syslog_rotate;
+
     ll = xcalloc(1, sizeof(*ll));
     lf->data = ll;
 
@@ -177,13 +184,6 @@ logfile_mod_syslog_open(Logfile * lf, const char *path, size_t bufsz, int fatal_
     }
     if ((ll->syslog_priority & PRIORITY_MASK) == 0)
 	ll->syslog_priority |= LOG_INFO;
-
-    lf->f_close = logfile_mod_syslog_close;
-    lf->f_linewrite = logfile_mod_syslog_writeline;
-    lf->f_linestart = logfile_mod_syslog_linestart;
-    lf->f_lineend = logfile_mod_syslog_lineend;
-    lf->f_flush = logfile_mod_syslog_flush;
-    lf->f_rotate = logfile_mod_syslog_rotate;
 
     return 1;
 }

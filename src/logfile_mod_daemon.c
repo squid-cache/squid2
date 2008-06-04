@@ -226,6 +226,13 @@ logfile_mod_daemon_open(Logfile * lf, const char *path, size_t bufsz, int fatal_
     char *tmpbuf;
     l_daemon_t *ll;
 
+    lf->f_close = logfile_mod_daemon_close;
+    lf->f_linewrite = logfile_mod_daemon_writeline;
+    lf->f_linestart = logfile_mod_daemon_linestart;
+    lf->f_lineend = logfile_mod_daemon_lineend;
+    lf->f_flush = logfile_mod_daemon_flush;
+    lf->f_rotate = logfile_mod_daemon_rotate;
+
     cbdataLock(lf);
     debug(50, 1) ("Logfile Daemon: opening log %s\n", path);
     ll = xcalloc(1, sizeof(*ll));
@@ -249,13 +256,6 @@ logfile_mod_daemon_open(Logfile * lf, const char *path, size_t bufsz, int fatal_
 
     /* Start the flush event */
     eventAdd("logfileFlush", logfileFlushEvent, lf, 1.0, 1);
-
-    lf->f_close = logfile_mod_daemon_close;
-    lf->f_linewrite = logfile_mod_daemon_writeline;
-    lf->f_linestart = logfile_mod_daemon_linestart;
-    lf->f_lineend = logfile_mod_daemon_lineend;
-    lf->f_flush = logfile_mod_daemon_flush;
-    lf->f_rotate = logfile_mod_daemon_rotate;
 
     return 1;
 }
