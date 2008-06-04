@@ -711,6 +711,7 @@ struct _SquidConfig {
 #endif
 	int update_headers;
 	int ignore_expect_100;
+	int WIN32_IpAddrChangeMonitor;
     } onoff;
     acl *aclList;
     struct {

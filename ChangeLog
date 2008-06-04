@@ -18,6 +18,8 @@ Pending backport:
 
 	- Bug #2283: Properly abort invalid/truncated messages
 	- Windows port: add support for crypt function
+	- Windows port: add option for control of IP address changes notification
+	  in squid.conf 
 
 Changes to squid-2.7.STABLE2 (31 May 2008)
 
