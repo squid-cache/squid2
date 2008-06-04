@@ -5,6 +5,7 @@ Incomplete:
 	- Bug #2160: Cache hits on objects with more than 4KB headers
 
 Done:
+	- Debug tool to trigger running named events NOW
 	- request_body_max_size now acl driven
 	- Delayed delay pool assignment to catch big downloads of unknown
 	  lenght
@@ -17,9 +18,19 @@ Done:
 Pending backport:
 
 	- Bug #2283: Properly abort invalid/truncated messages
+
+Changes to squid-2.7.STABLE3 (Not yet released)
+
 	- Windows port: add support for crypt function
-	- Windows port: add option for control of IP address changes notification
-	  in squid.conf 
+	- Bug #2372: Segmentation fault if netdb_filename could not be written
+	- Windows port: add option for control of IP address changes
+	  notification in squid.conf
+	- Windows port: always shutdown winsocks on program termination
+	- Windows port: configure enhancements on MinGW and Cygwin
+	- Windows port: fix build error on Cygwin
+	- Bug #2366: Fix assertion/FD leak during logfile_mod_daemon rotate.
+	- delay_body_max_size is not in 2.7 (2.8 feature) and bug #219 delay
+	  pools on -k reconfigure has been fixed
 
 Changes to squid-2.7.STABLE2 (31 May 2008)
 
