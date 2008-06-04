@@ -101,6 +101,7 @@ fwdStateFree(FwdState * fwdState)
 #endif
     if (e->store_status == STORE_PENDING) {
 	storeRequestFailed(e, fwdState->err);
+	fwdState->err = NULL;
     }
     if (EBIT_TEST(e->flags, ENTRY_DEFER_READ))
 	storeResetDefer(e);
