@@ -47,6 +47,7 @@ struct ev_entry {
 };
 
 static struct ev_entry *tasks = NULL;
+static OBJH eventMgr;
 static OBJH eventDump;
 static int run_id = 0;
 static const char *last_event_ran = NULL;
@@ -185,7 +186,7 @@ eventInit(void)
     memDataInit(MEM_EVENT, "event", sizeof(struct ev_entry), 0);
     cachemgrRegister("events",
 	"Event Queue",
-	eventDump, 0, 1);
+	eventMgr, 0, 1);
 }
 
 static void
@@ -204,6 +205,37 @@ eventDump(StoreEntry * sentry)
 	    e->name, e->when - current_dtime, e->weight,
 	    e->arg ? cbdataValid(e->arg) ? "yes" : "no" : "N/A");
 	e = e->next;
+    }
+}
+
+static void
+eventMgrTrigger(StoreEntry * sentry, const char *name)
+{
+#if DEBUG_MEMPOOL		/* XXX: this abuses the existing mempool debug configure option.. too lazy to create a new one for this */
+    struct ev_entry **E, *e;
+    for (E = &tasks; (e = *E) != NULL; E = *E ? &(*E)->next : NULL) {
+	if (strcmp(e->name, name) == 0) {
+	    debug(50, 1) ("eventMgrTrigger: Scheduling '%s' to be run NOW\n", e->name);
+	    e->when = 0;
+	    *E = e->next;
+	    e->next = tasks;
+	    tasks = e;
+	}
+    }
+#endif
+}
+
+static void
+eventMgr(StoreEntry * e)
+{
+    char *arg = strchr(strBuf(e->mem_obj->request->urlpath) + 1, '/');
+    if (arg) {
+	char *name = xstrdup(arg + 1);
+	rfc1738_unescape(name);
+	eventMgrTrigger(e, name);
+	safe_free(name);
+    } else {
+	eventDump(e);
     }
 }
 
