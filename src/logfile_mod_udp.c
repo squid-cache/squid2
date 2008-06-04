@@ -152,6 +152,13 @@ logfile_mod_udp_open(Logfile * lf, const char *path, size_t bufsz, int fatal_fla
     struct sockaddr_in addr;
     char *strAddr;
 
+    lf->f_close = logfile_mod_udp_close;
+    lf->f_linewrite = logfile_mod_udp_writeline;
+    lf->f_linestart = logfile_mod_udp_linestart;
+    lf->f_lineend = logfile_mod_udp_lineend;
+    lf->f_flush = logfile_mod_udp_flush;
+    lf->f_rotate = logfile_mod_udp_rotate;
+
     ll = xcalloc(1, sizeof(*ll));
     lf->data = ll;
 
@@ -218,12 +225,5 @@ logfile_mod_udp_open(Logfile * lf, const char *path, size_t bufsz, int fatal_fla
 	ll->buf = (char *) xmalloc(bufsz);
 	ll->bufsz = bufsz;
     }
-    lf->f_close = logfile_mod_udp_close;
-    lf->f_linewrite = logfile_mod_udp_writeline;
-    lf->f_linestart = logfile_mod_udp_linestart;
-    lf->f_lineend = logfile_mod_udp_lineend;
-    lf->f_flush = logfile_mod_udp_flush;
-    lf->f_rotate = logfile_mod_udp_rotate;
-
     return 1;
 }
