@@ -1095,14 +1095,15 @@ if test -n "$buildmodel" && test "$buildmodel" != "default"; then
 dnl
 dnl On Solaris getconf returns for CFLAGS -xarch=generic64, -Xa and -Usun options, and
 dnl for LDFLAGS -xarch=generic64, but:
-dnl   -Xa and -xarch=generic64 are supported only by Sun cc, so we need to remove them when using gcc
-dnl   The 'sun' define is needed by ipfilter includes, so we must remove -Usun
+dnl   "-Xa" is supported only by Sun cc, so we need to remove it when using gcc
+dnl   For gcc "-xarch=generic64" must be replaced with "-m64"
+dnl   The 'sun' define is needed by ipfilter includes, so we must remove "-Usun"
 	    *-solaris*)
 		if test "$GCC" = "yes"; then
 		    echo "Removing -Xa for gcc on $host"
 		    CFLAGS="`echo $CFLAGS | sed -e 's/-Xa//'`"
-		    echo "Removing -xarch=generic64 for gcc on $host"
-		    CFLAGS="`echo $CFLAGS | sed -e 's/-xarch=generic64//'`"
+		    echo "Replacing -xarch=generic64 with -m64 for gcc on $host"
+		    CFLAGS="`echo $CFLAGS | sed -e 's/-xarch=generic64/-m64/'`"
 		    LDFLAGS="`echo $LDFLAGS | sed -e 's/-xarch=generic64//'`"
 		fi
 		echo "Removing -Usun on $host"
