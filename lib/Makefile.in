@@ -308,8 +308,12 @@ noinst_LIBRARIES = \
 	@LIBREGEX@ \
 	$(LIBSSPWIN32)
 
+#
+# dirent.c, ecnrypt.c and getopt.c are needed for native Windows support.
+#
 EXTRA_libmiscutil_a_SOURCES = \
 	dirent.c \
+	encrypt.c \
 	getopt.c \
 	snprintf.c \
 	strsep.c \
@@ -433,6 +437,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/base64.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dirent.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dlmalloc.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/encrypt.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/getfullhostname.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/getopt.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hash.Po@am__quote@
