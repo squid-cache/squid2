@@ -1316,6 +1316,8 @@ dump_peer_options(StoreEntry * sentry, peer * p)
     }
     if (p->domain)
 	storeAppendPrintf(sentry, " forceddomain=%s", p->domain);
+    if (p->connect_fail_limit != PEER_TCP_MAGIC_COUNT)
+	storeAppendPrintf(sentry, " connect-fail-limit=%d", p->connect_fail_limit);
     storeAppendPrintf(sentry, "\n");
 }
 
