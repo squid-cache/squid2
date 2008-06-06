@@ -1542,6 +1542,7 @@ struct _peer {
     } sourcehash;
     char *login;		/* Proxy authorization */
     time_t connect_timeout;
+    int connect_fail_limit;
     int max_conn;
     struct {
 	char *url;

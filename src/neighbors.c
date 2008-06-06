@@ -1085,7 +1085,7 @@ peerConnectSucceded(peer * p)
 	if (!p->n_addresses)
 	    ipcache_nbgethostbyname(p->host, peerDNSConfigure, p);
     }
-    p->tcp_up = PEER_TCP_MAGIC_COUNT;
+    p->tcp_up = p->connect_fail_limit;
 }
 
 static void

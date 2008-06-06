@@ -1727,7 +1727,7 @@ parse_peer(peer ** head)
     p->stats.logged_state = PEER_ALIVE;
     p->monitor.state = PEER_ALIVE;
     p->monitor.interval = 300;
-    p->tcp_up = PEER_TCP_MAGIC_COUNT;
+    p->connect_fail_limit = PEER_TCP_MAGIC_COUNT;
     if ((token = strtok(NULL, w_space)) == NULL)
 	self_destruct();
     p->host = xstrdup(token);
@@ -1799,6 +1799,8 @@ parse_peer(peer ** head)
 	    rfc1738_unescape(p->login);
 	} else if (!strncasecmp(token, "connect-timeout=", 16)) {
 	    p->connect_timeout = xatoi(token + 16);
+	} else if (!strncasecmp(token, "connect-fail-limit=", 19)) {
+	    p->connect_fail_limit = xatoi(token + 19);
 #if USE_CACHE_DIGESTS
 	} else if (!strncasecmp(token, "digest-url=", 11)) {
 	    p->digest_url = xstrdup(token + 11);
@@ -1901,6 +1903,9 @@ parse_peer(peer ** head)
 	fatalf("ERROR: cache_peer %s specified twice\n", p->name);
     if (p->weight < 1)
 	p->weight = 1;
+    if (p->connect_fail_limit < 1)
+	p->connect_fail_limit = 1;
+    p->tcp_up = p->connect_fail_limit;
     p->icp.version = ICP_VERSION_CURRENT;
     p->test_fd = -1;
 #if USE_CACHE_DIGESTS
