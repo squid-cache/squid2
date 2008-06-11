@@ -2994,7 +2994,7 @@ parse_http_port_option(http_port_list * s, char *token)
 	s->vhost = 1;
 	s->accel = 1;
     } else if (strcmp(token, "vport") == 0) {
-	s->vport = ntohs(s->s.sin_port);
+	s->vport = -1;
 	s->accel = 1;
     } else if (strncmp(token, "vport=", 6) == 0) {
 	s->vport = xatos(token + 6);
