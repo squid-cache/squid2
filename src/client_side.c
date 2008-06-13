@@ -2287,16 +2287,6 @@ clientCacheHit(void *data, HttpReply * rep)
 	http->sc = NULL;
 	clientProcessMiss(http);
 	return;
-    case VARY_EXPIRED:
-	/* Variant is expired. Delete it and process as a miss. */
-	debug(33, 2) ("clientCacheHit: Variant expired, deleting\n");
-	storeClientUnregister(http->sc, e, http);
-	http->sc = NULL;
-	storeRelease(e);
-	storeUnlockObject(e);
-	http->entry = NULL;
-	clientProcessMiss(http);
-	return;
     }
     if (r->method == METHOD_PURGE) {
 	http->entry = NULL;
@@ -5128,8 +5118,6 @@ varyEvaluateMatch(StoreEntry * entry, request_t * request)
 	 */
 	vary = httpMakeVaryMark(request, entry->mem_obj->reply);
 	if (vary) {
-	    /* Save the vary_id for the second time through. */
-	    request->vary_id = entry->mem_obj->vary_id;
 	    return VARY_OTHER;
 	} else {
 	    /* Ouch.. we cannot handle this kind of variance */
@@ -5147,13 +5135,6 @@ varyEvaluateMatch(StoreEntry * entry, request_t * request)
 	    /* This request was merged before we knew the outcome. Don't trust the response */
 	    /* restart vary processing from the beginning */
 	    return VARY_RESTART;
-	} else if (request->vary_id.create_time != entry->mem_obj->vary_id.create_time ||
-	    request->vary_id.serial != entry->mem_obj->vary_id.serial) {
-	    /* vary_id mismatch, the variant must be expired */
-	    debug(33, 3) ("varyEvaluateMatch: vary ID mismatch, parent is %ld.%u, child is %ld.%u\n",
-		request->vary_id.create_time, request->vary_id.serial,
-		entry->mem_obj->vary_id.create_time, entry->mem_obj->vary_id.serial);
-	    return VARY_EXPIRED;
 	} else {
 	    return VARY_MATCH;
 	}

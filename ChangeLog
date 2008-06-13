@@ -1,5 +1,4 @@
 Incomplete:
-	- Bug #1893: Variant invalidation on PURGE and HTCP CLR
 	- Use the client's DNS lookup if our DNS lookup fails on
 	  transparent requests.
 	- Bug #2160: Cache hits on objects with more than 4KB headers
