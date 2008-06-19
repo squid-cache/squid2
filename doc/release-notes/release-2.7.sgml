@@ -1,6 +1,6 @@
 <!doctype linuxdoc system>
 <article>
-<title>Squid 2.7.STABLE2 release notes</title>
+<title>Squid 2.7.STABLE3 release notes</title>
 <author>Squid Developers</author>
 <date>$Id$
 
@@ -414,6 +414,23 @@ ScriptAlias /squid/cgi-bin/ "c:/squid/libexec/"
 	<item>See also the list of <url
 		url="http://www.squid-cache.org/Versions/v2/2.7/changesets/SQUID_2_7_STABLE2.html"
 			name="squid-2.7.STABLE2 changes"> and the <url url="ChangeLog"
+				name="ChangeLog"> file for details.
+</itemize>
+
+<sect>Key changes in squid-2.7.STABLE3
+
+<p>
+<itemize>
+	<item>Fix SNMP reporting of counters with a value > 0xFF80000
+	<item>Reject ridiculously large ASN.1 lengths
+	<item>Off by one error in DNS label decompression could cause valid DNS messages to be rejected
+	<item>Bug #2241: weights not applied properly in round-robin peer selection
+	<item>Bug #2192: http_port ... vport broken by recent changes in how accelerator mode deals with port numbers
+	<item>Fix build error on Solaris using gcc and --with-large-files
+	<item>Windows port: new option for control of IP address changes notification in squid.conf
+	<item>See also the list of <url
+		url="http://www.squid-cache.org/Versions/v2/2.7/changesets/SQUID_2_7_STABLE3.html"
+			name="squid-2.7.STABLE3 changes"> and the <url url="ChangeLog"
 				name="ChangeLog"> file for details.
 </itemize>
 
