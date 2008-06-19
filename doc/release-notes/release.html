@@ -2,10 +2,10 @@
 <HTML>
 <HEAD>
  <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.21">
- <TITLE>Squid 2.7.STABLE2 release notes</TITLE>
+ <TITLE>Squid 2.7.STABLE3 release notes</TITLE>
 </HEAD>
 <BODY>
-<H1>Squid 2.7.STABLE2 release notes</H1>
+<H1>Squid 2.7.STABLE3 release notes</H1>
 
 <H2>Squid Developers</H2>$Id$
 <HR>
@@ -38,11 +38,14 @@ Squid is a WWW Cache application developed by the Web Caching community.</EM>
 <LI><A NAME="toc4.2">4.2</A> <A HREF="#ss4.2">PSAPI.DLL (Process Status Helper) Considerations</A>
 <LI><A NAME="toc4.3">4.3</A> <A HREF="#ss4.3">Registry DNS lookup</A>
 <LI><A NAME="toc4.4">4.4</A> <A HREF="#ss4.4">Compatibility Notes</A>
-<LI><A NAME="toc4.5">4.5</A> <A HREF="#ss4.5">Known Limitations:</A>
-<LI><A NAME="toc4.6">4.6</A> <A HREF="#ss4.6">Using cache manager on Windows:</A>
+<LI><A NAME="toc4.5">4.5</A> <A HREF="#ss4.5">Known Limitations</A>
+<LI><A NAME="toc4.6">4.6</A> <A HREF="#ss4.6">Using cache manager on Windows</A>
 </UL>
 <P>
 <H2><A NAME="toc5">5.</A> <A HREF="#s5">Key changes in squid-2.7.STABLE2</A></H2>
+
+<P>
+<H2><A NAME="toc6">6.</A> <A HREF="#s6">Key changes in squid-2.7.STABLE3</A></H2>
 
 
 <HR>
@@ -345,7 +348,7 @@ redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd
 </UL>
 </P>
 
-<H2><A NAME="ss4.5">4.5</A> <A HREF="#toc4.5">Known Limitations:</A>
+<H2><A NAME="ss4.5">4.5</A> <A HREF="#toc4.5">Known Limitations</A>
 </H2>
 
 <P>
@@ -359,7 +362,7 @@ redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd
 </UL>
 </P>
 
-<H2><A NAME="ss4.6">4.6</A> <A HREF="#toc4.6">Using cache manager on Windows:</A>
+<H2><A NAME="ss4.6">4.6</A> <A HREF="#toc4.6">Using cache manager on Windows</A>
 </H2>
 
 <P>On Windows, cache manager (cachemgr.cgi) can be used with Microsoft IIS or Apache.
@@ -405,6 +408,23 @@ ScriptAlias /squid/cgi-bin/ "c:/squid/libexec/"
 <LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=2350">#2350</a>: Linux Capabilities version mismatch causing startup crash on newer kernels</LI>
 <LI>See also the list of 
 <A HREF="http://www.squid-cache.org/Versions/v2/2.7/changesets/SQUID_2_7_STABLE2.html">squid-2.7.STABLE2 changes</A> and the 
+<A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
+</UL>
+</P>
+
+<H2><A NAME="s6">6.</A> <A HREF="#toc6">Key changes in squid-2.7.STABLE3</A></H2>
+
+<P>
+<UL>
+<LI>Fix SNMP reporting of counters with a value > 0xFF80000</LI>
+<LI>Reject ridiculously large ASN.1 lengths</LI>
+<LI>Off by one error in DNS label decompression could cause valid DNS messages to be rejected</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=2241">#2241</a>: weights not applied properly in round-robin peer selection</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=2192">#2192</a>: http_port ... vport broken by recent changes in how accelerator mode deals with port numbers</LI>
+<LI>Fix build error on Solaris using gcc and --with-large-files</LI>
+<LI>Windows port: new option for control of IP address changes notification in squid.conf</LI>
+<LI>See also the list of 
+<A HREF="http://www.squid-cache.org/Versions/v2/2.7/changesets/SQUID_2_7_STABLE3.html">squid-2.7.STABLE3 changes</A> and the 
 <A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
 </UL>
 </P>
