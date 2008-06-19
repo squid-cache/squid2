@@ -298,7 +298,7 @@ rfc1035NameUnpack(const char *buf, size_t sz, int *off, unsigned short *rdlength
 	    s = ntohs(s);
 	    (*off) += sizeof(s);
 	    /* Sanity check */
-	    if ((*off) >= sz)
+	    if ((*off) > sz)
 		return 1;
 	    ptr = s & 0x3FFF;
 	    /* Make sure the pointer is inside this message */
