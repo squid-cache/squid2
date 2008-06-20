@@ -2991,6 +2991,9 @@ clientHttpReplyAccessCheckDone(int answer, void *data)
 	err = errorCon(page_id, HTTP_FORBIDDEN, http->orig_request);
 	storeClientUnregister(http->sc, http->entry, http);
 	http->sc = NULL;
+	if (http->reply)
+	    httpReplyDestroy(http->reply);
+	http->reply = NULL;
 	storeUnlockObject(http->entry);
 	http->log_type = LOG_TCP_DENIED;
 	http->entry = clientCreateStoreEntry(http, http->request->method,
