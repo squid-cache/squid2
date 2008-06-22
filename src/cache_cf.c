@@ -1669,7 +1669,7 @@ dump_peer(StoreEntry * entry, const char *name, peer * p)
 	dump_peer_options(entry, p);
 	for (d = p->peer_domain; d; d = d->next) {
 	    storeAppendPrintf(entry, "cache_peer_domain %s %s%s\n",
-		p->host,
+		p->name,
 		d->do_ping ? null_string : "!",
 		d->domain);
 	}
@@ -1679,7 +1679,7 @@ dump_peer(StoreEntry * entry, const char *name, peer * p)
 	}
 	for (t = p->typelist; t; t = t->next) {
 	    storeAppendPrintf(entry, "neighbor_type_domain %s %s %s\n",
-		p->host,
+		p->name,
 		peer_type_str(t->type),
 		t->domain);
 	}
@@ -1787,7 +1787,7 @@ parse_peer(peer ** head)
 #if USE_CARP
 	} else if (!strcasecmp(token, "carp")) {
 	    if (p->type != PEER_PARENT)
-		fatalf("parse_peer: non-parent carp peer %s/%d\n", p->host, p->http_port);
+		fatalf("parse_peer: non-parent carp peer %s (%s:%d)\n", p->name, p->host, p->http_port);
 	    p->options.carp = 1;
 #endif
 #if DELAY_POOLS
