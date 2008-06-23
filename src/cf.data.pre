@@ -483,12 +483,14 @@ DEFAULT: none
 DOC_START
 	Defining an Access List
 
-	acl aclname acltype string1 ...
+    Every access list definition must begin with an aclname and acltype, 
+    followed by either type-specific arguments or a quoted filename that
+    they are read from.
+
+	acl aclname acltype argument ...
 	acl aclname acltype "file" ...
 
-	when using "file", the file should contain one item per line
-
-	acltype is one of the types described below
+	when using "file", the file should contain one item per line.
 
 	By default, regular expressions are CASE-SENSITIVE.  To make
 	them case-insensitive, use the -i option.
@@ -516,16 +518,16 @@ DOC_START
 	  # if the reverse lookup fails.
 
 	acl aclname time     [day-abbrevs]  [h1:m1-h2:m2]
-	    day-abbrevs:
-		S - Sunday
-		M - Monday
-		T - Tuesday
-		W - Wednesday
-		H - Thursday
-		F - Friday
-		A - Saturday
-	    h1:m1 must be less than h2:m2
-	acl aclname url_regex [-i] ^http:// ...	# regex matching on whole URL
+	    # day-abbrevs:
+		# S - Sunday
+		# M - Monday
+		# T - Tuesday
+		# W - Wednesday
+		# H - Thursday
+		# F - Friday
+		# A - Saturday
+	    # h1:m1 must be less than h2:m2
+	acl aclname url_regex [-i] ^http:// ...	    # regex matching on whole URL
 	acl aclname urlpath_regex [-i] \.gif$ ...	# regex matching on URL path
 	acl aclname urllogin [-i] [^a-zA-Z0-9] ...	# regex matching on URL login field
 	acl aclname port     80 70 21 ...
@@ -593,7 +595,7 @@ DOC_START
 	  # clients may appear to come from multiple addresses if they are
 	  # going through proxy farms, so a limit of 1 may cause user problems.
 
-	acl aclname req_mime_type mime-type1 ...
+	acl aclname req_mime_type mime-type ...
 	  # regex match against the mime type of the request generated
 	  # by the client. Can be used to detect file upload or some
 	  # types HTTP tunneling requests.
@@ -605,7 +607,7 @@ DOC_START
 	  # thought of as a superset of "browser", "referer" and "mime-type"
 	  # ACLs.
 
-	acl aclname rep_mime_type mime-type1 ...
+	acl aclname rep_mime_type mime-type ...
 	  # regex match against the mime type of the reply received by
 	  # squid. Can be used to detect file download or some
 	  # types HTTP tunneling requests.
@@ -622,11 +624,11 @@ DOC_START
 	  #
 	  # acl many_spaces rep_header Content-Disposition -i [[:space:]]{3,}
 
-	acl acl_name external class_name [arguments...]
+	acl aclname external class_name [arguments...]
 	  # external ACL lookup via a helper class defined by the
 	  # external_acl_type directive.
 
-	acl urlgroup group1 ...
+	acl aclname urlgroup group1 ...
 	  # match against the urlgroup as indicated by redirectors
 
 	acl aclname user_cert attribute values...
