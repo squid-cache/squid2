@@ -1716,6 +1716,7 @@ static void
 parse_peer(peer ** head)
 {
     char *token = NULL;
+    void *arg = NULL;		/* throwaway arg to make eventAdd happy */
     peer *p;
     p = cbdataAlloc(peer);
     p->http_port = CACHE_HTTP_PORT;
@@ -1915,7 +1916,9 @@ parse_peer(peer ** head)
 	head = &(*head)->next;
     *head = p;
     Config.npeers++;
-    peerClearRR(p);
+    if (!reconfiguring && Config.npeers == 1) {
+	peerClearRRLoop(arg);
+    }
 }
 
 static void

@@ -282,14 +282,20 @@ getRoundRobinParent(request_t * request)
 
 /* This gets called every 5 minutes to clear the round-robin counter. */
 void
-peerClearRR(void *data)
+peerClearRRLoop(void *data)
 {
-    peer *p = data;
-    p->rr_count -= p->rr_lastcount;
-    if (p->rr_count < 0)
+    peerClearRR();
+    eventAdd("peerClearRR", peerClearRRLoop, data, 5 * 60.0, 0);
+}
+
+/* Actually clear the round-robin counter. */
+void
+peerClearRR(void)
+{
+    peer *p = NULL;
+    for (p = Config.peers; p; p = p->next) {
 	p->rr_count = 0;
-    p->rr_lastcount = p->rr_count;
-    eventAdd("peerClearRR", peerClearRR, p, 5 * 60.0, 0);
+    }
 }
 
 peer *
@@ -693,6 +699,7 @@ neighborAlive(peer * p, const MemObject * mem, const icp_common_t * header)
 	debug(15, 1) ("Detected REVIVED %s: %s\n",
 	    neighborTypeStr(p), p->name);
 	p->stats.logged_state = PEER_ALIVE;
+	peerClearRR();
     }
     p->stats.last_reply = squid_curtime;
     p->stats.probe_start = 0;
@@ -725,6 +732,7 @@ neighborAliveHtcp(peer * p, const MemObject * mem, const htcpReplyData * htcp)
 	debug(15, 1) ("Detected REVIVED %s: %s\n",
 	    neighborTypeStr(p), p->name);
 	p->stats.logged_state = PEER_ALIVE;
+	peerClearRR();
     }
     p->stats.last_reply = squid_curtime;
     p->stats.probe_start = 0;
@@ -1109,6 +1117,7 @@ peerConnectSucceded(peer * p)
 	    neighborTypeStr(p), p->name);
 	peerMonitorNow(p);
 	p->stats.logged_state = PEER_ALIVE;
+	peerClearRR();
 	if (!p->n_addresses)
 	    ipcache_nbgethostbyname(p->host, peerDNSConfigure, p);
     }
