@@ -680,14 +680,20 @@ peerHandlePingReply(peer * p, peer_t type, protocol_t proto, void *pingdata, voi
 void
 peerAddFwdServer(FwdServer ** FS, peer * p, hier_code code)
 {
-    FwdServer *fs = memAllocate(MEM_FWD_SERVER);
+    FwdServer *fs;
     debug(44, 5) ("peerAddFwdServer: adding %s %s\n",
 	p ? p->host : "DIRECT",
 	hier_strings[code]);
+    while (*FS) {
+	if ((*FS)->peer == p) {
+	    debug(44, 5) ("peerAddFwdServer: Skipping duplicate registration of %s\n", p ? p->name : "DIRECT");
+	    return;
+	}
+	FS = &(*FS)->next;
+    }
+    fs = memAllocate(MEM_FWD_SERVER);
     fs->peer = p;
     fs->code = code;
     cbdataLock(fs->peer);
-    while (*FS)
-	FS = &(*FS)->next;
     *FS = fs;
 }
