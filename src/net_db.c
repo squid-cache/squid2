@@ -556,7 +556,7 @@ netdbExchangeHandleReply(void *data, char *buf, ssize_t size)
 	netdbExchangeDone(ex);
 	return;
     }
-    debug(38, 3) ("netdbExchangeHandleReply: for '%s:%d'\n", ex->p->host, ex->p->http_port);
+    debug(38, 3) ("netdbExchangeHandleReply: for %s'\n", ex->p->name);
     p = buf;
     if (0 == ex->used) {
 	/* skip reply headers */

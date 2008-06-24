@@ -392,7 +392,7 @@ peerGetSomeNeighbor(ps_state * ps)
     }
     if (code != HIER_NONE) {
 	assert(p);
-	debug(44, 3) ("peerGetSomeNeighbor: %s/%s\n", hier_strings[code], p->host);
+	debug(44, 3) ("peerGetSomeNeighbor: %s/%s\n", hier_strings[code], p->name);
 	peerAddFwdServer(&ps->servers, p, code);
     }
     entry->ping_status = PING_DONE;
@@ -433,7 +433,7 @@ peerGetSomeNeighborReplies(ps_state * ps)
 	code = FIRST_PARENT_MISS;
     }
     if (p && code != HIER_NONE) {
-	debug(44, 3) ("peerGetSomeNeighborReplies: %s/%s\n", hier_strings[code], p->host);
+	debug(44, 3) ("peerGetSomeNeighborReplies: %s/%s\n", hier_strings[code], p->name);
 	peerAddFwdServer(&ps->servers, p, code);
     }
 }
@@ -484,7 +484,7 @@ peerGetSomeParent(ps_state * ps)
 	code = ANY_OLD_PARENT;
     }
     if (code != HIER_NONE) {
-	debug(44, 3) ("peerGetSomeParent: %s/%s\n", hier_strings[code], p->host);
+	debug(44, 3) ("peerGetSomeParent: %s/%s\n", hier_strings[code], p->name);
 	peerAddFwdServer(&ps->servers, p, code);
     }
 }
@@ -505,7 +505,7 @@ peerGetAllParents(ps_state * ps)
 	    continue;
 	if (!peerHTTPOkay(p, request))
 	    continue;
-	debug(15, 3) ("peerGetAllParents: adding alive parent %s\n", p->host);
+	debug(15, 3) ("peerGetAllParents: adding alive parent %s\n", p->name);
 	peerAddFwdServer(&ps->servers, p, ANY_OLD_PARENT);
     }
     /* XXX: should add dead parents here, but it is currently
@@ -682,7 +682,7 @@ peerAddFwdServer(FwdServer ** FS, peer * p, hier_code code)
 {
     FwdServer *fs;
     debug(44, 5) ("peerAddFwdServer: adding %s %s\n",
-	p ? p->host : "DIRECT",
+	p ? p->name : "DIRECT",
 	hier_strings[code]);
     while (*FS) {
 	if ((*FS)->peer == p) {
