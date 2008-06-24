@@ -22,8 +22,19 @@ Done:
 Pending backport:
 
 
-Changes to squid-2.7.STABLE3 (Not yet released)
+Changes to squid-2.7.STABLE3 (25 June 2008)
 
+	- Byg #2376: Round-Robin peer selection becomes unbalanced when a
+	  peer dies and comes back
+	- Bug #2365: cachemgr.cgi fails to HTML encode config dumps properly
+	- Bug #2122: In some situations collapsed_forwarding could leak
+	  private information
+	- Bug #2388: acl documentation cleanup
+	- Report the cache_peer name instead of hostname
+	- Bug #2378: Duplicate paths in FwdServers
+	- Bug #1993: Memory leak in http_reply_access deny processing
+	- Plug some "squid -k reconfigure" memory leaks. Mostly SSL related.
+	- wccp2 sevice flags documentation correction for dst_port_hash
 	- Fix SNMP reporting of counters with a value > 0xFF800000
 	- Reject ridiculously large ASN.1 lengths
 	- logformat docs contain extra whitespace
