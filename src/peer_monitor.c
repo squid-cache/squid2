@@ -211,6 +211,7 @@ peerMonitorCompleted(PeerMonitor * pm)
 	case PEER_ALIVE:
 	    debug(DBG, 1) ("Detected REVIVED %s: %s\n",
 		neighborTypeStr(p), p->name);
+	    peerClearRR();
 	    break;
 	case PEER_DEAD:
 	    debug(DBG, 1) ("Detected DEAD %s: %s\n",
