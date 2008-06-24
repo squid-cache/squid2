@@ -1,29 +1,16 @@
-Backed out:
-	- Bug #1893: Variant invalidation on PURGE and HTCP CLR
-	
-Incomplete:
-	- Use the client's DNS lookup if our DNS lookup fails on
-	  transparent requests.
-	- Bug #2160: Cache hits on objects with more than 4KB headers
+Changes to squid-2.7.STABLE3 (25 June 2008)
 
-Done:
-	- New cache_peer connect-fail-limit=NN option to tune how Squid
-	  attempts to reconnect to failing peers.
-	- Debug tool to trigger running named events NOW
-	- request_body_max_size now acl driven
-	- Delayed delay pool assignment to catch big downloads of unknown
-	  lenght
-	- Internal URL rewriter support
-	- Stricter MemPool debug mode detecting double free and filling freed
-	  objects with garbage
-	- Optimization using reference counted memory cache to avoid repeated
-	  copying of data.
-
-Pending backport:
-
-
-Changes to squid-2.7.STABLE3 (Not yet released)
-
+	- Byg #2376: Round-Robin peer selection becomes unbalanced when a
+	  peer dies and comes back
+	- Bug #2365: cachemgr.cgi fails to HTML encode config dumps properly
+	- Bug #2122: In some situations collapsed_forwarding could leak
+	  private information
+	- Bug #2388: acl documentation cleanup
+	- Report the cache_peer name instead of hostname
+	- Bug #2378: Duplicate paths in FwdServers
+	- Bug #1993: Memory leak in http_reply_access deny processing
+	- Plug some "squid -k reconfigure" memory leaks. Mostly SSL related.
+	- wccp2 sevice flags documentation correction for dst_port_hash
 	- Fix SNMP reporting of counters with a value > 0xFF800000
 	- Reject ridiculously large ASN.1 lengths
 	- logformat docs contain extra whitespace
