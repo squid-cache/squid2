@@ -624,6 +624,14 @@ DOC_START
 	  #
 	  # acl many_spaces rep_header Content-Disposition -i [[:space:]]{3,}
 
+	acl acl_name hier_code code...
+	  # string match against squid hierarchy code(s); e.g., DIRECT,  
+	  # PARENT_HIT, NONE, etc. 
+	  #
+	  # NOTE: This has no effect in http_access rules. It only has
+	  # effect in rules that affect the reply data stream such as
+	  # http_reply_access.      
+
 	acl aclname external class_name [arguments...]
 	  # external ACL lookup via a helper class defined by the
 	  # external_acl_type directive.

@@ -152,6 +152,7 @@ typedef enum {
     ACL_URLGROUP,
     ACL_EXTUSER,
     ACL_EXTUSER_REGEX,
+    ACL_HIER_CODE,
     ACL_ENUM_MAX
 } squid_acl;
 

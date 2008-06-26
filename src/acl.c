@@ -208,6 +208,8 @@ aclStrToType(const char *s)
 	return ACL_EXTUSER;
     if (!strcmp(s, "ext_user_regex"))
 	return ACL_EXTUSER_REGEX;
+    if (!strcmp(s, "hier_code"))
+	return ACL_HIER_CODE;
     return ACL_NONE;
 }
 
@@ -304,6 +306,8 @@ aclTypeToStr(squid_acl type)
 	return "ext_user";
     if (type == ACL_EXTUSER_REGEX)
 	return "ext_user_regex";
+    if (type == ACL_HIER_CODE)
+	return "hier_code";
     return "ERROR";
 }
 
@@ -1097,6 +1101,7 @@ aclParseAclLine(acl ** head)
     case ACL_EXTERNAL:
 	aclParseExternal(&A->data, A->name);
 	break;
+    case ACL_HIER_CODE:
     case ACL_URLGROUP:
 	aclParseWordList(&A->data);
 	break;
@@ -1779,6 +1784,7 @@ aclMatchAcl(acl * ae, aclCheck_t * checklist)
     case ACL_URL_PORT:
     case ACL_URL_REGEX:
     case ACL_URLLOGIN:
+    case ACL_HIER_CODE:
 	/* These ACL types require checklist->request */
 	if (NULL == r) {
 	    debug(28, 1) ("WARNING: '%s' ACL is used but there is no"
@@ -2049,6 +2055,9 @@ aclMatchAcl(acl * ae, aclCheck_t * checklist)
 	} else {
 	    return -1;
 	}
+	/* NOTREACHED */
+    case ACL_HIER_CODE:
+	return aclMatchWordList(ae->data, hier_strings[checklist->request->hier.code]);
 	/* NOTREACHED */
     case ACL_NONE:
     case ACL_ENUM_MAX:
@@ -2588,6 +2597,7 @@ aclDestroyAcls(acl ** head)
 	    aclDestroyExternal(&a->data);
 	    break;
 	case ACL_URLGROUP:
+	case ACL_HIER_CODE:
 	    wordlistDestroy((wordlist **) (void *) &a->data);
 	    break;
 #if USE_SSL
@@ -3031,6 +3041,7 @@ aclDumpGeneric(const acl * a)
     case ACL_EXTERNAL:
 	return aclDumpExternal(a->data);
     case ACL_URLGROUP:
+    case ACL_HIER_CODE:
 	return wordlistDup(a->data);
 #if USE_SSL
     case ACL_USER_CERT:
