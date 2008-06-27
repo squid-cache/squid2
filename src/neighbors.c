@@ -281,11 +281,20 @@ getRoundRobinParent(request_t * request)
 }
 
 /* This gets called every 5 minutes to clear the round-robin counter. */
-void
+static void
 peerClearRRLoop(void *data)
 {
     peerClearRR();
     eventAdd("peerClearRR", peerClearRRLoop, data, 5 * 60.0, 0);
+}
+
+void
+peerClearRRStart(void)
+{
+    static int event_added = 0;
+    if (!event_added) {
+	peerClearRRLoop(NULL);
+    }
 }
 
 /* Actually clear the round-robin counter. */
