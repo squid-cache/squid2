@@ -706,9 +706,8 @@ idnsReadTcp(int fd, void *data)
 	return;
     }
     if (n <= 0) {
-	debug(78, 2) ("idnsReadTcp: Short response for %s.\n", q->name);
-	dlinkDelete(&q->lru, &lru_list);
-	idnsSendQuery(q);
+	debug(78, 1) ("idnsReadTcp: Short response from nameserver %d for %s.\n", ns + 1, q->name);
+	idnsTcpCleanup(q);
 	return;
     }
     fd_bytes(fd, n, FD_READ);
@@ -735,8 +734,7 @@ idnsSendTcpQueryDone(int fd, char *bufnotused, size_t size, int errflag, void *d
     if (errflag == COMM_ERR_CLOSING)
 	return;
     if (errflag) {
-	dlinkDelete(&q->lru, &lru_list);
-	idnsSendQuery(q);
+	idnsTcpCleanup(q);
 	return;
     }
     commSetSelect(q->tcp_socket, COMM_SELECT_READ, idnsReadTcp, q, 0);
@@ -749,8 +747,9 @@ idnsSendTcpQuery(int fd, int status, void *data)
     idns_query *q = data;
     short nsz;
     if (status != COMM_OK) {
-	dlinkDelete(&q->lru, &lru_list);
-	idnsSendQuery(q);
+	int ns = (q->nsends - 1) % nns;
+	debug(78, 1) ("idnsSendTcpQuery: Failed to connect to DNS server %d using TCP\n", ns + 1);
+	idnsTcpCleanup(q);
 	return;
     }
     memBufInit(&buf, q->sz + 2, q->sz + 2);
@@ -840,7 +839,6 @@ idnsGrokReply(const char *buf, size_t sz)
 	    return;
 	}
 	if (q->rcode == 3 && q->do_searchpath && q->attempt < MAX_ATTEMPT) {
-	    assert(NULL == message->answer);
 	    strcpy(q->name, q->orig);
 	    if (q->domain < npc) {
 		strcat(q->name, ".");
