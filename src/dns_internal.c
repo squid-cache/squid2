@@ -98,6 +98,7 @@ struct _idns_query {
     int nsends;
     struct timeval start_t;
     struct timeval sent_t;
+    struct timeval queue_t;
     dlink_node lru;
     IDNSCB *callback;
     void *callback_data;
@@ -607,7 +608,7 @@ idnsSendQuery(idns_query * q)
 	q->buf,
 	q->sz);
     q->nsends++;
-    q->sent_t = current_time;
+    q->queue_t = q->sent_t = current_time;
     if (x < 0) {
 	debug(50, 1) ("idnsSendQuery: FD %d: sendto: %s\n",
 	    DnsSocket, xstrerror());
@@ -775,6 +776,7 @@ idnsRetryTcp(idns_query * q)
 	0,
 	COMM_NONBLOCKING,
 	"DNS TCP Socket");
+    q->queue_t = q->sent_t = current_time;
     dlinkAdd(q, &q->lru, &lru_list);
     commConnectStart(q->tcp_socket,
 	inet_ntoa(nameservers[ns].S.sin_addr),
@@ -935,16 +937,24 @@ idnsCheckQueue(void *unused)
     dlink_node *p = NULL;
     idns_query *q;
     event_queued = 0;
+    if (0 == nns)
+	/* name servers went away; reconfiguring or shutting down */
+	return;
     for (n = lru_list.tail; n; n = p) {
-	if (0 == nns)
-	    /* name servers went away; reconfiguring or shutting down */
-	    break;
+	p = n->prev;
 	q = n->data;
-	if (tvSubDsec(q->sent_t, current_time) < Config.Timeout.idns_retransmit * 1 << ((q->nsends - 1) / nns))
+	/* Anything to process in the queue? */
+	if (tvSubDsec(q->queue_t, current_time) < Config.Timeout.idns_retransmit)
 	    break;
+	/* Query timer expired? */
+	if (tvSubDsec(q->sent_t, current_time) < Config.Timeout.idns_retransmit * 1 << ((q->nsends - 1) / nns)) {
+	    dlinkDelete(&q->lru, &lru_list);
+	    q->queue_t = current_time;
+	    dlinkAdd(q, &q->lru, &lru_list);
+	    continue;
+	}
 	debug(78, 3) ("idnsCheckQueue: ID %#04x timeout\n",
 	    q->id);
-	p = n->prev;
 	dlinkDelete(&q->lru, &lru_list);
 	if (tvSubDsec(q->start_t, current_time) < Config.Timeout.idns_query) {
 	    idnsSendQuery(q);
