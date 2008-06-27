@@ -21,6 +21,29 @@ Done:
 
 Pending backport:
 
+Changes to squid-2.6.STABLE21 (27 June 2008)
+
+	- Bug #2350: Bugs in Linux kernel capabilities code
+	- Bug #2241: weights not applied properly in round-robin peer
+	  selection
+	- Off by one error in DNS label decompression could cause valid DNS
+	  messages to be rejected
+	- logformat docs contain extra whitespace
+	- Reject ridiculously large ASN.1 lengths
+	- Fix SNMP reporting of counters with a value > 0xFF80000
+	- Correct spelling of WCCPv2 dst_port_hash to match the source
+	- Plug some "squid -k reconfigure" memory leaks. Mostly SSL related.
+	- Bug #1993: Memory leak in http_reply_access deny processing
+	- Bug #2122: In some situations collapsed_forwarding could leak
+	  private information
+	- Bug #2376: Round-Robin becomes unbalanced when a peer dies and comes
+	  back
+	- Bug #2387: The calculation of the number of hash buckets need to
+	  account for the memory size, not only disk size
+	- Bug #2393: DNS requests retried indefinitely at full speed on failed
+	  TCP connection
+	- Bug #2393: DNS retransmit queue could get hold up
+	- Correct socket syscalls statistics in commResetFD()
 
 Changes to squid-2.7.STABLE3 (25 June 2008)
 
