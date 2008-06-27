@@ -816,6 +816,7 @@ clientProcessExpired(void *data)
 	    entry = NULL;
 	}
 	if (entry) {
+	    http->request->flags.collapsed = 1;		/* Don't trust the store entry */
 	    storeLockObject(entry);
 	    hit = 1;
 	} else {
@@ -1028,6 +1029,11 @@ clientHandleIMSReply(void *data, char *buf, ssize_t size)
     }
     http->old_entry = NULL;	/* done with old_entry */
     http->old_sc = NULL;
+    if (http->request->flags.collapsed && !http->flags.hit && EBIT_TEST(entry->flags, RELEASE_REQUEST)) {
+	/* Collapsed request, but the entry is not good to be sent */
+	clientProcessMiss(http);
+	return;
+    }
     assert(!EBIT_TEST(entry->flags, ENTRY_ABORTED));
     if (recopy) {
 	storeClientCopy(http->sc, entry,
@@ -2318,6 +2324,13 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	storeComplete(e);
 	return;
     }
+    if (r->flags.collapsed && EBIT_TEST(e->flags, RELEASE_REQUEST)) {
+	/* collapsed_forwarding, but the joined request is not good
+	 * to be cached..
+	 */
+	clientProcessMiss(http);
+	return;
+    }
     /*
      * plain ol' cache hit
      */
@@ -3400,6 +3413,7 @@ clientProcessMiss(clientHttpRequest * http)
     debug(33, 4) ("clientProcessMiss: '%s %s'\n",
 	RequestMethodStr[r->method], url);
     http->flags.hit = 0;
+    r->flags.collapsed = 0;
     /*
      * We might have a left-over StoreEntry from a failed cache hit
      * or IMS request.
