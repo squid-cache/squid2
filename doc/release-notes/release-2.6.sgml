@@ -1,6 +1,6 @@
 <!doctype linuxdoc system>
 <article>
-<title>Squid 2.6.STABLE19 release notes</title>
+<title>Squid 2.6.STABLE21 release notes</title>
 <author>Squid Developers</author>
 <date>$Id$</date>
 
@@ -282,7 +282,7 @@ redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd</verb>
 </descrip>
 
 <descrip>
-<tag>Known Limitations:</tag>
+<tag>Known Limitations</tag>
 <itemize>
 <item>Squid features not operational:<newline>
 <itemize>
@@ -297,7 +297,7 @@ redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd</verb>
 </descrip>
 
 <descrip>
-<tag>Building Squid on Windows:</tag>
+<tag>Building Squid on Windows</tag>
 A reasonably recent release of <url url="http://www.cygwin.com/" name="Cygwin"> or <url url="http://www.mingw.org/" name="MinGW"> is needed.<newline>
 The usage of the Cygwin environment is very similar to other Unix/Linux environments, and -devel version of libraries must be installed.<newline>
 For the MinGW environment, the packages MSYS, MinGW and msysDTK must be installed. Some additional libraries and tools must be downloaded separately:<newline><newline>
@@ -701,6 +701,22 @@ ScriptAlias /squid/cgi-bin/ "c:/squid/libexec/"
 	<item>See also the list of <url
 		url="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE20.html"
 			name="squid-2.6.STABLE20 changes"> and the <url url="ChangeLog"
+				name="ChangeLog"> file for details.
+</itemize>
+
+<sect>Key changes squid-2.6.STABLE20 to 2.6.STABLE21
+
+<p>
+<itemize>
+	<item>Reject ridiculously large ASN.1 lengths (SNMP)
+	<item>Fix SNMP reporting of counters with a value > 0xFF80000
+	<item>Bug #1993: Memory leak in http_reply_access deny processing
+	<item>Bug #2122: In some situations collapsed_forwarding could leak private information
+	<item>Bug #2393: DNS requests retried indefinitely at full speed on failed TCP connection
+	<item>Bug #2393: DNS retransmit queue could get hold up
+	<item>See also the list of <url
+		url="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE21.html"
+			name="squid-2.6.STABLE21 changes"> and the <url url="ChangeLog"
 				name="ChangeLog"> file for details.
 </itemize>
 

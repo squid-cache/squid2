@@ -1,3 +1,187 @@
+Backed out:
+	- Bug #1893: Variant invalidation on PURGE and HTCP CLR
+	
+Incomplete:
+	- Use the client's DNS lookup if our DNS lookup fails on
+	  transparent requests.
+	- Bug #2160: Cache hits on objects with more than 4KB headers
+
+Done:
+	- New cache_peer connect-fail-limit=NN option to tune how Squid
+	  attempts to reconnect to failing peers.
+	- Debug tool to trigger running named events NOW
+	- request_body_max_size now acl driven
+	- Delayed delay pool assignment to catch big downloads of unknown
+	  lenght
+	- Internal URL rewriter support
+	- Stricter MemPool debug mode detecting double free and filling freed
+	  objects with garbage
+	- Optimization using reference counted memory cache to avoid repeated
+	  copying of data.
+
+Pending backport:
+
+Changes to squid-2.6.STABLE21 (27 June 2008)
+
+	- Bug #2350: Bugs in Linux kernel capabilities code
+	- Bug #2241: weights not applied properly in round-robin peer
+	  selection
+	- Off by one error in DNS label decompression could cause valid DNS
+	  messages to be rejected
+	- logformat docs contain extra whitespace
+	- Reject ridiculously large ASN.1 lengths
+	- Fix SNMP reporting of counters with a value > 0xFF80000
+	- Correct spelling of WCCPv2 dst_port_hash to match the source
+	- Plug some "squid -k reconfigure" memory leaks. Mostly SSL related.
+	- Bug #1993: Memory leak in http_reply_access deny processing
+	- Bug #2122: In some situations collapsed_forwarding could leak
+	  private information
+	- Bug #2376: Round-Robin becomes unbalanced when a peer dies and comes
+	  back
+	- Bug #2387: The calculation of the number of hash buckets need to
+	  account for the memory size, not only disk size
+	- Bug #2393: DNS requests retried indefinitely at full speed on failed
+	  TCP connection
+	- Bug #2393: DNS retransmit queue could get hold up
+	- Correct socket syscalls statistics in commResetFD()
+
+Changes to squid-2.7.STABLE3 (25 June 2008)
+
+	- Byg #2376: Round-Robin peer selection becomes unbalanced when a
+	  peer dies and comes back
+	- Bug #2365: cachemgr.cgi fails to HTML encode config dumps properly
+	- Bug #2122: In some situations collapsed_forwarding could leak
+	  private information
+	- Bug #2388: acl documentation cleanup
+	- Report the cache_peer name instead of hostname
+	- Bug #2378: Duplicate paths in FwdServers
+	- Bug #1993: Memory leak in http_reply_access deny processing
+	- Plug some "squid -k reconfigure" memory leaks. Mostly SSL related.
+	- wccp2 sevice flags documentation correction for dst_port_hash
+	- Fix SNMP reporting of counters with a value > 0xFF800000
+	- Reject ridiculously large ASN.1 lengths
+	- logformat docs contain extra whitespace
+	- Off by one error in DNS label decompression could cause valid DNS
+	  messages to be rejected
+	- Bug #2241: weights not applied properly in round-robin peer
+	  selection
+	- Bug #2283: Properly abort invalid/truncated messages
+	- Bug #2192: http_port ... vport broken by recent changes in how
+	  accelerator mode deals with port numbers
+	- Fix build error on Solaris using gcc and --with-large-files
+	- Windows port: add support for crypt function
+	- Bug #2372: Segmentation fault if netdb_filename could not be written
+	- Windows port: add option for control of IP address changes
+	  notification in squid.conf
+	- Windows port: always shutdown winsocks on program termination
+	- Windows port: configure enhancements on MinGW and Cygwin
+	- Windows port: fix build error on Cygwin
+	- Bug #2366: Fix assertion/FD leak during logfile_mod_daemon rotate.
+	- Release notes correction: delay_body_max_size is not in 2.7 (2.8
+	  feature) and bug #219 delay pools on -k reconfigure has been fixed
+
+Changes to squid-2.7.STABLE2 (31 May 2008)
+
+	- Resolved merge conflict in Bug #219: Reassign delay pools after
+	  reconfigure
+	- Back out incomplete patch for Bug #1893: Variant invalidation on
+	  PURGE and HTCP CLR
+	- Bug #2350: Linux Capabilities version mismatch causing startup crash
+	  on newer kernels
+	- Fix build error on Windows: in_addr_t is not available.
+	- Bug #2360: Move the SSL options before https_port so it gets
+	  inherited proper
+
+Changes to squid-2.7.STABLE1 (27 May 2008)
+
+	- General code tidyups of HTTP parser and related optimizations
+	- Simple perl library and script for processing access.log files
+	- Optimization to only parse response headers once, reusing the
+	  already parsed headers when building the client reply.
+	- Kill the psuedo-support for wais. Was never really implemented.
+	- Clean up use of httpReplySetHeaders to be consistent across the
+	  code, and remove the unneeded http_version argument.
+	- Simplified epoll comm loop
+	- Strengthen the HTTP protocol parser further wrt integer errors
+	- Change cachemgr filedescriptors timeout column to seconds
+	- Clean up X-Forwarded-For acl_uses_indirect_client to make most
+	  acls behave
+	- act-as-origin http_port option, making Squid act as if it was
+	  the origin server, and related X-Cache-Age and X-Origin-Date headers
+	- Rename cache_dir option read-only to no-store
+	- new logformat tag for logging the outgoing IP address
+	  (tcp_outgoing_address)
+	- logformat %rp logging the URL-Path only (excluding hostname)
+	- external_acl_type %URI tag for referencing the complete requested
+	  URI
+	- Various old an unused pieces of code trimmed
+	- max_filedescriptor squid.conf option
+	- Clean up filedescriptor limitations, and handle comm loop
+	  restrictions proper
+	- -I command line option to accept open socket on stdin
+	- support for FreeBSD and Linux accept filters
+	- Changed most temporary & forwarding errors to return 504 Gateway
+	  Timeout
+	- Bug #1843: multicast-siblings cache_peer option for optimising
+	  multicast ICP relations
+	- cache_peer idle=n option to specify a minimum number of idle
+	  connections to keep open
+	- http_port allow-direct option to allow direct forwarding in
+	  accelerator mode
+	- Implementation of an external logfile daemon (ie, logging to
+	  a pipe); UDP logging (based in part on work done by Tim Starling)
+	- Optimizations to avoid zero'ing some buffers
+	- Add "%sn" - a sequence number - to the customlog format
+	- Internal cleanups and minor reorganisations
+	- The shipped icp_access and htcp_access rules changed to only
+	  allow local network
+	- url_rewriter interface extended with key=value pairs
+	- Use native MD5 implementation if available. Use --without-system-md5
+	  to disable.
+	- Enable squid to lookup /etc/services for named peer ports.
+	- store URL rewriting/mapping support to tell Squid when the exact
+	  same object exists under multiple requested URLs.
+	- Bug #7: Update headers on 304 responses
+	- Asyncronous cache validation support
+	- external_refresh_check helper, allowing program control over cache
+	  refreshes
+	- ignore_ims_on_miss directive, making Squid ignore If-Modified-Since
+	  and If-None-Match on cache misses
+	- Primitive HTTP/1.1 support, mainly targeted for reverse proxies
+	- Cache-Control stale-while-revalidate and stale-if-error directives
+	- Bug #1893: Variant invalidation on PURGE and HTCP CLR
+	- netdb_filename directive to specify location of netdb state file
+	- Windows port: Handle notification of IP address changes for dial-up
+	  connections
+	- default cache rules removed, allowing caching of query and cgi-bin
+	  responses
+	- Bug #2153: Use the cache_peer name in CARP hashing to support
+	  multiple peers on the same host
+	- myportname ACL for matching the accepting port name
+	- Make visible_hostname a soft error
+	- Ability to cache authentication based on source IP, mainly to
+	  work around NTLM inefficiencies, but other uses possible.
+	- squid.conf include support
+	- squid_ldap_group option to strip kerberos realm from username
+	- Bug #1888: Add incoming_rate directive to control how often to
+	  check incoming connections
+	- Bug #2263: Custom log formats fail to log file sizes >2GB
+	  properly on 32-bit platforms
+	- Fix stripping NT domain in squid_ldap_group
+	- Removed obsolete advanced comm tuning knobs
+	- Bug #2192: Confusing and inconsistent relations between accelerator
+	  mode options
+	- TCP keepalive support
+	- Support for tos/priority marking of cache hits (zph)
+	- Make --with-large-files try to build 64-bit if possible
+	- Windows port: allow build of squid_session on Windows
+	- Updated mswin_check_lm_group documentation
+	- Bug #2350: Memory allocation problem in restoreCapabilities()
+	- Bug #1955: Clarify refresh_pattern override-expire option
+	- Correct Via response header when seeing an HTTP/0.9 response
+	- Bug #219: Reassign delay pools after reconfigure
+	- Bug #2223: flexible handling of x-forwarded-for
+
 Changes to squid-2.6.STABLE20 (25 Apr 2008)
 
 	- Bug #2263: Custom log formats fail to log file sizes >2GB properly

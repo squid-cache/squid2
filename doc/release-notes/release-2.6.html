@@ -2,10 +2,10 @@
 <HTML>
 <HEAD>
  <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.21">
- <TITLE>Squid 2.6.STABLE19 release notes</TITLE>
+ <TITLE>Squid 2.6.STABLE21 release notes</TITLE>
 </HEAD>
 <BODY>
-<H1>Squid 2.6.STABLE19 release notes</H1>
+<H1>Squid 2.6.STABLE21 release notes</H1>
 
 <H2>Squid Developers</H2>$Id$
 <HR>
@@ -86,6 +86,9 @@ Squid is a WWW Cache application developed by the Web Caching community.</EM>
 
 <P>
 <H2><A NAME="toc25">25.</A> <A HREF="#s25">Key changes squid-2.6.STABLE19 to 2.6.STABLE20</A></H2>
+
+<P>
+<H2><A NAME="toc26">26.</A> <A HREF="#s26">Key changes squid-2.6.STABLE20 to 2.6.STABLE21</A></H2>
 
 
 <HR>
@@ -381,7 +384,7 @@ redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd
 </P>
 <P>
 <DL>
-<DT><B>Known Limitations:</B><DD><P>
+<DT><B>Known Limitations</B><DD><P>
 <UL>
 <LI>Squid features not operational:<BR>
 <UL>
@@ -399,7 +402,7 @@ redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd
 </P>
 <P>
 <DL>
-<DT><B>Building Squid on Windows:</B><DD><P>A reasonably recent release of 
+<DT><B>Building Squid on Windows</B><DD><P>A reasonably recent release of 
 <A HREF="http://www.cygwin.com/">Cygwin</A> or 
 <A HREF="http://www.mingw.org/">MinGW</A> is needed.<BR>
 The usage of the Cygwin environment is very similar to other Unix/Linux environments, and -devel version of libraries must be installed.<BR>
@@ -818,6 +821,22 @@ automatically derived default domain</LI>
 <LI>And some other trivial/cosmetic changes</LI>
 <LI>See also the list of 
 <A HREF="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE20.html">squid-2.6.STABLE20 changes</A> and the 
+<A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
+</UL>
+</P>
+
+<H2><A NAME="s26">26.</A> <A HREF="#toc26">Key changes squid-2.6.STABLE20 to 2.6.STABLE21</A></H2>
+
+<P>
+<UL>
+<LI>Reject ridiculously large ASN.1 lengths (SNMP)</LI>
+<LI>Fix SNMP reporting of counters with a value > 0xFF80000</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=1993">#1993</a>: Memory leak in http_reply_access deny processing</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=2122">#2122</a>: In some situations collapsed_forwarding could leak private information</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=2393">#2393</a>: DNS requests retried indefinitely at full speed on failed TCP connection</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=2393">#2393</a>: DNS retransmit queue could get hold up</LI>
+<LI>See also the list of 
+<A HREF="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE21.html">squid-2.6.STABLE21 changes</A> and the 
 <A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
 </UL>
 </P>
