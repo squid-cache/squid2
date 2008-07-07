@@ -58,10 +58,11 @@ ParseBuffer(char *buf, RequestData * requestData)
 	*p = '\0';		/* strip \n */
     if ((requestData->user = strtok(buf, "\"")) == NULL)
 	return;
-    if ((requestData->realm = strtok(NULL, "\"")) == NULL)
+    if ((strtok(NULL, "\"")) == NULL)
 	return;
     if ((requestData->realm = strtok(NULL, "\"")) == NULL)
 	return;
+    rfc1738_unescape(requestData->user);
     requestData->parsed = -1;
 }
 

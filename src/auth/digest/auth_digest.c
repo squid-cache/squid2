@@ -1426,6 +1426,6 @@ authenticateDigestStart(auth_user_request_t * auth_user_request, RH * handler, v
     r->data = data;
     r->auth_user_request = auth_user_request;
     authenticateAuthUserRequestLock(r->auth_user_request);
-    snprintf(buf, 8192, "\"%s\":\"%s\"\n", digest_user->username, digest_request->realm);
+    snprintf(buf, 8192, "\"%s\":\"%s\"\n", rfc1738_escape(digest_user->username), digest_request->realm);
     helperSubmit(digestauthenticators, buf, authenticateDigestHandleReply, r);
 }
