@@ -4596,7 +4596,7 @@ clientNatLookup(ConnStateData * conn)
     static int pffd = -1;
     static time_t last_reported = 0;
     if (pffd < 0) {
-	pffd = open("/dev/pf", O_RDWR);
+	pffd = open("/dev/pf", O_RDONLY);
 	if (pffd >= 0)
 	    commSetCloseOnExec(pffd);
     }
