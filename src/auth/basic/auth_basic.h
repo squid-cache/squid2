@@ -44,6 +44,7 @@ struct _auth_basic_config {
     time_t credentialsTTL;
     int casesensitive;
     int blankpassword;
+    int utf8;
 };
 
 typedef struct _auth_basic_config auth_basic_config;

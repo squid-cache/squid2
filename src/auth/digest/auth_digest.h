@@ -86,6 +86,7 @@ struct _auth_digest_config {
     int NonceStrictness;
     int CheckNonceCount;
     int PostWorkaround;
+    int utf8;
 };
 
 typedef struct _auth_digest_config auth_digest_config;

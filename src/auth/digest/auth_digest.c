@@ -1013,6 +1013,8 @@ authDigestParse(authScheme * scheme, int n_configured, char *param_str)
 	parse_onoff(&digestConfig->CheckNonceCount);
     } else if (strcasecmp(param_str, "post_workaround") == 0) {
 	parse_onoff(&digestConfig->PostWorkaround);
+    } else if (strcasecmp(param_str, "utf8") == 0) {
+	parse_onoff(&digestConfig->utf8);
     } else {
 	debug(29, 0) ("unrecognised digest auth scheme parameter '%s'\n", param_str);
     }
@@ -1426,6 +1428,12 @@ authenticateDigestStart(auth_user_request_t * auth_user_request, RH * handler, v
     r->data = data;
     r->auth_user_request = auth_user_request;
     authenticateAuthUserRequestLock(r->auth_user_request);
-    snprintf(buf, 8192, "\"%s\":\"%s\"\n", rfc1738_escape(digest_user->username), digest_request->realm);
+    if (digestConfig->utf8) {
+	char username[1024];
+	latin1_to_utf8(username, sizeof(username), digest_user->username);
+	snprintf(buf, 8192, "\"%s\":\"%s\"\n", rfc1738_escape(username), digest_request->realm);
+    } else {
+	snprintf(buf, 8192, "\"%s\":\"%s\"\n", rfc1738_escape(digest_user->username), digest_request->realm);
+    }
     helperSubmit(digestauthenticators, buf, authenticateDigestHandleReply, r);
 }

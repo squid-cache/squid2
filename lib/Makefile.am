@@ -48,6 +48,7 @@ EXTRA_libmiscutil_a_SOURCES = \
 libmiscutil_a_SOURCES = \
 	Array.c \
 	base64.c \
+	charset.c \
 	getfullhostname.c \
 	hash.c \
 	heap.c \

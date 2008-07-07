@@ -353,6 +353,8 @@ authBasicParse(authScheme * scheme, int n_configured, char *param_str)
 	parse_onoff(&basicConfig->casesensitive);
     } else if (strcasecmp(param_str, "blankpassword") == 0) {
 	parse_onoff(&basicConfig->blankpassword);
+    } else if (strcasecmp(param_str, "utf8") == 0) {
+	parse_onoff(&basicConfig->utf8);
     } else {
 	debug(29, 0) ("unrecognised basic auth scheme parameter '%s'\n", param_str);
     }
@@ -627,8 +629,15 @@ authenticateBasicStart(auth_user_request_t * auth_user_request, RH * handler, vo
 	authenticateAuthUserRequestLock(r->auth_user_request);
 	/* mark the user as haveing verification in progress */
 	basic_auth->flags.credentials_ok = 2;
-	xstrncpy(user, rfc1738_escape(basic_auth->username), sizeof(user));
-	xstrncpy(pass, rfc1738_escape(basic_auth->passwd), sizeof(pass));
+	if (basicConfig->utf8) {
+	    latin1_to_utf8(user, sizeof(user), basic_auth->username);
+	    latin1_to_utf8(pass, sizeof(pass), basic_auth->passwd);
+	    xstrncpy(user, rfc1738_escape(user), sizeof(user));
+	    xstrncpy(pass, rfc1738_escape(pass), sizeof(pass));
+	} else {
+	    xstrncpy(user, rfc1738_escape(basic_auth->username), sizeof(user));
+	    xstrncpy(pass, rfc1738_escape(basic_auth->passwd), sizeof(pass));
+	}
 	snprintf(buf, sizeof(buf), "%s %s\n", user, pass);
 	helperSubmit(basicauthenticators, buf, authenticateBasicHandleReply, r);
     }
