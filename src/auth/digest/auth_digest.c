@@ -1431,9 +1431,9 @@ authenticateDigestStart(auth_user_request_t * auth_user_request, RH * handler, v
     if (digestConfig->utf8) {
 	char username[1024];
 	latin1_to_utf8(username, sizeof(username), digest_user->username);
-	snprintf(buf, 8192, "\"%s\":\"%s\"\n", rfc1738_escape(username), digest_request->realm);
+	snprintf(buf, 8192, "\"%s\":\"%s\"\n", username, digest_request->realm);
     } else {
-	snprintf(buf, 8192, "\"%s\":\"%s\"\n", rfc1738_escape(digest_user->username), digest_request->realm);
+	snprintf(buf, 8192, "\"%s\":\"%s\"\n", digest_user->username, digest_request->realm);
     }
     helperSubmit(digestauthenticators, buf, authenticateDigestHandleReply, r);
 }
