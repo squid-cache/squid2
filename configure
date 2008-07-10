@@ -5228,10 +5228,16 @@ if test $needlargefiles && test -z "$buildmodel"; then
 	if test -z "$buildmodel"; then
 		echo "WARNING: No suitable build environment found for large files. Trying to use _FILE_OFFSET_BITS=64"
 		sleep 1
-		CFLAGS="-D_FILE_OFFSET_BITS=64 $CFLAGS"
 	fi
 fi
-if test -n "$buildmodel" && test "$buildmodel" != "default"; then
+case "$buildmodel" in
+"default"|"")
+	if test $needlargefiles; then
+		echo "Enabling -D_FILE_OFFSET_BITS=64 for large file support"
+		CFLAGS="-D_FILE_OFFSET_BITS=64 $CFLAGS"
+	fi
+	;;
+*)
 	echo "Using $buildmodel build environment"
 	if test "`getconf _$buildmodel 2>/dev/null || true`" = 1 || test "`getconf $buildmodel 2>/dev/null || true`" ; then
 	    : # All fine
@@ -5265,7 +5271,8 @@ if test -n "$buildmodel" && test "$buildmodel" != "default"; then
 	    *)
 		;;
 	esac
-fi
+	;;
+esac
 
 # Check whether --enable-linux-tproxy was given.
 if test "${enable_linux_tproxy+set}" = set; then
