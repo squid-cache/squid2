@@ -53,6 +53,7 @@ static PF fwdPeerClosed;
 static CNCB fwdConnectDone;
 static int fwdCheckRetry(FwdState * fwdState);
 static int fwdReforward(FwdState *);
+static void fwdRestart(void *);
 static void fwdStartFail(FwdState *);
 static void fwdLogReplyStatus(int tries, http_status status);
 static OBJH fwdStats;
@@ -207,7 +208,7 @@ fwdServerClosed(int fd, void *data)
 	    }
 	}
 	/* use eventAdd to break potential call sequence loops and to slow things down a little */
-	eventAdd("fwdConnectStart", fwdConnectStart, fwdState, originserver ? 0.05 : 0.005, 0);
+	eventAdd("fwdRestart", fwdRestart, fwdState, originserver ? 0.05 : 0.005, 0);
 	return;
     }
     if (!fwdState->err && shutting_down)
@@ -574,7 +575,7 @@ fwdConnectStart(void *data)
 	fwdState->request->pinned_connection = NULL;
 	fwdState->servers = fs->next;
 	fwdServerFree(fs);
-	fwdConnectStart(fwdState);
+	fwdRestart(fwdState);
 	return;
     }
 #if LINUX_TPROXY
@@ -711,6 +712,16 @@ fwdConnectStart(void *data)
     } else {
 	commConnectStart(fd, host, port, fwdConnectDone, fwdState, NULL);
     }
+}
+
+static void
+fwdRestart(void *data)
+{
+    FwdState *fwdState = data;
+    if (fwdState->servers)
+	fwdConnectStart(fwdState);
+    else
+	fwdStartFail(fwdState);
 }
 
 static void
