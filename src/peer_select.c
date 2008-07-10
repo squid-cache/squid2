@@ -685,7 +685,7 @@ peerAddFwdServer(FwdServer ** FS, peer * p, hier_code code)
 	p ? p->name : "DIRECT",
 	hier_strings[code]);
     while (*FS) {
-	if ((*FS)->peer == p) {
+	if ((*FS)->peer == p && (*FS)->code != PINNED) {
 	    debug(44, 5) ("peerAddFwdServer: Skipping duplicate registration of %s\n", p ? p->name : "DIRECT");
 	    return;
 	}
