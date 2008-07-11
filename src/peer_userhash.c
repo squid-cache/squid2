@@ -40,7 +40,7 @@
 
 static int n_userhash_peers = 0;
 static peer **userhash_peers = NULL;
-static OBJH userhashCachemgr;
+static OBJH peerUserHashCachemgr;
 
 static int
 peerSortWeight(const void *a, const void *b)
@@ -122,7 +122,7 @@ peerUserHashInit(void)
 	X_last = p->userhash.load_multiplier;
 	P_last = p->userhash.load_factor;
     }
-    cachemgrRegister("userhash", "CARP information", userhashCachemgr, 0, 1);
+    cachemgrRegister("userhash", "CARP information", peerUserHashCachemgr, 0, 1);
 }
 
 peer *

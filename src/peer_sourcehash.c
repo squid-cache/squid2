@@ -40,7 +40,7 @@
 
 static int n_sourcehash_peers = 0;
 static peer **sourcehash_peers = NULL;
-static OBJH sourcehashCachemgr;
+static OBJH peerSourceHashCachemgr;
 
 static int
 peerSortWeight(const void *a, const void *b)
@@ -122,7 +122,7 @@ peerSourceHashInit(void)
 	X_last = p->sourcehash.load_multiplier;
 	P_last = p->sourcehash.load_factor;
     }
-    cachemgrRegister("sourcehash", "CARP information", sourcehashCachemgr, 0, 1);
+    cachemgrRegister("sourcehash", "CARP information", peerSourceHashCachemgr, 0, 1);
 }
 
 peer *
