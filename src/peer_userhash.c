@@ -122,7 +122,7 @@ peerUserHashInit(void)
 	X_last = p->userhash.load_multiplier;
 	P_last = p->userhash.load_factor;
     }
-    cachemgrRegister("userhash", "CARP information", peerUserHashCachemgr, 0, 1);
+    cachemgrRegister("userhash", "peer userhash information", peerUserHashCachemgr, 0, 1);
 }
 
 peer *

@@ -122,7 +122,7 @@ peerSourceHashInit(void)
 	X_last = p->sourcehash.load_multiplier;
 	P_last = p->sourcehash.load_factor;
     }
-    cachemgrRegister("sourcehash", "CARP information", peerSourceHashCachemgr, 0, 1);
+    cachemgrRegister("sourcehash", "peer sourcehash information", peerSourceHashCachemgr, 0, 1);
 }
 
 peer *
