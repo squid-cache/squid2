@@ -4236,24 +4236,6 @@ _ACEOF
 fi
 
 
-USE_CARP=1
-# Check whether --enable-carp was given.
-if test "${enable_carp+set}" = set; then
-  enableval=$enable_carp;  if test "$enableval" = "no" ; then
-    echo "CARP disabled"
-    USE_CARP=0
-  fi
-
-fi
-
-if test $USE_CARP = 1; then
-
-cat >>confdefs.h <<\_ACEOF
-#define USE_CARP 1
-_ACEOF
-
-fi
-
 # Check whether --enable-async-io was given.
 if test "${enable_async_io+set}" = set; then
   enableval=$enable_async_io;  case $enableval in

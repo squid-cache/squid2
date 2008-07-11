@@ -1495,9 +1495,7 @@ struct _peer {
 	unsigned int originserver:1;
 	unsigned int userhash:1;
 	unsigned int sourcehash:1;
-#if USE_CARP
 	unsigned int carp:1;
-#endif
 	unsigned int http11:1;	/* HTTP/1.1 support */
     } options;
     int weight;
@@ -1522,13 +1520,11 @@ struct _peer {
     int rr_count;
     peer *next;
     int test_fd;
-#if USE_CARP
     struct {
 	unsigned int hash;
 	double load_multiplier;
 	double load_factor;	/* normalized weight value */
     } carp;
-#endif
     struct {
 	unsigned int hash;
 	double load_multiplier;

@@ -1310,10 +1310,8 @@ extern char *internalRemoteUri(const char *, u_short, const char *, const char *
 extern const char *internalHostname(void);
 extern int internalHostnameIs(const char *);
 
-#if USE_CARP
 extern void carpInit(void);
 extern peer *carpSelectParent(request_t *);
-#endif
 
 extern void peerUserHashInit(void);
 extern peer *peerUserHashSelectParent(request_t *);

@@ -798,9 +798,6 @@
    still semi-experimental. */
 #undef USE_CACHE_DIGESTS
 
-/* Cache Array Routing Protocol */
-#undef USE_CARP
-
 /* If --disable-internal-dns was given to configure, then we'll use the
    dnsserver processes instead. */
 #undef USE_DNSSERVERS
