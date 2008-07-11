@@ -2,9 +2,9 @@
 /*
  * $Id$
  *
- * DEBUG: section 44    Peer user hash based selection
+ * DEBUG: section 39    Peer user hash based selection
  * AUTHOR: Henrik Nordstrom
- * BASED ON: carp.c by Eric Stern
+ * BASED ON: carp.c
  *
  * SQUID Web Proxy Cache          http://www.squid-cache.org/
  * ----------------------------------------------------------
@@ -36,10 +36,11 @@
 
 #include "squid.h"
 
-#define ROTATE_LEFT(x, n) (((x) << (n)) | ((x) >> ((32-(n)))))
+#define ROTATE_LEFT(x, n) (((x) << (n)) | ((x) >> (32-(n))))
 
 static int n_userhash_peers = 0;
 static peer **userhash_peers = NULL;
+static OBJH userhashCachemgr;
 
 static int
 peerSortWeight(const void *a, const void *b)
@@ -85,7 +86,7 @@ peerUserHashInit(void)
 	    continue;
 	/* calculate this peers hash */
 	p->userhash.hash = 0;
-	for (t = p->host; *t != 0; t++)
+	for (t = p->name; *t != 0; t++)
 	    p->userhash.hash += ROTATE_LEFT(p->userhash.hash, 19) + (unsigned int) *t;
 	p->userhash.hash += p->userhash.hash * 0x62531965;
 	p->userhash.hash = ROTATE_LEFT(p->userhash.hash, 21);
@@ -121,6 +122,7 @@ peerUserHashInit(void)
 	X_last = p->userhash.load_multiplier;
 	P_last = p->userhash.load_factor;
     }
+    cachemgrRegister("userhash", "CARP information", userhashCachemgr, 0, 1);
 }
 
 peer *
@@ -134,7 +136,7 @@ peerUserHashSelectParent(request_t * request)
     unsigned int combined_hash;
     double score;
     double high_score = 0;
-    char *key = NULL;
+    const char *key = NULL;
 
     if (request->auth_user_request)
 	key = authenticateUserRequestUsername(request->auth_user_request);
@@ -153,13 +155,35 @@ peerUserHashSelectParent(request_t * request)
 	combined_hash = ROTATE_LEFT(combined_hash, 21);
 	score = combined_hash * tp->userhash.load_multiplier;
 	debug(39, 3) ("peerUserHashSelectParent: %s combined_hash %u score %.0f\n",
-	    tp->host, combined_hash, score);
+	    tp->name, combined_hash, score);
 	if ((score > high_score) && peerHTTPOkay(tp, request)) {
 	    p = tp;
 	    high_score = score;
 	}
     }
     if (p)
-	debug(39, 2) ("peerUserHashSelectParent: selected %s\n", p->host);
+	debug(39, 2) ("peerUserHashSelectParent: selected %s\n", p->name);
     return p;
+}
+
+static void
+peerUserHashCachemgr(StoreEntry * sentry)
+{
+    peer *p;
+    int sumfetches = 0;
+    storeAppendPrintf(sentry, "%24s %10s %10s %10s %10s\n",
+	"Hostname",
+	"Hash",
+	"Multiplier",
+	"Factor",
+	"Actual");
+    for (p = Config.peers; p; p = p->next)
+	sumfetches += p->stats.fetches;
+    for (p = Config.peers; p; p = p->next) {
+	storeAppendPrintf(sentry, "%24s %10x %10f %10f %10f\n",
+	    p->name, p->userhash.hash,
+	    p->userhash.load_multiplier,
+	    p->userhash.load_factor,
+	    sumfetches ? (double) p->stats.fetches / sumfetches : -1.0);
+    }
 }
