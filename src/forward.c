@@ -37,6 +37,7 @@
 #include "squid.h"
 
 #if LINUX_NETFILTER
+#include <linux/types.h>
 #include <linux/netfilter_ipv4.h>
 #endif
 #if LINUX_TPROXY
