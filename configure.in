@@ -2398,6 +2398,7 @@ AC_CHECK_FUNCS(\
 	regexec \
 	regfree \
 	res_init \
+	__res_init \
 	rint \
 	sbrk \
 	select \
