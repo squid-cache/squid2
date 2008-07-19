@@ -624,6 +624,9 @@
 /* Define to 1 if you have the <winsock.h> header file. */
 #undef HAVE_WINSOCK_H
 
+/* Define to 1 if you have the `__res_init' function. */
+#undef HAVE___RES_INIT
+
 /* Some systems support __va_copy */
 #undef HAVE___VA_COPY
 
