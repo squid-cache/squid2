@@ -2202,10 +2202,15 @@ clientCacheHit(void *data, HttpReply * rep)
 	http->log_type = LOG_TCP_SWAPFAIL_MISS;
 	clientProcessMiss(http);
 	return;
+    } else if (EBIT_TEST(e->flags, ENTRY_ABORTED)) {
+	/* aborted object */
+	debug(33, 3) ("clientCacheHit: hit an aborted object %s\n", http->uri);
+	http->log_type = LOG_TCP_SWAPFAIL_MISS;
+	clientProcessMiss(http);
+	return;
     }
     mem = e->mem_obj;
     debug(33, 3) ("clientCacheHit: %s = %d\n", http->uri, rep->sline.status);
-    assert(!EBIT_TEST(e->flags, ENTRY_ABORTED));
 
     /*
      * This particular logic is a bit hairy.
