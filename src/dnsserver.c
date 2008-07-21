@@ -142,12 +142,22 @@
 #include "util.h"
 #include "snprintf.h"
 
-#if !defined(_SQUID_AIX_) && !defined(_SQUID_MSWIN_)
+#if !defined(_SQUID_AIX_) && !defined(_SQUID_MSWIN_) && !defined(h_errno)
 extern int h_errno;
 #endif
 
 #if LIBRESOLV_DNS_TTL_HACK
 extern int _dns_ttl_;		/* this is a really *dirty* hack - bne */
+#endif
+
+/*
+ * res_init() is a macro re-definition of __res_init on: Debian
+ */
+#if !defined(HAVE_RES_INIT) && defined(HAVE___RES_INIT)
+#ifndef res_init
+#define res_init  __res_init
+#endif
+#define HAVE_RES_INIT   HAVE___RES_INIT
 #endif
 
 #ifdef _SQUID_NEXT_
@@ -167,7 +177,7 @@ struct state _res =
 #endif
 
 /* error messages from gethostbyname() */
-static char *
+static const char *
 my_h_msgs(int x)
 {
     if (x == HOST_NOT_FOUND)
