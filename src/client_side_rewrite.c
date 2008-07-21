@@ -133,6 +133,7 @@ clientRedirectDone(void *data, char *result)
     if (new_request) {
 	safe_free(http->uri);
 	http->uri = xstrdup(urlCanonical(new_request));
+	http->log_uri = xstrdup(urlCanonicalClean(old_request));
 	new_request->http_ver = old_request->http_ver;
 	httpHeaderAppend(&new_request->header, &old_request->header);
 	new_request->client_addr = old_request->client_addr;

@@ -1165,7 +1165,9 @@ httpRequestFree(void *data)
 	mem = http->entry->mem_obj;
     if (http->out.size || http->log_type) {
 	http->al.icp.opcode = ICP_INVALID;
-	http->al.url = http->uri;
+	http->al.url = http->log_uri;
+	if (!http->al.url)
+	    http->al.url = urlCanonicalClean(request);
 	debug(33, 9) ("httpRequestFree: al.url='%s'\n", http->al.url);
 	http->al.cache.out_ip = request->out_ip;
 	if (http->reply && http->log_type != LOG_TCP_DENIED) {
@@ -1225,6 +1227,7 @@ httpRequestFree(void *data)
     if (request)
 	checkFailureRatio(request->err_type, http->al.hier.code);
     safe_free(http->uri);
+    safe_free(http->log_uri);
     safe_free(http->al.headers.request);
     safe_free(http->al.headers.reply);
     safe_free(http->al.cache.authuser);
@@ -3294,7 +3297,7 @@ clientWriteComplete(int fd, char *bufnotused, size_t size, int errflag, void *da
 	debug(33, 1) ("WARNING: closing FD %d to prevent counter overflow\n", fd);
 	debug(33, 1) ("\tclient %s\n", inet_ntoa(http->conn->peer.sin_addr));
 	debug(33, 1) ("\treceived %d bytes\n", (int) http->out.size);
-	debug(33, 1) ("\tURI %s\n", http->log_uri);
+	debug(33, 1) ("\tURI %s\n", http->uri);
 	comm_close(fd);
     } else
 #endif
@@ -3304,7 +3307,7 @@ clientWriteComplete(int fd, char *bufnotused, size_t size, int errflag, void *da
 	debug(33, 1) ("\tclient %s\n", inet_ntoa(http->conn->peer.sin_addr));
 	debug(33, 1) ("\treceived %d bytes (offset %d)\n", (int) http->out.size,
 	    (int) http->out.offset);
-	debug(33, 1) ("\tURI %s\n", http->log_uri);
+	debug(33, 1) ("\tURI %s\n", http->uri);
 	comm_close(fd);
     } else
 #endif
