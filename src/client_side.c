@@ -3327,6 +3327,9 @@ clientWriteComplete(int fd, char *bufnotused, size_t size, int errflag, void *da
 	} else if (clientGotNotEnough(http)) {
 	    debug(33, 5) ("clientWriteComplete: client didn't get all it expected\n");
 	    comm_close(fd);
+	} else if (EBIT_TEST(http->entry->flags, ENTRY_ABORTED)) {
+	    debug(33, 5) ("clientWriteComplete: aborted object\n");
+	    comm_close(fd);
 	} else if (http->request->flags.chunked_response) {
 	    /* Finish chunked transfer encoding */
 	    http->request->flags.chunked_response = 0;	/* no longer chunking */
