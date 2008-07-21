@@ -169,7 +169,6 @@ storeClientCopy(store_client * sc,
     STCB * callback,
     void *data)
 {
-    assert(!EBIT_TEST(e->flags, ENTRY_ABORTED));
     debug(20, 3) ("storeClientCopy: %s, seen %" PRINTF_OFF_T ", want %" PRINTF_OFF_T ", size %d, cb %p, cbdata %p\n",
 	storeKeyText(e->hash.key),
 	seen_offset,

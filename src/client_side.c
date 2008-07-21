@@ -950,7 +950,10 @@ clientHandleIMSReply(void *data, HttpReply * rep)
 	clientProcessMiss(http);
 	return;
     }
-    assert(!EBIT_TEST(entry->flags, ENTRY_ABORTED));
+    if (EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
+	/* Old object got aborted, not good */
+	clientProcessMiss(http);
+    }
     if (recopy) {
 	storeClientCopyHeaders(http->sc, entry,
 	    clientSendHeaders,
@@ -3082,11 +3085,6 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 	debug(33, 1) ("clientSendMoreData: Deferring %s\n", storeUrl(entry));
 	memFree(buf, MEM_STORE_CLIENT_BUF);
 	return;
-    } else if (entry && EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
-	/* call clientWriteComplete so the client socket gets closed */
-	clientWriteComplete(fd, NULL, 0, COMM_OK, http);
-	memFree(buf, MEM_STORE_CLIENT_BUF);
-	return;
     } else if (size < 0) {
 	/* call clientWriteComplete so the client socket gets closed */
 	clientWriteComplete(fd, NULL, 0, COMM_OK, http);
@@ -3255,16 +3253,20 @@ clientWriteComplete(int fd, char *bufnotused, size_t size, int errflag, void *da
 	comm_close(fd);
     } else if (NULL == entry) {
 	comm_close(fd);		/* yuk */
-    } else if (EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
-	comm_close(fd);
     } else if ((done = clientCheckTransferDone(http)) != 0 || size == 0) {
 	debug(33, 5) ("clientWriteComplete: FD %d transfer is DONE\n", fd);
 	/* We're finished case */
 	if (!done) {
 	    debug(33, 5) ("clientWriteComplete: closing, !done\n");
 	    comm_close(fd);
+	} else if (EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
+	    debug(33, 2) ("clientWriteComplete: Object aborted\n");
+	    comm_close(fd);
 	} else if (clientGotNotEnough(http)) {
 	    debug(33, 5) ("clientWriteComplete: client didn't get all it expected\n");
+	    comm_close(fd);
+	} else if (EBIT_TEST(http->entry->flags, ENTRY_ABORTED)) {
+	    debug(33, 5) ("clientWriteComplete: aborted object\n");
 	    comm_close(fd);
 	} else if (http->request->flags.chunked_response) {
 	    /* Finish chunked transfer encoding */
@@ -3291,8 +3293,6 @@ clientWriteComplete(int fd, char *bufnotused, size_t size, int errflag, void *da
     } else {
 	/* More data will be coming from primary server; register with 
 	 * storage manager. */
-	if (EBIT_TEST(entry->flags, ENTRY_ABORTED))
-	    debug(33, 0) ("clientWriteComplete 2: ENTRY_ABORTED\n");
 	storeClientCopy(http->sc, entry,
 	    http->out.offset,
 	    http->out.offset,
