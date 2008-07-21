@@ -597,6 +597,9 @@
 /* Define if you have PSAPI.DLL on Windows systems */
 #undef HAVE_WIN32_PSAPI
 
+/* Define to 1 if you have the `__res_init' function. */
+#undef HAVE___RES_INIT
+
 /* Some systems support __va_copy */
 #undef HAVE___VA_COPY
 
