@@ -433,7 +433,6 @@ peerDigestSwapInCBlock(void *data, mem_node_ref nr, ssize_t size)
 {
     const char *buf = nr.node->data + nr.offset;
     DigestFetchState *fetch = data;
-    assert(size <= nr.node->len - nr.offset);
 
     if (peerDigestFetchedEnough(fetch, size, "peerDigestSwapInCBlock"))
 	goto finish;
