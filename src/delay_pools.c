@@ -82,20 +82,44 @@ struct _class3DelayPool {
     uint64_t individual_bytes[C3_IND_SZ];
 };
 
+struct _class6DelayPoolFd {
+    int fd;			/* just for sanity checking! */
+    int aggregate;
+    uint64_t aggregate_bytes;
+};
+typedef struct _class6DelayPoolFd class6DelayPoolFd;
+
+struct _class6DelayPool {
+    int class;
+    int aggregate;
+    uint64_t aggregate_bytes;
+    int fds_size;		/* just for sanity checking */
+    class6DelayPoolFd *fds;
+};
+
 typedef struct _class1DelayPool class1DelayPool;
 typedef struct _class2DelayPool class2DelayPool;
 typedef struct _class3DelayPool class3DelayPool;
+typedef struct _class6DelayPool class6DelayPool;
 
 union _delayPool {
     class1DelayPool *class1;
     class2DelayPool *class2;
     class3DelayPool *class3;
+    class6DelayPool *class6;
 };
 
 typedef union _delayPool delayPool;
 
 static delayPool *delay_data = NULL;
 static char *delay_no_delay;
+/*
+ * This array is a hack. Explanation:
+ * + the entry is 0 for no pool, or the pool id starting from 1 (rather than 0 like elsehwere)
+ * + The entry is cleared on fd close
+ * + The entry is -overwritten- if the fd changes pool; its not closed/reopened!
+ */
+static char *delay_class_6_fds;
 static time_t delay_pools_last_update = 0;
 static hash_table *delay_id_ptr_hash = NULL;
 static long memory_used = 0;
@@ -142,8 +166,10 @@ delayPoolsInit(void)
 {
     delay_pools_last_update = getCurrentTime();
     delay_no_delay = xcalloc(1, Squid_MaxFD);
+    delay_class_6_fds = xcalloc(1, Squid_MaxFD);
     cachemgrRegister("delay", "Delay Pool Levels", delayPoolStats, 0, 1);
     cachemgrRegister("delay2", "Delay Pool Statistics", delayPoolStatsNew, 0, 1);
+    eventAdd("delayPoolsUpdate", delayPoolsUpdate, NULL, 1.0, 192);
 }
 
 void
@@ -171,6 +197,7 @@ delayFreeDelayData(unsigned short pools)
 {
     if (!delay_id_ptr_hash)
 	return;
+    /* XXX we should really ensure that the class6 fds array is cleared! */
     safe_free(delay_data);
     memory_used -= pools * sizeof(*delay_data);
     hashFreeItems(delay_id_ptr_hash, delayIdZero);
@@ -217,19 +244,26 @@ delayCreateDelayPool(unsigned short pool, u_char class)
 {
     switch (class) {
     case 1:
-	delay_data[pool].class1 = xmalloc(sizeof(class1DelayPool));
+	delay_data[pool].class1 = xcalloc(1, sizeof(class1DelayPool));
 	delay_data[pool].class1->class = 1;
 	memory_used += sizeof(class1DelayPool);
 	break;
     case 2:
-	delay_data[pool].class2 = xmalloc(sizeof(class2DelayPool));
+	delay_data[pool].class2 = xcalloc(1, sizeof(class2DelayPool));
 	delay_data[pool].class1->class = 2;
 	memory_used += sizeof(class2DelayPool);
 	break;
     case 3:
-	delay_data[pool].class3 = xmalloc(sizeof(class3DelayPool));
+	delay_data[pool].class3 = xcalloc(1, sizeof(class3DelayPool));
 	delay_data[pool].class1->class = 3;
 	memory_used += sizeof(class3DelayPool);
+	break;
+    case 6:
+	delay_data[pool].class6 = xcalloc(1, sizeof(class6DelayPool));
+	delay_data[pool].class6->class = 5;
+	delay_data[pool].class6->fds = xcalloc(Squid_MaxFD, sizeof(class6DelayPoolFd));
+	delay_data[pool].class6->fds_size = Squid_MaxFD;
+	memory_used += sizeof(class6DelayPool) + sizeof(class6DelayPoolFd) * Squid_MaxFD;
 	break;
     default:
 	assert(0);
@@ -261,6 +295,10 @@ delayInitDelayPool(unsigned short pool, u_char class, delaySpecSet * rates)
 	memset(&delay_data[pool].class3->individual_255_used, '\0',
 	    sizeof(delay_data[pool].class3->individual_255_used));
 	break;
+    case 6:
+	delay_data[pool].class6->aggregate = (((double) rates->aggregate.max_bytes * Config.Delay.initial) / 100);
+	memset(delay_data[pool].class6->fds, '\0', delay_data[pool].class6->fds_size * sizeof(class6DelayPoolFd));
+	break;
     default:
 	assert(0);
     }
@@ -280,6 +318,9 @@ delayFreeDelayPool(unsigned short pool)
     case 3:
 	memory_used -= sizeof(class3DelayPool);
 	break;
+    case 6:
+	memory_used -= sizeof(class6DelayPool) + sizeof(class6DelayPoolFd) * delay_data[pool].class6->fds_size;
+	safe_free(delay_data[pool].class6->fds);
     default:
 	debug(77, 1) ("delayFreeDelayPool: bad class %d\n",
 	    delay_data[pool].class1->class);
@@ -305,14 +346,66 @@ delayIsNoDelay(int fd)
     return delay_no_delay[fd];
 }
 
+void
+delayCloseFd(int fd)
+{
+    delay_no_delay[fd] = 0;	/* XXX ? */
+    delay_class_6_fds[fd] = 0;
+}
+
 static delay_id
 delayId(unsigned short pool, unsigned short position)
 {
     return (pool << 16) | position;
 }
 
+/*
+ * select a delay_id for the given clientHttpRequest -reply-.
+ *
+ * The -pool- part of delay_id is selected by the HttpReply (http->reply) information.
+ * The -client- part of delay_id is selected from the client connection
+ * source address.
+ * The -fd- will always be the client-side connection (so class 5 pools won't work
+ *   at all for server-side delay pools. Sorry!)
+ */
 delay_id
-delayClient(clientHttpRequest * http)
+delayClientReply(clientHttpRequest * http, acl_access ** acl)
+{
+    request_t *r;
+    aclCheck_t ch;
+    ushort pool;
+    assert(http);
+    r = http->request;
+
+    memset(&ch, '\0', sizeof(ch));
+    ch.conn = http->conn;
+    ch.reply = http->reply;
+    ch.src_addr = r->client_addr;
+    if (r->client_addr.s_addr == INADDR_BROADCAST) {
+	debug(77, 2) ("delayClientReply: WARNING: Called with 'allones' address, ignoring\n");
+	return delayId(0, 0);
+    }
+    for (pool = 0; pool < Config.Delay.pools; pool++) {
+	//debug(1, 1) ("delayClientReply: checking pool %d list %p\n", pool, acl[pool]);
+	if (acl[pool] && aclCheckFast(acl[pool], &ch))
+	    break;
+    }
+    if (pool == Config.Delay.pools)
+	return delayId(0, 0);
+    return delayPoolClient(pool, http->conn->fd, ch.src_addr.s_addr);
+}
+
+/*
+ * Select a delay_id for the given clientHttpRequest.
+ *
+ * The -pool- part of delay_id is selected by the request_t information.
+ * The -client- part of delay_id is selected from the client connection
+ *   source address.
+ * The -fd- will always be the client-side connection (so class 5 pools won't work
+ *   at all for server-side delay pools. Sorry!)
+ */
+delay_id
+delayClientRequest(clientHttpRequest * http, acl_access ** acl)
 {
     request_t *r;
     aclCheck_t ch;
@@ -328,16 +421,16 @@ delayClient(clientHttpRequest * http)
 	return delayId(0, 0);
     }
     for (pool = 0; pool < Config.Delay.pools; pool++) {
-	if (Config.Delay.access[pool] && aclCheckFast(Config.Delay.access[pool], &ch))
+	if (acl[pool] && aclCheckFast(acl[pool], &ch))
 	    break;
     }
     if (pool == Config.Delay.pools)
 	return delayId(0, 0);
-    return delayPoolClient(pool, ch.src_addr.s_addr);
+    return delayPoolClient(pool, http->conn->fd, ch.src_addr.s_addr);
 }
 
 delay_id
-delayPoolClient(unsigned short pool, in_addr_t addr)
+delayPoolClient(unsigned short pool, int fd, in_addr_t addr)
 {
     int i;
     int j;
@@ -376,68 +469,85 @@ delayPoolClient(unsigned short pool, in_addr_t addr)
 	}
 	return delayId(pool + 1, i);
     }
-    /* class == 3 */
-    host = ntohl(addr) & 0xffff;
-    net = host >> 8;
-    host &= 0xff;
-    if (net == 255) {
-	i = 255;
-	if (!delay_data[pool].class3->network_255_used) {
-	    delay_data[pool].class3->network_255_used = 1;
-	    delay_data[pool].class3->network[255] =
-		(int) (((double) Config.Delay.rates[pool]->network.max_bytes *
-		    Config.Delay.initial) / 100);
-	    delay_data[pool].class3->individual_map[i][0] = 255;
-	}
-    } else {
-	for (i = 0; i < NET_MAP_SZ; i++) {
-	    if (delay_data[pool].class3->network_map[i] == net)
-		break;
-	    if (delay_data[pool].class3->network_map[i] == 255) {
-		delay_data[pool].class3->network_map[i] = net;
-		delay_data[pool].class3->individual_map[i][0] = 255;
-		assert(i < (NET_MAP_SZ - 1));
-		delay_data[pool].class3->network_map[i + 1] = 255;
-		delay_data[pool].class3->network[i] =
+    if (class == 3) {
+	host = ntohl(addr) & 0xffff;
+	net = host >> 8;
+	host &= 0xff;
+	if (net == 255) {
+	    i = 255;
+	    if (!delay_data[pool].class3->network_255_used) {
+		delay_data[pool].class3->network_255_used = 1;
+		delay_data[pool].class3->network[255] =
 		    (int) (((double) Config.Delay.rates[pool]->network.max_bytes *
+			Config.Delay.initial) / 100);
+		delay_data[pool].class3->individual_map[i][0] = 255;
+	    }
+	} else {
+	    for (i = 0; i < NET_MAP_SZ; i++) {
+		if (delay_data[pool].class3->network_map[i] == net)
+		    break;
+		if (delay_data[pool].class3->network_map[i] == 255) {
+		    delay_data[pool].class3->network_map[i] = net;
+		    delay_data[pool].class3->individual_map[i][0] = 255;
+		    assert(i < (NET_MAP_SZ - 1));
+		    delay_data[pool].class3->network_map[i + 1] = 255;
+		    delay_data[pool].class3->network[i] =
+			(int) (((double) Config.Delay.rates[pool]->network.max_bytes *
+			    Config.Delay.initial) / 100);
+		    break;
+		}
+	    }
+	}
+	position = i << 8;
+	if (host == 255) {
+	    position |= 255;
+	    if (!(delay_data[pool].class3->individual_255_used[i / 8] & (1 << (i % 8)))) {
+		delay_data[pool].class3->individual_255_used[i / 8] |= (1 << (i % 8));
+		delay_data[pool].class3->individual[position] =
+		    (int) (((double) Config.Delay.rates[pool]->individual.max_bytes *
+			Config.Delay.initial) / 100);
+	    }
+	    return delayId(pool + 1, position);
+	}
+	assert(i < NET_MAP_SZ);
+	for (j = 0; j < IND_MAP_SZ; j++) {
+	    if (delay_data[pool].class3->individual_map[i][j] == host) {
+		position |= j;
+		break;
+	    }
+	    if (delay_data[pool].class3->individual_map[i][j] == 255) {
+		delay_data[pool].class3->individual_map[i][j] = host;
+		assert(j < (IND_MAP_SZ - 1));
+		delay_data[pool].class3->individual_map[i][j + 1] = 255;
+		position |= j;
+		delay_data[pool].class3->individual[position] =
+		    (int) (((double) Config.Delay.rates[pool]->individual.max_bytes *
 			Config.Delay.initial) / 100);
 		break;
 	    }
 	}
-    }
-    position = i << 8;
-    if (host == 255) {
-	position |= 255;
-	if (!(delay_data[pool].class3->individual_255_used[i / 8] & (1 << (i % 8)))) {
-	    delay_data[pool].class3->individual_255_used[i / 8] |= (1 << (i % 8));
-	    delay_data[pool].class3->individual[position] =
-		(int) (((double) Config.Delay.rates[pool]->individual.max_bytes *
-		    Config.Delay.initial) / 100);
-	}
 	return delayId(pool + 1, position);
     }
-    assert(i < NET_MAP_SZ);
-    for (j = 0; j < IND_MAP_SZ; j++) {
-	if (delay_data[pool].class3->individual_map[i][j] == host) {
-	    position |= j;
-	    break;
+    /* class 6 delay pool - position is the fd number which we may not yet have! */
+    if (class == 6) {
+	if (fd < 0) {
+	    debug(1, 1) ("delayClientClient: class 5 delay pool doesn't yet have access to the FD?!\n");
+	    return delayId(0, 0);
 	}
-	if (delay_data[pool].class3->individual_map[i][j] == 255) {
-	    delay_data[pool].class3->individual_map[i][j] = host;
-	    assert(j < (IND_MAP_SZ - 1));
-	    delay_data[pool].class3->individual_map[i][j + 1] = 255;
-	    position |= j;
-	    delay_data[pool].class3->individual[position] =
-		(int) (((double) Config.Delay.rates[pool]->individual.max_bytes *
-		    Config.Delay.initial) / 100);
-	    break;
-	}
+	assert(fd < delay_data[pool].class6->fds_size);
+	position = fd;
+	delay_data[pool].class6->fds[position].aggregate =
+	    (int) (((double) Config.Delay.rates[pool]->individual.max_bytes * Config.Delay.initial) / 100);
+	delay_class_6_fds[fd] = pool + 1;
+
+	return delayId(pool + 1, position);
     }
-    return delayId(pool + 1, position);
+    assert(0);
+    return -1;
 }
 
 static void
-delayUpdateClass1(class1DelayPool * class1, delaySpecSet * rates, int incr)
+delayUpdateClass1(class1DelayPool * class1, char pool, delaySpecSet * rates, int incr)
 {
     /* delaySetSpec may be pointer to partial structure so MUST pass by
      * reference.
@@ -449,7 +559,32 @@ delayUpdateClass1(class1DelayPool * class1, delaySpecSet * rates, int incr)
 }
 
 static void
-delayUpdateClass2(class2DelayPool * class2, delaySpecSet * rates, int incr)
+delayUpdateClass6(class6DelayPool * class6, char pool, delaySpecSet * rates, int incr)
+{
+    int restore_bytes;
+    int fd;
+
+    if (rates->aggregate.restore_bps != -1 &&
+	(class6->aggregate += rates->aggregate.restore_bps * incr) >
+	rates->aggregate.max_bytes)
+	class6->aggregate = rates->aggregate.max_bytes;
+    if ((restore_bytes = rates->individual.restore_bps) == -1)
+	return;
+    restore_bytes *= incr;
+
+    /* Update per-FD allowances */
+    assert(Biggest_FD < class6->fds_size);
+    for (fd = 0; fd < Biggest_FD; fd++) {
+	if (delay_class_6_fds[fd] != (pool + 1))
+	    continue;
+	class6->fds[fd].aggregate += restore_bytes;
+	if (class6->fds[fd].aggregate > rates->individual.max_bytes)
+	    class6->fds[fd].aggregate = rates->individual.max_bytes;
+    }
+}
+
+static void
+delayUpdateClass2(class2DelayPool * class2, char pool, delaySpecSet * rates, int incr)
 {
     int restore_bytes;
     unsigned char i;		/* depends on 255 + 1 = 0 */
@@ -479,7 +614,7 @@ delayUpdateClass2(class2DelayPool * class2, delaySpecSet * rates, int incr)
 }
 
 static void
-delayUpdateClass3(class3DelayPool * class3, delaySpecSet * rates, int incr)
+delayUpdateClass3(class3DelayPool * class3, char pool, delaySpecSet * rates, int incr)
 {
     int individual_restore_bytes, network_restore_bytes;
     int mpos;
@@ -552,8 +687,7 @@ delayPoolsUpdate(void *unused)
     unsigned char class;
     if (!Config.Delay.pools)
 	return;
-    if (incr < 1)
-	return;
+    eventAdd("delayPoolsUpdate", delayPoolsUpdate, NULL, 1.0, 192);
     delay_pools_last_update = squid_curtime;
     for (i = 0; i < Config.Delay.pools; i++) {
 	class = Config.Delay.class[i];
@@ -561,13 +695,16 @@ delayPoolsUpdate(void *unused)
 	    continue;
 	switch (class) {
 	case 1:
-	    delayUpdateClass1(delay_data[i].class1, Config.Delay.rates[i], incr);
+	    delayUpdateClass1(delay_data[i].class1, i, Config.Delay.rates[i], incr);
 	    break;
 	case 2:
-	    delayUpdateClass2(delay_data[i].class2, Config.Delay.rates[i], incr);
+	    delayUpdateClass2(delay_data[i].class2, i, Config.Delay.rates[i], incr);
 	    break;
 	case 3:
-	    delayUpdateClass3(delay_data[i].class3, Config.Delay.rates[i], incr);
+	    delayUpdateClass3(delay_data[i].class3, i, Config.Delay.rates[i], incr);
+	    break;
+	case 6:
+	    delayUpdateClass6(delay_data[i].class6, i, Config.Delay.rates[i], incr);
 	    break;
 	default:
 	    assert(0);
@@ -612,6 +749,13 @@ delayBytesWanted(delay_id d, int min, int max)
 	    nbytes = XMIN(nbytes, delay_data[pool].class3->network[position >> 8]);
 	break;
 
+    case 6:
+	if (Config.Delay.rates[pool]->aggregate.restore_bps != -1)
+	    nbytes = XMIN(nbytes, delay_data[pool].class3->aggregate);
+	assert(position < delay_data[pool].class6->fds_size);
+	if (Config.Delay.rates[pool]->individual.restore_bps != -1)
+	    nbytes = XMIN(nbytes, delay_data[pool].class6->fds[position].aggregate);
+	break;
     default:
 	fatalf("delayBytesWanted: Invalid class %d\n", class);
 	break;
@@ -656,7 +800,12 @@ delayBytesIn(delay_id d, int qty)
 	delay_data[pool].class3->aggregate_bytes += qty;
 	delay_data[pool].class3->network_bytes[position >> 8] += qty;
 	delay_data[pool].class3->individual_bytes[position] += qty;
+	return;
 
+    case 6:
+	delay_data[pool].class6->aggregate -= qty;
+	assert(position < delay_data[pool].class6->fds_size);
+	delay_data[pool].class6->fds[position].aggregate -= qty;
 	return;
     }
     fatalf("delayBytesWanted: Invalid class %d\n", class);
@@ -931,6 +1080,32 @@ delayPoolStats3(StoreEntry * sentry, int type, unsigned short pool)
 }
 
 static void
+delayPoolStats5(StoreEntry * sentry, int type, unsigned short pool)
+{
+    delaySpecSet *rate = Config.Delay.rates[pool];
+    class6DelayPool *class6 = delay_data[pool].class6;
+    int i;
+
+    if (type == 1)
+	storeAppendPrintf(sentry, "Pool: %d\n\tClass: 5\n\n", pool + 1);
+    else
+	storeAppendPrintf(sentry, "pools.pool.%d.class=5\n", pool + 1);
+    delayPoolStatsAg(sentry, pool, type, rate, class6->aggregate, class6->aggregate_bytes);
+
+    /* Per-FD stats! */
+    /* delay_class_6_fds[] contains the pool id starting from 1, not from 0 */
+    for (i = 0; i < Biggest_FD; i++) {
+	if (delay_class_6_fds[i] == (pool + 1)) {
+	    if (type == 1) {
+		storeAppendPrintf(sentry, "    FD: %d, aggregate %d\n", i, class6->fds[i].aggregate);
+	    } else {
+		storeAppendPrintf(sentry, "pools.pool.%d.fd.%d.aggregate=%d\n", pool + 1, i, class6->fds[i].aggregate);
+	    }
+	}
+    }
+}
+
+static void
 delayPoolStats(StoreEntry * sentry)
 {
     unsigned short i;
@@ -950,6 +1125,9 @@ delayPoolStats(StoreEntry * sentry)
 	    break;
 	case 3:
 	    delayPoolStats3(sentry, 1, i);
+	    break;
+	case 6:
+	    delayPoolStats5(sentry, 1, i);
 	    break;
 	default:
 	    assert(0);
@@ -977,6 +1155,9 @@ delayPoolStatsNew(StoreEntry * e)
 	    break;
 	case 3:
 	    delayPoolStats3(e, 2, i);
+	    break;
+	case 6:
+	    delayPoolStats5(e, 2, i);
 	    break;
 	default:
 	    assert(0);

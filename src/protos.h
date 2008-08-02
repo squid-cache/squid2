@@ -179,6 +179,7 @@ extern void commRemoveSlow(int fd);
 extern void comm_add_close_handler(int fd, PF *, void *);
 extern void comm_remove_close_handler(int fd, PF *, void *);
 extern int comm_udp_sendto(int, const struct sockaddr_in *, int, const void *, int);
+extern void comm_write_set_delaypool(int fd, delay_id poolid);
 extern void comm_write(int fd,
     const char *buf,
     int size,
@@ -1329,8 +1330,10 @@ extern void delayPoolsReconfigure(void);
 extern void delaySetNoDelay(int fd);
 extern void delayClearNoDelay(int fd);
 extern int delayIsNoDelay(int fd);
-extern delay_id delayClient(clientHttpRequest *);
-extern delay_id delayPoolClient(unsigned short pool, in_addr_t client);
+extern void delayCloseFd(int fd);
+extern delay_id delayClientRequest(clientHttpRequest *, acl_access **);
+extern delay_id delayClientReply(clientHttpRequest *, acl_access **);
+extern delay_id delayPoolClient(unsigned short pool, int fd, in_addr_t client);
 extern EVH delayPoolsUpdate;
 extern int delayBytesWanted(delay_id d, int min, int max);
 extern void delayBytesIn(delay_id, int qty);

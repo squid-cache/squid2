@@ -314,9 +314,6 @@ checkTimeouts(void)
     int fd;
     fde *F = NULL;
     PF *callback;
-#if DELAY_POOLS
-    delayPoolsUpdate(NULL);
-#endif
     for (fd = 0; fd <= Biggest_FD; fd++) {
 	F = &fd_table[fd];
 	if (!F->flags.open)

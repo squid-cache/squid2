@@ -95,6 +95,7 @@ fd_close(int fd)
 #if DELAY_POOLS
     if (F->slow_id)
 	commRemoveSlow(fd);
+    delayCloseFd(fd);
 #endif
     fdUpdateBiggest(fd, 0);
     Number_FD--;

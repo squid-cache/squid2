@@ -4066,6 +4066,15 @@ Example:
 				"individual" bucket chosen from bits 17 through
 				32 of the IP address.
 
+		class 4		Not yet implemented in Squid-2 - a per-user pool
+
+		class 5		Not yet implemented in Squid-2 - a per-extacl tag pool
+
+		class 6		Squid-2 specific: Everything is limited by a single
+				aggregate bucket as well as an "individual" bucket
+				per-_CLIENT_-connection (whether used on client or
+				server delay pools.)
+
 	NOTE: If an IP address is a.b.c.d
 		-> bits 25 through 32 are "d"
 		-> bits 17 through 24 are "c"
@@ -4076,7 +4085,7 @@ NAME: delay_access
 TYPE: delay_pool_access
 DEFAULT: none
 IFDEF: DELAY_POOLS
-LOC: Config.Delay
+LOC: Config.Delay.access
 DOC_START
 	This is used to determine which delay pool a request falls into.
 	It operates on the HTTP request and not the HTTP reply.
@@ -4095,6 +4104,38 @@ Example:
  delay_access 2 allow lotsa_little_clients
  delay_access 2 deny all
 DOC_END
+
+NAME: delay_client_request_access
+TYPE: delay_pool_access
+DEFAULT: none
+IFDEF: DELAY_POOLS
+LOC: Config.Delay.accessClientRequest
+DOC_START
+	This is used to determine which delay pool a client-side connection
+	falls into, based on the -request- information. The delay is introduced 
+	on the data being sent to the client regardless of whether the data
+	is coming from the cache or from an upstream.
+
+	The default is to not client-delay any replies.
+DOC_END
+
+NAME: delay_client_reply_access
+TYPE: delay_pool_access
+DEFAULT: none
+IFDEF: DELAY_POOLS
+LOC: Config.Delay.accessClientReply
+DOC_START
+	This is used to determine which delay pool a client-side connection
+	falls into, based on the -reply- information. The delay is introduced 
+	on the data being sent to the client regardless of whether the data
+	is coming from the cache or from an upstream.
+
+	This is evaluated after delay_client_request_access and may override
+	the decision in delay_client_request_access. Be careful!
+
+	The default is to not client-delay any replies.
+DOC_END
+
 
 NAME: delay_parameters
 TYPE: delay_pool_rates
@@ -4115,6 +4156,10 @@ delay_parameters pool aggregate individual
 	For a class 3 delay pool:
 
 delay_parameters pool aggregate network individual
+
+	For a class 6 delay pool:
+
+delay_parameters pool aggregate individual
 
 	The variables here are:
 

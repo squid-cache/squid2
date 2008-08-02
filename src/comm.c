@@ -81,6 +81,13 @@ CBDATA_TYPE(ConnectStateData);
 static MemPool *comm_write_pool = NULL;
 static MemPool *conn_close_pool = NULL;
 
+#if DELAY_POOLS
+static int *slow_wfds = NULL, *slow_wfds_alt = NULL, *slow_wfds_entry = NULL;
+static int n_slow_wfds = 0;
+static EVH comm_slow_wfds_wakeup_event;
+static void comm_slow_wfds_remove(int fd);
+#endif
+
 static void
 CommWriteStateCallbackAndFree(int fd, int code)
 {
@@ -797,6 +804,9 @@ comm_close(int fd)
     assert(F->flags.open);
     assert(F->type != FD_FILE);
     F->flags.closing = 1;
+#if DELAY_POOLS
+    comm_slow_wfds_remove(fd);
+#endif
     CommWriteStateCallbackAndFree(fd, COMM_ERR_CLOSING);
     commCallCloseHandlers(fd);
     if (F->uses)		/* assume persistent connect count */
@@ -1172,6 +1182,8 @@ commSetIPOption(int fd, uint8_t option, void *value, size_t size)
 void
 comm_init(void)
 {
+    int i;
+
     fd_init();
     /* Keep a few file descriptors free so that we don't run out of FD's
      * after accepting a client but before it opens a socket or a file.
@@ -1180,7 +1192,105 @@ comm_init(void)
     CBDATA_INIT_TYPE(ConnectStateData);
     comm_write_pool = memPoolCreate("CommWriteStateData", sizeof(CommWriteStateData));
     conn_close_pool = memPoolCreate("close_handler", sizeof(close_handler));
+#if DELAY_POOLS
+    slow_wfds = xcalloc(sizeof(int), Squid_MaxFD);
+    slow_wfds_alt = xcalloc(sizeof(int), Squid_MaxFD);
+    slow_wfds_entry = xcalloc(sizeof(int), Squid_MaxFD);
+    for (i = 0; i < Squid_MaxFD; i++) {
+	slow_wfds_entry[i] = -1;
+    }
+    /* High priority so it runs before other events but delay pools has to run at a higher prio! */
+    /* So that way it gets a chance to add traffic to the buckets first! */
+    eventAdd("comm_slow_wfds_wakeup_event", comm_slow_wfds_wakeup_event, NULL, 1.0, 128);
+#endif
 }
+
+#if DELAY_POOLS
+static void
+comm_slow_wfds_add(int fd)
+{
+    slow_wfds[n_slow_wfds] = fd;
+    slow_wfds_entry[fd] = n_slow_wfds;
+    n_slow_wfds++;
+    assert(n_slow_wfds < Squid_MaxFD);
+}
+
+/* Swap the list over, set the active list to length 0 */
+static void
+comm_slow_wfds_swap_list(void)
+{
+    int *a;
+
+    a = slow_wfds;
+    slow_wfds = slow_wfds_alt;
+    slow_wfds_alt = a;
+    n_slow_wfds = 0;
+}
+
+static void
+comm_slow_wfds_remove(int fd)
+{
+    int i, nfd;
+
+    /* Don't bother if there's no registration */
+    if (slow_wfds_entry[fd] == -1)
+	return;
+
+    /* At this point there must be at least one item on the slow_wfds list! */
+    assert(n_slow_wfds > 0);
+
+    /* Swap with the last symbol, also updating the slow_wfds_entry[] pointer for it */
+    i = slow_wfds_entry[fd];
+    nfd = slow_wfds[n_slow_wfds - 1];
+    slow_wfds[i] = nfd;
+    slow_wfds_entry[nfd] = i;
+    slow_wfds_entry[fd] = -1;
+
+    n_slow_wfds--;
+}
+
+static void
+comm_slow_wfds_wakeup_event(void *notused)
+{
+    int j, n, fd, i;
+    fde *F;
+
+    /* Swap the lists over so additions don't end up on this list */
+    n = n_slow_wfds;
+    debug(5, 5) ("wfds: %d fds\n", n_slow_wfds);
+    comm_slow_wfds_swap_list();
+    /*
+     * Dequeue the FDs randomly, swapping the dequeued FD with the
+     * last in the array, then decrementing the size of the array
+     * by one.
+     */
+
+    for (j = n - 1; j >= 0; j--) {
+	assert(j >= 0);		/* Just paranoid */
+	if (j == 0)
+	    i = 0;
+	else
+	    i = squid_random() % j;
+	fd = slow_wfds_alt[i];
+
+	/* Swap the selected FD with the one at the end of the list */
+	/* .. and don't forget the entry id! */
+	slow_wfds_entry[slow_wfds_alt[j]] = i;
+	slow_wfds_alt[i] = slow_wfds_alt[j];
+	slow_wfds_entry[fd] = -1;
+
+	F = &fd_table[fd];
+	debug(5, 5) ("wfds: waking up fd %d\n", fd);
+
+	/* call the write callback attempt - this may requeue the FD for sleep */
+	F->rwstate.write_delayed = 0;	/* let the write run now */
+	commHandleWrite(fd, &F->rwstate);
+    }
+
+    /* High priority so it runs before other events */
+    eventAdd("comm_slow_wfds_wakeup_event", comm_slow_wfds_wakeup_event, NULL, 1.0, 256);
+}
+#endif
 
 /* Write to FD. */
 static void
@@ -1188,20 +1298,54 @@ commHandleWrite(int fd, void *data)
 {
     int len = 0;
     int nleft;
+#if DELAY_POOLS
+    int writesz;
+#endif
     CommWriteStateData *state = &fd_table[fd].rwstate;
 
     assert(state->valid);
 
+    /* Don't try to write if the write has been delayed - we'll be woken up shortly */
+    if (state->write_delayed)
+	return;
+
     debug(5, 5) ("commHandleWrite: FD %d: off %ld, hd %ld, sz %ld.\n",
 	fd, (long int) state->offset, (long int) state->header_size, (long int) state->size);
 
+    /* Find the maximum size for this write */
+    if (state->offset < state->header_size)
+	writesz = state->header_size - state->offset;
+    else
+	writesz = state->size + state->header_size - state->offset;
+
+#if DELAY_POOLS
+    if (state->delayid) {
+	writesz = delayBytesWanted(state->delayid, 0, writesz);
+	debug(5, 5) ("commHandleWrite: FD %d: delay pool gave us %d bytes\n", fd, writesz);
+	/*
+	 * If the bucket is empty then we push ourselves onto the slow write fds
+	 * list and worry about the write later.
+	 */
+	if (writesz == 0) {
+	    comm_slow_wfds_add(fd);
+	    state->write_delayed = 1;
+	    return;
+	}
+	/* Ok we have some bytes to write; write them */
+    }
+#endif
+
     nleft = state->size + state->header_size - state->offset;
     if (state->offset < state->header_size)
-	len = FD_WRITE_METHOD(fd, state->header + state->offset, state->header_size - state->offset);
+	len = FD_WRITE_METHOD(fd, state->header + state->offset, writesz);
     else
-	len = FD_WRITE_METHOD(fd, state->buf + state->offset - state->header_size, nleft);
+	len = FD_WRITE_METHOD(fd, state->buf + state->offset - state->header_size, writesz);
     debug(5, 5) ("commHandleWrite: write() returns %d\n", len);
     fd_bytes(fd, len, FD_WRITE);
+#if DELAY_POOLS
+    /* Is this enough for per-client pools? Possibly not */
+    delayBytesIn(state->delayid, len);
+#endif
     statCounter.syscalls.sock.writes++;
 
     if (len == 0) {
@@ -1247,6 +1391,23 @@ commHandleWrite(int fd, void *data)
 
 
 
+#if DELAY_POOLS
+/*
+ * Map a given comm_write() into the given delay_id for delay pools.
+ * This call should be made -immediately after- a comm_write*() call to push said
+ * comm_write into a delay pool. Eventually it should be folded into the
+ * comm_write() function calls.
+ */
+void
+comm_write_set_delaypool(int fd, delay_id delayid)
+{
+    CommWriteStateData *state = &fd_table[fd].rwstate;
+    assert(state->valid);
+    state->delayid = delayid;
+}
+
+#endif
+
 /* Select for Writing on FD, until SIZE bytes are sent.  Call
  * *HANDLER when complete. */
 void
@@ -1258,6 +1419,8 @@ comm_write(int fd, const char *buf, int size, CWCB * handler, void *handler_data
     if (state->valid) {
 	debug(5, 1) ("comm_write: fd_table[%d].rwstate.valid == true!\n", fd);
 	fd_table[fd].rwstate.valid = 0;
+	/* XXX If there's a delay pool involved then it may be in one of the slow write fd lists? */
+	assert(state->write_delayed == 0);
     }
     state->buf = (char *) buf;
     state->size = size;
@@ -1267,6 +1430,10 @@ comm_write(int fd, const char *buf, int size, CWCB * handler, void *handler_data
     state->handler_data = handler_data;
     state->free_func = free_func;
     state->valid = 1;
+#if DELAY_POOLS
+    state->delayid = 0;		/* no pool */
+    state->write_delayed = 0;
+#endif
     cbdataLock(handler_data);
     commSetSelect(fd, COMM_SELECT_WRITE, commHandleWrite, NULL, 0);
 }

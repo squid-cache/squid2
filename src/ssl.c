@@ -541,7 +541,7 @@ sslStart(clientHttpRequest * http, squid_off_t * size_ptr, int *status_ptr)
     CBDATA_INIT_TYPE(SslStateData);
     sslState = cbdataAlloc(SslStateData);
 #if DELAY_POOLS
-    sslState->delay_id = delayClient(http);
+    sslState->delay_id = delayClientRequest(http, Config.Delay.access);
     delayRegisterDelayIdPtr(&sslState->delay_id);
 #endif
     sslState->url = xstrdup(url);

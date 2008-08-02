@@ -400,7 +400,7 @@ clientCreateStoreEntry(clientHttpRequest * h, method_t m, request_flags flags)
     h->sc = storeClientRegister(e, h);
 #if DELAY_POOLS
     if (h->log_type != LOG_TCP_DENIED)
-	delaySetStoreClient(h->sc, delayClient(h));
+	delaySetStoreClient(h->sc, delayClientRequest(h, Config.Delay.access));
 #endif
     storeClientCopyHeaders(h->sc, e, clientSendHeaders, h);
     return e;
@@ -650,7 +650,7 @@ clientProcessETag(clientHttpRequest * http)
     http->sc = storeClientRegister(entry, http);
 #if DELAY_POOLS
     /* delay_id is already set on original store client */
-    delaySetStoreClient(http->sc, delayClient(http));
+    delaySetStoreClient(http->sc, delayClientRequest(http, Config.Delay.access));
 #endif
     http->entry = entry;
     http->out.offset = 0;
@@ -744,7 +744,7 @@ clientProcessExpired(clientHttpRequest * http)
     http->sc = storeClientRegister(entry, http);
 #if DELAY_POOLS
     /* delay_id is already set on original store client */
-    delaySetStoreClient(http->sc, delayClient(http));
+    delaySetStoreClient(http->sc, delayClientRequest(http, Config.Delay.access));
 #endif
     if (can_revalidate && http->old_entry->lastmod > 0) {
 	http->request->lastmod = http->old_entry->lastmod;
@@ -2171,7 +2171,7 @@ clientAsyncRefresh(clientHttpRequest * http)
     }
 #if DELAY_POOLS
     /* delay_id is already set on original store client */
-    delaySetStoreClient(async->sc, delayClient(http));
+    delaySetStoreClient(async->sc, delayClientRequest(http, Config.Delay.access));
 #endif
     fwdStart(-1, async->entry, async->request);
     storeClientRef(async->sc, async->entry,
@@ -2817,6 +2817,7 @@ static void
 clientSendHeaders(void *data, HttpReply * rep)
 {
     //const char *buf = ref.node->data + ref.offset;
+    delay_id delayid;
     clientHttpRequest *http = data;
     StoreEntry *entry = http->entry;
     ConnStateData *conn = http->conn;
@@ -2886,6 +2887,19 @@ clientSendHeaders(void *data, HttpReply * rep)
 #if DELAY_POOLS
     clientDelayMaxBodySize(http->request, http, rep);
 #endif
+
+#if DELAY_POOLS
+    /* Write-side Delay Pools */
+
+    /* -request- ACL matching */
+    http->delayid = delayClientRequest(http, Config.Delay.accessClientRequest);
+
+    /* -reply- ACL matching */
+    delayid = delayClientReply(http, Config.Delay.accessClientReply);
+    if (delayid)
+	http->delayid = delayid;
+#endif
+
     if (http->log_type != LOG_TCP_DENIED && clientReplyBodyTooLarge(http, rep->content_length)) {
 	ErrorState *err = errorCon(ERR_TOO_BIG, HTTP_FORBIDDEN, http->orig_request);
 	storeClientUnregister(http->sc, http->entry, http);
@@ -3107,6 +3121,11 @@ clientCheckHeaderDone(clientHttpRequest * http)
     /* write headers and initial body */
     if (mb.size > 0) {
 	comm_write_mbuf(http->conn->fd, mb, clientWriteComplete, http);
+#if 0
+	/* XXX no need to delay the headers? Maybe; maybe not -adrian */
+	if (http->delayid)
+	    comm_write_set_delaypool(http->conn->fd, http->delayid);
+#endif
     } else {
 	storeClientRef(http->sc, http->entry,
 	    http->out.offset,
@@ -3164,6 +3183,8 @@ clientSendMoreData(void *data, mem_node_ref ref, ssize_t size)
 	/* XXX eww - these refcounting semantics should be better adrian! fix it! */
 	http->nr = ref;
 	comm_write(fd, buf, size, clientWriteBodyComplete, http, NULL);
+	if (http->delayid)
+	    comm_write_set_delaypool(fd, http->delayid);
 	/* NULL because clientWriteBodyComplete frees it */
 	return;
     }
@@ -3206,6 +3227,8 @@ clientSendMoreData(void *data, mem_node_ref ref, ssize_t size)
     } else {
 	comm_write_mbuf(fd, mb, clientWriteComplete, http);
     }
+    if (http->delayid)
+	comm_write_set_delaypool(fd, http->delayid);
     stmemNodeUnref(&ref);
 }
 
@@ -3334,6 +3357,11 @@ clientWriteComplete(int fd, char *bufnotused, size_t size, int errflag, void *da
 	    /* Finish chunked transfer encoding */
 	    http->request->flags.chunked_response = 0;	/* no longer chunking */
 	    comm_write(http->conn->fd, "0\r\n\r\n", 5, clientWriteComplete, http, NULL);
+#if 0
+	    /* XXX No need to really "delay" the end chunk? -adrian */
+	    if (http->delayid)
+		comm_write_set_delaypool(fd, http->delayid);
+#endif
 	} else if (http->request->body_reader == clientReadBody) {
 	    debug(33, 5) ("clientWriteComplete: closing, but first we need to read the rest of the request\n");
 	    /* XXX We assumes the reply does fit in the TCP transmit window.
@@ -3360,7 +3388,7 @@ clientWriteComplete(int fd, char *bufnotused, size_t size, int errflag, void *da
 		http->sc->delay_id);
 	    delayUnregisterDelayIdPtr(&http->sc->delay_id);
 	    delaySetStoreClient(http->sc, delayPoolClient(http->delayAssignedPool,
-		    (in_addr_t) http->conn->peer.sin_addr.s_addr));
+		    http->conn->fd, (in_addr_t) http->conn->peer.sin_addr.s_addr));
 	}
 #endif
 	/* More data will be coming from primary server; register with 
@@ -3605,7 +3633,7 @@ clientProcessRequest(clientHttpRequest * http)
 	http->entry->mem_obj->method = r->method;
 	http->sc = storeClientRegister(http->entry, http);
 #if DELAY_POOLS
-	delaySetStoreClient(http->sc, delayClient(http));
+	delaySetStoreClient(http->sc, delayClientRequest(http, Config.Delay.access));
 #endif
 	storeClientCopyHeaders(http->sc, http->entry,
 	    clientCacheHit,
@@ -5263,7 +5291,7 @@ clientReassignDelaypools(void)
 	clientHttpRequest *http = i->data;
 	assert(http);
 	if (http->sc && http->log_type != LOG_TCP_DENIED && http->log_type != LOG_TAG_NONE)
-	    delaySetStoreClient(http->sc, delayClient(http));
+	    delaySetStoreClient(http->sc, delayClientRequest(http, Config.Delay.access));
 	if (http->reply)
 	    http->delayMaxBodySize = 0;
 	http->delayAssignedPool = 0;

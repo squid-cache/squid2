@@ -1524,12 +1524,13 @@ statClientRequests(StoreEntry * s)
 #if DELAY_POOLS
 	if (http->sc) {
 	    int pool = (http->sc->delay_id >> 16);
-	    storeAppendPrintf(s, "active delay_pool %d\n", pool);
+	    storeAppendPrintf(s, "active delay_pool %d (id %d)\n", pool, http->sc->delay_id);
 	    if (http->delayMaxBodySize > 0)
 		storeAppendPrintf(s, "delayed delay_pool %d; transfer threshold %" PRINTF_OFF_T " bytes\n",
 		    http->delayAssignedPool,
 		    http->delayMaxBodySize);
 	}
+	storeAppendPrintf(s, "active write-side delay pool %d (delay id %d)\n", http->delayid >> 16, http->delayid);
 #endif
 	storeAppendPrintf(s, "\n");
     }

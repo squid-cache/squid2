@@ -969,10 +969,8 @@ free_acl_tos(acl_tos ** head)
  * this is why delay_pool_count isn't just marked TYPE: ushort
  */
 #define free_delay_pool_class(X)
-#define free_delay_pool_access(X)
 #define free_delay_pool_rates(X)
 #define dump_delay_pool_class(X, Y, Z)
-#define dump_delay_pool_access(X, Y, Z)
 #define dump_delay_pool_rates(X, Y, Z)
 
 static void
@@ -987,20 +985,19 @@ free_delay_pool_count(delayConfig * cfg)
 	    delayFreeDelayPool(i);
 	    safe_free(cfg->rates[i]);
 	}
-	aclDestroyAccessList(&cfg->access[i]);
     }
     delayFreeDelayData(cfg->pools);
+    cfg->pools = cfg->initial = 0;
     xfree(cfg->class);
+    cfg->class = NULL;
     xfree(cfg->rates);
-    xfree(cfg->access);
-    memset(cfg, 0, sizeof(*cfg));
+    cfg->rates = NULL;
 }
 
 static void
 dump_delay_pool_count(StoreEntry * entry, const char *name, delayConfig cfg)
 {
     int i;
-    LOCAL_ARRAY(char, nom, 32);
 
     if (!cfg.pools) {
 	storeAppendPrintf(entry, "%s 0\n", name);
@@ -1009,22 +1006,43 @@ dump_delay_pool_count(StoreEntry * entry, const char *name, delayConfig cfg)
     storeAppendPrintf(entry, "%s %d\n", name, cfg.pools);
     for (i = 0; i < cfg.pools; i++) {
 	storeAppendPrintf(entry, "delay_class %d %d\n", i + 1, cfg.class[i]);
-	snprintf(nom, 32, "delay_access %d", i + 1);
-	dump_acl_access(entry, nom, cfg.access[i]);
-	if (cfg.class[i] >= 1)
+	switch (cfg.class[i]) {
+	case 1:
 	    storeAppendPrintf(entry, "delay_parameters %d %d/%d", i + 1,
 		cfg.rates[i]->aggregate.restore_bps,
 		cfg.rates[i]->aggregate.max_bytes);
-	if (cfg.class[i] >= 3)
-	    storeAppendPrintf(entry, " %d/%d",
-		cfg.rates[i]->network.restore_bps,
-		cfg.rates[i]->network.max_bytes);
-	if (cfg.class[i] >= 2)
+	    break;
+	case 2:
+	    storeAppendPrintf(entry, "delay_parameters %d %d/%d", i + 1,
+		cfg.rates[i]->aggregate.restore_bps,
+		cfg.rates[i]->aggregate.max_bytes);
 	    storeAppendPrintf(entry, " %d/%d",
 		cfg.rates[i]->individual.restore_bps,
 		cfg.rates[i]->individual.max_bytes);
-	if (cfg.class[i] >= 1)
-	    storeAppendPrintf(entry, "\n");
+	    break;
+	case 3:
+	    storeAppendPrintf(entry, "delay_parameters %d %d/%d", i + 1,
+		cfg.rates[i]->aggregate.restore_bps,
+		cfg.rates[i]->aggregate.max_bytes);
+	    storeAppendPrintf(entry, " %d/%d",
+		cfg.rates[i]->network.restore_bps,
+		cfg.rates[i]->network.max_bytes);
+	    storeAppendPrintf(entry, " %d/%d",
+		cfg.rates[i]->individual.restore_bps,
+		cfg.rates[i]->individual.max_bytes);
+	    break;
+	case 6:
+	    storeAppendPrintf(entry, "delay_parameters %d %d/%d", i + 1,
+		cfg.rates[i]->aggregate.restore_bps,
+		cfg.rates[i]->aggregate.max_bytes);
+	    storeAppendPrintf(entry, " %d/%d",
+		cfg.rates[i]->individual.restore_bps,
+		cfg.rates[i]->individual.max_bytes);
+	    break;
+	default:
+	    assert(0);
+	}
+	storeAppendPrintf(entry, "\n");
     }
 }
 
@@ -1041,6 +1059,8 @@ parse_delay_pool_count(delayConfig * cfg)
 	cfg->class = xcalloc(cfg->pools, sizeof(u_char));
 	cfg->rates = xcalloc(cfg->pools, sizeof(delaySpecSet *));
 	cfg->access = xcalloc(cfg->pools, sizeof(acl_access *));
+	cfg->accessClientRequest = xcalloc(cfg->pools, sizeof(acl_access *));
+	cfg->accessClientReply = xcalloc(cfg->pools, sizeof(acl_access *));
     }
 }
 
@@ -1055,8 +1075,13 @@ parse_delay_pool_class(delayConfig * cfg)
 	return;
     }
     parse_ushort(&class);
-    if (class < 1 || class > 3) {
-	debug(3, 0) ("parse_delay_pool_class: Ignoring pool %d class %d not in 1 .. 3\n", pool, class);
+    if (class < 1 || class > 6) {
+	debug(3, 0) ("parse_delay_pool_class: Ignoring pool %d class %d not in 1 .. 6\n", pool, class);
+	return;
+    }
+    /* class 4, 5 is per-user/per-extacl, which Squid-3 currently only does */
+    if (class == 4 || class == 5) {
+	debug(3, 0) ("parse_delay_pool_class: Ignoring pool %d class %d currently unsupported!\n", pool, class);
 	return;
     }
     pool--;
@@ -1068,10 +1093,24 @@ parse_delay_pool_class(delayConfig * cfg)
     cfg->rates[pool] = xmalloc(class * sizeof(delaySpec));
     cfg->class[pool] = class;
     cfg->rates[pool]->aggregate.restore_bps = cfg->rates[pool]->aggregate.max_bytes = -1;
-    if (cfg->class[pool] >= 3)
-	cfg->rates[pool]->network.restore_bps = cfg->rates[pool]->network.max_bytes = -1;
-    if (cfg->class[pool] >= 2)
+
+    switch (class) {
+    case 1:
+	break;
+    case 2:
 	cfg->rates[pool]->individual.restore_bps = cfg->rates[pool]->individual.max_bytes = -1;
+	break;
+    case 3:
+	cfg->rates[pool]->individual.restore_bps = cfg->rates[pool]->individual.max_bytes = -1;
+	cfg->rates[pool]->network.restore_bps = cfg->rates[pool]->network.max_bytes = -1;
+	break;
+    case 6:
+	cfg->rates[pool]->individual.restore_bps = cfg->rates[pool]->individual.max_bytes = -1;
+	break;
+    default:
+	assert(0);
+
+    }
     delayCreateDelayPool(pool, class);
 }
 
@@ -1082,6 +1121,9 @@ parse_delay_pool_rates(delayConfig * cfg)
     int i;
     delaySpec *ptr;
     char *token;
+    int er[] =
+    {-1, 1, 2, 3, -1, -1, 2};
+    int c;
 
     parse_ushort(&pool);
     if (pool < 1 || pool > cfg->pools) {
@@ -1096,7 +1138,9 @@ parse_delay_pool_rates(delayConfig * cfg)
     }
     ptr = (delaySpec *) cfg->rates[pool];
     /* read in "class" sets of restore,max pairs */
-    while (class--) {
+    c = er[class];
+    assert(c > 0);
+    while (c--) {
 	token = strtok(NULL, "/");
 	if (token == NULL)
 	    self_destruct();
@@ -1121,17 +1165,45 @@ parse_delay_pool_rates(delayConfig * cfg)
 }
 
 static void
-parse_delay_pool_access(delayConfig * cfg)
+parse_delay_pool_access(acl_access *** aa)
 {
     ushort pool;
+    acl_access **a = *aa;
 
     parse_ushort(&pool);
-    if (pool < 1 || pool > cfg->pools) {
-	debug(3, 0) ("parse_delay_pool_access: Ignoring pool %d not in 1 .. %d\n", pool, cfg->pools);
+    if (pool < 1 || pool > Config.Delay.pools) {
+	debug(3, 0) ("parse_delay_pool_access: Ignoring pool %d not in 1 .. %d\n", pool, Config.Delay.pools);
 	return;
     }
-    aclParseAccessLine(&cfg->access[pool - 1]);
+    aclParseAccessLine(&(a[pool - 1]));
 }
+
+void
+dump_delay_pool_access(StoreEntry * entry, const char *name, acl_access ** a)
+{
+    LOCAL_ARRAY(char, nom, 32);
+    int i;
+    for (i = 0; i < Config.Delay.pools; i++) {
+	snprintf(nom, 32, "%s %d", name, i + 1);
+	dump_acl_access(entry, nom, a[i]);
+    }
+}
+
+void
+free_delay_pool_access(acl_access *** aa)
+{
+    int i = 0;
+    acl_access **a = *aa;
+    if (!a)
+	return;
+
+    while (a[i] != NULL) {
+	aclDestroyAccessList(&a[i]);
+	i++;
+    }
+    xfree(a);
+}
+
 #endif
 
 #ifdef HTTP_VIOLATIONS

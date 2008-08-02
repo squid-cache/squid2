@@ -433,6 +433,8 @@ struct _delayConfig {
     unsigned char *class;
     delaySpecSet **rates;
     acl_access **access;
+    acl_access **accessClientRequest;
+    acl_access **accessClientReply;
 };
 
 #endif
@@ -897,6 +899,10 @@ struct _CommWriteStateData {
     FREE *free_func;
     char header[32];
     size_t header_size;
+#if DELAY_POOLS
+    delay_id delayid;
+    int write_delayed;
+#endif
 };
 
 
@@ -1288,6 +1294,9 @@ struct _clientHttpRequest {
     ushort delayAssignedPool;
     mem_node_ref nr;
     int is_modified;
+#if DELAY_POOLS
+    delay_id delayid;		/* Delay id for the -write- side delay id */
+#endif
 };
 
 struct _ConnStateData {
