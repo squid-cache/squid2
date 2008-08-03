@@ -47,6 +47,9 @@ Squid is a WWW Cache application developed by the Web Caching community.</EM>
 <P>
 <H2><A NAME="toc6">6.</A> <A HREF="#s6">Key changes in squid-2.7.STABLE3</A></H2>
 
+<P>
+<H2><A NAME="toc7">7.</A> <A HREF="#s7">Key changes in squid-2.7.STABLE4</A></H2>
+
 
 <HR>
 <H2><A NAME="s1">1.</A> <A HREF="#toc1">Key changes from squid 2.6</A></H2>
@@ -429,6 +432,20 @@ ScriptAlias /squid/cgi-bin/ "c:/squid/libexec/"
 <LI>See also the list of 
 <A HREF="http://www.squid-cache.org/Versions/v2/2.7/changesets/SQUID_2_7_STABLE3.html">squid-2.7.STABLE3 changes</A> and the 
 <A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
+</UL>
+</P>
+
+<H2><A NAME="s7">7.</A> <A HREF="#toc7">Key changes in squid-2.7.STABLE4</A></H2>
+
+<P>
+<UL>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=2393">#2393</a>: DNS retransmit queue could get hold up</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=2408">#2408</a>: assertion failed: forward.c:529: "fs"</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=2414">#2414</a>: assertion failed: forward.c:110: "!EBIT_TEST(e->flags, ENTRY_FWD_HDR_WAIT)"</LI>
+<LI>Workaround for Linux-2.6.24 &amp; 2.6.25 netfiler_ipv4.h include header __u32 problem</LI>
+<LI>Make dns_nameserver work when using --disable-internal-dns on glibc based systems</LI>
+<LI>Handle aborted objects properly. The change in 2.7.STABLE3 triggered a number of issues.</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=2406">#2406</a>: access.log logs rewritten URL and strip_query_terms ineffective</LI>
 </UL>
 </P>
 

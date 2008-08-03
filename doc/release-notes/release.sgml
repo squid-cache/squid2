@@ -437,5 +437,18 @@ ScriptAlias /squid/cgi-bin/ "c:/squid/libexec/"
 				name="ChangeLog"> file for details.
 </itemize>
 
+<sect>Key changes in squid-2.7.STABLE4
+
+<p>
+<itemize>
+	<item>Bug #2393: DNS retransmit queue could get hold up
+	<item>Bug #2408: assertion failed: forward.c:529: "fs"
+	<item>Bug #2414: assertion failed: forward.c:110: "!EBIT_TEST(e->flags, ENTRY_FWD_HDR_WAIT)"
+	<item>Workaround for Linux-2.6.24 & 2.6.25 netfiler_ipv4.h include header __u32 problem
+	<item>Make dns_nameserver work when using --disable-internal-dns on glibc based systems
+	<item>Handle aborted objects properly. The change in 2.7.STABLE3 triggered a number of issues.
+	<item>Bug #2406: access.log logs rewritten URL and strip_query_terms ineffective
+</itemize>
+
 </article>
 
