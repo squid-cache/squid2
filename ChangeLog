@@ -21,6 +21,35 @@ Done:
 
 Pending backport:
 
+Changes to squid-2.7.SATBLE4 (4 August 2008)
+	- Bug #2387: The calculation of the number of hash buckets need to
+	  account for the memory size, not only disk size
+	- Bug #2393: DNS requests retried indefinitely at full speed on failed
+	  TCP connection
+	- Bug #2393: DNS retransmit queue could get hold up
+	- Correct socket syscalls statistics in commResetFD()
+	- Plug a small "squid -k reconfigure" race in the new round-robin
+	  counter management
+	- Windows port: fix typo in handling of notification of IP
+	  address changes
+	- Document the "zph_mode option" setting, got left out when merging
+	  the zph patches
+	- Bug #2396: Correct the opening of the PF device file.
+	- Make --with-large-files and --with-build-envirnment=default play
+	  nice together
+	- Bug #2407: Spelling error in http_port tcpkeepalive option
+	- Bug #2408: assertion failed: forward.c:529: "fs"
+	- Bug #2414: assertion failed: forward.c:110: "!EBIT_TEST(e->flags,
+	  ENTRY_FWD_HDR_WAIT)"
+	- Workaround for Linux-2.6.24 & 2.6.25 netfiler_ipv4.h include header
+	  __u32 problem
+	- Make dns_nameserver work when using --disable-internal-dns on glibc
+	  based systems
+	- Make clientCacheHit bail out gracefuly if hitting an aborted object
+	- Bug #2406: access.log logs rewritten URL and strip_query_terms
+	  ineffective
+	- More changes to deal properly with aborted requests
+
 Changes to squid-2.6.STABLE21 (27 June 2008)
 
 	- Bug #2350: Bugs in Linux kernel capabilities code
