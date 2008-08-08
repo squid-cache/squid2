@@ -2817,7 +2817,9 @@ static void
 clientSendHeaders(void *data, HttpReply * rep)
 {
     //const char *buf = ref.node->data + ref.offset;
+#if DELAY_POOLS
     delay_id delayid;
+#endif
     clientHttpRequest *http = data;
     StoreEntry *entry = http->entry;
     ConnStateData *conn = http->conn;
@@ -3183,8 +3185,10 @@ clientSendMoreData(void *data, mem_node_ref ref, ssize_t size)
 	/* XXX eww - these refcounting semantics should be better adrian! fix it! */
 	http->nr = ref;
 	comm_write(fd, buf, size, clientWriteBodyComplete, http, NULL);
+#if DELAY_POOLS
 	if (http->delayid)
 	    comm_write_set_delaypool(fd, http->delayid);
+#endif
 	/* NULL because clientWriteBodyComplete frees it */
 	return;
     }
@@ -3227,8 +3231,10 @@ clientSendMoreData(void *data, mem_node_ref ref, ssize_t size)
     } else {
 	comm_write_mbuf(fd, mb, clientWriteComplete, http);
     }
+#if DELAY_POOLS
     if (http->delayid)
 	comm_write_set_delaypool(fd, http->delayid);
+#endif
     stmemNodeUnref(&ref);
 }
 

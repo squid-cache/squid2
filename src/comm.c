@@ -1182,8 +1182,9 @@ commSetIPOption(int fd, uint8_t option, void *value, size_t size)
 void
 comm_init(void)
 {
+#if DELAY_POOLS
     int i;
-
+#endif
     fd_init();
     /* Keep a few file descriptors free so that we don't run out of FD's
      * after accepting a client but before it opens a socket or a file.
@@ -1235,6 +1236,8 @@ comm_slow_wfds_remove(int fd)
     /* Don't bother if there's no registration */
     if (slow_wfds_entry[fd] == -1)
 	return;
+
+    debug(1, 1) ("comm_slow_wfds_remove: FD %d: removing\n", fd);
 
     /* At this point there must be at least one item on the slow_wfds list! */
     assert(n_slow_wfds > 0);
@@ -1298,16 +1301,16 @@ commHandleWrite(int fd, void *data)
 {
     int len = 0;
     int nleft;
-#if DELAY_POOLS
     int writesz;
-#endif
     CommWriteStateData *state = &fd_table[fd].rwstate;
 
     assert(state->valid);
 
     /* Don't try to write if the write has been delayed - we'll be woken up shortly */
+#if DELAY_POOLS
     if (state->write_delayed)
 	return;
+#endif
 
     debug(5, 5) ("commHandleWrite: FD %d: off %ld, hd %ld, sz %ld.\n",
 	fd, (long int) state->offset, (long int) state->header_size, (long int) state->size);
@@ -1419,8 +1422,10 @@ comm_write(int fd, const char *buf, int size, CWCB * handler, void *handler_data
     if (state->valid) {
 	debug(5, 1) ("comm_write: fd_table[%d].rwstate.valid == true!\n", fd);
 	fd_table[fd].rwstate.valid = 0;
+#if DELAY_POOLS
 	/* XXX If there's a delay pool involved then it may be in one of the slow write fd lists? */
 	assert(state->write_delayed == 0);
+#endif
     }
     state->buf = (char *) buf;
     state->size = size;
