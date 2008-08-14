@@ -1178,7 +1178,7 @@ parse_delay_pool_access(acl_access *** aa)
     aclParseAccessLine(&(a[pool - 1]));
 }
 
-void
+static void
 dump_delay_pool_access(StoreEntry * entry, const char *name, acl_access ** a)
 {
     LOCAL_ARRAY(char, nom, 32);
@@ -1189,7 +1189,7 @@ dump_delay_pool_access(StoreEntry * entry, const char *name, acl_access ** a)
     }
 }
 
-void
+static void
 free_delay_pool_access(acl_access *** aa)
 {
     int i = 0;
