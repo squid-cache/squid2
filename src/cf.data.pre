@@ -3351,6 +3351,20 @@ Example:
  broken_posts allow buggy_server
 DOC_END
 
+NAME: upgrade_http0.9
+COMMENT: on|off
+TYPE: onoff
+DEFAULT: on
+LOC: Config.onoff.upgrade_http09
+DOC_START
+	If enabled (default), Squid will upgrade HTTP/0.9 responses
+	received to it's supported HTTP version by adding a simple HTTP
+	header to the response.
+
+	If disabled the response will be forwarded without any header,
+	which may cause problems if you are in a cache hierarchy.
+DOC_END
+
 NAME: via
 IFDEF: HTTP_VIOLATIONS
 COMMENT: on|off
