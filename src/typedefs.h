@@ -185,6 +185,7 @@ typedef struct _http_state_flags http_state_flags;
 typedef struct _header_mangler header_mangler;
 typedef struct _body_size body_size;
 typedef struct _delay_body_size delay_body_size;
+typedef struct _method_t method_t;
 typedef struct _request_t request_t;
 typedef struct _AccessLogEntry AccessLogEntry;
 typedef struct _cachemgr_passwd cachemgr_passwd;
@@ -423,8 +424,6 @@ typedef struct _VaryData VaryData;
 typedef void STLVCB(VaryData * vary, void *cbdata);
 
 typedef struct _HttpMsgBuf HttpMsgBuf;
-
-typedef struct rms rms_t;
 
 typedef void LOGLINESTART(Logfile *);
 typedef void LOGWRITE(Logfile *, const char *, size_t len);

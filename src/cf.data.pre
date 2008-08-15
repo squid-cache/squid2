@@ -3470,15 +3470,6 @@ DOC_START
 	objects not intended for caching to get cached.
 DOC_END
 
-NAME: extension_methods
-TYPE: extension_method
-LOC: RequestMethods
-DEFAULT: none
-DOC_START
-	Squid only knows about standardized HTTP request methods.
-	You can add up to 20 additional "extension" methods here.
-DOC_END
-
 NAME: request_entities
 TYPE: onoff
 LOC: Config.onoff.request_entities

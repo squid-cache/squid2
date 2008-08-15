@@ -36,7 +36,7 @@
 #include "squid.h"
 
 request_t *
-requestCreate(method_t method, protocol_t protocol, const char *urlpath)
+requestCreate(method_t * method, protocol_t protocol, const char *urlpath)
 {
     request_t *req = memAllocate(MEM_REQUEST_T);
     req->method = method;
@@ -85,6 +85,7 @@ requestDestroy(request_t * req)
     if (req->pinned_connection)
 	cbdataUnlock(req->pinned_connection);
     req->pinned_connection = NULL;
+    urlMethodFree(req->method);
     memFree(req, MEM_REQUEST_T);
 }
 
@@ -114,7 +115,7 @@ httpRequestPack(const request_t * req, Packer * p)
     assert(req && p);
     /* pack request-line */
     packerPrintf(p, "%s %s HTTP/%d.%d\r\n",
-	RequestMethods[req->method].str, strBuf(req->urlpath), req->http_ver.major, req->http_ver.minor);
+	req->method->string, strBuf(req->urlpath), req->http_ver.major, req->http_ver.minor);
     /* headers */
     httpHeaderPackInto(&req->header, p);
     /* trailer */
@@ -134,7 +135,7 @@ httpRequestPackDebug(request_t * req, Packer * p)
     packerPrintf(p, "\n");
     /* pack request-line */
     packerPrintf(p, "%s %s HTTP/%d.%d\r\n",
-	RequestMethods[req->method].str, urlCanonical(req), req->http_ver.major, req->http_ver.minor);
+	req->method->string, urlCanonical(req), req->http_ver.major, req->http_ver.minor);
     /* headers */
     httpHeaderPackInto(&req->header, p);
     /* trailer */
@@ -154,7 +155,7 @@ httpRequestSwapOut(const request_t * req, StoreEntry * e)
 
 #if UNUSED_CODE
 void
-httpRequestSetHeaders(request_t * req, method_t method, const char *uri, const char *header_str)
+httpRequestSetHeaders(request_t * req, method_t * method, const char *uri, const char *header_str)
 {
     assert(req && uri && header_str);
     assert(!req->header.len);
@@ -168,7 +169,7 @@ int
 httpRequestPrefixLen(const request_t * req)
 {
     assert(req);
-    return RequestMethods[req->method].len + 1 +
+    return strlen(req->method->string) + 1 +
 	strLen(req->urlpath) + 1 +
 	4 + 1 + 3 + 2 +
 	req->header.len + 2;

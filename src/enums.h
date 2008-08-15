@@ -394,7 +394,7 @@ typedef enum {
     STORE_DISK_CLIENT
 } store_client_t;
 
-enum {
+typedef enum {
     METHOD_NONE,		/* 000 */
     METHOD_GET,			/* 001 */
     METHOD_POST,		/* 010 */
@@ -425,30 +425,8 @@ enum {
     METHOD_MKACTIVITY,
     METHOD_CHECKOUT,
     METHOD_MERGE,
-    /* Extension methods must be last, Add any new methods before this line */
-    METHOD_EXT00,
-    METHOD_EXT01,
-    METHOD_EXT02,
-    METHOD_EXT03,
-    METHOD_EXT04,
-    METHOD_EXT05,
-    METHOD_EXT06,
-    METHOD_EXT07,
-    METHOD_EXT08,
-    METHOD_EXT09,
-    METHOD_EXT10,
-    METHOD_EXT11,
-    METHOD_EXT12,
-    METHOD_EXT13,
-    METHOD_EXT14,
-    METHOD_EXT15,
-    METHOD_EXT16,
-    METHOD_EXT17,
-    METHOD_EXT18,
-    METHOD_EXT19,
-    METHOD_ENUM_END
-};
-typedef unsigned int method_t;
+    METHOD_OTHER,
+} method_code_t;
 
 typedef enum {
     PROTO_NONE,

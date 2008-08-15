@@ -1207,13 +1207,15 @@ peerCountMcastPeersStart(void *data)
     MemObject *mem;
     icp_common_t *query;
     int reqnum;
+    method_t *method_get;
     LOCAL_ARRAY(char, url, MAX_URL);
     assert(p->type == PEER_MULTICAST);
+    method_get = urlMethodGetKnownByCode(METHOD_GET);
     p->mcast.flags.count_event_pending = 0;
     snprintf(url, MAX_URL, "http://%s/", inet_ntoa(p->in_addr.sin_addr));
-    fake = storeCreateEntry(url, null_request_flags, METHOD_GET);
+    fake = storeCreateEntry(url, null_request_flags, method_get);
     psstate = cbdataAlloc(ps_state);
-    psstate->request = requestLink(urlParse(METHOD_GET, url));
+    psstate->request = requestLink(urlParse(method_get, url));
     psstate->entry = fake;
     psstate->callback = NULL;
     psstate->callback_data = p;

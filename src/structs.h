@@ -1207,10 +1207,19 @@ struct _HierarchyLogEntry {
     struct timeval store_complete_stop;
 };
 
+struct _method_t {
+    method_code_t code;
+    char *string;
+    struct {
+	unsigned int cachable:1;
+	unsigned int purges_all:1;
+    } flags;
+};
+
 struct _AccessLogEntry {
     const char *url;
     struct {
-	method_t method;
+	method_t *method;
 	int code;
 	const char *content_type;
 	http_version_t version;
@@ -1756,7 +1765,7 @@ struct _RemovalPurgeWalker {
 
 /* This structure can be freed while object is purged out from memory */
 struct _MemObject {
-    method_t method;
+    method_t *method;
     char *url;
     const char *store_url;
     mem_hdr data_hdr;
@@ -1941,7 +1950,7 @@ struct _storeIOState {
 };
 
 struct _request_t {
-    method_t method;
+    method_t *method;
     protocol_t protocol;
     char login[MAX_LOGIN_SZ];
     char host[SQUIDHOSTNAMELEN + 1];
@@ -2612,12 +2621,6 @@ struct _HttpMsgBuf {
     int u_start, u_end, u_len;
     int v_start, v_end, v_len;
     int v_maj, v_min;
-};
-
-/* request method str stuff; should probably be a String type.. */
-struct rms {
-    char *str;
-    int len;
 };
 
 struct _rewritetoken {

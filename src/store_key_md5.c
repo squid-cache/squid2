@@ -92,27 +92,36 @@ storeKeyHashHash(const void *key, unsigned int n)
 }
 
 const cache_key *
-storeKeyPrivate(const char *url, method_t method, int id)
+storeKeyPrivate(const char *url, method_t * method, int id)
 {
     static cache_key digest[SQUID_MD5_DIGEST_LENGTH];
+    int zero = 0;
     SQUID_MD5_CTX M;
     assert(id > 0);
-    debug(20, 3) ("storeKeyPrivate: %s %s\n",
-	RequestMethods[method].str, url);
+    debug(20, 3) ("storeKeyPrivate: %s %s\n", method->string, url);
     SQUID_MD5Init(&M);
     SQUID_MD5Update(&M, (unsigned char *) &id, sizeof(id));
-    SQUID_MD5Update(&M, (unsigned char *) &method, sizeof(method));
+    if (method == NULL) {
+	SQUID_MD5Update(&M, (unsigned char *) &zero, sizeof(int));
+    } else {
+	SQUID_MD5Update(&M, (unsigned char *) &method->code, sizeof(method->code));
+    }
     SQUID_MD5Update(&M, (unsigned char *) url, strlen(url));
     SQUID_MD5Final(digest, &M);
     return digest;
 }
 
 const cache_key *
-storeKeyPublic(const char *url, const method_t method)
+storeKeyPublic(const char *url, const method_t * method)
 {
     static cache_key digest[SQUID_MD5_DIGEST_LENGTH];
-    unsigned char m = (unsigned char) method;
+    unsigned char m;
     SQUID_MD5_CTX M;
+    if (method == NULL) {
+	m = 0;
+    } else {
+	m = (unsigned char) method->code;
+    }
     SQUID_MD5Init(&M);
     SQUID_MD5Update(&M, &m, sizeof(m));
     SQUID_MD5Update(&M, (unsigned char *) url, strlen(url));
@@ -127,12 +136,18 @@ storeKeyPublicByRequest(request_t * request)
 }
 
 const cache_key *
-storeKeyPublicByRequestMethod(request_t * request, const method_t method)
+storeKeyPublicByRequestMethod(request_t * request, const method_t * method)
 {
     static cache_key digest[SQUID_MD5_DIGEST_LENGTH];
-    unsigned char m = (unsigned char) method;
+    unsigned char m;
     const char *url;
     SQUID_MD5_CTX M;
+
+    if (method == NULL) {
+	m = 0;
+    } else {
+	m = (unsigned char) method->code;
+    }
 
     if (request->store_url) {
 	url = request->store_url;

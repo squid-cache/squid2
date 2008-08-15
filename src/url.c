@@ -35,59 +35,110 @@
 
 #include "squid.h"
 
-rms_t RequestMethods[] =
+struct rms {
+    method_t method;
+    int string_len;
+};
+
+/*
+ * It is currently VERY, VERY IMPORTANT that these be in order of their
+ * definition in the method_code_t enum.
+ */
+static struct rms request_methods[] =
 {
-    {(char *) "NONE", 4},
-    {(char *) "GET", 3},
-    {(char *) "POST", 4},
-    {(char *) "PUT", 3},
-    {(char *) "HEAD", 4},
-    {(char *) "CONNECT", 7},
-    {(char *) "TRACE", 5},
-    {(char *) "PURGE", 5},
-    {(char *) "OPTIONS", 7},
-    {(char *) "DELETE", 6},
-    {(char *) "PROPFIND", 8},
-    {(char *) "PROPPATCH", 9},
-    {(char *) "MKCOL", 5},
-    {(char *) "COPY", 4},
-    {(char *) "MOVE", 4},
-    {(char *) "LOCK", 4},
-    {(char *) "UNLOCK", 6},
-    {(char *) "BMOVE", 5},
-    {(char *) "BDELETE", 7},
-    {(char *) "BPROPFIND", 9},
-    {(char *) "BPROPPATCH", 10},
-    {(char *) "BCOPY", 5},
-    {(char *) "SEARCH", 6},
-    {(char *) "SUBSCRIBE", 9},
-    {(char *) "UNSUBSCRIBE", 11},
-    {(char *) "POLL", 4},
-    {(char *) "REPORT", 6},
-    {(char *) "MKACTIVITY", 10},
-    {(char *) "CHECKOUT", 8},
-    {(char *) "MERGE", 5},
-    {(char *) "%EXT00", 6},
-    {(char *) "%EXT01", 6},
-    {(char *) "%EXT02", 6},
-    {(char *) "%EXT03", 6},
-    {(char *) "%EXT04", 6},
-    {(char *) "%EXT05", 6},
-    {(char *) "%EXT06", 6},
-    {(char *) "%EXT07", 6},
-    {(char *) "%EXT08", 6},
-    {(char *) "%EXT09", 6},
-    {(char *) "%EXT10", 6},
-    {(char *) "%EXT11", 6},
-    {(char *) "%EXT12", 6},
-    {(char *) "%EXT13", 6},
-    {(char *) "%EXT14", 6},
-    {(char *) "%EXT15", 6},
-    {(char *) "%EXT16", 6},
-    {(char *) "%EXT17", 6},
-    {(char *) "%EXT18", 6},
-    {(char *) "%EXT19", 6},
-    {(char *) "ERROR", 5},
+    {
+	{METHOD_NONE, "NONE",
+	    {.cachable = 0,.purges_all = 0}}, 4},
+    {
+	{METHOD_GET, "GET",
+	    {.cachable = 1,.purges_all = 0}}, 3},
+    {
+	{METHOD_POST, "POST",
+	    {.cachable = 0,.purges_all = 1}}, 4},
+    {
+	{METHOD_PUT, "PUT",
+	    {.cachable = 0,.purges_all = 1}}, 3},
+    {
+	{METHOD_HEAD, "HEAD",
+	    {.cachable = 1,.purges_all = 0}}, 4},
+    {
+	{METHOD_CONNECT, "CONNECT",
+	    {.cachable = 0,.purges_all = 0}}, 7},
+    {
+	{METHOD_TRACE, "TRACE",
+	    {.cachable = 0,.purges_all = 0}}, 5},
+    {
+	{METHOD_PURGE, "PURGE",
+	    {.cachable = 0,.purges_all = 1}}, 5},
+    {
+	{METHOD_OPTIONS, "OPTIONS",
+	    {.cachable = 0,.purges_all = 0}}, 7},
+    {
+	{METHOD_DELETE, "DELETE",
+	    {.cachable = 0,.purges_all = 1}}, 6},
+    {
+	{METHOD_PROPFIND, "PROPFIND",
+	    {.cachable = 0,.purges_all = 0}}, 8},
+    {
+	{METHOD_PROPPATCH, "PROPPATCH",
+	    {.cachable = 0,.purges_all = 1}}, 9},
+    {
+	{METHOD_MKCOL, "MKCOL",
+	    {.cachable = 0,.purges_all = 1}}, 5},
+    {
+	{METHOD_COPY, "COPY",
+	    {.cachable = 0,.purges_all = 0}}, 4},
+    {
+	{METHOD_MOVE, "MOVE",
+	    {.cachable = 0,.purges_all = 1}}, 4},
+    {
+	{METHOD_LOCK, "LOCK",
+	    {.cachable = 0,.purges_all = 0}}, 4},
+    {
+	{METHOD_UNLOCK, "UNLOCK",
+	    {.cachable = 0,.purges_all = 0}}, 6},
+    {
+	{METHOD_BMOVE, "BMOVE",
+	    {.cachable = 0,.purges_all = 1}}, 5},
+    {
+	{METHOD_BDELETE, "BDELETE",
+	    {.cachable = 0,.purges_all = 1}}, 7},
+    {
+	{METHOD_BPROPFIND, "BPROPFIND",
+	    {.cachable = 0,.purges_all = 0}}, 9},
+    {
+	{METHOD_BPROPPATCH, "BPROPPATCH",
+	    {.cachable = 0,.purges_all = 0}}, 10},
+    {
+	{METHOD_BCOPY, "BCOPY",
+	    {.cachable = 0,.purges_all = 0}}, 5},
+    {
+	{METHOD_SEARCH, "SEARCH",
+	    {.cachable = 0,.purges_all = 0}}, 6},
+    {
+	{METHOD_SUBSCRIBE, "SUBSCRIBE",
+	    {.cachable = 0,.purges_all = 0}}, 9},
+    {
+	{METHOD_UNSUBSCRIBE, "UNSUBSCRIBE",
+	    {.cachable = 0,.purges_all = 0}}, 11},
+    {
+	{METHOD_POLL, "POLL",
+	    {.cachable = 0,.purges_all = 0}}, 4},
+    {
+	{METHOD_REPORT, "REPORT",
+	    {.cachable = 0,.purges_all = 0}}, 6},
+    {
+	{METHOD_MKACTIVITY, "MKACTIVITY",
+	    {.cachable = 0,.purges_all = 0}}, 10},
+    {
+	{METHOD_CHECKOUT, "CHECKOUT",
+	    {.cachable = 0,.purges_all = 0}}, 8},
+    {
+	{METHOD_MERGE, "MERGE",
+	    {.cachable = 0,.purges_all = 0}}, 5},
+    {
+	{METHOD_OTHER, NULL,
+	    {.cachable = 0,.purges_all = 0}}, 0},
 };
 
 const char *ProtocolStr[] =
@@ -109,7 +160,7 @@ const char *ProtocolStr[] =
     "TOTAL"
 };
 
-static request_t *urnParse(method_t method, char *urn);
+static request_t *urnParse(method_t * method, char *urn);
 static const char valid_hostname_chars_u[] =
 "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 "abcdefghijklmnopqrstuvwxyz"
@@ -177,24 +228,99 @@ urlInitialize(void)
     /* more cases? */
 }
 
-method_t
-urlParseMethod(const char *s, int len)
+method_t *
+urlMethodGetKnown(const char *s, int len)
 {
-    method_t method = METHOD_NONE;
-    /*
-     * This check for '%' makes sure that we don't
-     * match one of the extension method placeholders,
-     * which have the form %EXT[0-9][0-9]
-     */
-    if (*s == '%')
-	return METHOD_NONE;
-    for (method++; method < METHOD_ENUM_END; method++) {
-	if (len == RequestMethods[method].len && 0 == strncasecmp(s, RequestMethods[method].str, len))
-	    return method;
+    struct rms *rms;
+
+    for (rms = request_methods; rms->string_len != 0; rms++) {
+	if (len != rms->string_len) {
+	    continue;
+	}
+	if (strncasecmp(s, rms->method.string, len) == 0) {
+	    return (&rms->method);
+	}
     }
-    return METHOD_NONE;
+
+    return (NULL);
 }
 
+method_t *
+urlMethodGet(const char *s, int len)
+{
+    method_t *method;
+
+    method = urlMethodGetKnown(s, len);
+    if (method != NULL) {
+	return (method);
+    }
+    method = xmalloc(sizeof(method_t));
+    if (method == NULL) {
+	return (NULL);
+    }
+    method->code = METHOD_OTHER;
+    method->string = xmalloc((len + 1) * sizeof(char));
+    if (method->string == NULL) {
+	xfree(method);
+	return (NULL);
+    }
+    method->string = strncpy(method->string, s, len);
+    method->string[len] = '\0';
+    method->flags.cachable = 0;
+    method->flags.purges_all = 1;
+
+    return (method);
+}
+
+method_t *
+urlMethodGetKnownByCode(method_code_t code)
+{
+    if (code < 0 || code >= METHOD_OTHER) {
+	return (NULL);
+    }
+    return (&request_methods[code].method);
+}
+
+method_t *
+urlMethodDup(method_t * orig)
+{
+    method_t *method;
+
+    if (orig == NULL) {
+	return (NULL);
+    }
+    if (orig->code != METHOD_OTHER) {
+	return (orig);
+    }
+    method = xmalloc(sizeof(method_t));
+    if (method == NULL) {
+	return (NULL);
+    }
+    method->code = orig->code;
+    method->string = xstrdup(orig->string);
+    if (method->string == NULL) {
+	xfree(method);
+	return (NULL);
+    }
+    method->flags.cachable = orig->flags.cachable;
+    method->flags.purges_all = orig->flags.purges_all;
+
+    return (method);
+}
+
+void
+urlMethodFree(method_t * method)
+{
+
+    if (method == NULL) {
+	return;
+    }
+    if (method->code != METHOD_OTHER) {
+	return;
+    }
+    xfree(method->string);
+    xfree(method);
+}
 
 protocol_t
 urlParseProtocol(const char *s)
@@ -256,7 +382,7 @@ urlDefaultPort(protocol_t p)
  * being "end of host with implied path of /".
  */
 request_t *
-urlParse(method_t method, char *url)
+urlParse(method_t * method, char *url)
 {
     LOCAL_ARRAY(char, proto, MAX_URL);
     LOCAL_ARRAY(char, login, MAX_URL);
@@ -279,7 +405,7 @@ urlParse(method_t method, char *url)
 	debug(23, 1) ("urlParse: URL too large (%d bytes)\n", l);
 	return NULL;
     }
-    if (method == METHOD_CONNECT) {
+    if (method->code == METHOD_CONNECT) {
 	port = CONNECT_PORT;
 	if (sscanf(url, "%[^:]:%d", host, &port) < 1)
 	    return NULL;
@@ -419,7 +545,7 @@ urlParse(method_t method, char *url)
 }
 
 static request_t *
-urnParse(method_t method, char *urn)
+urnParse(method_t * method, char *urn)
 {
     debug(50, 5) ("urnParse: %s\n", urn);
     return requestCreate(method, PROTO_URN, urn + 4);
@@ -435,7 +561,7 @@ urlCanonical(request_t * request)
     if (request->protocol == PROTO_URN) {
 	snprintf(urlbuf, MAX_URL, "urn:%s", strBuf(request->urlpath));
     } else {
-	switch (request->method) {
+	switch (request->method->code) {
 	case METHOD_CONNECT:
 	    snprintf(urlbuf, MAX_URL, "%s:%d", request->host, request->port);
 	    break;
@@ -475,7 +601,7 @@ urlCanonicalClean(const request_t * request)
     if (request->protocol == PROTO_URN) {
 	snprintf(buf, MAX_URL, "urn:%s", strBuf(request->urlpath));
     } else {
-	switch (request->method) {
+	switch (request->method->code) {
 	case METHOD_CONNECT:
 	    snprintf(buf, MAX_URL, "%s:%d", request->host, request->port);
 	    break;
@@ -626,11 +752,11 @@ urlCheckRequest(const request_t * r)
 {
     int rc = 0;
     /* protocol "independent" methods */
-    if (r->method == METHOD_CONNECT)
+    if (r->method->code == METHOD_CONNECT)
 	return 1;
-    if (r->method == METHOD_TRACE)
+    if (r->method->code == METHOD_TRACE)
 	return 1;
-    if (r->method == METHOD_PURGE)
+    if (r->method->code == METHOD_PURGE)
 	return 1;
     /* does method match the protocol? */
     switch (r->protocol) {
@@ -641,14 +767,14 @@ urlCheckRequest(const request_t * r)
 	rc = 1;
 	break;
     case PROTO_FTP:
-	if (r->method == METHOD_PUT)
+	if (r->method->code == METHOD_PUT)
 	    rc = 1;
     case PROTO_GOPHER:
     case PROTO_WAIS:
     case PROTO_WHOIS:
-	if (r->method == METHOD_GET)
+	if (r->method->code == METHOD_GET)
 	    rc = 1;
-	else if (r->method == METHOD_HEAD)
+	else if (r->method->code == METHOD_HEAD)
 	    rc = 1;
 	break;
     case PROTO_HTTPS:
@@ -698,62 +824,4 @@ urlHostname(const char *url)
 	xmemmove(host, t, strlen(t) + 1);
     }
     return host;
-}
-
-static void
-urlExtMethodAdd(const char *mstr)
-{
-    method_t method = 0;
-    for (method++; method < METHOD_ENUM_END; method++) {
-	if (0 == strcmp(mstr, RequestMethods[method].str)) {
-	    debug(23, 2) ("Extension method '%s' already exists\n", mstr);
-	    return;
-	}
-	if (0 != strncmp("%EXT", RequestMethods[method].str, 4))
-	    continue;
-	/* Don't free statically allocated "%EXTnn" string */
-	if (0 == strncmp("%EXT_", RequestMethods[method].str, 5))
-	    safe_free(RequestMethods[method].str);
-	RequestMethods[method].str = xstrdup(mstr);
-	RequestMethods[method].len = strlen(mstr);
-	debug(23, 1) ("Extension method '%s' added, enum=%d\n", mstr, (int) method);
-	return;
-    }
-    debug(23, 1) ("WARNING: Could not add new extension method '%s' due to lack of array space\n", mstr);
-}
-
-void
-parse_extension_method(rms_t(*foo)[])
-{
-    char *token;
-    char *t = strtok(NULL, "");
-    while ((token = strwordtok(NULL, &t))) {
-	urlExtMethodAdd(token);
-    }
-}
-
-void
-free_extension_method(rms_t(*foo)[])
-{
-    method_t method;
-    for (method = METHOD_EXT00; method < METHOD_ENUM_END; method++) {
-	if (RequestMethods[method].str[0] != '%') {
-	    char buf[32];
-	    snprintf(buf, sizeof(buf), "%%EXT_%02d", method - METHOD_EXT00);
-	    safe_free(RequestMethods[method].str);
-	    RequestMethods[method].str = xstrdup(buf);
-	    RequestMethods[method].len = strlen(buf);
-	}
-    }
-}
-
-void
-dump_extension_method(StoreEntry * entry, const char *name, rms_t * methods)
-{
-    method_t method;
-    for (method = METHOD_EXT00; method < METHOD_ENUM_END; method++) {
-	if (RequestMethods[method].str[0] != '%') {
-	    storeAppendPrintf(entry, "%s %s\n", name, RequestMethods[method].str);
-	}
-    }
 }

@@ -52,7 +52,8 @@ static void httpReplyClean(HttpReply * rep);
 static void httpReplyDoDestroy(HttpReply * rep);
 static void httpReplyHdrCacheInit(HttpReply * rep);
 static void httpReplyHdrCacheClean(HttpReply * rep);
-static int httpReplyParseStep(HttpReply * rep, const char *parse_start, int len);
+static int httpReplyParseStep(HttpReply * rep, const char *parse_start,
+    int len);
 static int httpReplyParseError(HttpReply * rep);
 static time_t httpReplyHdrExpirationTime(const HttpReply * rep);
 
@@ -62,7 +63,8 @@ void
 httpReplyInitModule(void)
 {
     httpHeaderMaskInit(&Denied304HeadersMask, 0);
-    httpHeaderCalcMask(&Denied304HeadersMask, Denied304HeadersArr, countof(Denied304HeadersArr));
+    httpHeaderCalcMask(&Denied304HeadersMask, Denied304HeadersArr,
+	countof(Denied304HeadersArr));
 }
 
 
@@ -70,6 +72,7 @@ HttpReply *
 httpReplyCreate(void)
 {
     HttpReply *rep = memAllocate(MEM_HTTP_REPLY);
+
     debug(58, 7) ("creating rep: %p\n", rep);
     httpReplyInit(rep);
     return rep;
@@ -120,7 +123,9 @@ httpReplyAbsorb(HttpReply * rep, HttpReply * new_rep)
     assert(rep && new_rep);
     httpReplyClean(rep);
     *rep = *new_rep;
-    /* cannot use Clean() on new reply now! */
+    /*
+     * cannot use Clean() on new reply now! 
+     */
     httpReplyDoDestroy(new_rep);
 }
 
@@ -135,7 +140,9 @@ httpReplyAbsorb(HttpReply * rep, HttpReply * new_rep)
 int
 httpReplyParse(HttpReply * rep, const char *buf, size_t end)
 {
-    /* The code called by httpReplyParseStep doesn't assume NUL-terminated stuff! */
+    /*
+     * The code called by httpReplyParseStep doesn't assume NUL-terminated stuff! 
+     */
     httpReplyReset(rep);
     return (httpReplyParseStep(rep, buf, end) == 1);
 }
@@ -156,6 +163,7 @@ httpReplyPack(const HttpReply * rep)
 {
     MemBuf mb;
     Packer p;
+
     assert(rep);
 
     memBufDefInit(&mb);
@@ -170,10 +178,12 @@ void
 httpReplySwapOut(HttpReply * rep, StoreEntry * e)
 {
     Packer p;
+
     assert(rep && e);
 
-    /* storeBuffer should have been done by the caller, but do it here just in case as things
-     * break badly if not
+    /*
+     * storeBuffer should have been done by the caller, but do it here just in case as things
+     * * break badly if not
      */
     storeBuffer(e);
     if (rep != e->mem_obj->reply) {
@@ -193,6 +203,7 @@ httpPackedReply(http_status status, const char *ctype,
 {
     HttpReply *rep = httpReplyCreate();
     MemBuf mb;
+
     httpReplySetHeaders(rep, status, ctype, NULL, clen, lmt, expires);
     mb = httpReplyPack(rep);
     httpReplyDestroy(rep);
@@ -204,11 +215,16 @@ MemBuf
 httpPacked304Reply(const HttpReply * rep, int http11)
 {
     static const http_hdr_type ImsEntries[] =
-    {HDR_DATE, HDR_CONTENT_TYPE, HDR_EXPIRES, HDR_LAST_MODIFIED, HDR_ETAG, /* eof */ HDR_OTHER};
+    {HDR_DATE, HDR_CONTENT_TYPE, HDR_EXPIRES, HDR_LAST_MODIFIED, HDR_ETAG,
+    /*
+     * eof 
+     */ HDR_OTHER
+    };
     int t;
     MemBuf mb;
     Packer p;
     HttpHeaderEntry *e;
+
     assert(rep);
 
     memBufDefInit(&mb);
@@ -257,6 +273,7 @@ httpRedirectReply(HttpReply * reply, http_status status, const char *loc)
 {
     HttpHeader *hdr;
     http_version_t ver;
+
     assert(reply);
     httpBuildVersion(&ver, 1, 1);
     httpStatusLineSet(&reply->sline, ver, status, httpStatusString(status));
@@ -274,13 +291,19 @@ void
 httpReplyUpdateOnNotModified(HttpReply * rep, HttpReply * freshRep)
 {
     assert(rep && freshRep);
-    /* clean cache */
+    /*
+     * clean cache 
+     */
     httpReplyHdrCacheClean(rep);
-    /* update raw headers */
+    /*
+     * update raw headers 
+     */
     httpHeaderDelById(&rep->header, HDR_AGE);
     httpHeaderUpdate(&rep->header, &freshRep->header,
 	(const HttpHeaderMask *) &Denied304HeadersMask);
-    /* init cache */
+    /*
+     * init cache 
+     */
     httpReplyHdrCacheInit(rep);
 }
 
@@ -297,7 +320,9 @@ httpReplyDoDestroy(HttpReply * rep)
 static time_t
 httpReplyHdrExpirationTime(const HttpReply * rep)
 {
-    /* The s-maxage and max-age directive takes priority over Expires */
+    /*
+     * The s-maxage and max-age directive takes priority over Expires 
+     */
     if (rep->cache_control) {
 	if (rep->date >= 0) {
 	    if (rep->cache_control->s_maxage >= 0)
@@ -319,11 +344,13 @@ httpReplyHdrExpirationTime(const HttpReply * rep)
 	httpHeaderHas(&rep->header, HDR_VARY)) {
 	const time_t d = httpHeaderGetTime(&rep->header, HDR_DATE);
 	const time_t e = httpHeaderGetTime(&rep->header, HDR_EXPIRES);
+
 	if (d == e)
 	    return -1;
     }
     if (httpHeaderHas(&rep->header, HDR_EXPIRES)) {
 	const time_t e = httpHeaderGetTime(&rep->header, HDR_EXPIRES);
+
 	/*
 	 * HTTP/1.1 says that robust implementations should consider
 	 * bad or malformed Expires header as equivalent to "expires
@@ -340,6 +367,7 @@ httpReplyHdrCacheInit(HttpReply * rep)
 {
     const HttpHeader *hdr = &rep->header;
     const char *str;
+
     rep->content_length = httpHeaderGetSize(hdr, HDR_CONTENT_LENGTH);
     rep->date = httpHeaderGetTime(hdr, HDR_DATE);
     rep->last_modified = httpHeaderGetTime(hdr, HDR_LAST_MODIFIED);
@@ -351,7 +379,9 @@ httpReplyHdrCacheInit(HttpReply * rep)
     rep->cache_control = httpHeaderGetCc(hdr);
     rep->content_range = httpHeaderGetContRange(hdr);
     rep->keep_alive = httpMsgIsPersistent(rep->sline.version, &rep->header);
-    /* be sure to set expires after date and cache-control */
+    /*
+     * be sure to set expires after date and cache-control 
+     */
     rep->expires = httpReplyHdrExpirationTime(rep);
 }
 
@@ -360,16 +390,26 @@ httpReplyClone(HttpReply * src)
 {
     HttpReply *dst = httpReplyCreate();
 
-    /* basic variables */
+    /*
+     * basic variables 
+     */
     dst->hdr_sz = src->hdr_sz;
 
-    /* parser state */
+    /*
+     * parser state 
+     */
     dst->pstate = src->pstate;
-    /* status line */
+    /*
+     * status line 
+     */
     dst->sline = src->sline;
-    /* header */
+    /*
+     * header 
+     */
     httpHeaderAppend(&dst->header, &src->header);
-    /* body, if applicable */
+    /*
+     * body, if applicable 
+     */
     if (dst->body.mb.buf != NULL)
 	memBufAppend(&dst->body.mb, dst->body.mb.buf, dst->body.mb.size);
 
@@ -416,45 +456,66 @@ httpReplyParseStep(HttpReply * rep, const char *buf, int len)
     const char *blk_start, *blk_end;
     int i;
     const char *re;
+
     assert(rep);
     assert(parse_start);
     assert(rep->pstate < psParsed);
 
-    /* For now we'll assume we need to parse the whole lot */
+    /*
+     * For now we'll assume we need to parse the whole lot 
+     */
 
-    /* Find end of start line */
+    /*
+     * Find end of start line 
+     */
     re = memchr(buf, '\n', len);
     if (!re)
 	return httpReplyParseError(rep);
 
-    /* Skip \n */
+    /*
+     * Skip \n 
+     */
     re++;
     i = re - buf;
     if (i >= len)
 	return httpReplyParseError(rep);
 
-    /* Pass that to the existing Squid status line parsing routine */
+    /*
+     * Pass that to the existing Squid status line parsing routine 
+     */
     if (!httpStatusLineParse(&rep->sline, buf, re - 1))
 	return httpReplyParseError(rep);
     rep->pstate++;
 
-    /* All good? Attempt to isolate headers */
-    /* The block in question is between re and buf + len */
+    /*
+     * All good? Attempt to isolate headers 
+     */
+    /*
+     * The block in question is between re and buf + len 
+     */
     parse_start = re;
     if (!httpMsgIsolateHeaders(&parse_start, len - i, &blk_start, &blk_end))
 	return httpReplyParseError(rep);
 
-    /* Isolated? parse headers */
+    /*
+     * Isolated? parse headers 
+     */
     if (!httpHeaderParse(&rep->header, blk_start, blk_end))
 	return httpReplyParseError(rep);
 
-    /* Update rep */
+    /*
+     * Update rep 
+     */
     httpReplyHdrCacheInit(rep);
-    /* the previous code had hdr_sz including the status line + headers and final \r\n */
+    /*
+     * the previous code had hdr_sz including the status line + headers and final \r\n 
+     */
     rep->hdr_sz = parse_start - buf;
     rep->pstate++;
 
-    /* Done */
+    /*
+     * Done 
+     */
     return 1;
 }
 
@@ -463,9 +524,13 @@ static int
 httpReplyParseError(HttpReply * rep)
 {
     assert(rep);
-    /* reset */
+    /*
+     * reset 
+     */
     httpReplyReset(rep);
-    /* indicate an error */
+    /*
+     * indicate an error 
+     */
     rep->sline.status = HTTP_INVALID_HEADER;
     return -1;
 }
@@ -474,13 +539,14 @@ httpReplyParseError(HttpReply * rep)
  * Returns the body size of a HTTP response
  */
 squid_off_t
-httpReplyBodySize(method_t method, const HttpReply * reply)
+httpReplyBodySize(method_t * method, const HttpReply * reply)
 {
     if (reply->sline.version.major < 1)
 	return -1;
-    else if (METHOD_HEAD == method)
-	return 0;
-    else if (reply->sline.status == HTTP_OK)
+    else if (method != NULL) {
+	if (method->code == METHOD_HEAD)
+	    return 0;
+    } else if (reply->sline.status == HTTP_OK)
 	(void) 0;		/* common case, continue */
     else if (reply->sline.status == HTTP_NO_CONTENT)
 	return 0;

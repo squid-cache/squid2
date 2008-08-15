@@ -160,7 +160,7 @@ fwdCheckRetriable(FwdState * fwdState)
 	return 0;
 
     /* RFC2616 9.1 Safe and Idempotent Methods */
-    switch (fwdState->request->method) {
+    switch (fwdState->request->method->code) {
 	/* 9.1.1 Safe Methods */
     case METHOD_GET:
     case METHOD_HEAD:
@@ -759,9 +759,7 @@ fwdDispatch(FwdState * fwdState)
     int server_fd = fwdState->server_fd;
     FwdServer *fs = fwdState->servers;
     debug(17, 3) ("fwdDispatch: FD %d: Fetching '%s %s'\n",
-	fwdState->client_fd,
-	RequestMethods[request->method].str,
-	storeUrl(entry));
+	fwdState->client_fd, request->method->string, storeUrl(entry));
     /*
      * Assert that server_fd is set.  This is to guarantee that fwdState
      * is attached to something and will be deallocated when server_fd
@@ -1242,8 +1240,7 @@ fwdLog(FwdState * fwdState)
     logfilePrintf(logfile, "%9d.%03d %03d %s %s\n",
 	(int) current_time.tv_sec,
 	(int) current_time.tv_usec / 1000,
-	fwdState->last_status,
-	RequestMethods[fwdState->request->method].str,
+	fwdState->last_status, fwdState->request->method->string,
 	fwdState->request->canonical);
 }
 

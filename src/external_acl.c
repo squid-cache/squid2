@@ -673,7 +673,7 @@ makeExternalAclKey(aclCheck_t * ch, external_acl_data * acl_data)
 	    str = strBuf(request->urlpath);
 	    break;
 	case EXT_ACL_METHOD:
-	    str = RequestMethods[request->method].str;
+	    str = request->method->string;
 	    break;
 	case EXT_ACL_HEADER:
 	    sb = httpHeaderGetByName(&request->header, format->header);

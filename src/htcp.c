@@ -479,7 +479,7 @@ static htcpSpecifier *
 htcpUnpackSpecifier(char *buf, int sz)
 {
     htcpSpecifier *s = memPoolAlloc(htcpSpecifierPool);
-    method_t method;
+    method_t *method;
 
     /* Find length of METHOD */
     u_short l = ntohs(*(u_short *) buf);
@@ -553,8 +553,11 @@ htcpUnpackSpecifier(char *buf, int sz)
     /*
      * Parse the request
      */
-    method = urlParseMethod(s->method, strlen(s->method));
-    s->request = urlParse(method == METHOD_NONE ? METHOD_GET : method, s->uri);
+    method = urlMethodGetKnown(s->method, strlen(s->method));
+    if (method == NULL) {
+	method = urlMethodGetKnownByCode(METHOD_GET);
+    }
+    s->request = urlParse(method, s->uri);
     return s;
 }
 
@@ -1178,7 +1181,7 @@ htcpQuery(StoreEntry * e, request_t * req, peer * p)
     stuff.f1 = 1;
     stuff.response = 0;
     stuff.msg_id = ++msg_id_counter;
-    stuff.S.method = (char *) RequestMethods[req->method].str;
+    stuff.S.method = (char *) req->method->string;
     stuff.S.uri = (char *) storeUrl(e);
     stuff.S.version = vbuf;
     httpBuildRequestHeader(req, req, e, &hdr, flags);

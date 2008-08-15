@@ -978,6 +978,7 @@ netdbExchangeStart(void *data)
     peer *p = data;
     char *uri;
     netdbExchangeState *ex;
+    method_t *method_get;
     CBDATA_INIT_TYPE(netdbExchangeState);
     ex = cbdataAlloc(netdbExchangeState);
     cbdataLock(p);
@@ -985,7 +986,8 @@ netdbExchangeStart(void *data)
     uri = internalRemoteUri(p->host, p->http_port, "/squid-internal-dynamic/", "netdb");
     debug(38, 3) ("netdbExchangeStart: Requesting '%s'\n", uri);
     assert(NULL != uri);
-    ex->r = urlParse(METHOD_GET, uri);
+    method_get = urlMethodGetKnownByCode(METHOD_GET);
+    ex->r = urlParse(method_get, uri);
     if (NULL == ex->r) {
 	debug(38, 1) ("netdbExchangeStart: Bad URI %s\n", uri);
 	return;
@@ -993,7 +995,7 @@ netdbExchangeStart(void *data)
     requestLink(ex->r);
     assert(NULL != ex->r);
     httpBuildVersion(&ex->r->http_ver, 1, 0);
-    ex->e = storeCreateEntry(uri, null_request_flags, METHOD_GET);
+    ex->e = storeCreateEntry(uri, null_request_flags, method_get);
     assert(NULL != ex->e);
     ex->sc = storeClientRegister(ex->e, ex);
     storeClientRef(ex->sc, ex->e, ex->seen, ex->used, SM_PAGE_SIZE,

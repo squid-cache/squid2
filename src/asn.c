@@ -195,15 +195,17 @@ asnCacheStart(int as)
     StoreEntry *e;
     request_t *req;
     ASState *asState;
+    method_t *method_get;
+    method_get = urlMethodGetKnownByCode(METHOD_GET);
     asState = cbdataAlloc(ASState);
     debug(53, 3) ("asnCacheStart: AS %d\n", as);
     snprintf(asres, 4096, "whois://%s/!gAS%d", Config.as_whois_server, as);
     asState->as_number = as;
-    req = urlParse(METHOD_GET, asres);
+    req = urlParse(method_get, asres);
     assert(NULL != req);
     asState->request = requestLink(req);
-    if ((e = storeGetPublic(asres, METHOD_GET)) == NULL) {
-	e = storeCreateEntry(asres, null_request_flags, METHOD_GET);
+    if ((e = storeGetPublic(asres, method_get)) == NULL) {
+	e = storeCreateEntry(asres, null_request_flags, method_get);
 	asState->sc = storeClientRegister(e, asState);
 	fwdStart(-1, e, asState->request);
     } else {

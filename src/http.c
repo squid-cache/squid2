@@ -85,13 +85,10 @@ httpStateFree(int fd, void *data)
 }
 
 int
-httpCachable(method_t method)
+httpCachable(method_t * method)
 {
-    /* GET and HEAD are cachable. Others are not. */
-    if (method != METHOD_GET && method != METHOD_HEAD)
-	return 0;
-    /* else cachable */
-    return 1;
+
+    return (method->flags.cachable);
 }
 
 static void
@@ -141,6 +138,9 @@ httpMaybeRemovePublic(StoreEntry * e, http_status status)
     int remove = 0;
     int forbidden = 0;
     StoreEntry *pe;
+    method_t *method_get, *method_head;
+    method_get = urlMethodGetKnownByCode(METHOD_GET);
+    method_head = urlMethodGetKnownByCode(METHOD_HEAD);
     switch (status) {
     case HTTP_OK:
     case HTTP_NON_AUTHORITATIVE_INFORMATION:
@@ -188,15 +188,15 @@ httpMaybeRemovePublic(StoreEntry * e, http_status status)
      * changed.
      */
     if (e->mem_obj->request)
-	pe = storeGetPublicByRequestMethod(e->mem_obj->request, METHOD_HEAD);
+	pe = storeGetPublicByRequestMethod(e->mem_obj->request, method_head);
     else
-	pe = storeGetPublic(e->mem_obj->url, METHOD_HEAD);
+	pe = storeGetPublic(e->mem_obj->url, method_head);
     if (pe != NULL && e != pe) {
 	storeRelease(pe);
     }
     if (forbidden)
 	return;
-    switch (e->mem_obj->method) {
+    switch (e->mem_obj->method->code) {
     case METHOD_PUT:
     case METHOD_DELETE:
     case METHOD_PROPPATCH:
@@ -209,13 +209,15 @@ httpMaybeRemovePublic(StoreEntry * e, http_status status)
 	 * object may have changed as a result of other methods
 	 */
 	if (e->mem_obj->request)
-	    pe = storeGetPublicByRequestMethod(e->mem_obj->request, METHOD_GET);
+	    pe = storeGetPublicByRequestMethod(e->mem_obj->request, method_get);
 	else
-	    pe = storeGetPublic(e->mem_obj->url, METHOD_GET);
+	    pe = storeGetPublic(e->mem_obj->url, method_get);
 	if (pe != NULL) {
 	    assert(e != pe);
 	    storeRelease(pe);
 	}
+	break;
+    default:
 	break;
     }
 }
@@ -229,7 +231,7 @@ httpCachableReply(HttpStateData * httpState)
     const char *v;
 #if HTTP_VIOLATIONS
     const refresh_t *R = NULL;
-    /* This strange looking define first looks up the frefresh pattern
+    /* This strange looking define first looks up the refresh pattern
      * and then checks if the specified flag is set. The main purpose
      * of this is to simplify the refresh pattern lookup
      */
@@ -772,7 +774,7 @@ httpAppendBody(HttpStateData * httpState, const char *buf, ssize_t len, int buff
     if (len > 0) {
 	debug(11, Config.onoff.relaxed_header_parser <= 0 || keep_alive ? 1 : 2)
 	    ("httpReadReply: Excess data from \"%s %s\"\n",
-	    RequestMethods[orig_request->method].str,
+	    orig_request->method->string,
 	    storeUrl(entry));
 	comm_close(fd);
 	return;
@@ -793,7 +795,7 @@ httpAppendBody(HttpStateData * httpState, const char *buf, ssize_t len, int buff
      */
     if (!httpState->flags.request_sent) {
 	debug(11, 1) ("httpAppendBody: Request not yet fully sent \"%s %s\"\n",
-	    RequestMethods[orig_request->method].str,
+	    orig_request->method->string,
 	    storeUrl(entry));
 	keep_alive = 0;
     }
@@ -1180,7 +1182,7 @@ httpBuildRequestHeader(request_t * request,
 		    httpHeaderAddClone(hdr_out, e);
 	    break;
 	case HDR_MAX_FORWARDS:
-	    if (orig_request->method == METHOD_TRACE) {
+	    if (orig_request->method->code == METHOD_TRACE) {
 		/* sacrificing efficiency over clarity, etc. */
 		const int hops = httpHeaderGetInt(hdr_in, HDR_MAX_FORWARDS);
 		if (hops > 0)
@@ -1398,8 +1400,7 @@ httpBuildRequestPrefix(request_t * request,
     http_state_flags flags)
 {
     const int offset = mb->size;
-    memBufPrintf(mb, "%s %s HTTP/1.%d\r\n",
-	RequestMethods[request->method].str,
+    memBufPrintf(mb, "%s %s HTTP/1.%d\r\n", request->method->string,
 	strLen(request->urlpath) ? strBuf(request->urlpath) : "/",
 	flags.http11);
     /* build and pack headers */
@@ -1491,8 +1492,7 @@ httpStart(FwdState * fwd)
     HttpStateData *httpState;
     request_t *proxy_req;
     request_t *orig_req = fwd->request;
-    debug(11, 3) ("httpStart: \"%s %s\"\n",
-	RequestMethods[orig_req->method].str,
+    debug(11, 3) ("httpStart: \"%s %s\"\n", orig_req->method->string,
 	storeUrl(fwd->entry));
     httpState = cbdataAlloc(HttpStateData);
     storeLockObject(fwd->entry);

@@ -193,7 +193,9 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
     u_num32 flags = 0;
     int rtt = 0;
     int hops = 0;
+    method_t *method_get;
     xmemcpy(&header, buf, sizeof(icp_common_t));
+    method_get = urlMethodGetKnownByCode(METHOD_GET);
     /*
      * Only these fields need to be converted
      */
@@ -218,7 +220,7 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	    icpUdpSend(fd, &from, reply, LOG_UDP_INVALID, 0);
 	    break;
 	}
-	if ((icp_request = urlParse(METHOD_GET, url)) == NULL) {
+	if ((icp_request = urlParse(method_get, url)) == NULL) {
 	    reply = icpCreateMessage(ICP_ERR, 0, url, header.reqnum, 0);
 	    icpUdpSend(fd, &from, reply, LOG_UDP_INVALID, 0);
 	    break;
@@ -251,7 +253,7 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 		flags |= ICP_FLAG_SRC_RTT;
 	}
 	/* The peer is allowed to use this cache */
-	entry = storeGetPublic(url, METHOD_GET);
+	entry = storeGetPublic(url, method_get);
 	debug(12, 5) ("icpHandleIcpV2: OPCODE %s\n", icp_opcode_str[header.opcode]);
 	if (icpCheckUdpHit(entry, icp_request)) {
 	    reply = icpCreateMessage(ICP_HIT, flags, url, header.reqnum, src_rtt);
@@ -560,5 +562,5 @@ icpGetCacheKey(const char *url, int reqnum)
 {
     if (neighbors_do_private_keys && reqnum)
 	return queried_keys[reqnum & N_QUERIED_KEYS_MASK];
-    return storeKeyPublic(url, METHOD_GET);
+    return storeKeyPublic(url, urlMethodGetKnownByCode(METHOD_GET));
 }

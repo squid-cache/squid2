@@ -172,6 +172,7 @@ destroy_MemObject(StoreEntry * e)
     assert(mem->chksum == url_checksum(mem->url));
 #endif
     e->mem_obj = NULL;
+    urlMethodFree(mem->method);
     if (!shutting_down)
 	assert(mem->swapout.sio == NULL);
     stmemFree(&mem->data_hdr);
@@ -347,18 +348,31 @@ storeUnlockObjectDebug(StoreEntry * e, const char *file, const int line)
 StoreEntry *
 storeGet(const cache_key * key)
 {
-    debug(20, 3) ("storeGet: looking up %s\n", storeKeyText(key));
-    return (StoreEntry *) hash_lookup(store_table, key);
+    StoreEntry *e = (StoreEntry *) hash_lookup(store_table, key);
+    debug(20, 3) ("storeGet: %s -> %p\n", storeKeyText(key), e);
+    return e;
 }
 
 StoreEntry *
-storeGetPublic(const char *uri, const method_t method)
+storeGetPublic(const char *uri, const method_t * method)
 {
     return storeGet(storeKeyPublic(uri, method));
 }
 
 StoreEntry *
-storeGetPublicByRequestMethod(request_t * req, const method_t method)
+storeGetPublicByCode(const char *uri, const method_code_t code)
+{
+    method_t *method;
+
+    method = urlMethodGetKnownByCode(code);
+    if (method == NULL) {
+	return (NULL);
+    }
+    return storeGetPublic(uri, method);
+}
+
+StoreEntry *
+storeGetPublicByRequestMethod(request_t * req, const method_t * method)
 {
     if (req->vary) {
 	/* Varying objects... */
@@ -371,12 +385,24 @@ storeGetPublicByRequestMethod(request_t * req, const method_t method)
 }
 
 StoreEntry *
+storeGetPublicByRequestMethodCode(request_t * req, const method_code_t code)
+{
+    method_t *method;
+
+    method = urlMethodGetKnownByCode(code);
+    if (method == NULL) {
+	return (NULL);
+    }
+    return storeGetPublicByRequestMethod(req, method);
+}
+
+StoreEntry *
 storeGetPublicByRequest(request_t * req)
 {
     StoreEntry *e = storeGetPublicByRequestMethod(req, req->method);
-    if (e == NULL && req->method == METHOD_HEAD)
+    if (e == NULL && req->method->code == METHOD_HEAD)
 	/* We can generate a HEAD reply from a cached GET object */
-	e = storeGetPublicByRequestMethod(req, METHOD_GET);
+	e = storeGetPublicByRequestMethodCode(req, METHOD_GET);
     return e;
 }
 
@@ -405,7 +431,7 @@ storeSetPrivateKey(StoreEntry * e)
 	mem->id = getKeyCounter();
 	newkey = storeKeyPrivate(mem->url, mem->method, mem->id);
     } else {
-	newkey = storeKeyPrivate("JUNK", METHOD_NONE, getKeyCounter());
+	newkey = storeKeyPrivate("JUNK", NULL, getKeyCounter());
     }
     assert(hash_lookup(store_table, newkey) == NULL);
     EBIT_SET(e->flags, KEY_PRIVATE);
@@ -720,7 +746,7 @@ storeAddVaryReadOld(void *data, mem_node_ref nr, ssize_t size)
  * At leas one of key or etag must be specified, preferably both.
  */
 void
-storeAddVary(const char *url, const method_t method, const cache_key * key, const char *etag, const char *vary, const char *vary_headers, const char *accept_encoding)
+storeAddVary(const char *url, method_t * method, const cache_key * key, const char *etag, const char *vary, const char *vary_headers, const char *accept_encoding)
 {
     AddVaryState *state;
     request_flags flags = null_request_flags;
@@ -1094,7 +1120,7 @@ storeSetPublicKey(StoreEntry * e)
 }
 
 StoreEntry *
-storeCreateEntry(const char *url, request_flags flags, method_t method)
+storeCreateEntry(const char *url, request_flags flags, method_t * method)
 {
     StoreEntry *e = NULL;
     MemObject *mem = NULL;
@@ -1103,7 +1129,7 @@ storeCreateEntry(const char *url, request_flags flags, method_t method)
     e = new_StoreEntry(STORE_ENTRY_WITH_MEMOBJ, url);
     e->lock_count = 1;		/* Note lock here w/o calling storeLock() */
     mem = e->mem_obj;
-    mem->method = method;
+    mem->method = urlMethodDup(method);
     if (neighbors_do_private_keys || !flags.hierarchical)
 	storeSetPrivateKey(e);
     else

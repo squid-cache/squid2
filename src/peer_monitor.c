@@ -151,7 +151,7 @@ peerMonitorRequest(void *data)
 	cbdataFree(pm);
 	return;
     }
-    req = urlParse(METHOD_GET, url);
+    req = urlParse(urlMethodGetKnownByCode(METHOD_GET), url);
     if (!req) {
 	debug(DBG, 1) ("peerMonitorRequest: Failed to parse URL '%s' for cache_peer %s\n", url, pm->peer->name);
 	cbdataFree(pm);
