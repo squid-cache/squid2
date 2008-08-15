@@ -582,6 +582,69 @@ urlCanonical(request_t * request)
     return (request->canonical = xstrdup(urlbuf));
 }
 
+char *
+urlAbsolute(request_t * req, const char *relUrl)
+{
+    LOCAL_ARRAY(char, portbuf, 32);
+    LOCAL_ARRAY(char, urlbuf, MAX_URL);
+    char *path, *last_slash;
+
+    if (relUrl == NULL) {
+	return (NULL);
+    }
+    if (req->method->code == METHOD_CONNECT) {
+	return (NULL);
+    }
+    if (strchr(relUrl, ':') != NULL) {
+	return (NULL);
+    }
+    if (req->protocol == PROTO_URN) {
+	snprintf(urlbuf, MAX_URL, "urn:%s", strBuf(req->urlpath));
+    } else {
+	portbuf[0] = '\0';
+	if (req->port != urlDefaultPort(req->protocol)) {
+	    snprintf(portbuf, 32, ":%d", req->port);
+	}
+	if (relUrl[0] == '/') {
+	    snprintf(urlbuf, MAX_URL, "%s://%s%s%s%s%s",
+		ProtocolStr[req->protocol],
+		req->login,
+		*req->login ? "@" : null_string,
+		req->host,
+		portbuf,
+		relUrl
+		);
+	} else {
+	    path = xstrdup(strBuf(req->urlpath));
+	    last_slash = strrchr(path, '/');
+	    if (last_slash == NULL) {
+		snprintf(urlbuf, MAX_URL, "%s://%s%s%s%s/%s",
+		    ProtocolStr[req->protocol],
+		    req->login,
+		    *req->login ? "@" : null_string,
+		    req->host,
+		    portbuf,
+		    relUrl
+		    );
+	    } else {
+		last_slash++;
+		*last_slash = '\0';
+		snprintf(urlbuf, MAX_URL, "%s://%s%s%s%s%s%s",
+		    ProtocolStr[req->protocol],
+		    req->login,
+		    *req->login ? "@" : null_string,
+		    req->host,
+		    portbuf,
+		    path,
+		    relUrl
+		    );
+	    }
+	    xfree(path);
+	}
+    }
+
+    return (xstrdup(urlbuf));
+}
 /*
  * Eventually the request_t strings should be String entries which
  * have in-built length. Eventually we should just take a buffer and

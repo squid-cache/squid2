@@ -406,6 +406,34 @@ storeGetPublicByRequest(request_t * req)
     return e;
 }
 
+void
+storePurgeEntriesByUrl(request_t * req, const char *url)
+{
+    int m, get_or_head_sent;
+    method_t *method;
+    StoreEntry *e;
+
+    debug(20, 5) ("storePurgeEntriesByUrl: purging %s\n", url);
+    get_or_head_sent = 0;
+
+    for (m = METHOD_NONE; m < METHOD_OTHER; m++) {
+	method = urlMethodGetKnownByCode(m);
+	if (!method->flags.cachable) {
+	    continue;
+	}
+	if ((m == METHOD_HEAD || m == METHOD_GET) && get_or_head_sent) {
+	    continue;
+	}
+	e = storeGetPublic(url, method);
+	if (e == NULL) {
+	    continue;
+	}
+	debug(20, 5) ("storePurgeEntriesByUrl: purging %s %s\n",
+	    method->string, url);
+	storeRelease(e);
+    }
+}
+
 static int
 getKeyCounter(void)
 {

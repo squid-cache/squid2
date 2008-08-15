@@ -53,8 +53,32 @@ static void httpCacheNegatively(StoreEntry *);
 static void httpMakePrivate(StoreEntry *);
 static void httpMakePublic(StoreEntry *);
 static int httpCachableReply(HttpStateData *);
-static void httpMaybeRemovePublic(StoreEntry *, http_status);
+static void httpMaybeRemovePublic(StoreEntry *, HttpReply *);
 static int peer_supports_connection_pinning(HttpStateData * httpState);
+
+static int
+httpUrlHostsMatch(const char *url1, const char *url2)
+{
+    const char *host1 = strchr(url1, ':');
+    const char *host2 = strchr(url2, ':');
+
+    if (host1 && host2) {
+	do {
+	    ++host1;
+	    ++host2;
+	} while (*host1 == '/' && *host2 == '/');
+
+	if (!*host1) {
+	    return (0);
+	}
+	while (*host1 && *host1 != '/' && *host1 == *host2) {
+	    ++host1;
+	    ++host2;
+	}
+	return (*host1 == *host2);
+    }
+    return (0);
+}
 
 static void
 httpStateFree(int fd, void *data)
@@ -133,14 +157,38 @@ httpCacheNegatively(StoreEntry * entry)
 }
 
 static void
-httpMaybeRemovePublic(StoreEntry * e, http_status status)
+httpRemovePublicByHeader(request_t * req, HttpReply * reply, http_hdr_type header)
 {
+    const char *url, *reqUrl;
+    char *absUrl;
+
+    reqUrl = urlCanonical(req);
+    url = httpHeaderGetStr(&reply->header, header);
+    if (url != NULL) {
+	absUrl = urlAbsolute(req, url);
+	if (absUrl != NULL) {
+	    url = absUrl;
+	}
+	if (httpUrlHostsMatch(url, reqUrl)) {
+	    storePurgeEntriesByUrl(req, url);
+	}
+	if (absUrl != NULL) {
+	    xfree(absUrl);
+	}
+    }
+}
+
+static void
+httpMaybeRemovePublic(StoreEntry * e, HttpReply * reply)
+{
+    int status;
     int remove = 0;
     int forbidden = 0;
     StoreEntry *pe;
-    method_t *method_get, *method_head;
-    method_get = urlMethodGetKnownByCode(METHOD_GET);
-    method_head = urlMethodGetKnownByCode(METHOD_HEAD);
+    request_t *req;
+    const char *reqUrl;
+
+    status = reply->sline.status;
     switch (status) {
     case HTTP_OK:
     case HTTP_NON_AUTHORITATIVE_INFORMATION:
@@ -161,13 +209,11 @@ httpMaybeRemovePublic(StoreEntry * e, http_status status)
 	break;
 #endif
     default:
-#if QUESTIONABLE
 	/*
-	 * Any 2xx response should eject previously cached entities...
+	 * Any "success" response should eject previously cached entities...
 	 */
-	if (status >= 200 && status < 300)
+	if (status >= 200 && status < 400)
 	    remove = 1;
-#endif
 	break;
     }
     if (!remove && !forbidden)
@@ -188,37 +234,21 @@ httpMaybeRemovePublic(StoreEntry * e, http_status status)
      * changed.
      */
     if (e->mem_obj->request)
-	pe = storeGetPublicByRequestMethod(e->mem_obj->request, method_head);
+	pe = storeGetPublicByRequestMethodCode(e->mem_obj->request, METHOD_HEAD);
     else
-	pe = storeGetPublic(e->mem_obj->url, method_head);
+	pe = storeGetPublicByCode(e->mem_obj->url, METHOD_HEAD);
     if (pe != NULL && e != pe) {
 	storeRelease(pe);
     }
     if (forbidden)
 	return;
-    switch (e->mem_obj->method->code) {
-    case METHOD_PUT:
-    case METHOD_DELETE:
-    case METHOD_PROPPATCH:
-    case METHOD_MKCOL:
-    case METHOD_MOVE:
-    case METHOD_BMOVE:
-    case METHOD_BDELETE:
-	/*
-	 * Remove any cached GET object if it is beleived that the
-	 * object may have changed as a result of other methods
-	 */
-	if (e->mem_obj->request)
-	    pe = storeGetPublicByRequestMethod(e->mem_obj->request, method_get);
-	else
-	    pe = storeGetPublic(e->mem_obj->url, method_get);
-	if (pe != NULL) {
-	    assert(e != pe);
-	    storeRelease(pe);
-	}
-	break;
-    default:
-	break;
+    if (e->mem_obj->method->flags.purges_all && status < 400) {
+	req = e->mem_obj->request;
+	reqUrl = urlCanonical(req);
+	debug(88, 5) ("httpMaybeRemovePublic: purging due to %s %s\n", req->method->string, reqUrl);
+	storePurgeEntriesByUrl(req, reqUrl);
+	httpRemovePublicByHeader(req, reply, HDR_LOCATION);
+	httpRemovePublicByHeader(req, reply, HDR_CONTENT_LOCATION);
     }
 }
 
@@ -569,7 +599,7 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 	    EBIT_SET(entry->flags, ENTRY_REVALIDATE);
     }
     if (neighbors_do_private_keys && !Config.onoff.collapsed_forwarding)
-	httpMaybeRemovePublic(entry, reply->sline.status);
+	httpMaybeRemovePublic(entry, reply);
     if (httpState->flags.keepalive)
 	if (httpState->peer)
 	    httpState->peer->stats.n_keepalives_sent++;
