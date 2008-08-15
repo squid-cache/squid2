@@ -3641,7 +3641,7 @@ DOC_START
 
 	When using the concurrency option, the protocol is changed by introducing
 	a query channel tag infront of the request/response. The query channel
-	tag is a number between 0 and concurrency−1.
+	tag is a number between 0 and concurrency-1.
 
 	FORMAT specifications:
 
@@ -3673,7 +3673,7 @@ DOC_START
 			present, the supplied value completely replaces
 			the cached value.
 
-	In the event of a helper−related error (e.g., overload), Squid
+	In the event of a helper-related error (e.g., overload), Squid
 	will always default to STALE.
 DOC_END
 
