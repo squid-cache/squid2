@@ -1770,9 +1770,7 @@ aclMatchAcl(acl * ae, aclCheck_t * checklist)
     case ACL_PROTO:
     case ACL_PROXY_AUTH:
     case ACL_PROXY_AUTH_REGEX:
-    case ACL_REP_MIME_TYPE:
     case ACL_REQ_MIME_TYPE:
-    case ACL_REP_HEADER:
     case ACL_REQ_HEADER:
     case ACL_URLPATH_REGEX:
     case ACL_URL_PORT:
