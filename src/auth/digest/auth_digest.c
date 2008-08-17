@@ -698,7 +698,7 @@ authenticateDigestAuthenticateUser(auth_user_request_t * auth_user_request, requ
 	digest_user->HA1, SESSIONKEY);
     DigestCalcResponse(SESSIONKEY, authenticateDigestNonceNonceb64(digest_request->nonce),
 	digest_request->nc, digest_request->cnonce, digest_request->qop,
-	RequestMethods[request->method].str, digest_request->uri, HA2, Response);
+	request->method->string, digest_request->uri, HA2, Response);
 
     debug(29, 9) ("\nResponse = '%s'\n"
 	"squid is = '%s'\n", digest_request->response, Response);
@@ -710,7 +710,7 @@ authenticateDigestAuthenticateUser(auth_user_request_t * auth_user_request, requ
 	    digest_request->flags.credentials_ok = 2;
 	    return;
 	}
-	if (digestConfig->PostWorkaround && request->method != METHOD_GET) {
+	if (digestConfig->PostWorkaround && request->method->code != METHOD_GET) {
 	    /* Ugly workaround for certain very broken browsers using the
 	     * wrong method to calculate the request-digest on POST request.
 	     * This should be deleted once Digest authentication becomes more
@@ -719,7 +719,7 @@ authenticateDigestAuthenticateUser(auth_user_request_t * auth_user_request, requ
 	     */
 	    DigestCalcResponse(SESSIONKEY, authenticateDigestNonceNonceb64(digest_request->nonce),
 		digest_request->nc, digest_request->cnonce, digest_request->qop,
-		RequestMethods[METHOD_GET].str, digest_request->uri, HA2, Response);
+		"GET", digest_request->uri, HA2, Response);
 	    if (strcasecmp(digest_request->response, Response)) {
 		digest_request->flags.credentials_ok = 3;
 		safe_free(auth_user_request->message);
