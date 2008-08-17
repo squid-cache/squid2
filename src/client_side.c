@@ -1911,11 +1911,6 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
 	debug(33, 2) ("clientBuildReplyHeader: Connection oriented auth but server side non-persistent\n");
 	request->flags.proxy_keepalive = 0;
     }
-    if (!Config.onoff.upgrade_http09 && rep->sline.version.major == 0) {
-	debug(33, 2) ("HTTP/0.9 response, disable everything\n");
-	request->flags.chunked_response = 0;
-	request->flags.proxy_keepalive = 0;
-    }
     /* Append Transfer-Encoding */
     if (request->flags.chunked_response) {
 	httpHeaderPutStr(hdr, HDR_TRANSFER_ENCODING, "chunked");
@@ -3092,6 +3087,7 @@ clientCheckHeaderDone(clientHttpRequest * http)
 {
     HttpReply *rep = http->reply;
     MemBuf mb;
+    int send_header = 1;
     /* reset range iterator */
     http->range_iter.pos = HttpHdrRangeInitPos;
     if (http->request->method != NULL) {
@@ -3100,8 +3096,20 @@ clientCheckHeaderDone(clientHttpRequest * http)
 	    http->flags.done_copying = 1;
 	}
     }
+    if (http->http_ver.major < 1)
+	send_header = 0;
+    if (rep->sline.version.major < 1) {
+	if (send_header && Config.accessList.upgrade_http09) {
+	    aclCheck_t *checklist = clientAclChecklistCreate(Config.accessList.upgrade_http09, http);
+	    checklist->reply = rep;
+	    if (aclCheckFast(Config.accessList.upgrade_http09, checklist) != 1)
+		send_header = 0;
+	    aclChecklistFree(checklist);
+	}
+	httpHeaderDelById(&rep->header, HDR_X_HTTP09_FIRST_LINE);
+    }
     /* init mb; put status line and headers  */
-    if (http->http_ver.major >= 1 && (rep->sline.version.major >= 1 || Config.onoff.upgrade_http09)) {
+    if (send_header) {
 	if (http->conn->port->http11) {
 	    /* enforce 1.1 reply version */
 	    httpBuildVersion(&rep->sline.version, 1, 1);
@@ -3110,8 +3118,12 @@ clientCheckHeaderDone(clientHttpRequest * http)
 	    httpBuildVersion(&rep->sline.version, 1, 0);
 	}
 	mb = httpReplyPack(rep);
-    } else
+    } else {
+	debug(33, 2) ("HTTP/0.9 response, disable everything\n");
+	http->request->flags.chunked_response = 0;
+	http->request->flags.proxy_keepalive = 0;
 	memBufDefInit(&mb);
+    }
     if (Config.onoff.log_mime_hdrs) {
 	http->al.headers.reply = xmalloc(mb.size + 1);
 	xstrncpy(http->al.headers.reply, mb.buf, mb.size);

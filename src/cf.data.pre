@@ -3352,17 +3352,25 @@ Example:
 DOC_END
 
 NAME: upgrade_http0.9
-COMMENT: on|off
-TYPE: onoff
-DEFAULT: on
-LOC: Config.onoff.upgrade_http09
+TYPE: acl_access
+DEFAULT: none
+LOC: Config.accessList.upgrade_http09
 DOC_START
-	If enabled (default), Squid will upgrade HTTP/0.9 responses
-	received to it's supported HTTP version by adding a simple HTTP
-	header to the response.
+	This access list controls when HTTP/0.9 responses is upgraded
+	to our current HTTP version. The default is to always upgrade.
 
-	If disabled the response will be forwarded without any header,
-	which may cause problems if you are in a cache hierarchy.
+	Some applications expect to be able to respond with non-HTTP
+	responses and clients gets confused if the response is upgraded.
+	For example SHOUTcast servers used for mp3 streaming.
+
+	To enable some flexibility in detection of such applications
+	the first line of the response is available in the internal header
+	X-HTTP09-First-Line for use in the rep_header acl.
+
+Suggested default:
+NOCOMMENT_START
+acl shoutcast rep_header X-HTTP09-First-Line ^ICY\s[0-9]
+upgrade_http0.9 deny shoutcast
 DOC_END
 
 NAME: via

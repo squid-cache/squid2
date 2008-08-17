@@ -129,6 +129,7 @@ static const HttpHeaderFieldAttrs HeadersAttrs[] =
     {"X-Forwarded-For", HDR_X_FORWARDED_FOR, ftStr},
     {"X-Request-URI", HDR_X_REQUEST_URI, ftStr},
     {"X-Squid-Error", HDR_X_SQUID_ERROR, ftStr},
+    {"X-HTTP09-First-Line", HDR_X_HTTP09_FIRST_LINE, ftStr},
     {"Negotiate", HDR_NEGOTIATE, ftStr},
 #if X_ACCELERATOR_VARY
     {"X-Accelerator-Vary", HDR_X_ACCELERATOR_VARY, ftStr},

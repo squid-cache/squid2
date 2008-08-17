@@ -464,6 +464,18 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
     hdr_len = httpState->reply_hdr.size;
     if (hdr_len > 4 && strncmp(httpState->reply_hdr.buf, "HTTP/", 5)) {
 	debug(11, 3) ("httpProcessReplyHeader: Non-HTTP-compliant header: '%s'\n", httpState->reply_hdr.buf);
+	{
+	    char *t, *t2;
+	    t = xstrdup(httpState->reply_hdr.buf);
+	    t2 = strchr(t, '\n');
+	    if (t2)
+		*t2 = '\0';
+	    t2 = strchr(t, '\r');
+	    if (t2)
+		*t2 = '\0';
+	    httpHeaderPutStr(&reply->header, HDR_X_HTTP09_FIRST_LINE, t);
+	    safe_free(t);
+	}
 	httpState->reply_hdr_state += 2;
 	httpState->chunk_size = -1;	/* Terminated by EOF */
 	httpState->reply_hdr.size = old_size;
@@ -1004,7 +1016,6 @@ httpReadReply(int fd, void *data)
 		} else if (s == HTTP_INVALID_HEADER) {
 		    MemBuf mb;
 		    HttpReply *reply = entry->mem_obj->reply;
-		    httpReplyReset(reply);
 		    httpBuildVersion(&reply->sline.version, 0, 9);
 		    reply->sline.status = HTTP_OK;
 		    httpHeaderPutTime(&reply->header, HDR_DATE, squid_curtime);
