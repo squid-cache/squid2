@@ -1209,7 +1209,7 @@ struct _HierarchyLogEntry {
 
 struct _method_t {
     method_code_t code;
-    char *string;
+    const char *string;
     struct {
 	unsigned int cachable:1;
 	unsigned int purges_all:1;

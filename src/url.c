@@ -251,21 +251,9 @@ urlMethodGet(const char *s, int len)
     method_t *method;
 
     method = urlMethodGetKnown(s, len);
-    if (method != NULL) {
-	return (method);
-    }
     method = xmalloc(sizeof(method_t));
-    if (method == NULL) {
-	return (NULL);
-    }
     method->code = METHOD_OTHER;
-    method->string = xmalloc((len + 1) * sizeof(char));
-    if (method->string == NULL) {
-	xfree(method);
-	return (NULL);
-    }
-    method->string = strncpy(method->string, s, len);
-    method->string[len] = '\0';
+    method->string = xstrndup(s, len + 1);
     method->flags.cachable = 0;
     method->flags.purges_all = 1;
 
@@ -293,15 +281,8 @@ urlMethodDup(method_t * orig)
 	return (orig);
     }
     method = xmalloc(sizeof(method_t));
-    if (method == NULL) {
-	return (NULL);
-    }
     method->code = orig->code;
     method->string = xstrdup(orig->string);
-    if (method->string == NULL) {
-	xfree(method);
-	return (NULL);
-    }
     method->flags.cachable = orig->flags.cachable;
     method->flags.purges_all = orig->flags.purges_all;
 
@@ -318,7 +299,7 @@ urlMethodFree(method_t * method)
     if (method->code != METHOD_OTHER) {
 	return;
     }
-    xfree(method->string);
+    xfree((char *) method->string);
     xfree(method);
 }
 
