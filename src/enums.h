@@ -807,4 +807,13 @@ typedef enum {
     FORWARDED_FOR_TRUNCATE
 } forwarded_for_mode;
 
+#if USE_HTCP
+
+enum htcp_clr_reason {
+    HTCP_CLR_PURGE,
+    HTCP_CLR_INVALIDATION,
+};
+
+#endif
+
 #endif /* SQUID_ENUMS_H */

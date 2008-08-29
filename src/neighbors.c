@@ -478,7 +478,7 @@ neighborsUdpPing(request_t * request,
 	debug(15, 3) ("neighborsUdpPing: reqnum = %d\n", reqnum);
 
 #if USE_HTCP
-	if (p->options.htcp) {
+	if (p->options.htcp && !p->options.htcp_only_clr) {
 	    debug(15, 3) ("neighborsUdpPing: sending HTCP query\n");
 	    htcpQuery(entry, request, p);
 	} else
@@ -1327,8 +1327,18 @@ dump_peer_options(StoreEntry * sentry, peer * p)
     if (p->options.sourcehash)
 	storeAppendPrintf(sentry, " sourcehash");
 #if USE_HTCP
-    if (p->options.htcp)
+    if (p->options.htcp) {
 	storeAppendPrintf(sentry, " htcp");
+
+	if (p->options.htcp_oldsquid)
+	    storeAppendPrintf(sentry, " htcp-oldsquid");
+	if (p->options.htcp_no_clr)
+	    storeAppendPrintf(sentry, " htcp-no-clr");
+	if (p->options.htcp_no_purge_clr)
+	    storeAppendPrintf(sentry, " htcp-no-purge-clr");
+	if (p->options.htcp_only_clr)
+	    storeAppendPrintf(sentry, " htcp-only-clr");
+    }
 #endif
     if (p->options.no_netdb_exchange)
 	storeAppendPrintf(sentry, " no-netdb-exchange");
@@ -1513,4 +1523,27 @@ neighborsHtcpReply(const cache_key * key, htcpReplyData * htcp, const struct soc
     debug(15, 3) ("neighborsHtcpReply: e = %p\n", e);
     mem->ping_reply_callback(p, ntype, PROTO_HTCP, htcp, mem->ircb_data);
 }
+
+void
+neighborsHtcpClear(StoreEntry * e, const char *uri, request_t * req, method_t * method, htcp_clr_reason reason)
+{
+    peer *p;
+    int i;
+
+    debug(15, 1) ("neighborsHtcpClear: clear reason: %d\n", reason);
+    for (i = 0, p = Config.peers; i++ < Config.npeers; p = p->next) {
+	if (!p->options.htcp) {
+	    continue;
+	}
+	if (p->options.htcp_no_clr) {
+	    continue;
+	}
+	if (p->options.htcp_no_purge_clr && reason == HTCP_CLR_PURGE) {
+	    continue;
+	}
+	debug(15, 1) ("neighborsHtcpClear: sending CLR to %s:%d\n", inet_ntoa(p->in_addr.sin_addr), ntohs(p->in_addr.sin_port));
+	htcpClear(e, uri, req, method, p, reason);
+    }
+}
+
 #endif

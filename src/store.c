@@ -426,10 +426,28 @@ storePurgeEntriesByUrl(request_t * req, const char *url)
 	}
 	e = storeGetPublic(url, method);
 	if (e == NULL) {
+#if USE_HTCP
+	    if (m == METHOD_HEAD) {
+		method = urlMethodGetKnownByCode(METHOD_GET);
+	    }
+	    neighborsHtcpClear(NULL, url, req, method, HTCP_CLR_INVALIDATION);
+	    if (m == METHOD_GET || m == METHOD_HEAD) {
+		get_or_head_sent = 1;
+	    }
+#endif
 	    continue;
 	}
 	debug(20, 5) ("storePurgeEntriesByUrl: purging %s %s\n",
 	    method->string, url);
+#if USE_HTCP
+	if (m == METHOD_HEAD) {
+	    method = urlMethodGetKnownByCode(METHOD_GET);
+	}
+	neighborsHtcpClear(e, url, req, method, HTCP_CLR_INVALIDATION);
+	if (m == METHOD_GET || m == METHOD_HEAD) {
+	    get_or_head_sent = 1;
+	}
+#endif
 	storeRelease(e);
     }
 }

@@ -434,4 +434,11 @@ typedef void LOGCLOSE(Logfile *);
 
 typedef void REFRESHCHECK(void *data, int fresh, const char *log);
 typedef struct _refresh_check_helper refresh_check_helper;
+
+#if USE_HTCP
+
+typedef enum htcp_clr_reason htcp_clr_reason;
+
+#endif
+
 #endif /* SQUID_TYPEDEFS_H */

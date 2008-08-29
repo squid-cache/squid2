@@ -1027,6 +1027,9 @@ clientPurgeRequest(clientHttpRequest * http)
     if (entry) {
 	debug(33, 4) ("clientPurgeRequest: GET '%s'\n",
 	    storeUrl(entry));
+#if USE_HTCP
+	neighborsHtcpClear(entry, NULL, http->request, method_get, HTCP_CLR_PURGE);
+#endif
 	storeRelease(entry);
 	status = HTTP_OK;
     }
@@ -1034,6 +1037,9 @@ clientPurgeRequest(clientHttpRequest * http)
     if (entry) {
 	debug(33, 4) ("clientPurgeRequest: HEAD '%s'\n",
 	    storeUrl(entry));
+#if USE_HTCP
+	neighborsHtcpClear(entry, NULL, http->request, method_head, HTCP_CLR_PURGE);
+#endif
 	storeRelease(entry);
 	status = HTTP_OK;
     }
@@ -1043,6 +1049,9 @@ clientPurgeRequest(clientHttpRequest * http)
 	if (entry) {
 	    debug(33, 4) ("clientPurgeRequest: Vary GET '%s'\n",
 		storeUrl(entry));
+#if USE_HTCP
+	    neighborsHtcpClear(entry, NULL, http->request, method_get, HTCP_CLR_PURGE);
+#endif
 	    storeRelease(entry);
 	    status = HTTP_OK;
 	}
@@ -1050,6 +1059,9 @@ clientPurgeRequest(clientHttpRequest * http)
 	if (entry) {
 	    debug(33, 4) ("clientPurgeRequest: Vary HEAD '%s'\n",
 		storeUrl(entry));
+#if USE_HTCP
+	    neighborsHtcpClear(entry, NULL, http->request, method_head, HTCP_CLR_PURGE);
+#endif
 	    storeRelease(entry);
 	    status = HTTP_OK;
 	}

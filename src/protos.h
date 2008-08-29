@@ -688,6 +688,9 @@ extern void neighborAddAcl(const char *, const char *);
 extern void neighborsUdpAck(const cache_key *, icp_common_t *, const struct sockaddr_in *);
 extern void neighborAdd(const char *, const char *, int, int, int, int, int);
 extern void neighbors_init(void);
+#if USE_HTCP
+extern void neighborsHtcpClear(StoreEntry *, const char *, request_t *, method_t *, htcp_clr_reason);
+#endif
 extern peer *peerFindByName(const char *);
 extern peer *peerFindByNameAndPort(const char *, unsigned short);
 extern peer *getDefaultParent(request_t * request);
@@ -1257,6 +1260,7 @@ void keepCapabilities(void);
 #if USE_HTCP
 extern void htcpInit(void);
 extern void htcpQuery(StoreEntry * e, request_t * req, peer * p);
+extern void htcpClear(StoreEntry * e, const char *uri, request_t * req, method_t *, peer * p, htcp_clr_reason reason);
 extern void htcpSocketShutdown(void);
 extern void htcpSocketClose(void);
 #endif

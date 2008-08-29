@@ -238,6 +238,9 @@ httpMaybeRemovePublic(StoreEntry * e, HttpReply * reply)
     else
 	pe = storeGetPublicByCode(e->mem_obj->url, METHOD_HEAD);
     if (pe != NULL && e != pe) {
+#if USE_HTCP
+	neighborsHtcpClear(e, NULL, e->mem_obj->request, urlMethodGetKnownByCode(METHOD_HEAD), HTCP_CLR_INVALIDATION);
+#endif
 	storeRelease(pe);
     }
     if (forbidden)
