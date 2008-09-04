@@ -159,22 +159,31 @@ httpCacheNegatively(StoreEntry * entry)
 static void
 httpRemovePublicByHeader(request_t * req, HttpReply * reply, http_hdr_type header)
 {
-    const char *url, *reqUrl;
+    const char *hdrUrl;
     char *absUrl;
 
-    reqUrl = urlCanonical(req);
-    url = httpHeaderGetStr(&reply->header, header);
-    if (url != NULL) {
-	absUrl = urlAbsolute(req, url);
+    absUrl = NULL;
+    hdrUrl = httpHeaderGetStr(&reply->header, header);
+    if (hdrUrl == NULL) {
+	return;
+    }
+    /*
+     * If the URL is relative, make it absolute so we can find it.
+     * If it's absolute, make sure the host parts match to avoid DOS attacks
+     * as per RFC 2616 13.10.
+     */
+    if (urlIsRelative(hdrUrl)) {
+	absUrl = urlMakeAbsolute(req, hdrUrl);
 	if (absUrl != NULL) {
-	    url = absUrl;
+	    hdrUrl = absUrl;
 	}
-	if (httpUrlHostsMatch(url, reqUrl)) {
-	    storePurgeEntriesByUrl(req, url);
-	}
-	if (absUrl != NULL) {
-	    xfree(absUrl);
-	}
+    } else if (!httpUrlHostsMatch(hdrUrl, urlCanonical(req))) {
+	return;
+    }
+    storePurgeEntriesByUrl(req, hdrUrl);
+
+    if (absUrl != NULL) {
+	safe_free(absUrl);
     }
 }
 

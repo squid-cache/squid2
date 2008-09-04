@@ -566,69 +566,102 @@ urlCanonical(request_t * request)
     return (request->canonical = xstrdup(urlbuf));
 }
 
-char *
-urlAbsolute(request_t * req, const char *relUrl)
+/*
+ * Test if a URL is relative.
+ *
+ * RFC 2396, Section 5 (Page 17) implies that in a relative URL, a '/' will
+ * appear before a ':'.
+ */
+int
+urlIsRelative(const char *url)
 {
-    LOCAL_ARRAY(char, portbuf, 32);
-    LOCAL_ARRAY(char, urlbuf, MAX_URL);
-    char *path, *last_slash;
+    const char *p;
 
-    if (relUrl == NULL) {
-	return (NULL);
+    if (url == NULL) {
+	return (0);
     }
+    if (*url == '\0') {
+	return (0);
+    }
+    for (p = url; *p != '\0' && *p != ':' && *p != '/'; p++);
+
+    if (*p == ':') {
+	return (0);
+    }
+    return (1);
+}
+
+/*
+ * Convert a relative URL to an absolute URL using the context of a given
+ * request.
+ *
+ * It is assumed that you have already ensured that the URL is relative.
+ *
+ * If NULL is returned it is an indication that the method in use in the
+ * request does not distinguish between relative and absolute and you should
+ * use the url unchanged.
+ *
+ * If non-NULL is returned, it is up to the caller to free the resulting
+ * memory using safe_free().
+ */
+char *
+urlMakeAbsolute(request_t * req, const char *relUrl)
+{
+    char *urlbuf;
+    const char *path, *last_slash;
+    size_t urllen, pathlen;
+
     if (req->method->code == METHOD_CONNECT) {
 	return (NULL);
     }
-    if (strchr(relUrl, ':') != NULL) {
-	return (NULL);
-    }
+    urlbuf = (char *) xmalloc(MAX_URL * sizeof(char));
+
     if (req->protocol == PROTO_URN) {
 	snprintf(urlbuf, MAX_URL, "urn:%s", strBuf(req->urlpath));
+	return (urlbuf);
+    }
+    if (req->port != urlDefaultPort(req->protocol)) {
+	urllen = snprintf(urlbuf, MAX_URL, "%s://%s%s%s:%d",
+	    ProtocolStr[req->protocol],
+	    req->login,
+	    *req->login ? "@" : null_string,
+	    req->host,
+	    req->port
+	    );
     } else {
-	portbuf[0] = '\0';
-	if (req->port != urlDefaultPort(req->protocol)) {
-	    snprintf(portbuf, 32, ":%d", req->port);
-	}
-	if (relUrl[0] == '/') {
-	    snprintf(urlbuf, MAX_URL, "%s://%s%s%s%s%s",
-		ProtocolStr[req->protocol],
-		req->login,
-		*req->login ? "@" : null_string,
-		req->host,
-		portbuf,
-		relUrl
-		);
+	urllen = snprintf(urlbuf, MAX_URL, "%s://%s%s%s",
+	    ProtocolStr[req->protocol],
+	    req->login,
+	    *req->login ? "@" : null_string,
+	    req->host
+	    );
+    }
+
+    if (relUrl[0] == '/') {
+	strncpy(&urlbuf[urllen], relUrl, MAX_URL - urllen - 1);
+    } else {
+	path = strBuf(req->urlpath);
+	last_slash = strrchr(path, '/');
+	if (last_slash == NULL) {
+	    urlbuf[urllen++] = '/';
+	    strncpy(&urlbuf[urllen], relUrl, MAX_URL - urllen - 1);
 	} else {
-	    path = xstrdup(strBuf(req->urlpath));
-	    last_slash = strrchr(path, '/');
-	    if (last_slash == NULL) {
-		snprintf(urlbuf, MAX_URL, "%s://%s%s%s%s/%s",
-		    ProtocolStr[req->protocol],
-		    req->login,
-		    *req->login ? "@" : null_string,
-		    req->host,
-		    portbuf,
-		    relUrl
-		    );
-	    } else {
-		last_slash++;
-		*last_slash = '\0';
-		snprintf(urlbuf, MAX_URL, "%s://%s%s%s%s%s%s",
-		    ProtocolStr[req->protocol],
-		    req->login,
-		    *req->login ? "@" : null_string,
-		    req->host,
-		    portbuf,
-		    path,
-		    relUrl
-		    );
+	    last_slash++;
+	    pathlen = last_slash - path;
+	    if (pathlen > MAX_URL - urllen - 1) {
+		pathlen = MAX_URL - urllen - 1;
 	    }
-	    xfree(path);
+	    strncpy(&urlbuf[urllen], path, pathlen);
+	    urllen += pathlen;
+	    if (urllen + 1 < MAX_URL) {
+		strncpy(&urlbuf[urllen], relUrl, MAX_URL - urllen - 1);
+	    }
 	}
     }
 
-    return (xstrdup(urlbuf));
+    return (urlbuf);
 }
+
 /*
  * Eventually the request_t strings should be String entries which
  * have in-built length. Eventually we should just take a buffer and
