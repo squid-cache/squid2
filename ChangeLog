@@ -18,6 +18,8 @@ Done:
 	  objects with garbage
 	- Optimization using reference counted memory cache to avoid repeated
 	  copying of data.
+	- Foreground rebuilding now finishes the entire rebuild before it
+	  starts accepting requests.
 
 Pending backport:
 
