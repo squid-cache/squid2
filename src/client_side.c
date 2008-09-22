@@ -929,6 +929,7 @@ clientHandleIMSReply(void *data, HttpReply * rep)
     if (EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
 	/* Old object got aborted, not good */
 	clientProcessMiss(http);
+	return;
     }
     if (recopy) {
 	storeClientCopyHeaders(http->sc, entry,
