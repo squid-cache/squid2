@@ -467,6 +467,7 @@ mainRotate(void)
     dnsShutdown();
 #endif
     redirectShutdown();
+    storeurlShutdown();
     locationRewriteShutdown();
     authenticateShutdown();
     externalAclShutdown();
@@ -1105,6 +1106,7 @@ SquidShutdown(void *unused)
     redirectShutdown();
     externalAclShutdown();
     refreshCheckShutdown();
+    storeurlShutdown();
     locationRewriteShutdown();
     icpConnectionClose();
 #if USE_HTCP
