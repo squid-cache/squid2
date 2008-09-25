@@ -737,6 +737,7 @@ struct _SquidConfig {
 #endif
 	acl_access *vary_encoding;
 	acl_access *auth_ip_shortcircuit;
+	acl_access *upgrade_http09;
     } accessList;
     acl_deny_info_list *denyInfoList;
     struct _authConfig {

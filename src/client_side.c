@@ -1942,8 +1942,8 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
 	LOCAL_ARRAY(char, bbuf, MAX_URL + 32);
 	String strVia = httpHeaderGetList(hdr, HDR_VIA);
 	snprintf(bbuf, MAX_URL + 32, "%d.%d %s",
-	    http->entry->mem_obj->reply->sline.version.major,
-	    http->entry->mem_obj->reply->sline.version.minor, ThisCache);
+	    rep->sline.version.major,
+	    rep->sline.version.minor, ThisCache);
 	strListAdd(&strVia, bbuf, ',');
 	httpHeaderDelById(hdr, HDR_VIA);
 	httpHeaderPutStr(hdr, HDR_VIA, strBuf(strVia));
@@ -2003,13 +2003,6 @@ clientCloneReply(clientHttpRequest * http, HttpReply * orig_rep)
     /* try to grab the already-parsed header */
     rep = httpReplyClone(orig_rep);
     if (rep->pstate == psParsed) {
-	if (http->conn->port->http11) {
-	    /* enforce 1.1 reply version */
-	    httpBuildVersion(&rep->sline.version, 1, 1);
-	} else {
-	    /* enforce 1.0 reply version */
-	    httpBuildVersion(&rep->sline.version, 1, 0);
-	}
 	/* do header conversions */
 	clientBuildReplyHeader(http, rep);
 	/* if we do ranges, change status to "Partial Content" */
@@ -3018,17 +3011,41 @@ clientCheckHeaderDone(clientHttpRequest * http)
 {
     HttpReply *rep = http->reply;
     MemBuf mb;
+    int send_header = 1;
     /* reset range iterator */
     http->range_iter.pos = HttpHdrRangeInitPos;
     if (http->request->method == METHOD_HEAD) {
 	/* do not forward body for HEAD replies */
 	http->flags.done_copying = 1;
     }
+    if (http->http_ver.major < 1)
+	send_header = 0;
+    if (rep->sline.version.major < 1) {
+	if (send_header && Config.accessList.upgrade_http09) {
+	    aclCheck_t *checklist = clientAclChecklistCreate(Config.accessList.upgrade_http09, http);
+	    checklist->reply = rep;
+	    if (aclCheckFast(Config.accessList.upgrade_http09, checklist) != 1)
+		send_header = 0;
+	    aclChecklistFree(checklist);
+	}
+	httpHeaderDelById(&rep->header, HDR_X_HTTP09_FIRST_LINE);
+    }
     /* init mb; put status line and headers  */
-    if (http->http_ver.major >= 1)
+    if (send_header) {
+	if (http->conn->port->http11) {
+	    /* enforce 1.1 reply version */
+	    httpBuildVersion(&rep->sline.version, 1, 1);
+	} else {
+	    /* enforce 1.0 reply version */
+	    httpBuildVersion(&rep->sline.version, 1, 0);
+	}
 	mb = httpReplyPack(rep);
-    else
+    } else {
+	debug(33, 2) ("HTTP/0.9 response, disable everything\n");
+	http->request->flags.chunked_response = 0;
+	http->request->flags.proxy_keepalive = 0;
 	memBufDefInit(&mb);
+    }
     if (Config.onoff.log_mime_hdrs) {
 	http->al.headers.reply = xmalloc(mb.size + 1);
 	xstrncpy(http->al.headers.reply, mb.buf, mb.size);

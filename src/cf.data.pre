@@ -3253,6 +3253,29 @@ Example:
  broken_posts allow buggy_server
 DOC_END
 
+NAME: upgrade_http0.9
+TYPE: acl_access
+DEFAULT: none
+LOC: Config.accessList.upgrade_http09
+DOC_START
+	This access list controls when HTTP/0.9 responses is upgraded
+	to our current HTTP version. The default is to always upgrade.
+
+	Some applications expect to be able to respond with non-HTTP
+	responses and clients gets confused if the response is upgraded.
+	For example SHOUTcast servers used for mp3 streaming.
+
+	To enable some flexibility in detection of such applications
+	the first line of the response is available in the internal header
+	X-HTTP09-First-Line for use in the rep_header acl.
+
+NOCOMMENT_START
+# Don't upgrade ShoutCast responses to HTTP
+acl shoutcast rep_header X-HTTP09-First-Line ^ICY\s[0-9]
+upgrade_http0.9 deny shoutcast
+NOCOMMENT_END
+DOC_END
+
 NAME: via
 IFDEF: HTTP_VIOLATIONS
 COMMENT: on|off
