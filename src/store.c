@@ -1765,10 +1765,12 @@ storeNegativeCache(StoreEntry * e)
 {
     StoreEntry *oe = e->mem_obj->old_entry;
     time_t expires = e->expires;
+    http_status status = e->mem_obj->reply->sline.status;
     refresh_cc cc = refreshCC(e, e->mem_obj->request);
     if (expires == -1)
 	expires = squid_curtime + cc.negative_ttl;
-    if (oe && !EBIT_TEST(oe->flags, KEY_PRIVATE) && !EBIT_TEST(oe->flags, ENTRY_REVALIDATE)) {
+    if (status && oe && !EBIT_TEST(oe->flags, KEY_PRIVATE) && !EBIT_TEST(oe->flags, ENTRY_REVALIDATE) &&
+	500 <= status && status <= 504) {
 	HttpHdrCc *oldcc = oe->mem_obj->reply->cache_control;
 	if (oldcc && EBIT_TEST(oldcc->mask, CC_STALE_IF_ERROR) && oldcc->stale_if_error >= 0)
 	    cc.max_stale = oldcc->stale_if_error;
