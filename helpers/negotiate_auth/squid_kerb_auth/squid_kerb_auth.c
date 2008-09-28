@@ -43,6 +43,9 @@
 #ifndef MAXHOSTNAMELEN
 #define MAXHOSTNAMELEN HOST_NAME_MAX
 #endif
+#ifndef MAX_AUTHTOKEN_LEN
+#define MAX_AUTHTOKEN_LEN   65535
+#endif
 
 #define PROGRAM "squid_kerb_auth"
 
@@ -173,10 +176,9 @@ int check_gss_err(OM_uint32 major_status, OM_uint32 minor_status, const char* fu
 }
 
 
-
 int main(int argc, char * const argv[])
 {
-  char buf[6400];
+  char buf[MAX_AUTHTOKEN_LEN];
   char *c;
   int length=0;
   static int err=0;
