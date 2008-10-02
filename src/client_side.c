@@ -903,10 +903,11 @@ clientHandleIMSReply(void *data, HttpReply * rep)
 	/* the client can handle this reply, whatever it is */
 	http->flags.hit = 0;
 	http->log_type = LOG_TCP_REFRESH_MISS;
-	if (HTTP_NOT_MODIFIED == rep->sline.status) {
+	if (HTTP_NOT_MODIFIED == rep->sline.status && http->request->flags.cache_validation) {
 	    httpReplyUpdateOnNotModified(http->old_entry->mem_obj->reply,
 		rep);
 	    storeTimestampsSet(http->old_entry);
+	    storeUpdate(http->old_entry, http->request);
 	    if (!EBIT_TEST(http->old_entry->flags, REFRESH_FAILURE))
 		http->log_type = LOG_TCP_REFRESH_HIT;
 	    else
