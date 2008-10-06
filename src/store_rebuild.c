@@ -67,8 +67,8 @@ storeCleanup(void *datanotused)
     StoreEntry *e;
     hash_link *link_ptr = NULL;
     hash_link *link_next = NULL;
-    validnum_start = validnum;
     int limit = opt_foreground_rebuild ? 1 << 30 : 500;
+    validnum_start = validnum;
 
     while (validnum - validnum_start < limit) {
 	if (++bucketnum >= store_hash_buckets) {
