@@ -167,6 +167,7 @@ static int varyEvaluateMatch(StoreEntry * entry, request_t * request);
 static int modifiedSince(StoreEntry *, request_t *);
 static StoreEntry *clientCreateStoreEntry(clientHttpRequest *, method_t *, request_flags);
 static inline int clientNatLookup(ConnStateData * conn);
+static int clientCheckBeginForwarding(clientHttpRequest * http);
 
 #if USE_IDENT
 static void
@@ -2741,6 +2742,37 @@ clientDelayBodyTooLarge(clientHttpRequest * http, squid_off_t clen)
 #endif
 
 /*
+ * Calculate the maximum size to delay requests for the HTTP request body
+ */
+static int
+clientMaxRequestBodyDelayForwardSize(request_t * request, clientHttpRequest * http)
+{
+    body_size *bs;
+    aclCheck_t *checklist;
+
+    /* Already calculated? use it */
+    if (http->maxRequestBodyDelayForwardSize)
+	return http->maxRequestBodyDelayForwardSize;
+
+    /* Calculate it */
+    bs = (body_size *) Config.RequestBodyDelayForwardSize.head;
+    while (bs) {
+	checklist = clientAclChecklistCreate(bs->access_list, http);
+	if (aclCheckFast(bs->access_list, checklist) != 1) {
+	    /* deny - skip this entry */
+	    bs = (body_size *) bs->node.next;
+	} else {
+	    /* Allow - use this entry */
+	    http->maxRequestBodyDelayForwardSize = bs->maxsize;
+	    bs = NULL;
+	    debug(33, 2) ("clientMaxRequestBodyDelayForwardSize: Setting maxRequestBodyDelayForwardSize to %ld\n", (long int) http->maxRequestBodyDelayForwardSize);
+	}
+	aclChecklistFree(checklist);
+    }
+    return http->maxRequestBodyDelayForwardSize;
+}
+
+/*
  * Calculates the maximum size allowed for an HTTP request body
  */
 static void
@@ -3685,6 +3717,62 @@ clientProcessRequest(clientHttpRequest * http)
     }
 }
 
+static void
+clientBeginForwarding(clientHttpRequest * http)
+{
+    request_t *r = http->request;
+
+    /* XXX should we ensure we only try beginning forwarding once? */
+    assert(r->flags.delayed == 0);
+    debug(33, 2) ("clientBeginForwarding: %p: begin forwarding request\n", http);
+    fwdStart(http->conn->fd, http->entry, r);
+}
+
+/*
+ * Begin forwarding a request when certain criteria are met.
+ *
+ * If a request isn't delayed then don't bother.
+ * If a request is delayed then check whether enough of the request
+ * body has been received. If so, begin forwarding.
+ *
+ * Return 0 if the request wasn't begun to be forwarded and 1 if it was.
+ */
+static int
+clientCheckBeginForwarding(clientHttpRequest * http)
+{
+    request_t *r = http->request;
+    int bytes_read, bytes_left;
+    int bytes_to_delay;
+
+    if (!r->flags.delayed)
+	return 0;
+    assert(http->conn->body.delayed == 1);
+    assert(http->conn->body.delay_http != NULL);
+
+    /* http->conn->in.offset -here- is the amount of request body data that has been read */
+    /* (its the size of the buffer; but the buffer -only- contains request body data at this point */
+
+    bytes_read = http->conn->in.offset;
+    bytes_left = r->content_length - bytes_read;
+    debug(33, 2) ("clientCheckBeginForwarding: request %p: request body size %d; read %d bytes; %d bytes to go\n", r, (int) r->content_length, bytes_read, bytes_left);
+
+    bytes_to_delay = clientMaxRequestBodyDelayForwardSize(r, http);
+
+    /* Forward if all the request body has been read OR bytes_read >= bytes_to_delay */
+    /*
+     * Handle the case where we've been given slightly more data than we should have -
+     * eg, IE7.
+     */
+    if (bytes_left <= 0 || (bytes_read >= bytes_to_delay)) {
+	r->flags.delayed = 0;
+	http->conn->body.delayed = 0;
+	http->conn->body.delay_http = NULL;
+	clientBeginForwarding(http);
+	return 1;
+    }
+    return 0;
+}
+
 /*
  * Prepare to fetch the object as it's a cache miss of some kind.
  */
@@ -3765,7 +3853,19 @@ clientProcessMiss(clientHttpRequest * http)
 	EBIT_SET(http->entry->flags, KEY_EARLY_PUBLIC);
 	storeSetPublicKey(http->entry);
     }
-    fwdStart(http->conn->fd, http->entry, r);
+    /*
+     * Do we need to delay the initial request forwarding for any reason?
+     * If so, set the "connection forwarding delayed" flag.
+     */
+    if (r->content_length > 0) {
+	debug(33, 2) ("clientProcessMiss: request %p: time to consider delaying\n", r);
+	r->flags.delayed = 1;
+	http->conn->body.delayed = 1;
+	http->conn->body.delay_http = http;
+	clientCheckBeginForwarding(http);
+	return;
+    }
+    clientBeginForwarding(http);
 }
 
 static clientHttpRequest *
@@ -4017,8 +4117,9 @@ clientReadDefer(int fd, void *data)
 {
     fde *F = &fd_table[fd];
     ConnStateData *conn = data;
+    /* Is there a request body? Defer reading if we've read too far */
     if (conn->body.size_left && !F->flags.socket_eof) {
-	if (conn->in.offset >= conn->in.size - 1) {
+	if ((!conn->body.delayed) && (conn->in.offset >= conn->in.size - 1)) {
 	    commDeferFD(fd);
 	    return 1;
 	} else {
@@ -4191,6 +4292,7 @@ clientTryParseRequest(ConnStateData * conn)
 	/* Do we expect a request-body? */
 	if (request->content_length > 0) {
 	    conn->body.size_left = request->content_length;
+	    debug(33, 2) ("clientTryParseRequest: %p: FD %d: request body is %d bytes in size\n", request, conn->fd, (int) conn->body.size_left);
 	    request->body_reader = clientReadBody;
 	    request->body_reader_data = conn;
 	    cbdataLock(conn);
@@ -4274,6 +4376,7 @@ clientReadRequest(int fd, void *data)
     }
     statCounter.syscalls.sock.reads++;
     size = FD_READ_METHOD(fd, conn->in.buf + conn->in.offset, len);
+    debug(33, 4) ("clientReadRequest: FD %d: read %d bytes\n", fd, size);
     if (size > 0) {
 	fd_bytes(fd, size, FD_READ);
 	kb_incr(&statCounter.client_http.kbytes_in, size);
@@ -4322,6 +4425,11 @@ clientReadRequest(int fd, void *data)
 	/* Continue to process previously read data */
     }
     cbdataLock(conn);		/* clientProcessBody might pull the connection under our feets */
+
+    /* Check whether we need to kick-start forwarding the request */
+    if (conn->in.offset && conn->body.delayed)
+	clientCheckBeginForwarding(conn->body.delay_http);
+
     /* Process request body if any */
     if (conn->in.offset > 0 && conn->body.callback != NULL) {
 	clientProcessBody(conn);
@@ -4352,8 +4460,10 @@ clientReadRequest(int fd, void *data)
 	    return;
 	}
     }
-    if (ret >= 0)
+    if (ret >= 0) {
+	debug(33, 9) ("clientReadRequest: FD %d: re-registering for another read\n", fd);
 	commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, conn, 0);
+    }
 }
 
 /* file_read like function, for reading body content */

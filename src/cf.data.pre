@@ -3346,6 +3346,41 @@ DOC_START
 	no limit imposed.
 DOC_END
 
+NAME: request_body_delay_forward_size
+COMMENT: bytes allow|deny acl acl ..
+TYPE: body_size_t
+DEFAULT: none
+DEFAULT_IF_NONE: 0 allow all
+LOC: Config.RequestBodyDelayForwardSize
+DOC_START
+	By default, Squid will begin forwarding a request immediately, before
+	any request body data is available. Some application servers may have
+	a high per-open-connection cost and thus holding open a connection
+	whilst waiting for the request body data may cause the application
+	server to behave poorly.
+
+	This option delays forwarding the request until a certain amount
+	of request body data is available.
+
+	The default is to immediately forward the request without waiting for
+	any request body to be received. This is the old default.
+
+	To use this feature, configure an ACL to match on the request (so
+	URL, request headers, etc - not the reply headers, they're not available
+	here) and an amount of data to "hold onto" before forwarding occurs.
+
+	If the whole request body is read in before the specified limit is reached,
+	the request will be forwarded.
+
+	Make sure that you configure a default "allow all" rule if you set any rules
+	to delay forwarding so request forwarding will still happen if no rules are
+	matched.
+
+	ie,
+
+	request_body_delay_forward_size 0 allow all
+DOC_END
+
 NAME: broken_posts
 TYPE: acl_access
 DEFAULT: none

@@ -490,6 +490,7 @@ struct _SquidConfig {
     squid_off_t maxRequestHeaderSize;
     squid_off_t maxReplyHeaderSize;
     dlink_list RequestBodySize;
+    dlink_list RequestBodyDelayForwardSize;
     dlink_list ReplyBodySize;
     dlink_list DelayBodySize;
     struct {
@@ -1299,6 +1300,7 @@ struct _clientHttpRequest {
     } redirect;
     dlink_node active;
     squid_off_t maxRequestBodySize;
+    squid_off_t maxRequestBodyDelayForwardSize;
     squid_off_t maxBodySize;
     squid_off_t delayMaxBodySize;
     ushort delayAssignedPool;
@@ -1317,8 +1319,10 @@ struct _ConnStateData {
 	size_t size;
     } in;
     struct {
+	int delayed;		/* are we delaying forwarding this? */
 	squid_off_t size_left;	/* How much body left to process */
 	request_t *request;	/* Parameters passed to clientReadBody */
+	clientHttpRequest *delay_http;	/* http request to kickstart on delay */
 	char *buf;
 	size_t bufsize;
 	CBCB *callback;
@@ -1925,6 +1929,7 @@ struct _request_flags {
     unsigned int cache_validation:1;	/* This request is an internal cache validation */
     unsigned int no_direct:1;	/* Deny direct forwarding unless overriden by always_direct. Used in accelerator mode */
     unsigned int chunked_response:1;	/* Send the response using chunked encoding */
+    unsigned int delayed:1;	/* Delay initial request forwarding */
 };
 
 struct _link_list {
