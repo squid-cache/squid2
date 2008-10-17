@@ -2,10 +2,10 @@
 <HTML>
 <HEAD>
  <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.21">
- <TITLE>Squid 2.7.STABLE4 release notes</TITLE>
+ <TITLE>Squid 2.7.STABLE5 release notes</TITLE>
 </HEAD>
 <BODY>
-<H1>Squid 2.7.STABLE4 release notes</H1>
+<H1>Squid 2.7.STABLE5 release notes</H1>
 
 <H2>Squid Developers</H2>$Id$
 <HR>
@@ -49,6 +49,9 @@ Squid is a WWW Cache application developed by the Web Caching community.</EM>
 
 <P>
 <H2><A NAME="toc7">7.</A> <A HREF="#s7">Key changes in squid-2.7.STABLE4</A></H2>
+
+<P>
+<H2><A NAME="toc8">8.</A> <A HREF="#s8">Key changes in squid-2.7.STABLE5</A></H2>
 
 
 <HR>
@@ -446,6 +449,28 @@ ScriptAlias /squid/cgi-bin/ "c:/squid/libexec/"
 <LI>Make dns_nameserver work when using --disable-internal-dns on glibc based systems</LI>
 <LI>Handle aborted objects properly. The change in 2.7.STABLE3 triggered a number of issues.</LI>
 <LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=2406">#2406</a>: access.log logs rewritten URL and strip_query_terms ineffective</LI>
+<LI>See also the list of 
+<A HREF="http://www.squid-cache.org/Versions/v2/2.7/changesets/SQUID_2_7_STABLE4.html">squid-2.7.STABLE4 changes</A> and the 
+<A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
+</UL>
+</P>
+
+<H2><A NAME="s8">8.</A> <A HREF="#toc8">Key changes in squid-2.7.STABLE5</A></H2>
+
+<P>
+<UL>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=2441">#2441</a>: Shut down store url rewrite helpers on squid -k reconfigure</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=2464">#2464</a>: assertion failed: sc->new_callback == NULL at store_client.c:190</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=2394">#2394</a>: add upgrade_http0.9 option making it possible to disable upgrade of HTTP/0.9 responses</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=2426">#2426</a>: Increase negotiate auth token buffer size</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=2468">#2468</a>: Limit stale-if-error to 500-504 responses</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=2477">#2477</a>: swap.state permission issues if crashing during "squid -k reconfigure"</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=2430">#2430</a>: Old headers sometimes still returned after a cache validation</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=2481">#2481</a>: Don't set expires: now in generated error responses</LI>
+<LI>Windows port: Fix build error using latest MinGW runtime.</LI>
+<LI>See also the list of 
+<A HREF="http://www.squid-cache.org/Versions/v2/2.7/changesets/SQUID_2_7_STABLE5.html">squid-2.7.STABLE5 changes</A> and the 
+<A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
 </UL>
 </P>
 
