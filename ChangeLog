@@ -23,6 +23,26 @@ Done:
 
 Pending backport:
 
+Changes to squid-2.7.SATBLE5 (17 October 2008)
+	- Bug #2439: configuration file contains non-ASCII characters
+	- Bug #2441: Shut down store url rewrite helpers on squid -k
+	  reconfigure
+	- foreground rebuild should do all of the rebuilding before Squid
+	  accepts requests.
+	- Bug #2464: assertion failed: sc->new_callback == NULL at
+	  store_client.c:190
+	- Bug #2394: add upgrade_http0.9 option making it possible to disable
+	  upgrade of HTTP/0.9 responses
+	- Bug #2426: Increase negotiate auth token buffer size
+	- Bug #2468: Limit stale-if-error to 500-504 responses
+	- Bug #2477: swap.state permission issues if crashing during "squid -k
+	  reconfigure"
+	- Bug #2430: Old headers still returned after a cache validation if
+	  the request triggering the cache validation was itself a
+	  If-Modified-Since request.
+	- Bug #2481: Don't set expires: now in generated error responses
+	- Windows port: Fix build error using latest MinGW runtime.
+
 Changes to squid-2.7.SATBLE4 (8 August 2008)
 	- Bug #2387: The calculation of the number of hash buckets need to
 	  account for the memory size, not only disk size
@@ -51,6 +71,7 @@ Changes to squid-2.7.SATBLE4 (8 August 2008)
 	- Bug #2406: access.log logs rewritten URL and strip_query_terms
 	  ineffective
 	- More changes to deal properly with aborted requests
+	- Bug #2427: squid_ldap_group -h reports the old % codes for -f
 
 Changes to squid-2.6.STABLE21 (27 June 2008)
 

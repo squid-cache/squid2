@@ -1,6 +1,6 @@
 <!doctype linuxdoc system>
 <article>
-<title>Squid 2.7.STABLE4 release notes</title>
+<title>Squid 2.7.STABLE5 release notes</title>
 <author>Squid Developers</author>
 <date>$Id$
 
@@ -448,6 +448,29 @@ ScriptAlias /squid/cgi-bin/ "c:/squid/libexec/"
 	<item>Make dns_nameserver work when using --disable-internal-dns on glibc based systems
 	<item>Handle aborted objects properly. The change in 2.7.STABLE3 triggered a number of issues.
 	<item>Bug #2406: access.log logs rewritten URL and strip_query_terms ineffective
+	<item>See also the list of <url
+		url="http://www.squid-cache.org/Versions/v2/2.7/changesets/SQUID_2_7_STABLE4.html"
+			name="squid-2.7.STABLE4 changes"> and the <url url="ChangeLog"
+				name="ChangeLog"> file for details.
+</itemize>
+
+<sect>Key changes in squid-2.7.STABLE5
+
+<p>
+<itemize>
+	<item>Bug #2441: Shut down store url rewrite helpers on squid -k reconfigure
+	<item>Bug #2464: assertion failed: sc->new_callback == NULL at store_client.c:190
+	<item>Bug #2394: add upgrade_http0.9 option making it possible to disable upgrade of HTTP/0.9 responses
+	<item>Bug #2426: Increase negotiate auth token buffer size
+	<item>Bug #2468: Limit stale-if-error to 500-504 responses
+	<item>Bug #2477: swap.state permission issues if crashing during "squid -k reconfigure"
+	<item>Bug #2430: Old headers sometimes still returned after a cache validation
+	<item>Bug #2481: Don't set expires: now in generated error responses
+	<item>Windows port: Fix build error using latest MinGW runtime.
+	<item>See also the list of <url
+		url="http://www.squid-cache.org/Versions/v2/2.7/changesets/SQUID_2_7_STABLE5.html"
+			name="squid-2.7.STABLE5 changes"> and the <url url="ChangeLog"
+				name="ChangeLog"> file for details.
 </itemize>
 
 </article>
