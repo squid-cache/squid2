@@ -2,10 +2,10 @@
 <HTML>
 <HEAD>
  <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.21">
- <TITLE>Squid 2.6.STABLE21 release notes</TITLE>
+ <TITLE>Squid 2.6.STABLE22 release notes</TITLE>
 </HEAD>
 <BODY>
-<H1>Squid 2.6.STABLE21 release notes</H1>
+<H1>Squid 2.6.STABLE22 release notes</H1>
 
 <H2>Squid Developers</H2>$Id$
 <HR>
@@ -89,6 +89,9 @@ Squid is a WWW Cache application developed by the Web Caching community.</EM>
 
 <P>
 <H2><A NAME="toc26">26.</A> <A HREF="#s26">Key changes squid-2.6.STABLE20 to 2.6.STABLE21</A></H2>
+
+<P>
+<H2><A NAME="toc27">27.</A> <A HREF="#s27">Key changes squid-2.6.STABLE21 to 2.6.STABLE22</A></H2>
 
 
 <HR>
@@ -837,6 +840,24 @@ automatically derived default domain</LI>
 <LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=2393">#2393</a>: DNS retransmit queue could get hold up</LI>
 <LI>See also the list of 
 <A HREF="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE21.html">squid-2.6.STABLE21 changes</A> and the 
+<A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
+</UL>
+</P>
+
+<H2><A NAME="s27">27.</A> <A HREF="#toc27">Key changes squid-2.6.STABLE21 to 2.6.STABLE22</A></H2>
+
+<P>
+<UL>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=2396">#2396</a>: Correct the opening of the PF device file.</LI>
+<LI>Make --with-large-files and --with-build-envirnment=default play nice together</LI>
+<LI>Workaround for Linux-2.6.24 &amp; 2.6.25 netfiler_ipv4.h include header __u32 problem</LI>
+<LI>Make dns_nameserver work when using --disable-internal-dns on glibc based systems</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=2426">#2426</a>: Increase negotiate auth token buffer size</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=2427">#2427</a>: squid_ldap_group -h reports the old % codes for -f</LI>
+<LI>Bug <a href="http://www.squid-cache.org/bugs/show_bug.cgi?id=2477">#2477</a>: swap.state permission issues if crashing during "squid -k reconfigure"</LI>
+<LI>Windows port: Fix build error using latest MinGW runtime.</LI>
+<LI>See also the list of 
+<A HREF="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE22.html">squid-2.6.STABLE22 changes</A> and the 
 <A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
 </UL>
 </P>
