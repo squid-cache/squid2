@@ -1,6 +1,6 @@
 <!doctype linuxdoc system>
 <article>
-<title>Squid 2.6.STABLE21 release notes</title>
+<title>Squid 2.6.STABLE22 release notes</title>
 <author>Squid Developers</author>
 <date>$Id$</date>
 
@@ -717,6 +717,24 @@ ScriptAlias /squid/cgi-bin/ "c:/squid/libexec/"
 	<item>See also the list of <url
 		url="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE21.html"
 			name="squid-2.6.STABLE21 changes"> and the <url url="ChangeLog"
+				name="ChangeLog"> file for details.
+</itemize>
+
+<sect>Key changes squid-2.6.STABLE21 to 2.6.STABLE22
+
+<p>
+<itemize>
+	<item>Bug #2396: Correct the opening of the PF device file.
+	<item>Make --with-large-files and --with-build-envirnment=default play nice together
+	<item>Workaround for Linux-2.6.24 & 2.6.25 netfiler_ipv4.h include header __u32 problem
+	<item>Make dns_nameserver work when using --disable-internal-dns on glibc based systems
+	<item>Bug #2426: Increase negotiate auth token buffer size
+	<item>Bug #2427: squid_ldap_group -h reports the old % codes for -f
+	<item>Bug #2477: swap.state permission issues if crashing during "squid -k reconfigure"
+	<item>Windows port: Fix build error using latest MinGW runtime.
+	<item>See also the list of <url
+		url="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE22.html"
+			name="squid-2.6.STABLE22 changes"> and the <url url="ChangeLog"
 				name="ChangeLog"> file for details.
 </itemize>
 
