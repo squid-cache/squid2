@@ -2737,9 +2737,9 @@ if test "$LINUX_TPROXY" ; then
     AC_MSG_RESULT($LINUX_TPROXY)
 fi
 if test "$LINUX_TPROXY" = "no" && test "$LINUX_NETFILTER" = "yes"; then
-    echo "WARNING: Cannot find TPROXY headers, you need to install the"
+    echo "WARNING: Cannot find TPROXY headers, you need to patch your kernel with the"
     echo "tproxy package from:"
-    echo " - lynx http://www.balabit.com/downloads/tproxy/"
+    echo " - lynx http://www.balabit.com/downloads/files/tproxy/"
     sleep 10
 fi
 
