@@ -711,7 +711,7 @@ clientProcessExpired(clientHttpRequest * http)
 	if (EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
 	    debug(33, 1) ("clientProcessExpired: collapsed request ABORTED!\n");
 	    entry = NULL;
-	} else if (http->entry->mem_obj->refresh_timestamp + 30 < squid_curtime) {
+	} else if (http->entry->mem_obj->refresh_timestamp + Config.collapsed_forwarding_timeout < squid_curtime) {
 	    debug(33, 1) ("clientProcessExpired: collapsed request STALE!\n");
 	    entry = NULL;
 	}

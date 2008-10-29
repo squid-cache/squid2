@@ -716,6 +716,7 @@ struct _SquidConfig {
 	int ignore_expect_100;
 	int WIN32_IpAddrChangeMonitor;
     } onoff;
+    int collapsed_forwarding_timeout;
     acl *aclList;
     struct {
 	acl_access *http;
