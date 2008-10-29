@@ -103,7 +103,7 @@ commSetEvents(int fd, int need_read, int need_write)
 static int
 do_comm_select(int msec)
 {
-    int num;
+    int num, saved_errno;
     struct timeval tv;
     fd_set readfds;
     fd_set writefds;
@@ -121,10 +121,11 @@ do_comm_select(int msec)
     tv.tv_usec = (msec % 1000) * 1000;
     statCounter.syscalls.selects++;
     num = select(Biggest_FD + 1, &readfds, &writefds, &errfds, &tv);
-
+    saved_errno = errno;
+    getCurrentTime();
+    debug(5, 5) ("do_comm_select: %d fds ready\n", num);
     if (num < 0) {
-	getCurrentTime();
-	if (ignoreErrno(errno))
+	if (ignoreErrno(saved_errno))
 	    return COMM_OK;
 
 	debug(5, 1) ("comm_select: select failure: %s\n", xstrerror());

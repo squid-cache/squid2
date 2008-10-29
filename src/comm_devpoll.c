@@ -190,7 +190,7 @@ static int
 do_comm_select(int msec)
 {
     int i;
-    int num;
+    int num, saved_errno;
 
     statCounter.syscalls.polls++;
 
@@ -202,11 +202,11 @@ do_comm_select(int msec)
     comm_flush_updates();
 
     num = ioctl(devpoll_fd, DP_POLL, &do_poll);
-    debug(5, 5) ("do_comm_select: ioctl() returned %d fds\n", num);
-
+    saved_errno = errno;
+    getCurrentTime();
+    debug(5, 5) ("do_comm_select: %d fds ready\n", num);
     if (num < 0) {
-	getCurrentTime();
-	if (ignoreErrno(errno))
+	if (ignoreErrno(saved_errno))
 	    return COMM_OK;
 
 	debug(5, 1) ("comm_select: devpoll ioctl(DP_POLL) failure: %s\n", xstrerror());

@@ -168,7 +168,7 @@ static int
 do_comm_select(int msec)
 {
     int i;
-    int num;
+    int num, saved_errno;
 
     if (epoll_fds == 0) {
 	assert(shutting_down);
@@ -176,9 +176,11 @@ do_comm_select(int msec)
     }
     statCounter.syscalls.polls++;
     num = epoll_wait(kdpfd, events, MAX_EVENTS, msec);
+    saved_errno = errno;
+    getCurrentTime();
+    debug(5, 5) ("do_comm_select: %d fds ready\n", num);
     if (num < 0) {
-	getCurrentTime();
-	if (ignoreErrno(errno))
+	if (ignoreErrno(saved_errno))
 	    return COMM_OK;
 
 	debug(5, 1) ("comm_select: epoll failure: %s\n", xstrerror());
