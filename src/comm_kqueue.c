@@ -154,7 +154,7 @@ do_comm_select(int msec)
     debug(5, 5) ("do_comm_select: %d fds ready\n", num);
     kqoff = 0;
     if (num < 0) {
-	if (ignoreErrno(saved_errnoerrno))
+	if (ignoreErrno(saved_errno))
 	    return COMM_OK;
 
 	debug(5, 1) ("comm_select: kevent failure: %s\n", xstrerror());
