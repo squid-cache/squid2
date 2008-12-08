@@ -48,97 +48,97 @@ static struct rms request_methods[] =
 {
     {
 	{METHOD_NONE, "NONE",
-	    {.cachable = 0,.purges_all = 0}}, 4},
+	    {0, 0}}, 4},
     {
 	{METHOD_GET, "GET",
-	    {.cachable = 1,.purges_all = 0}}, 3},
+	    {1, 0}}, 3},
     {
 	{METHOD_POST, "POST",
-	    {.cachable = 0,.purges_all = 1}}, 4},
+	    {0, 1}}, 4},
     {
 	{METHOD_PUT, "PUT",
-	    {.cachable = 0,.purges_all = 1}}, 3},
+	    {0, 1}}, 3},
     {
 	{METHOD_HEAD, "HEAD",
-	    {.cachable = 1,.purges_all = 0}}, 4},
+	    {1, 0}}, 4},
     {
 	{METHOD_CONNECT, "CONNECT",
-	    {.cachable = 0,.purges_all = 0}}, 7},
+	    {0, 0}}, 7},
     {
 	{METHOD_TRACE, "TRACE",
-	    {.cachable = 0,.purges_all = 0}}, 5},
+	    {0, 0}}, 5},
     {
 	{METHOD_PURGE, "PURGE",
-	    {.cachable = 0,.purges_all = 1}}, 5},
+	    {0, 1}}, 5},
     {
 	{METHOD_OPTIONS, "OPTIONS",
-	    {.cachable = 0,.purges_all = 0}}, 7},
+	    {0, 0}}, 7},
     {
 	{METHOD_DELETE, "DELETE",
-	    {.cachable = 0,.purges_all = 1}}, 6},
+	    {0, 1}}, 6},
     {
 	{METHOD_PROPFIND, "PROPFIND",
-	    {.cachable = 0,.purges_all = 0}}, 8},
+	    {0, 0}}, 8},
     {
 	{METHOD_PROPPATCH, "PROPPATCH",
-	    {.cachable = 0,.purges_all = 1}}, 9},
+	    {0, 1}}, 9},
     {
 	{METHOD_MKCOL, "MKCOL",
-	    {.cachable = 0,.purges_all = 1}}, 5},
+	    {0, 1}}, 5},
     {
 	{METHOD_COPY, "COPY",
-	    {.cachable = 0,.purges_all = 0}}, 4},
+	    {0, 0}}, 4},
     {
 	{METHOD_MOVE, "MOVE",
-	    {.cachable = 0,.purges_all = 1}}, 4},
+	    {0, 1}}, 4},
     {
 	{METHOD_LOCK, "LOCK",
-	    {.cachable = 0,.purges_all = 0}}, 4},
+	    {0, 0}}, 4},
     {
 	{METHOD_UNLOCK, "UNLOCK",
-	    {.cachable = 0,.purges_all = 0}}, 6},
+	    {0, 0}}, 6},
     {
 	{METHOD_BMOVE, "BMOVE",
-	    {.cachable = 0,.purges_all = 1}}, 5},
+	    {0, 1}}, 5},
     {
 	{METHOD_BDELETE, "BDELETE",
-	    {.cachable = 0,.purges_all = 1}}, 7},
+	    {0, 1}}, 7},
     {
 	{METHOD_BPROPFIND, "BPROPFIND",
-	    {.cachable = 0,.purges_all = 0}}, 9},
+	    {0, 0}}, 9},
     {
 	{METHOD_BPROPPATCH, "BPROPPATCH",
-	    {.cachable = 0,.purges_all = 0}}, 10},
+	    {0, 0}}, 10},
     {
 	{METHOD_BCOPY, "BCOPY",
-	    {.cachable = 0,.purges_all = 0}}, 5},
+	    {0, 0}}, 5},
     {
 	{METHOD_SEARCH, "SEARCH",
-	    {.cachable = 0,.purges_all = 0}}, 6},
+	    {0, 0}}, 6},
     {
 	{METHOD_SUBSCRIBE, "SUBSCRIBE",
-	    {.cachable = 0,.purges_all = 0}}, 9},
+	    {0, 0}}, 9},
     {
 	{METHOD_UNSUBSCRIBE, "UNSUBSCRIBE",
-	    {.cachable = 0,.purges_all = 0}}, 11},
+	    {0, 0}}, 11},
     {
 	{METHOD_POLL, "POLL",
-	    {.cachable = 0,.purges_all = 0}}, 4},
+	    {0, 0}}, 4},
     {
 	{METHOD_REPORT, "REPORT",
-	    {.cachable = 0,.purges_all = 0}}, 6},
+	    {0, 0}}, 6},
     {
 	{METHOD_MKACTIVITY, "MKACTIVITY",
-	    {.cachable = 0,.purges_all = 0}}, 10},
+	    {0, 0}}, 10},
     {
 	{METHOD_CHECKOUT, "CHECKOUT",
-	    {.cachable = 0,.purges_all = 0}}, 8},
+	    {0, 0}}, 8},
     {
 	{METHOD_MERGE, "MERGE",
-	    {.cachable = 0,.purges_all = 0}}, 5},
+	    {0, 0}}, 5},
     {
 	{METHOD_OTHER, NULL,
-	    {.cachable = 0,.purges_all = 0}}, 0},
+	    {0, 0}}, 0},
 };
 
 const char *ProtocolStr[] =
