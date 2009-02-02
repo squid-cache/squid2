@@ -46,7 +46,7 @@ Changes to squid-2.6.STABLE22 (19 October 2008)
 	  reconfigure"
 	- Windows port: Fix build error using latest MinGW runtime.
 
-Changes to squid-2.7.SATBLE5 (17 October 2008)
+Changes to squid-2.7.STABLE5 (17 October 2008)
 	- Bug #2439: configuration file contains non-ASCII characters
 	- Bug #2441: Shut down store url rewrite helpers on squid -k
 	  reconfigure
@@ -66,7 +66,7 @@ Changes to squid-2.7.SATBLE5 (17 October 2008)
 	- Bug #2481: Don't set expires: now in generated error responses
 	- Windows port: Fix build error using latest MinGW runtime.
 
-Changes to squid-2.7.SATBLE4 (8 August 2008)
+Changes to squid-2.7.STABLE4 (8 August 2008)
 	- Bug #2387: The calculation of the number of hash buckets need to
 	  account for the memory size, not only disk size
 	- Bug #2393: DNS requests retried indefinitely at full speed on failed
