@@ -119,7 +119,7 @@ static void checkFailureRatio(err_type, hier_code);
 static void clientProcessMiss(clientHttpRequest *);
 static void clientProcessHit(clientHttpRequest * http);
 static void clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep);
-static clientHttpRequest *parseHttpRequestAbort(ConnStateData * conn, const char *uri);
+static clientHttpRequest *parseHttpRequestAbort(ConnStateData * conn, method_t **, const char *uri);
 static clientHttpRequest *parseHttpRequest(ConnStateData *, HttpMsgBuf *, method_t **, int *);
 
 static void clientCheckNoCache(clientHttpRequest *);
@@ -3869,7 +3869,7 @@ clientProcessMiss(clientHttpRequest * http)
 }
 
 static clientHttpRequest *
-parseHttpRequestAbort(ConnStateData * conn, const char *uri)
+parseHttpRequestAbort(ConnStateData * conn, method_t ** method_p, const char *uri)
 {
     clientHttpRequest *http;
     http = cbdataAlloc(clientHttpRequest);
@@ -3877,9 +3877,12 @@ parseHttpRequestAbort(ConnStateData * conn, const char *uri)
     http->start = current_time;
     http->req_sz = conn->in.offset;
     http->uri = xstrdup(uri);
+    http->log_uri = xstrdup(uri);
     http->range_iter.boundary = StringNull;
     httpBuildVersion(&http->http_ver, 1, 0);
     dlinkAdd(http, &http->active, &ClientActiveRequests);
+    if (method_p && !*method_p)
+	*method_p = urlMethodGetKnownByCode(METHOD_NONE);
     return http;
 }
 
@@ -3912,7 +3915,7 @@ parseHttpRequest(ConnStateData * conn, HttpMsgBuf * hmsg, method_t ** method_p, 
     /* Parse the request line */
     ret = httpMsgParseRequestLine(hmsg);
     if (ret == -1)
-	return parseHttpRequestAbort(conn, "error:invalid-request");
+	return parseHttpRequestAbort(conn, method_p, "error:invalid-request");
     if (ret == 0) {
 	debug(33, 5) ("Incomplete request, waiting for end of request line\n");
 	*status = 0;
@@ -3935,7 +3938,7 @@ parseHttpRequest(ConnStateData * conn, HttpMsgBuf * hmsg, method_t ** method_p, 
     /* Enforce max_request_size */
     if (req_sz >= Config.maxRequestHeaderSize) {
 	debug(33, 5) ("parseHttpRequest: Too large request\n");
-	return parseHttpRequestAbort(conn, "error:request-too-large");
+	return parseHttpRequestAbort(conn, method_p, "error:request-too-large");
     }
     /* Wrap the request method */
     method = urlMethodGet(hmsg->buf + hmsg->m_start, hmsg->m_len);
@@ -3949,7 +3952,7 @@ parseHttpRequest(ConnStateData * conn, HttpMsgBuf * hmsg, method_t ** method_p, 
     /* Make sure URL fits inside MAX_URL */
     if (hmsg->u_len >= MAX_URL) {
 	debug(33, 1) ("parseHttpRequest: URL too big (%d) chars: %s\n", hmsg->u_len, hmsg->buf + hmsg->u_start);
-	return parseHttpRequestAbort(conn, "error:request-too-large");
+	return parseHttpRequestAbort(conn, method_p, "error:request-too-large");
     }
     xmemcpy(urlbuf, hmsg->buf + hmsg->u_start, hmsg->u_len);
     /* XXX off-by-one termination error? */
@@ -4109,7 +4112,7 @@ parseHttpRequest(ConnStateData * conn, HttpMsgBuf * hmsg, method_t ** method_p, 
     dlinkDelete(&http->active, &ClientActiveRequests);
     safe_free(http->uri);
     cbdataFree(http);
-    return parseHttpRequestAbort(conn, "error:invalid-request");
+    return parseHttpRequestAbort(conn, method_p, "error:invalid-request");
 }
 
 static int
@@ -4333,11 +4336,11 @@ clientTryParseRequest(ConnStateData * conn)
 		(long int) Config.maxRequestHeaderSize);
 	    err = errorCon(ERR_TOO_BIG, HTTP_REQUEST_URI_TOO_LONG, NULL);
 	    err->src_addr = conn->peer.sin_addr;
-	    http = parseHttpRequestAbort(conn, "error:request-too-large");
+	    http = parseHttpRequestAbort(conn, &method, "error:request-too-large");
 	    /* add to the client request queue */
 	    dlinkAddTail(http, &http->node, &conn->reqs);
 	    http->log_type = LOG_TCP_DENIED;
-	    http->entry = clientCreateStoreEntry(http, NULL, null_request_flags);
+	    http->entry = clientCreateStoreEntry(http, method, null_request_flags);
 	    errorAppendEntry(http->entry, err);
 	    return -1;
 	}
