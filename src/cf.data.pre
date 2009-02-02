@@ -2706,6 +2706,11 @@ DOC_START
 		standard.  Enabling this feature could make you liable
 		for problems which it causes.
 
+		Note: this does not enforce staleness - it only extends
+		freshness / min. If the server returns a Expires time which
+		is longer than your max time, Squid will still consider
+		the object fresh for that period of time.
+
 		override-lastmod enforces min age even on objects
 		that were modified recently.
 
