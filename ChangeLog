@@ -23,6 +23,15 @@ Done:
 
 Pending backport:
 
+Changes to squid-2.7.STABLE6 (2 February 2009)
+	- Bug #2494: Fix tproxy url in configure
+	- Correct latency measurements
+	- Correct upgrade_http0.9 example
+	- Correct parsing of invalid http version numbers
+	- Crossreference authenticate_ip_shortcircuit_access and
+	  authenticate_ip_shortcircuit_ttl
+	- Add in some better documentation for override-expire.
+
 Changes to squid-2.6.STABLE22 (19 October 2008)
 	- Bug #2396: Correct the opening of the PF device file.
 	- Make --with-large-files and --with-build-envirnment=default play
