@@ -280,7 +280,7 @@ httpMsgParseRequestLine(HttpMsgBuf * hmsg)
 		min = min * 10;
 		min = min + (hmsg->buf[i]) - '0';
 	    }
-	    if (maj >= 65536) {
+	    if (min >= 65536) {
 		retcode = -1;
 		goto finish;
 	    }
