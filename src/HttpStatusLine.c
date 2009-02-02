@@ -97,11 +97,11 @@ httpStatusLineParse(HttpStatusLine * sline, const char *start, const char *end)
     /* Format: HTTP/x.x <space> <status code> <space> <reason-phrase> CRLF */
     s = start;
     maj = 0;
-    for (s = start; s < end && xisdigit(*s); s++) {
+    for (s = start; s < end && xisdigit(*s) && maj < 65536; s++) {
 	maj = maj * 10;
 	maj = maj + *s - '0';
     }
-    if (s >= end) {
+    if (s >= end || maj >= 65536) {
 	debug(57, 7) ("httpStatusLineParse: Invalid HTTP reply status major.\n");
 	return 0;
     }
@@ -113,11 +113,11 @@ httpStatusLineParse(HttpStatusLine * sline, const char *start, const char *end)
     s++;
     /* next should be minor number */
     min = 0;
-    for (; s < end && xisdigit(*s); s++) {
+    for (; s < end && xisdigit(*s) && min < 65536; s++) {
 	min = min * 10;
 	min = min + *s - '0';
     }
-    if (s >= end) {
+    if (s >= end || min >= 65536) {
 	debug(57, 7) ("httpStatusLineParse: Invalid HTTP reply status version minor.\n");
 	return 0;
     }
