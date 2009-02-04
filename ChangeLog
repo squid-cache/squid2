@@ -1,4 +1,4 @@
-Changes to squid-2.7.STABLE6 (2 February 2009)
+Changes to squid-2.7.STABLE6 (4 February 2009)
 	- Bug #2494: Fix tproxy url in configure
 	- Correct latency measurements
 	- Correct upgrade_http0.9 example
