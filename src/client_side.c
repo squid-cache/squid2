@@ -159,7 +159,7 @@ static void clientAccessCheck(void *data);
 static void clientAccessCheckDone(int answer, void *data);
 static void clientAccessCheckDone2(int answer, void *data);
 static BODY_HANDLER clientReadBody;
-static void clientAbortBody(request_t * req);
+static void clientAbortBody(ConnStateData * conn, request_t * req);
 #if USE_SSL
 static void httpsAcceptSSL(ConnStateData * connState, SSL_CTX * sslContext);
 #endif
@@ -4296,9 +4296,7 @@ clientTryParseRequest(ConnStateData * conn)
 	if (request->content_length > 0) {
 	    conn->body.size_left = request->content_length;
 	    debug(33, 2) ("clientTryParseRequest: %p: FD %d: request body is %d bytes in size\n", request, conn->fd, (int) conn->body.size_left);
-	    request->body_reader = clientReadBody;
-	    request->body_reader_data = conn;
-	    cbdataLock(conn);
+	    requestRegisterBody(request, clientReadBody, conn);
 	    /* Is it too large? */
 	    if (clientRequestBodyTooLarge(http, request)) {
 		err = errorCon(ERR_TOO_BIG, HTTP_REQUEST_ENTITY_TOO_LARGE, request);
@@ -4471,11 +4469,11 @@ clientReadRequest(int fd, void *data)
 
 /* file_read like function, for reading body content */
 static void
-clientReadBody(request_t * request, char *buf, size_t size, CBCB * callback, void *cbdata)
+clientReadBody(void *data, request_t * request, char *buf, size_t size, CBCB * callback, void *cbdata)
 {
-    ConnStateData *conn = request->body_reader_data;
+    ConnStateData *conn = data;
     if (!callback) {
-	clientAbortBody(request);
+	clientAbortBody(conn, request);
 	return;
     }
     if (!conn) {
@@ -4570,12 +4568,8 @@ clientProcessBody(ConnStateData * conn)
 	    xmemmove(conn->in.buf, conn->in.buf + size, conn->in.offset);
 	/* Remove request link if this is the last part of the body, as
 	 * clientReadRequest automatically continues to process next request */
-	if (conn->body.size_left <= 0 && request != NULL) {
-	    request->body_reader = NULL;
-	    if (request->body_reader_data)
-		cbdataUnlock(request->body_reader_data);
-	    request->body_reader_data = NULL;
-	}
+	if (conn->body.size_left <= 0 && request != NULL)
+	    requestUnregisterBody(request, clientReadBody, conn);
 	/* Remove clientReadBody arguments (the call is completed) */
 	conn->body.request = NULL;
 	conn->body.callback = NULL;
@@ -4597,9 +4591,8 @@ clientProcessBody(ConnStateData * conn)
 
 /* Abort a body request */
 static void
-clientAbortBody(request_t * request)
+clientAbortBody(ConnStateData * conn, request_t * request)
 {
-    ConnStateData *conn = request->body_reader_data;
     char *buf;
     CBCB *callback;
     void *cbdata;
