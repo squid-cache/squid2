@@ -909,7 +909,7 @@ WIN32_getrusage(int who, struct rusage *usage)
 {
 #if HAVE_WIN32_PSAPI
     if (WIN32_OS_version >= _WIN_OS_WINNT) {
-	/* On Windows NT an later call PSAPI.DLL for process Memory */
+	/* On Windows NT and later call PSAPI.DLL for process Memory */
 	/* informations -- Guido Serassio                       */
 	HANDLE hProcess;
 	PROCESS_MEMORY_COUNTERS pmc;
