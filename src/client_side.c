@@ -21,12 +21,12 @@
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2 of the License, or
  *  (at your option) any later version.
- *  
+ *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *  
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
@@ -44,7 +44,7 @@
 /* SG - 14 Aug 2005
  * Workaround needed to allow the build of both ipfilter and ARP acl
  * support on Solaris x86.
- * 
+ *
  * Some defines, like
  * #define free +
  * are used in squid.h to block misuse of standard malloc routines
@@ -695,7 +695,7 @@ clientProcessExpired(clientHttpRequest * http)
     debug(33, 3) ("clientProcessExpired: '%s'\n", http->uri);
     /*
      * check if we are allowed to contact other servers
-     * @?@: Instead of a 504 (Gateway Timeout) reply, we may want to return 
+     * @?@: Instead of a 504 (Gateway Timeout) reply, we may want to return
      *      a stale entry *if* it matches client requirements
      */
     if (clientOnlyIfCached(http)) {
@@ -1026,23 +1026,19 @@ clientPurgeRequest(clientHttpRequest * http)
     }
     http->log_type = LOG_TCP_MISS;
     /* Release the cached URI */
+#if USE_HTCP
+    neighborsHtcpClear(entry, http->uri, http->request,
+	method_get, HTCP_CLR_PURGE);
+#endif
     entry = storeGetPublicByRequestMethod(http->request, method_get);
     if (entry) {
-	debug(33, 4) ("clientPurgeRequest: GET '%s'\n",
-	    storeUrl(entry));
-#if USE_HTCP
-	neighborsHtcpClear(entry, NULL, http->request, method_get, HTCP_CLR_PURGE);
-#endif
+	debug(33, 4) ("clientPurgeRequest: GET '%s'\n", storeUrl(entry));
 	storeRelease(entry);
 	status = HTTP_OK;
     }
     entry = storeGetPublicByRequestMethod(http->request, method_head);
     if (entry) {
-	debug(33, 4) ("clientPurgeRequest: HEAD '%s'\n",
-	    storeUrl(entry));
-#if USE_HTCP
-	neighborsHtcpClear(entry, NULL, http->request, method_head, HTCP_CLR_PURGE);
-#endif
+	debug(33, 4) ("clientPurgeRequest: HEAD '%s'\n", storeUrl(entry));
 	storeRelease(entry);
 	status = HTTP_OK;
     }
@@ -1052,9 +1048,6 @@ clientPurgeRequest(clientHttpRequest * http)
 	if (entry) {
 	    debug(33, 4) ("clientPurgeRequest: Vary GET '%s'\n",
 		storeUrl(entry));
-#if USE_HTCP
-	    neighborsHtcpClear(entry, NULL, http->request, method_get, HTCP_CLR_PURGE);
-#endif
 	    storeRelease(entry);
 	    status = HTTP_OK;
 	}
@@ -1062,9 +1055,6 @@ clientPurgeRequest(clientHttpRequest * http)
 	if (entry) {
 	    debug(33, 4) ("clientPurgeRequest: Vary HEAD '%s'\n",
 		storeUrl(entry));
-#if USE_HTCP
-	    neighborsHtcpClear(entry, NULL, http->request, method_head, HTCP_CLR_PURGE);
-#endif
 	    storeRelease(entry);
 	    status = HTTP_OK;
 	}
@@ -1346,8 +1336,8 @@ clientInterpretRequestHeaders(clientHttpRequest * http)
     /* Work around for supporting the Reload button in IE browsers
      * when Squid is used as an accelerator or transparent proxy,
      * by turning accelerated IMS request to no-cache requests.
-     * Now knows about IE 5.5 fix (is actually only fixed in SP1, 
-     * but we can't tell whether we are talking to SP1 or not so 
+     * Now knows about IE 5.5 fix (is actually only fixed in SP1,
+     * but we can't tell whether we are talking to SP1 or not so
      * all 5.5 versions are treated 'normally').
      */
     if (Config.onoff.ie_refresh) {
@@ -2814,12 +2804,12 @@ clientRequestBodyTooLarge(clientHttpRequest * http, request_t * request)
 }
 
 
-/* Responses with no body will not have a content-type header, 
+/* Responses with no body will not have a content-type header,
  * which breaks the rep_mime_type acl, which
  * coincidentally, is the most common acl for reply access lists.
  * A better long term fix for this is to allow acl matchs on the various
- * status codes, and then supply a default ruleset that puts these 
- * codes before any user defines access entries. That way the user 
+ * status codes, and then supply a default ruleset that puts these
+ * codes before any user defines access entries. That way the user
  * can choose to block these responses where appropriate, but won't get
  * mysterious breakages.
  */
@@ -2953,7 +2943,7 @@ clientSendHeaders(void *data, HttpReply * rep)
 	errorAppendEntry(http->entry, err);
 	return;
     }
-    /* 
+    /*
      * At this point we might have more data in the headers than this silly 4k read.
      * So lets just ignore there being any body data in this particular read
      * (as eventually we won't be issuing a read just to get header data) and issue
@@ -3044,7 +3034,7 @@ clientHttpReplyAccessCheck(clientHttpRequest * http)
 }
 
 /* Handle error mapping.
- * 
+ *
  *   1. Look up if there is a error map for the request
  *   2. Start requesting the error URL
  *   3. When headers are received, create a new reply structure and copy
@@ -3464,7 +3454,7 @@ clientWriteComplete(int fd, char *bufnotused, size_t size, int errflag, void *da
 		    http->conn->fd, (in_addr_t) http->conn->peer.sin_addr.s_addr));
 	}
 #endif
-	/* More data will be coming from primary server; register with 
+	/* More data will be coming from primary server; register with
 	 * storage manager. */
 	debug(33, 3) ("clientWriteComplete: copying from offset %d\n", (int) http->out.offset);
 	storeClientRef(http->sc, entry,
@@ -3502,7 +3492,7 @@ clientProcessOnlyIfCachedMiss(clientHttpRequest * http)
     errorAppendEntry(http->entry, err);
 }
 
-/* 
+/*
  * Return true if we should force a cache miss on this range request.
  * entry must be non-NULL.
  */
@@ -3886,7 +3876,7 @@ parseHttpRequestAbort(ConnStateData * conn, method_t ** method_p, const char *ur
 
 /*
  *  parseHttpRequest()
- * 
+ *
  *  Returns
  *   NULL on error or incomplete request
  *    a clientHttpRequest structure on success
@@ -4128,7 +4118,7 @@ clientReadDefer(int fd, void *data)
 	}
     } else {
 	if (conn->defer.until > squid_curtime) {
-	    /* This is a second resolution timer, so commEpollBackon will 
+	    /* This is a second resolution timer, so commEpollBackon will
 	     * handle the resume for this defer call */
 	    commDeferFD(fd);
 	    return 1;
@@ -4345,7 +4335,7 @@ clientTryParseRequest(ConnStateData * conn)
     if (!cbdataValid(conn))
 	return -1;
 
-    /* 
+    /*
      * For now we assume "here" means "we parsed a valid request. This might not be the case
      * as I might've broken up clientReadRequest() wrong. Quite a bit more work should be
      * done to simplify this code anyway so the first step is identifying the cases where
@@ -5134,7 +5124,7 @@ clientGotNotEnough(clientHttpRequest * http)
  * mode where we only return UDP_HIT or UDP_MISS_NOFETCH.  Neighbors
  * will only fetch HITs from us if they are using the ICP protocol.  We
  * stay in this mode for 5 minutes.
- * 
+ *
  * Duane W., Sept 16, 1996
  */
 
