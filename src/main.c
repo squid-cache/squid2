@@ -772,7 +772,7 @@ main(int argc, char **argv)
     setUmask(Config.umask);
     if (-1 == opt_send_signal)
 	if (checkRunningPid())
-	    exit(1);
+	    exit(0);
 
     /* Make sure the OS allows core dumps if enabled in squid.conf */
     enableCoredumps();
@@ -913,8 +913,13 @@ sendSignal(void)
 	}
 #endif
     } else {
-	fprintf(stderr, "%s: ERROR: No running copy\n", appname);
-	exit(1);
+	if (opt_send_signal != SIGTERM) {
+	    fprintf(stderr, "%s: ERROR: No running copy\n", appname);
+	    exit(1);
+	} else {
+	    fprintf(stderr, "%s: No running copy\n", appname);
+	    exit(0);
+	}
     }
     /* signal successfully sent */
     exit(0);
