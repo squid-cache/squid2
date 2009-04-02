@@ -544,24 +544,19 @@ urlCanonical(request_t * request)
 	return request->canonical;
     if (request->protocol == PROTO_URN) {
 	snprintf(urlbuf, MAX_URL, "urn:%s", strBuf(request->urlpath));
+    } else if (request->method && request->method->code == METHOD_CONNECT) {
+	snprintf(urlbuf, MAX_URL, "%s:%d", request->host, request->port);
     } else {
-	switch (request->method->code) {
-	case METHOD_CONNECT:
-	    snprintf(urlbuf, MAX_URL, "%s:%d", request->host, request->port);
-	    break;
-	default:
-	    portbuf[0] = '\0';
-	    if (request->port != urlDefaultPort(request->protocol))
-		snprintf(portbuf, 32, ":%d", request->port);
-	    snprintf(urlbuf, MAX_URL, "%s://%s%s%s%s%s",
-		ProtocolStr[request->protocol],
-		request->login,
-		*request->login ? "@" : null_string,
-		request->host,
-		portbuf,
-		strBuf(request->urlpath));
-	    break;
-	}
+	portbuf[0] = '\0';
+	if (request->port != urlDefaultPort(request->protocol))
+	    snprintf(portbuf, 32, ":%d", request->port);
+	snprintf(urlbuf, MAX_URL, "%s://%s%s%s%s%s",
+	    ProtocolStr[request->protocol],
+	    request->login,
+	    *request->login ? "@" : null_string,
+	    request->host,
+	    portbuf,
+	    strBuf(request->urlpath));
     }
     return (request->canonical = xstrdup(urlbuf));
 }
@@ -680,64 +675,59 @@ urlCanonicalClean(const request_t * request)
 
     if (request->protocol == PROTO_URN) {
 	snprintf(buf, MAX_URL, "urn:%s", strBuf(request->urlpath));
+    } else if (request->method && request->method->code == METHOD_CONNECT) {
+	snprintf(buf, MAX_URL, "%s:%d", request->host, request->port);
     } else {
-	switch (request->method->code) {
-	case METHOD_CONNECT:
-	    snprintf(buf, MAX_URL, "%s:%d", request->host, request->port);
-	    break;
-	default:
-	    portbuf[0] = '\0';
-	    if (request->port != urlDefaultPort(request->protocol))
-		snprintf(portbuf, 32, ":%d", request->port);
-	    loginbuf[0] = '\0';
-	    if ((int) strlen(request->login) > 0) {
-		strcpy(loginbuf, request->login);
-		if ((t = strchr(loginbuf, ':')))
-		    *t = '\0';
-		strcat(loginbuf, "@");
-	    }
-	    /*
-	     * This stuff would be better if/when each of these strings is a String with
-	     * a known length..
-	     */
-	    s = ProtocolStr[request->protocol];
-	    for (i = 0; i < MAX_URL && *s != '\0'; i++, s++) {
-		buf[i] = *s;
-	    }
-	    s = ts;
-	    for (; i < MAX_URL && *s != '\0'; i++, s++) {
-		buf[i] = *s;
-	    }
-	    s = loginbuf;
-	    for (; i < MAX_URL && *s != '\0'; i++, s++) {
-		buf[i] = *s;
-	    }
-	    s = request->host;
-	    for (; i < MAX_URL && *s != '\0'; i++, s++) {
-		buf[i] = *s;
-	    }
-	    s = portbuf;
-	    for (; i < MAX_URL && *s != '\0'; i++, s++) {
-		buf[i] = *s;
-	    }
-	    s = strBuf(request->urlpath);
-	    for (; i < MAX_URL && *s != '\0'; i++, s++) {
-		buf[i] = *s;
-	    }
-	    if (i >= (MAX_URL - 1)) {
-		buf[MAX_URL - 1] = '\0';
-	    } else {
-		buf[i] = '\0';
-	    }
-
-	    /*
-	     * strip arguments AFTER a question-mark
-	     */
-	    if (Config.onoff.strip_query_terms)
-		if ((t = strchr(buf, '?')))
-		    *(++t) = '\0';
-	    break;
+	portbuf[0] = '\0';
+	if (request->port != urlDefaultPort(request->protocol))
+	    snprintf(portbuf, 32, ":%d", request->port);
+	loginbuf[0] = '\0';
+	if ((int) strlen(request->login) > 0) {
+	    strcpy(loginbuf, request->login);
+	    if ((t = strchr(loginbuf, ':')))
+		*t = '\0';
+	    strcat(loginbuf, "@");
 	}
+	/*
+	 * This stuff would be better if/when each of these strings is a String with
+	 * a known length..
+	 */
+	s = ProtocolStr[request->protocol];
+	for (i = 0; i < MAX_URL && *s != '\0'; i++, s++) {
+	    buf[i] = *s;
+	}
+	s = ts;
+	for (; i < MAX_URL && *s != '\0'; i++, s++) {
+	    buf[i] = *s;
+	}
+	s = loginbuf;
+	for (; i < MAX_URL && *s != '\0'; i++, s++) {
+	    buf[i] = *s;
+	}
+	s = request->host;
+	for (; i < MAX_URL && *s != '\0'; i++, s++) {
+	    buf[i] = *s;
+	}
+	s = portbuf;
+	for (; i < MAX_URL && *s != '\0'; i++, s++) {
+	    buf[i] = *s;
+	}
+	s = strBuf(request->urlpath);
+	for (; i < MAX_URL && *s != '\0'; i++, s++) {
+	    buf[i] = *s;
+	}
+	if (i >= (MAX_URL - 1)) {
+	    buf[MAX_URL - 1] = '\0';
+	} else {
+	    buf[i] = '\0';
+	}
+
+	/*
+	 * strip arguments AFTER a question-mark
+	 */
+	if (Config.onoff.strip_query_terms)
+	    if ((t = strchr(buf, '?')))
+		*(++t) = '\0';
     }
     if (stringHasCntl(buf))
 	xstrncpy(buf, rfc1738_escape_unescaped(buf), MAX_URL);
