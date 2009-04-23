@@ -454,7 +454,6 @@ mainReconfigure(void)
     writePidFile();		/* write PID file */
     debug(1, 1) ("Ready to serve requests.\n");
     reconfiguring = 0;
-    peerMonitorInit();
 }
 
 static void
