@@ -37,8 +37,8 @@
 
 #include <sys/devpoll.h>
 
-#define	DEVPOLL_UPDATESIZE	1024
-#define	DEVPOLL_QUERYSIZE	1024
+#define	DEVPOLL_UPDATESIZE	OPEN_MAX
+#define	DEVPOLL_QUERYSIZE	OPEN_MAX
 
 static int devpoll_fd;
 static struct timespec zero_timespec;
