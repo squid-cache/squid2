@@ -851,7 +851,7 @@ fwdReforward(FwdState * fwdState)
 	debug(17, 3) ("fwdReforward: No, Connection oriented authentication is used\n");
 	return 0;
     }
-    if (fwdState->n_tries > 9)
+    if (fwdState->n_tries >= Config.forward_max_tries)
 	return 0;
     if (fwdState->origin_tries > 1)
 	return 0;
