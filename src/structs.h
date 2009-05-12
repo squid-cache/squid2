@@ -1231,6 +1231,9 @@ struct _AccessLogEntry {
 	icp_opcode opcode;
     } icp;
     struct {
+	u_char *opcode;
+    } htcp;
+    struct {
 	struct in_addr caddr;
 	struct in_addr out_ip;
 	squid_off_t size;

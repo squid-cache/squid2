@@ -197,6 +197,7 @@ static ssize_t htcpBuildTstOpData(char *buf, size_t buflen, htcpStuff * stuff);
 static void htcpFreeSpecifier(htcpSpecifier * s);
 static void htcpFreeDetail(htcpDetail * s);
 static void htcpHandle(char *buf, int sz, struct sockaddr_in *from);
+static void htcpLogHtcp(struct in_addr, int, log_type, int, const char *);
 static void htcpHandleMon(htcpDataHeader *, char *buf, int sz, struct sockaddr_in *from);
 static void htcpHandleNop(htcpDataHeader *, char *buf, int sz, struct sockaddr_in *from);
 static void htcpHandleSet(htcpDataHeader *, char *buf, int sz, struct sockaddr_in *from);
@@ -917,15 +918,18 @@ htcpHandleTstRequest(htcpDataHeader * dhdr, char *buf, int sz, struct sockaddr_i
     s = htcpUnpackSpecifier(buf, sz);
     if (NULL == s) {
 	debug(31, 2) ("htcpHandleTstRequest: htcpUnpackSpecifier failed\n");
+	htcpLogHtcp(from->sin_addr, dhdr->opcode, LOG_UDP_INVALID, 0, dash_str);
 	return;
     }
     if (!s->request) {
 	debug(31, 2) ("htcpHandleTstRequest: failed to parse request\n");
+	htcpLogHtcp(from->sin_addr, dhdr->opcode, LOG_UDP_INVALID, 0, dash_str);
 	htcpFreeSpecifier(s);
 	return;
     }
     if (!htcpAccessCheck(Config.accessList.htcp, s, from)) {
 	debug(31, 2) ("htcpHandleTstRequest: Access denied\n");
+	htcpLogHtcp(from->sin_addr, dhdr->opcode, LOG_UDP_DENIED, 0, s->uri);
 	htcpFreeSpecifier(s);
 	return;
     }
@@ -934,10 +938,13 @@ htcpHandleTstRequest(htcpDataHeader * dhdr, char *buf, int sz, struct sockaddr_i
 	s->uri,
 	s->version);
     debug(31, 3) ("htcpHandleTstRequest: %s\n", s->req_hdrs);
-    if ((e = htcpCheckHit(s)))
+    if ((e = htcpCheckHit(s))) {
 	htcpTstReply(dhdr, e, s, from);		/* hit */
-    else
+	htcpLogHtcp(from->sin_addr, dhdr->opcode, LOG_UDP_HIT, 0, s->uri);
+    } else {
 	htcpTstReply(dhdr, NULL, NULL, from);	/* cache miss */
+	htcpLogHtcp(from->sin_addr, dhdr->opcode, LOG_UDP_MISS, 0, s->uri);
+    }
     htcpFreeSpecifier(s);
 }
 
@@ -966,15 +973,18 @@ htcpHandleClr(htcpDataHeader * hdr, char *buf, int sz, struct sockaddr_in *from)
     /* buf should be a SPECIFIER */
     if (sz == 0) {
 	debug(31, 4) ("htcpHandleClr: nothing to do\n");
+	htcpLogHtcp(from->sin_addr, hdr->opcode, LOG_UDP_INVALID, 0, dash_str);
 	return;
     }
     s = htcpUnpackSpecifier(buf, sz);
     if (NULL == s) {
 	debug(31, 3) ("htcpHandleClr: htcpUnpackSpecifier failed\n");
+	htcpLogHtcp(from->sin_addr, hdr->opcode, LOG_UDP_INVALID, 0, dash_str);
 	return;
     }
     if (!htcpAccessCheck(Config.accessList.htcp_clr, s, from)) {
 	debug(31, 2) ("htcpHandleClr: Access denied\n");
+	htcpLogHtcp(from->sin_addr, hdr->opcode, LOG_UDP_DENIED, 0, s->uri);
 	htcpFreeSpecifier(s);
 	return;
     }
@@ -990,11 +1000,14 @@ htcpHandleClr(htcpDataHeader * hdr, char *buf, int sz, struct sockaddr_in *from)
     switch (htcpClrStore(s)) {
     case 1:
 	htcpClrReply(hdr, 1, from);	/* hit */
+	htcpLogHtcp(from->sin_addr, hdr->opcode, LOG_UDP_HIT, 0, s->uri);
 	break;
     case 0:
 	htcpClrReply(hdr, 0, from);	/* miss */
+	htcpLogHtcp(from->sin_addr, hdr->opcode, LOG_UDP_MISS, 0, s->uri);
 	break;
     default:
+	htcpLogHtcp(from->sin_addr, hdr->opcode, LOG_UDP_INVALID, 0, s->uri);
 	break;
     }
 
@@ -1121,6 +1134,25 @@ htcpHandle(char *buf, int sz, struct sockaddr_in *from)
     default:
 	return;
     }
+
+}
+
+static void
+htcpLogHtcp(struct in_addr caddr, int opcode, log_type logcode, int len, const char *url)
+{
+    AccessLogEntry al;
+    if (LOG_TAG_NONE == logcode)
+	return;
+    if (!Config.onoff.log_udp)
+	return;
+    memset(&al, '\0', sizeof(al));
+    al.htcp.opcode = (u_char *) htcpOpcodeStr[opcode];
+    al.url = url;
+    al.cache.caddr = caddr;
+    al.cache.size = len;
+    al.cache.code = logcode;
+    al.cache.msec = 0;
+    accessLogLog(&al, NULL);
 }
 
 static void
