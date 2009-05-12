@@ -39,7 +39,10 @@ request_t *
 requestCreate(method_t * method, protocol_t protocol, const char *urlpath)
 {
     request_t *req = memAllocate(MEM_REQUEST_T);
-    req->method = method;
+    if (method)
+	req->method = method;
+    else
+	req->method = urlMethodGetKnownByCode(METHOD_NONE);
     req->protocol = protocol;
     if (urlpath)
 	stringReset(&req->urlpath, urlpath);
