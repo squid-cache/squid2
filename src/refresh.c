@@ -274,7 +274,11 @@ refreshCheck(const StoreEntry * entry, request_t * request, time_t delta)
     debug(22, 3) ("\tcheck_time:\t%s\n", mkrfc1123(check_time));
     debug(22, 3) ("\tentry->timestamp:\t%s\n", mkrfc1123(entry->timestamp));
 
-    if (EBIT_TEST(entry->flags, ENTRY_REVALIDATE) && staleness > -1) {
+    if (EBIT_TEST(entry->flags, ENTRY_REVALIDATE) && staleness > -1
+#if HTTP_VIOLATIONS
+	&& !R->flags.ignore_must_revalidate
+#endif
+	) {
 	debug(22, 3) ("refreshCheck: YES: Must revalidate stale response\n");
 	return STALE_MUST_REVALIDATE;
     }

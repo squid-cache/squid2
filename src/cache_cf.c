@@ -566,6 +566,12 @@ configDoConfigure(void)
 	    break;
 	}
 	for (R = Config.Refresh; R; R = R->next) {
+	    if (!R->flags.ignore_must_revalidate)
+		continue;
+	    debug(22, 1) ("WARNING: use of 'ignore-must-revalidate' in 'refresh_pattern' violates HTTP\n");
+	    break;
+	}
+	for (R = Config.Refresh; R; R = R->next) {
 	    if (R->stale_while_revalidate <= 0)
 		continue;
 	    debug(22, 1) ("WARNING: use of 'stale-while-revalidate' in 'refresh_pattern' violates HTTP\n");
@@ -2344,6 +2350,8 @@ dump_refreshpattern(StoreEntry * entry, const char *name, refresh_t * head)
 	    storeAppendPrintf(entry, " ignore-private");
 	if (head->flags.ignore_auth)
 	    storeAppendPrintf(entry, " ignore-auth");
+	if (head->flags.ignore_must_revalidate)
+	    storeAppendPrintf(entry, " ignore-must-revalidate");
 	if (head->stale_while_revalidate > 0)
 	    storeAppendPrintf(entry, " stale-while-revalidate=%d", head->stale_while_revalidate);
 #endif
@@ -2373,6 +2381,7 @@ parse_refreshpattern(refresh_t ** head)
     int ignore_reload = 0;
     int ignore_no_cache = 0;
     int ignore_private = 0;
+    int ignore_must_revalidate = 0;
     int ignore_auth = 0;
 #endif
     int stale_while_revalidate = -1;
@@ -2415,6 +2424,8 @@ parse_refreshpattern(refresh_t ** head)
 	    ignore_private = 1;
 	else if (!strcmp(token, "ignore-auth"))
 	    ignore_auth = 1;
+	else if (!strcmp(token, "ignore-must-revalidate"))
+	    ignore_must_revalidate = 1;
 	else if (!strcmp(token, "reload-into-ims")) {
 	    reload_into_ims = 1;
 	    refresh_nocache_hack = 1;
@@ -2470,6 +2481,8 @@ parse_refreshpattern(refresh_t ** head)
 	t->flags.ignore_no_cache = 1;
     if (ignore_private)
 	t->flags.ignore_private = 1;
+    if (ignore_must_revalidate)
+	t->flags.ignore_must_revalidate = 1;
     if (ignore_auth)
 	t->flags.ignore_auth = 1;
 #endif

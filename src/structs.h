@@ -2041,6 +2041,7 @@ struct _refresh_t {
 	unsigned int reload_into_ims:1;
 	unsigned int ignore_reload:1;
 	unsigned int ignore_no_cache:1;
+	unsigned int ignore_must_revalidate:1;
 	unsigned int ignore_private:1;
 	unsigned int ignore_auth:1;
 #endif
