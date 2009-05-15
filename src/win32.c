@@ -471,9 +471,7 @@ WIN32_Subsystem_Init(int *argc, char ***argv)
 	if (signal(SIGABRT, WIN32_Abort) == SIG_ERR)
 	    return 1;
 	/* Register the service Handler function */
-	svcHandle =
-	    RegisterServiceCtrlHandler(WIN32_Service_name,
-	    WIN32_svcHandler);
+	svcHandle = RegisterServiceCtrlHandler(WIN32_Service_name, WIN32_svcHandler);
 	if (svcHandle == 0)
 	    return 1;
 	/* Set Process work dir to directory cointaining squid.exe */
@@ -484,26 +482,22 @@ WIN32_Subsystem_Init(int *argc, char ***argv)
 	    return 1;
 	safe_free(ConfigFile);
 	/* get config file from Windows Registry */
-	if (RegOpenKey(HKEY_LOCAL_MACHINE, REGKEY, &hndKey) == ERROR_SUCCESS) {
+	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, REGKEY, 0, KEY_QUERY_VALUE, &hndKey) == ERROR_SUCCESS) {
 	    DWORD Type = 0;
 	    DWORD Size = 0;
 	    LONG Result;
-	    Result =
-		RegQueryValueEx(hndKey, CONFIGFILE, NULL, &Type, NULL, &Size);
+	    Result = RegQueryValueEx(hndKey, CONFIGFILE, NULL, &Type, NULL, &Size);
 	    if (Result == ERROR_SUCCESS && Size) {
 		ConfigFile = xmalloc(Size);
-		RegQueryValueEx(hndKey, CONFIGFILE, NULL, &Type, ConfigFile,
-		    &Size);
+		RegQueryValueEx(hndKey, CONFIGFILE, NULL, &Type, ConfigFile, &Size);
 	    } else
 		ConfigFile = xstrdup(DefaultConfigFile);
 	    Size = 0;
 	    Type = 0;
-	    Result =
-		RegQueryValueEx(hndKey, COMMANDLINE, NULL, &Type, NULL, &Size);
+	    Result = RegQueryValueEx(hndKey, COMMANDLINE, NULL, &Type, NULL, &Size);
 	    if (Result == ERROR_SUCCESS && Size) {
 		WIN32_Service_Command_Line = xmalloc(Size);
-		RegQueryValueEx(hndKey, COMMANDLINE, NULL, &Type, WIN32_Service_Command_Line,
-		    &Size);
+		RegQueryValueEx(hndKey, COMMANDLINE, NULL, &Type, WIN32_Service_Command_Line, &Size);
 	    } else
 		WIN32_Service_Command_Line = xstrdup("");
 	    RegCloseKey(hndKey);
@@ -517,8 +511,7 @@ WIN32_Subsystem_Init(int *argc, char ***argv)
 	/* Set Service Status to SERVICE_START_PENDING */
 	svcStatus.dwServiceType = SERVICE_WIN32_OWN_PROCESS;
 	svcStatus.dwCurrentState = SERVICE_START_PENDING;
-	svcStatus.dwControlsAccepted =
-	    SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN;
+	svcStatus.dwControlsAccepted = SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN;
 	svcStatus.dwWin32ExitCode = 0;
 	svcStatus.dwServiceSpecificExitCode = 0;
 	svcStatus.dwCheckPoint = 0;
