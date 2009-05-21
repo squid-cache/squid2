@@ -2363,6 +2363,8 @@ dump_refreshpattern(StoreEntry * entry, const char *name, refresh_t * head)
 	    storeAppendPrintf(entry, " max-stale=%d", head->max_stale);
 	if (head->negative_ttl >= 0)
 	    storeAppendPrintf(entry, " negative-ttl=%d", head->negative_ttl);
+	if (head->flags.store_stale)
+	    storeAppendPrintf(entry, " store-stale");
 	storeAppendPrintf(entry, "\n");
 	head = head->next;
     }
@@ -2388,6 +2390,7 @@ parse_refreshpattern(refresh_t ** head)
 #endif
     int stale_while_revalidate = -1;
     int ignore_stale_while_revalidate = 0;
+    int store_stale = 0;
     int max_stale = -1;
     int negative_ttl = -1;
     int i;
@@ -2446,6 +2449,8 @@ parse_refreshpattern(refresh_t ** head)
 	    negative_ttl = atoi(token + 13);
 	} else if (!strcmp(token, "ignore-stale-while-revalidate")) {
 	    ignore_stale_while_revalidate = 1;
+	} else if (!strcmp(token, "store-stale")) {
+	    store_stale = 1;
 	} else {
 	    debug(22, 0) ("parse_refreshpattern: Unknown option '%s': %s\n",
 		pattern, token);
@@ -2488,6 +2493,8 @@ parse_refreshpattern(refresh_t ** head)
     if (ignore_auth)
 	t->flags.ignore_auth = 1;
 #endif
+    if (store_stale)
+	t->flags.store_stale = 1;
     t->flags.ignore_stale_while_revalidate = ignore_stale_while_revalidate;
     t->stale_while_revalidate = stale_while_revalidate;
     t->max_stale = max_stale;

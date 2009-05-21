@@ -328,7 +328,7 @@ httpCachableReply(HttpStateData * httpState)
 	 * Don't cache objects that need to be refreshed on next request,
 	 * unless we know how to refresh it.
 	 */
-	if (!refreshIsCachable(httpState->entry))
+	if (!refreshIsCachable(httpState->entry) && !REFRESH_OVERRIDE(store_stale))
 	    return 0;
 	/* don't cache objects from peers w/o LMT, Date, or Expires */
 	/* check that is it enough to check headers @?@ */
