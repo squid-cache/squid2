@@ -168,7 +168,10 @@ peerMonitorRequest(void *data)
     pm->running.req = requestLink(req);
     pm->running.e = storeCreateEntry(url, req->flags, req->method);
     pm->running.sc = storeClientRegister(pm->running.e, pm);
-    fwdStartPeer(pm->peer, pm->running.e, pm->running.req);
+    if (pm->peer->options.monitor_direct)
+	fwdStartPeer(NULL, pm->running.e, pm->running.req);
+    else
+	fwdStartPeer(pm->peer, pm->running.e, pm->running.req);
     storeClientRef(pm->running.sc, pm->running.e, 0, 0, SM_PAGE_SIZE, peerMonitorFetchReplyHeaders, pm);
     return;
 }

@@ -1829,6 +1829,8 @@ parse_peer(peer ** head)
 	    p->options.no_query = 1;
 	} else if (!strcasecmp(token, "no-digest")) {
 	    p->options.no_digest = 1;
+	} else if (!strcasecmp(token, "monitor-direct")) {
+	    p->options.monitor_direct = 1;
 	} else if (!strcasecmp(token, "multicast-responder")) {
 	    p->options.mcast_responder = 1;
 #if PEER_MULTICAST_SIBLINGS

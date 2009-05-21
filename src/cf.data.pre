@@ -1529,6 +1529,7 @@ DOC_START
 		     monitorsize=sizespec
 		     monitorinterval=seconds
 		     monitortimeout=seconds
+		     monitor-direct
 		     forceddomain=name
 		     ssl
 		     sslcert=/path/to/ssl/certificate
@@ -1695,6 +1696,11 @@ DOC_START
 		     use 'monitorurl=url' to have periodically request a given
 		     URL from the peer, and only consider the peer as alive
 		     if this monitoring is successful (default none)
+		     
+		     use 'monitor-direct' to request the monitoring URL 
+		     directly, rather than through the peer. This is useful
+		     when using stand-alone monitoring systems that publish
+		     peer status at a well-known directly-accessible URL.
 
 		     use 'monitorsize=min[-max]' to limit the size range of
 		     'monitorurl' replies considered valid. Defaults to 0 to

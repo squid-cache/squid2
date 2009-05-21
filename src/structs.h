@@ -1528,6 +1528,7 @@ struct _peer {
 	unsigned int originserver:1;
 	unsigned int userhash:1;
 	unsigned int sourcehash:1;
+	unsigned int monitor_direct:1;
 	unsigned int carp:1;
 	unsigned int http11:1;	/* HTTP/1.1 support */
     } options;
