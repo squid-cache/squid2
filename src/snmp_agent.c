@@ -103,7 +103,7 @@ snmp_confFn(variable_list * Var, snint * ErrP)
 	switch (Var->name[LEN_SQ_CONF + 1]) {
 	case CONF_ST_MMAXSZ:
 	    Answer = snmp_var_new_integer(Var->name, Var->name_length,
-		(snint) Config.memMaxSize >> 20,
+		(snint) (Config.memMaxSize >> 20),
 		ASN_INTEGER);
 	    break;
 	case CONF_ST_SWMAXSZ:
