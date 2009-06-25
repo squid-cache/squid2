@@ -1684,6 +1684,23 @@ dump_peer(StoreEntry * entry, const char *name, peer * p)
     }
 }
 
+/*
+ * utility function to prevent getservbyname() being called with a numeric value
+ * on Windows at least it returns garage results.
+ */
+static int
+isUnsignedNumeric(const char *str, size_t len)
+{
+    if (len < 1)
+	return 0;
+
+    for (; len > 0 && *str; str++, len--) {
+	if (!isdigit(*str))
+	    return 0;
+    }
+    return 1;
+}
+
 static u_short
 GetService(const char *proto)
 {
@@ -1693,7 +1710,8 @@ GetService(const char *proto)
 	self_destruct();
 	return -1;		/* NEVER REACHED */
     }
-    port = getservbyname(token, proto);
+    if (!isUnsignedNumeric(token, strlen(token)))
+	port = getservbyname(token, proto);
     if (port != NULL) {
 	return ntohs((u_short) port->s_port);
     }
