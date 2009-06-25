@@ -334,6 +334,16 @@ refreshCheck(const StoreEntry * entry, request_t * request, time_t delta)
      * At this point the response is stale, unless one of
      * the override options kicks in.
      */
+#if HTTP_VIOLATIONS
+    if (sf.expires && R->flags.override_expire && age < R->min) {
+	debug(22, 3) ("refreshCheck: NO: age < min && override-expire\n");
+	return FRESH_OVERRIDE_EXPIRES;
+    }
+    if (sf.lmfactor && R->flags.override_lastmod && age < R->min) {
+	debug(22, 3) ("refreshCheck: NO: age < min && override-lastmod\n");
+	return FRESH_OVERRIDE_LASTMOD;
+    }
+#endif
     if (entry->mem_obj) {
 	int stale_while_revalidate = -1;
 	if (entry->mem_obj->reply && entry->mem_obj->reply->cache_control && EBIT_TEST(entry->mem_obj->reply->cache_control->mask, CC_STALE_WHILE_REVALIDATE))
@@ -357,26 +367,12 @@ refreshCheck(const StoreEntry * entry, request_t * request, time_t delta)
     if (delta < 0 && staleness + delta < 0) {
 	return STALE_WITHIN_DELTA;
     }
-    if (sf.expires) {
-#if HTTP_VIOLATIONS
-	if (R->flags.override_expire && age < R->min) {
-	    debug(22, 3) ("refreshCheck: NO: age < min && override-expire\n");
-	    return FRESH_OVERRIDE_EXPIRES;
-	}
-#endif
+    if (sf.expires)
 	return STALE_EXPIRES;
-    }
     if (sf.max)
 	return STALE_MAX_RULE;
-    if (sf.lmfactor) {
-#if HTTP_VIOLATIONS
-	if (R->flags.override_lastmod && age < R->min) {
-	    debug(22, 3) ("refreshCheck: NO: age < min && override-lastmod\n");
-	    return FRESH_OVERRIDE_LASTMOD;
-	}
-#endif
+    if (sf.lmfactor)
 	return STALE_LMFACTOR_RULE;
-    }
     return STALE_DEFAULT;
 }
 
