@@ -269,7 +269,7 @@ int main(int argc, char * const argv[])
     }
 
     if (debug)
-      fprintf(stderr, "%s| %s: Got '%s' from squid (length: %d).\n", LogTime(), PROGRAM, buf?buf:"NULL",length);
+      fprintf(stderr, "%s| %s: Got '%s' from squid (length: %d).\n", LogTime(), PROGRAM, buf ,length);
 
     if (buf[0] == '\0') {
       if (debug)
