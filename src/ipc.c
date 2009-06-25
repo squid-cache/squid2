@@ -307,7 +307,8 @@ ipcCreate(int type, const char *prog, const char *const args[], const char *name
 	close(x);
 #endif
 #if HAVE_SETSID
-    setsid();
+    if (opt_no_daemon)
+	setsid();
 #endif
     execvp(prog, (char *const *) args);
     debug_log = fdopen(2, "a+");
