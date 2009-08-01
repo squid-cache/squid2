@@ -1231,7 +1231,7 @@ struct _AccessLogEntry {
 	icp_opcode opcode;
     } icp;
     struct {
-	u_char *opcode;
+	const char *opcode;
     } htcp;
     struct {
 	struct in_addr caddr;

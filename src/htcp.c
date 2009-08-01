@@ -1146,7 +1146,7 @@ htcpLogHtcp(struct in_addr caddr, int opcode, log_type logcode, int len, const c
     if (!Config.onoff.log_udp)
 	return;
     memset(&al, '\0', sizeof(al));
-    al.htcp.opcode = (u_char *) htcpOpcodeStr[opcode];
+    al.htcp.opcode = htcpOpcodeStr[opcode];
     al.url = url;
     al.cache.caddr = caddr;
     al.cache.size = len;
