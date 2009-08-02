@@ -424,7 +424,7 @@ peer_proxy_negotiate_auth(char *principal_name, char *proxy)
     if (check_gss_err(major_status, minor_status, "gss_init_sec_context()"))
 	goto cleanup;
 
-    debug(11, 5) ("Got token with length %d\n", output_token.length);
+    debug(11, 5) ("Got token with length %lu\n", (long unsigned) output_token.length);
     if (output_token.length) {
 
 	token = (char *) base64_encode_bin((const char *) output_token.value, output_token.length);
