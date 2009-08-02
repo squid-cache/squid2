@@ -1145,47 +1145,47 @@ statCountersDump(StoreEntry * sentry)
 	f->client_http.hits);
     storeAppendPrintf(sentry, "client_http.errors = %d\n",
 	f->client_http.errors);
-    storeAppendPrintf(sentry, "client_http.kbytes_in = %f\n",
+    storeAppendPrintf(sentry, "client_http.kbytes_in = %" PRINTF_OFF_T "\n",
 	f->client_http.kbytes_in.kb);
-    storeAppendPrintf(sentry, "client_http.kbytes_out = %f\n",
+    storeAppendPrintf(sentry, "client_http.kbytes_out = %" PRINTF_OFF_T "\n",
 	f->client_http.kbytes_out.kb);
-    storeAppendPrintf(sentry, "client_http.hit_kbytes_out = %f\n",
+    storeAppendPrintf(sentry, "client_http.hit_kbytes_out = %" PRINTF_OFF_T "\n",
 	f->client_http.hit_kbytes_out.kb);
 
     storeAppendPrintf(sentry, "server.all.requests = %d\n",
 	f->server.all.requests);
     storeAppendPrintf(sentry, "server.all.errors = %d\n",
 	f->server.all.errors);
-    storeAppendPrintf(sentry, "server.all.kbytes_in = %f\n",
+    storeAppendPrintf(sentry, "server.all.kbytes_in = %" PRINTF_OFF_T "\n",
 	f->server.all.kbytes_in.kb);
-    storeAppendPrintf(sentry, "server.all.kbytes_out = %f\n",
+    storeAppendPrintf(sentry, "server.all.kbytes_out = %" PRINTF_OFF_T "\n",
 	f->server.all.kbytes_out.kb);
 
     storeAppendPrintf(sentry, "server.http.requests = %d\n",
 	f->server.http.requests);
     storeAppendPrintf(sentry, "server.http.errors = %d\n",
 	f->server.http.errors);
-    storeAppendPrintf(sentry, "server.http.kbytes_in = %f\n",
+    storeAppendPrintf(sentry, "server.http.kbytes_in = %" PRINTF_OFF_T "\n",
 	f->server.http.kbytes_in.kb);
-    storeAppendPrintf(sentry, "server.http.kbytes_out = %f\n",
+    storeAppendPrintf(sentry, "server.http.kbytes_out = %" PRINTF_OFF_T "\n",
 	f->server.http.kbytes_out.kb);
 
     storeAppendPrintf(sentry, "server.ftp.requests = %d\n",
 	f->server.ftp.requests);
     storeAppendPrintf(sentry, "server.ftp.errors = %d\n",
 	f->server.ftp.errors);
-    storeAppendPrintf(sentry, "server.ftp.kbytes_in = %f\n",
+    storeAppendPrintf(sentry, "server.ftp.kbytes_in = %" PRINTF_OFF_T "\n",
 	f->server.ftp.kbytes_in.kb);
-    storeAppendPrintf(sentry, "server.ftp.kbytes_out = %f\n",
+    storeAppendPrintf(sentry, "server.ftp.kbytes_out = %" PRINTF_OFF_T "\n",
 	f->server.ftp.kbytes_out.kb);
 
     storeAppendPrintf(sentry, "server.other.requests = %d\n",
 	f->server.other.requests);
     storeAppendPrintf(sentry, "server.other.errors = %d\n",
 	f->server.other.errors);
-    storeAppendPrintf(sentry, "server.other.kbytes_in = %f\n",
+    storeAppendPrintf(sentry, "server.other.kbytes_in = %" PRINTF_OFF_T "\n",
 	f->server.other.kbytes_in.kb);
-    storeAppendPrintf(sentry, "server.other.kbytes_out = %f\n",
+    storeAppendPrintf(sentry, "server.other.kbytes_out = %" PRINTF_OFF_T "\n",
 	f->server.other.kbytes_out.kb);
 
     storeAppendPrintf(sentry, "icp.pkts_sent = %d\n",
