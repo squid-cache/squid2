@@ -79,6 +79,9 @@
 /* Define to 1 if you have the <byteswap.h> header file. */
 #undef HAVE_BYTESWAP_H
 
+/* Define to 1 if you have the <com_err.h> header file. */
+#undef HAVE_COM_ERR_H
+
 /* Define to 1 if you have the `crypt' function. */
 #undef HAVE_CRYPT
 
@@ -146,6 +149,9 @@
 /* Define to 1 if you have the `gettimeofday' function. */
 #undef HAVE_GETTIMEOFDAY
 
+/* Define to 1 if you have krb5_get_init_creds_keytab */
+#undef HAVE_GET_INIT_CREDS_KEYTAB
+
 /* Define to 1 if you have the <glib.h> header file. */
 #undef HAVE_GLIB_H
 
@@ -160,6 +166,24 @@
 
 /* Define to 1 if you have the <grp.h> header file. */
 #undef HAVE_GRP_H
+
+/* GSSAPI support */
+#undef HAVE_GSSAPI
+
+/* Define to 1 if you have the <gssapi/gssapi_generic.h> header file. */
+#undef HAVE_GSSAPI_GSSAPI_GENERIC_H
+
+/* Define to 1 if you have the <gssapi/gssapi.h> header file. */
+#undef HAVE_GSSAPI_GSSAPI_H
+
+/* Define to 1 if you have the <gssapi/gssapi_krb5.h> header file. */
+#undef HAVE_GSSAPI_GSSAPI_KRB5_H
+
+/* Define to 1 if you have the <gssapi.h> header file. */
+#undef HAVE_GSSAPI_H
+
+/* Define to 1 if you have Heimdal Kerberos */
+#undef HAVE_HEIMDAL_KERBEROS
 
 /* Define to 1 if you have the `initgroups' function. */
 #undef HAVE_INITGROUPS
@@ -187,6 +211,21 @@
 
 /* Define to 1 if you have the `kqueue' function. */
 #undef HAVE_KQUEUE
+
+/* KRB5 support */
+#undef HAVE_KRB5
+
+/* Define to 1 if you have krb5_get_max_time_skew */
+#undef HAVE_KRB5_GET_MAX_TIME_SKEW
+
+/* Define to 1 if you have the <krb5.h> header file. */
+#undef HAVE_KRB5_H
+
+/* Define to 1 if you have krb5_kt_free_entry */
+#undef HAVE_KRB5_KT_FREE_ENTRY
+
+/* Define to 1 if you have MEMORY: cache support */
+#undef HAVE_KRB5_MEMORY_CACHE
 
 /* Define to 1 if you have the `aio' library (-laio). */
 #undef HAVE_LIBAIO
@@ -276,6 +315,9 @@
 /* Define to 1 if you have the `memset' function. */
 #undef HAVE_MEMSET
 
+/* Define to 1 if you have MIT Kerberos */
+#undef HAVE_MIT_KERBEROS
+
 /* Define to 1 if you have the `mkstemp' function. */
 #undef HAVE_MKSTEMP
 
@@ -353,6 +395,9 @@
 
 /* Define to 1 if you have the `prctl' function. */
 #undef HAVE_PRCTL
+
+/* Define to 1 if you have the <profile.h> header file. */
+#undef HAVE_PROFILE_H
 
 /* Define to 1 if you have the `pthread_attr_setschedparam' function. */
 #undef HAVE_PTHREAD_ATTR_SETSCHEDPARAM
@@ -447,6 +492,9 @@
 
 /* Define to 1 if you have the `socketpair' function. */
 #undef HAVE_SOCKETPAIR
+
+/* Define to 1 if you have SPNEGO support */
+#undef HAVE_SPNEGO
 
 /* Define to 1 if you have the `srand48' function. */
 #undef HAVE_SRAND48

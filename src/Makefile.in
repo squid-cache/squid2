@@ -101,16 +101,16 @@ am__squid_SOURCES_DIST = access_log.c acl.c asn.c authenticate.c \
 	logfile_mod_syslog.c logfile_mod_syslog.h logfile_mod_udp.c \
 	logfile_mod_udp.h main.c mem.c MemPool.c MemBuf.c mime.c \
 	multicast.c neighbors.c net_db.c Packer.c pconn.c \
-	peer_digest.c peer_monitor.c peer_select.c peer_sourcehash.c \
-	peer_userhash.c protos.h redirect.c store_rewrite.c referer.c \
-	refresh.c refresh_check.c send-announce.c snmp_core.c \
-	snmp_agent.c squid.h ssl.c ssl_support.c stat.c StatHist.c \
-	String.c stmem.c store.c store_io.c store_client.c \
-	store_digest.c store_dir.c store_key_md5.c store_log.c \
-	store_rebuild.c store_swapin.c store_swapmeta.c \
-	store_swapout.c store_update.c structs.h tools.c typedefs.h \
-	unlinkd.c url.c urn.c useragent.c wccp.c wccp2.c whois.c \
-	win32.c
+	peer_digest.c peer_monitor.c peer_proxy_negotiate_auth.c \
+	peer_select.c peer_sourcehash.c peer_userhash.c protos.h \
+	redirect.c store_rewrite.c referer.c refresh.c refresh_check.c \
+	send-announce.c snmp_core.c snmp_agent.c squid.h ssl.c \
+	ssl_support.c stat.c StatHist.c String.c stmem.c store.c \
+	store_io.c store_client.c store_digest.c store_dir.c \
+	store_key_md5.c store_log.c store_rebuild.c store_swapin.c \
+	store_swapmeta.c store_swapout.c store_update.c structs.h \
+	tools.c typedefs.h unlinkd.c url.c urn.c useragent.c wccp.c \
+	wccp2.c whois.c win32.c
 @USE_DEVPOLL_FALSE@@USE_EPOLL_FALSE@@USE_KQUEUE_FALSE@@USE_POLL_FALSE@@USE_SELECT_FALSE@@USE_SELECT_SIMPLE_FALSE@@USE_SELECT_WIN32_TRUE@am__objects_1 = comm_select_win32.$(OBJEXT)
 @USE_DEVPOLL_FALSE@@USE_EPOLL_FALSE@@USE_KQUEUE_FALSE@@USE_POLL_FALSE@@USE_SELECT_SIMPLE_FALSE@@USE_SELECT_TRUE@am__objects_1 = comm_select.$(OBJEXT)
 @USE_DEVPOLL_FALSE@@USE_EPOLL_FALSE@@USE_KQUEUE_FALSE@@USE_POLL_FALSE@@USE_SELECT_SIMPLE_TRUE@am__objects_1 = comm_select_simple.$(OBJEXT)
@@ -157,13 +157,14 @@ am_squid_OBJECTS = access_log.$(OBJEXT) acl.$(OBJEXT) asn.$(OBJEXT) \
 	MemBuf.$(OBJEXT) mime.$(OBJEXT) multicast.$(OBJEXT) \
 	neighbors.$(OBJEXT) net_db.$(OBJEXT) Packer.$(OBJEXT) \
 	pconn.$(OBJEXT) peer_digest.$(OBJEXT) peer_monitor.$(OBJEXT) \
-	peer_select.$(OBJEXT) peer_sourcehash.$(OBJEXT) \
-	peer_userhash.$(OBJEXT) redirect.$(OBJEXT) \
-	store_rewrite.$(OBJEXT) referer.$(OBJEXT) refresh.$(OBJEXT) \
-	refresh_check.$(OBJEXT) send-announce.$(OBJEXT) \
-	$(am__objects_7) ssl.$(OBJEXT) $(am__objects_8) stat.$(OBJEXT) \
-	StatHist.$(OBJEXT) String.$(OBJEXT) stmem.$(OBJEXT) \
-	store.$(OBJEXT) store_io.$(OBJEXT) store_client.$(OBJEXT) \
+	peer_proxy_negotiate_auth.$(OBJEXT) peer_select.$(OBJEXT) \
+	peer_sourcehash.$(OBJEXT) peer_userhash.$(OBJEXT) \
+	redirect.$(OBJEXT) store_rewrite.$(OBJEXT) referer.$(OBJEXT) \
+	refresh.$(OBJEXT) refresh_check.$(OBJEXT) \
+	send-announce.$(OBJEXT) $(am__objects_7) ssl.$(OBJEXT) \
+	$(am__objects_8) stat.$(OBJEXT) StatHist.$(OBJEXT) \
+	String.$(OBJEXT) stmem.$(OBJEXT) store.$(OBJEXT) \
+	store_io.$(OBJEXT) store_client.$(OBJEXT) \
 	store_digest.$(OBJEXT) store_dir.$(OBJEXT) \
 	store_key_md5.$(OBJEXT) store_log.$(OBJEXT) \
 	store_rebuild.$(OBJEXT) store_swapin.$(OBJEXT) \
@@ -256,6 +257,8 @@ INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
+KRB5INCS = @KRB5INCS@
+KRB5LIBS = @KRB5LIBS@
 LDFLAGS = @LDFLAGS@
 LIBDLMALLOC = @LIBDLMALLOC@
 LIBOBJS = @LIBOBJS@
@@ -313,6 +316,7 @@ abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
 ac_ct_CC = @ac_ct_CC@
+ac_krb5_config = @ac_krb5_config@
 am__include = @am__include@
 am__leading_dot = @am__leading_dot@
 am__quote = @am__quote@
@@ -393,7 +397,8 @@ LOGFILED = logfile-daemon
 @USE_SELECT_TRUE@COMMLOOP_SOURCE = comm_select.c
 @USE_SELECT_WIN32_TRUE@COMMLOOP_SOURCE = comm_select_win32.c
 SUBDIRS = fs repl auth
-INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/include -I$(top_srcdir)/include
+INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/include \
+	-I$(top_srcdir)/include @KRB5INCS@
 cf_gen_SOURCES = cf_gen.c defines.h debug.c
 nodist_cf_gen_SOURCES = globals.c
 nodist_cf_gen_HEADER = cf_gen_defines.h
@@ -497,6 +502,7 @@ squid_SOURCES = \
 	pconn.c \
 	peer_digest.c \
 	peer_monitor.c \
+        peer_proxy_negotiate_auth.c \
 	peer_select.c \
 	peer_sourcehash.c \
 	peer_userhash.c \
@@ -561,7 +567,8 @@ squid_LDADD = \
 	@LIB_EPOLL@ \
 	-lmiscutil \
 	@XTRA_LIBS@ \
-	$(MINGWEXLIB)
+	$(MINGWEXLIB) \
+        @KRB5LIBS@
 
 squid_DEPENDENCIES = \
 	$(REPL_OBJS) \
@@ -829,6 +836,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pconn.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/peer_digest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/peer_monitor.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/peer_proxy_negotiate_auth.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/peer_select.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/peer_sourcehash.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/peer_userhash.Po@am__quote@
