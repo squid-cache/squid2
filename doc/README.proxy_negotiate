@@ -1,0 +1,61 @@
+From: Markus Moeller <huaraz@moeller.plus.com>
+Subject: Patch to authenticate securely to upstream ISA server(or others)
+
+In some setups the upstream proxy requires a secue authentication method 
+(Negotiate, NTLM). The attached patches (2.7 and 3.0) allow this with 
+Negotiate.
+
+Regards
+Markus
+
+Instructions
+
+1) Add attached patch
+2) Recreate configure e.g.
+rm -f config.cache
+rm -f acconfig.h
+aclocal
+autoconf
+# acconfig
+autoheader
+automake -a
+3) run configure; make
+4) Configure Kerberos with AD as kdc
+5) Create a keytab with an AD user (This will be the user for authenticating 
+squid to the ISA server) as follows
+#ktutil
+ktutil:  addent -password -p markus@WINDOWS2003.HOME -k 1 -e rc4-hmac
+Password for markus@WINDOWS2003.HOME:
+ktutil:  wkt mm.keytab
+ktutil:  quit
+6) Set the keytab environment variable in the squid startup file with:
+ export KRB5_KTNAME=FILE:/etc/squid/mm.keytab
+7) Add a line to squid.conf like
+cache_peer  isa.windows2003.home       parent    8080 0  proxy-only no-query 
+login=NEGOTIATE
+8) Contol parent access via never_direct or similar
+never_direct allow all
+
+
+Create a keytab for a user:
+
+MIT
+
+#ktutil
+ktutil:  addent -password -p markus@SUSE.HOME -k 1 -e rc4-hmac
+Password for markus@SUSE.HOME:
+ktutil:  wkt mm.keytab
+ktutil:  quit
+
+Heimdal
+
+#ktutil  -k mm_heim.keytab add
+Principal: markus@SUSE.HOME
+Encryption type: arcfour-hmac-md5
+Key version: 1
+Password:
+Verifying password - Password:
+
+
+Regards
+Markus 
