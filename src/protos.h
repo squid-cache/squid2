@@ -1521,5 +1521,5 @@ extern void clientStoreURLRewriteAccessCheckDone(int answer, void *data);
 extern void clientStoreURLRewriteStart(clientHttpRequest * http);
 extern void clientStoreURLRewriteDone(void *data, char *result);
 
-
+extern char *peer_proxy_negotiate_auth(char *principal_name, char *proxy);
 #endif /* SQUID_PROTOS_H */

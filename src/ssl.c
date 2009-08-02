@@ -627,6 +627,7 @@ sslPeerSelectComplete(FwdServer * fs, void *data)
     }
     sslState->servers = fs;
     sslState->host = fs->peer ? fs->peer->host : request->host;
+    request->peer_host = fs->peer ? fs->peer->host : NULL;
     if (fs->peer == NULL) {
 	sslState->port = request->port;
     } else if (fs->peer->http_port != 0) {
