@@ -81,11 +81,10 @@ error_message(long code)
 
 static struct kstruct {
     krb5_context context;
-    char *mem_cache_env;
     krb5_ccache cc;
 } kparam = {
 
-    NULL, NULL, NULL
+    NULL, NULL
 };
 
 int krb5_create_cache(char *keytab_filename, char *principal_name);
@@ -158,9 +157,6 @@ krb5_cleanup()
 	kparam.cc = NULL;
 	krb5_free_context(kparam.context);
 	kparam.context = NULL;
-	if (kparam.mem_cache_env)
-	    xfree(kparam.mem_cache_env);
-	kparam.mem_cache_env = NULL;
     }
 }
 
@@ -238,7 +234,6 @@ krb5_create_cache(char *kf, char *pn)
 		debug(11, 5) ("Error while initialising Kerberos library : %s\n", error_message(code));
 		return (1);
 	    }
-	    kparam.mem_cache_env = NULL;
 	}
 #if HAVE_PROFILE_H
 	code = krb5_get_profile(kparam.context, &profile);
@@ -342,10 +337,7 @@ krb5_create_cache(char *kf, char *pn)
 	snprintf(mem_cache, strlen("MEMORY:squid_proxy_auth_") + 16, "MEMORY:squid_proxy_auth_%d", getpid());
 #endif
 
-	kparam.mem_cache_env = (char *) xmalloc(strlen("KRB5CCNAME=") + strlen(mem_cache) + 1);
-	strcpy(kparam.mem_cache_env, "KRB5CCNAME=");
-	strcat(kparam.mem_cache_env, mem_cache);
-	putenv(kparam.mem_cache_env);
+	setenv("KRB5CCNAME", mem_cache, 1);
 	code = krb5_cc_resolve(kparam.context, mem_cache, &kparam.cc);
 	if (mem_cache)
 	    xfree(mem_cache);
