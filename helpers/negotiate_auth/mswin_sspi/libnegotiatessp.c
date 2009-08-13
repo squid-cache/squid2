@@ -22,7 +22,7 @@ typedef unsigned char uchar;
 #include <ctype.h>
 #endif
 
-void 
+void
 hex_dump(void *data, int size)
 {
     /* dumps size bytes of *data to stdout. Looks like:
