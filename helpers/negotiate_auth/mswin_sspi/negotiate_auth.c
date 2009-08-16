@@ -193,18 +193,21 @@ manage_request()
 		have_serverblob = 0;
 		Done = FALSE;
 		if (Negotiate_packet_debug_enabled) {
-		    printf("AF %s %s\n", c, cred);
 		    decoded = base64_decode(c);
 		    debug("sending 'AF' %s to squid with data:\n", cred);
-		    hex_dump(decoded, (strlen(c) * 3) / 4);
+		    if (c != NULL)
+			hex_dump(decoded, (strlen(c) * 3) / 4);
+		    else
+			fprintf(stderr, "No data available.\n");
+		    printf("AF %s %s\n", c, cred);
 		} else
 		    SEND3("AF %s %s", c, cred);
 	    } else {
 		if (Negotiate_packet_debug_enabled) {
-		    printf("TT %s\n", c);
 		    decoded = base64_decode(c);
 		    debug("sending 'TT' to squid with data:\n");
 		    hex_dump(decoded, (strlen(c) * 3) / 4);
+		    printf("TT %s\n", c);
 		} else {
 		    SEND2("TT %s", c);
 		}
@@ -257,20 +260,23 @@ manage_request()
 	    have_serverblob = 0;
 	    Done = FALSE;
 	    if (Negotiate_packet_debug_enabled) {
-		printf("AF %s %s\n", c, cred);
 		decoded = base64_decode(c);
 		debug("sending 'AF' %s to squid with data:\n", cred);
-		hex_dump(decoded, (strlen(c) * 3) / 4);
+		if (c != NULL)
+		    hex_dump(decoded, (strlen(c) * 3) / 4);
+		else
+		    fprintf(stderr, "No data available.\n");
+		printf("AF %s %s\n", c, cred);
 	    } else {
 		SEND3("AF %s %s", c, cred);
 	    }
 	    return 1;
 	} else {
 	    if (Negotiate_packet_debug_enabled) {
-		printf("TT %s\n", c);
 		decoded = base64_decode(c);
 		debug("sending 'TT' to squid with data:\n");
 		hex_dump(decoded, (strlen(c) * 3) / 4);
+		printf("TT %s\n", c);
 	    } else
 		SEND2("TT %s", c);
 	    return 1;
