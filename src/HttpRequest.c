@@ -196,7 +196,7 @@ requestReadBody(request_t * request, char *buf, size_t size, CBCB * callback, vo
 {
     if (request->body_reader) {
 	if (cbdataValid(request->body_reader_data)) {
-	    request->body_reader(request, buf, size, callback, cbdata);
+	    request->body_reader(request->body_reader_data, request, buf, size, callback, cbdata);
 	} else {
 	    debug(73, 1) ("requestReadBody: Aborted\n");
 	    request->body_reader = NULL;
@@ -208,6 +208,31 @@ requestReadBody(request_t * request, char *buf, size_t size, CBCB * callback, vo
 	callback(buf, 0, cbdata);	/* Signal end of body */
     }
 }
+
+/*
+ * Register a body provider
+ */
+void
+requestRegisterBody(request_t * request, BODY_HANDLER * reader, void *cbdata)
+{
+    assert(!request->body_reader);
+    request->body_reader = reader;
+    request->body_reader_data = cbdata;
+    cbdataLock(cbdata);
+}
+
+void
+requestUnregisterBody(request_t * request, BODY_HANDLER * reader, void *cbdata)
+{
+    if (!request->body_reader)
+	return;
+    assert(request->body_reader == reader && request->body_reader_data == cbdata);
+    request->body_reader = NULL;
+    request->body_reader_data = NULL;
+    cbdataUnlock(cbdata);
+}
+
+
 
 void
 requestAbortBody(request_t * request)
@@ -221,7 +246,7 @@ requestAbortBody(request_t * request)
 	request->body_reader = NULL;
 	request->body_reader_data = NULL;
 	if (cbdataValid(cbdata))
-	    handler(request, NULL, -1, NULL, cbdata);
+	    handler(cbdata, request, NULL, -1, NULL, NULL);
 	cbdataUnlock(cbdata);
     }
 }
