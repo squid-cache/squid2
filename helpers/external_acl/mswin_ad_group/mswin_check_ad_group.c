@@ -685,7 +685,7 @@ Valid_Global_Groups(char *UserName, const char **Groups)
 static void
 usage(char *program)
 {
-    fprintf(stderr, "Usage: %s [-D domain][-G][-P][-c][-d][-h]\n"
+    fprintf(stderr, "Usage: %s [-D domain][-G][-c][-d][-h]\n"
 	" -D    default user Domain\n"
 	" -G    enable Active Directory Global group mode\n"
 	" -c    use case insensitive compare (local mode only)\n"
