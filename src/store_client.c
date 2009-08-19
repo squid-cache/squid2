@@ -688,12 +688,16 @@ CheckQuickAbort2(StoreEntry * entry)
 	debug(20, 3) ("CheckQuickAbort2: YES !mem->request->flags.cachable\n");
 	return 1;
     }
+    expectlen = httpReplyBodySize(mem->method, mem->reply) + mem->reply->hdr_sz;
+    curlen = mem->inmem_hi;
+    if (expectlen == curlen) {
+	debug(20, 3) ("CheckQuickAbort2: NO already finished\n");
+	return 0;
+    }
     if (EBIT_TEST(entry->flags, KEY_PRIVATE)) {
 	debug(20, 3) ("CheckQuickAbort2: YES KEY_PRIVATE\n");
 	return 1;
     }
-    expectlen = mem->reply->content_length + mem->reply->hdr_sz;
-    curlen = mem->inmem_hi;
     minlen = Config.quickAbort.min << 10;
     if (minlen < 0) {
 	debug(20, 3) ("CheckQuickAbort2: NO disabled\n");

@@ -543,10 +543,9 @@ httpReplyBodySize(method_t * method, const HttpReply * reply)
 {
     if (reply->sline.version.major < 1)
 	return -1;
-    else if (method != NULL) {
-	if (method->code == METHOD_HEAD)
-	    return 0;
-    } else if (reply->sline.status == HTTP_OK)
+    if (method != NULL && method->code == METHOD_HEAD)
+	return 0;
+    else if (reply->sline.status == HTTP_OK)
 	(void) 0;		/* common case, continue */
     else if (reply->sline.status == HTTP_NO_CONTENT)
 	return 0;
