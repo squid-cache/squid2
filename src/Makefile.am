@@ -452,7 +452,7 @@ uninstall-local:
 #		$(RM) -f $(DESTDIR)$(DEFAULT_CONFIG_FILE); \
 #	fi
 
-DISTCLEANFILES = cf_gen_defines.h cf.data cf_parser.h squid.conf.default \
+DISTCLEANFILES = cf_gen_defines.h cf.data cf_parser.h squid.conf.default squid.conf.clean \
 	globals.c string_arrays.c repl_modules.c auth_modules.c store_modules.c
 
 ##install-pinger:
