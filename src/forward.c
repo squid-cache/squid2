@@ -59,7 +59,6 @@ static void fwdStartFail(FwdState *);
 static void fwdLogReplyStatus(int tries, http_status status);
 static OBJH fwdStats;
 static STABH fwdAbort;
-static peer *fwdStateServerPeer(FwdState *);
 
 #define MAX_FWD_STATS_IDX 9
 static int FwdReplyCodes[MAX_FWD_STATS_IDX + 1][HTTP_INVALID_HEADER + 1];
@@ -68,16 +67,6 @@ static int FwdReplyCodes[MAX_FWD_STATS_IDX + 1][HTTP_INVALID_HEADER + 1];
 static void fwdLog(FwdState * fwdState);
 static Logfile *logfile = NULL;
 #endif
-
-static peer *
-fwdStateServerPeer(FwdState * fwdState)
-{
-    if (NULL == fwdState)
-	return NULL;
-    if (NULL == fwdState->servers)
-	return NULL;
-    return fwdState->servers->peer;
-}
 
 static void
 fwdServerFree(FwdServer * fs)
@@ -92,7 +81,6 @@ fwdStateFree(FwdState * fwdState)
 {
     StoreEntry *e = fwdState->entry;
     int sfd;
-    peer *p;
     debug(17, 3) ("fwdStateFree: %p\n", fwdState);
     assert(e->mem_obj);
 #if URL_CHECKSUM_DEBUG
@@ -109,7 +97,6 @@ fwdStateFree(FwdState * fwdState)
 	storeResetDefer(e);
     if (storePendingNClients(e) > 0)
 	assert(!EBIT_TEST(e->flags, ENTRY_FWD_HDR_WAIT));
-    p = fwdStateServerPeer(fwdState);
     fwdServersFree(&fwdState->servers);
     requestUnlink(fwdState->request);
     fwdState->request = NULL;
