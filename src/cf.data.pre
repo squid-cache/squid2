@@ -468,7 +468,7 @@ DOC_START
 	Defined keywords:
 
 	  user=		The users name (login also understood)
-	  password=	The users password (for PROXYPASS login= cache_peer)
+	  password=	The users password (for forwarding to peers)
 	  message=	Error message or similar used as %o in error messages
 			(error also understood)
 	  log=		String to be logged in access.log. Available as
@@ -1509,7 +1509,7 @@ DOC_START
 		     no-digest
 		     no-netdb-exchange
 		     no-delay
-		     login=user:password | PASS | *:password
+		     login=user:password | PASS | PROXYPASS | *:password
 		     connect-timeout=nn
 		     connect-fail-limit=nn
 		     digest-url=url
@@ -1617,8 +1617,9 @@ DOC_START
 		     Note: To combine this with local authentication the Basic
 		     authentication scheme must be used, and both servers must
 		     share the same user database as HTTP only allows for
-		     a single login (one for proxy, one for origin server).
-		     Also be warned this will expose your users proxy
+		     a single login (one for proxy, one for origin server) or
+		     alternatiely new user credentials has to be provided via
+		     external acl.  Also be warned this will expose your users
 		     password to the peer. USE WITH CAUTION
 
 		     use 'login=*:password' to pass the username to the

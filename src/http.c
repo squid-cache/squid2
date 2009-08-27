@@ -1103,6 +1103,72 @@ httpSendComplete(int fd, char *bufnotused, size_t size, int errflag, void *data)
 }
 
 /*
+ * Add mangled authorization headers as suitable
+ * Note: plain relaying has already been dealt with
+ */
+static void
+httpFixupAuthentication(request_t * request, request_t * orig_request, const HttpHeader * hdr_in, HttpHeader * hdr_out, http_state_flags flags)
+{
+    http_hdr_type header = flags.originpeer ? HDR_AUTHORIZATION : HDR_PROXY_AUTHORIZATION;
+
+    /* Nothing to do unless we are forwarding to a peer */
+    if (!request->flags.proxying)
+	return;
+
+    /* Needs to be explicitly enabled */
+    if (!orig_request->peer_login)
+	return;
+
+    /* Maybe already dealt with? */
+    if (httpHeaderHas(hdr_out, header))
+	return;
+
+    /* PROXYPASS is a special case, single-signon to servers with the proxy password (basic only) */
+    if (flags.originpeer && strcmp(orig_request->peer_login, "PROXYPASS") == 0 && httpHeaderHas(hdr_in, HDR_PROXY_AUTHORIZATION)) {
+	const char *auth = httpHeaderGetStr(hdr_in, HDR_PROXY_AUTHORIZATION);
+	if (auth && strncasecmp(auth, "basic ", 6) == 0) {
+	    httpHeaderPutStr(hdr_out, header, auth);
+	    return;
+	}
+    }
+    /* Special mode to pass the username to the upstream cache */
+    if (*orig_request->peer_login == '*') {
+	char loginbuf[256];
+	const char *username = "-";
+	if (orig_request->extacl_user)
+	    username = orig_request->extacl_user;
+	else if (orig_request->auth_user_request)
+	    username = authenticateUserRequestUsername(orig_request->auth_user_request);
+	snprintf(loginbuf, sizeof(loginbuf), "%s%s", username, orig_request->peer_login + 1);
+	httpHeaderPutStrf(hdr_out, header, "Basic %s", base64_encode(loginbuf));
+	return;
+    }
+    /* external_acl provided credentials */
+    if (orig_request->extacl_user && orig_request->extacl_passwd &&
+	(strcmp(orig_request->peer_login, "PASS") == 0 || strcmp(orig_request->peer_login, "PROXYPASS"))) {
+	char loginbuf[256];
+	snprintf(loginbuf, sizeof(loginbuf), "%s:%s", orig_request->extacl_user, orig_request->extacl_passwd);
+	httpHeaderPutStrf(hdr_out, header, "Basic %s",
+	    base64_encode(loginbuf));
+	return;
+    }
+#if HAVE_KRB5 && HAVE_GSSAPI
+    /* Kerberos auth */
+    if (strcmp(orig_request->peer_login, "NEGOTIATE") == 0) {
+	char *Token;
+	Token = peer_proxy_negotiate_auth(NULL, request->peer_host);
+	if (Token) {
+	    httpHeaderPutStrf(hdr_out, header, "Negotiate %s", Token);
+	}
+	return;
+    }
+#endif /* HAVE_KRB5 && HAVE_GSSAPI */
+
+    httpHeaderPutStrf(hdr_out, header, "Basic %s", base64_encode(orig_request->peer_login));
+    return;
+}
+
+/*
  * build request headers and append them to a given MemBuf 
  * used by httpBuildRequestPrefix()
  * note: calls httpHeaderInit(), the caller is responsible for Clean()-ing
@@ -1193,9 +1259,10 @@ httpBuildRequestHeader(request_t * request,
 		    orig_request->flags.pinned = 1;
 	    } else {
 		/* In accelerators, only forward authentication if enabled
-		 * (see also below for proxy->server authentication)
 		 */
-		if (orig_request->peer_login && (strcmp(orig_request->peer_login, "PASS") == 0 || strcmp(orig_request->peer_login, "PROXYPASS") == 0)) {
+		if (orig_request->peer_login &&
+		    (strcmp(orig_request->peer_login, "PASS") == 0 ||
+			strcmp(orig_request->peer_login, "PROXYPASS") == 0)) {
 		    httpHeaderAddClone(hdr_out, e);
 		    if (orig_request->flags.connection_auth)
 			orig_request->flags.pinned = 1;
@@ -1330,91 +1397,16 @@ httpBuildRequestHeader(request_t * request,
     }
     /* append Authorization if known in URL, not in header and going direct */
     if (!httpHeaderHas(hdr_out, HDR_AUTHORIZATION)) {
-	if (!request->flags.proxying) {
+	if (!request->flags.proxying || flags.originpeer) {
 	    if (*request->login) {
 		httpHeaderPutStrf(hdr_out, HDR_AUTHORIZATION, "Basic %s",
 		    base64_encode(request->login));
-	    } else if (orig_request->extacl_user && orig_request->extacl_passwd) {
-		char loginbuf[256];
-		snprintf(loginbuf, sizeof(loginbuf), "%s:%s", orig_request->extacl_user, orig_request->extacl_passwd);
-		httpHeaderPutStrf(hdr_out, HDR_AUTHORIZATION, "Basic %s",
-		    base64_encode(loginbuf));
 	    }
 	}
     }
-    /* append Proxy-Authorization if configured for peer, and proxying */
-    if (request->flags.proxying && orig_request->peer_login &&
-	!httpHeaderHas(hdr_out, HDR_PROXY_AUTHORIZATION)) {
-	if (*orig_request->peer_login == '*') {
-	    /* Special mode, to pass the username to the upstream cache */
-	    char loginbuf[256];
-	    const char *username = "-";
-	    if (orig_request->extacl_user)
-		username = orig_request->extacl_user;
-	    else if (orig_request->auth_user_request)
-		username = authenticateUserRequestUsername(orig_request->auth_user_request);
-	    snprintf(loginbuf, sizeof(loginbuf), "%s%s", username, orig_request->peer_login + 1);
-	    httpHeaderPutStrf(hdr_out, HDR_PROXY_AUTHORIZATION, "Basic %s",
-		base64_encode(loginbuf));
-	} else if (strcmp(orig_request->peer_login, "PASS") == 0) {
-	    if (orig_request->extacl_user && orig_request->extacl_passwd) {
-		char loginbuf[256];
-		snprintf(loginbuf, sizeof(loginbuf), "%s:%s", orig_request->extacl_user, orig_request->extacl_passwd);
-		httpHeaderPutStrf(hdr_out, HDR_PROXY_AUTHORIZATION, "Basic %s",
-		    base64_encode(loginbuf));
-	    }
-	} else if (strcmp(orig_request->peer_login, "PROXYPASS") == 0) {
-	    /* Nothing to do */
-#if HAVE_KRB5 && HAVE_GSSAPI
-	} else if (strcmp(orig_request->peer_login, "NEGOTIATE") == 0) {
-	    char *Token;
-	    Token = peer_proxy_negotiate_auth(NULL, request->peer_host);
-	    if (Token) {
-		httpHeaderPutStrf(hdr_out, HDR_PROXY_AUTHORIZATION, "Negotiate %s", Token);
-	    }
-#endif /* HAVE_KRB5 && HAVE_GSSAPI */
-	} else {
-	    httpHeaderPutStrf(hdr_out, HDR_PROXY_AUTHORIZATION, "Basic %s",
-		base64_encode(orig_request->peer_login));
-	}
-    }
-    /* append WWW-Authorization if configured for peer */
-    if (flags.originpeer && orig_request->peer_login &&
-	!httpHeaderHas(hdr_out, HDR_AUTHORIZATION)) {
-	if (strcmp(orig_request->peer_login, "PASS") == 0) {
-	    /* No credentials to forward.. (should have been done above if available) */
-	} else if (strcmp(orig_request->peer_login, "PROXYPASS") == 0) {
-	    /* Special mode, convert proxy authentication to WWW authentication
-	     * (also applies to cookie authentication)
-	     */
-	    const char *auth = httpHeaderGetStr(hdr_in, HDR_PROXY_AUTHORIZATION);
-	    if (auth && strncasecmp(auth, "basic ", 6) == 0) {
-		httpHeaderPutStr(hdr_out, HDR_AUTHORIZATION, auth);
-		if (orig_request->flags.connection_auth)
-		    orig_request->flags.pinned = 1;
-	    } else if (orig_request->extacl_user && orig_request->extacl_passwd) {
-		char loginbuf[256];
-		snprintf(loginbuf, sizeof(loginbuf), "%s:%s", orig_request->extacl_user, orig_request->extacl_passwd);
-		httpHeaderPutStrf(hdr_out, HDR_AUTHORIZATION, "Basic %s",
-		    base64_encode(loginbuf));
-	    }
-	} else if (*orig_request->peer_login == '*') {
-	    /* Special mode, to pass the username to the upstream cache */
-	    char loginbuf[256];
-	    const char *username = "-";
-	    if (orig_request->auth_user_request)
-		username = authenticateUserRequestUsername(orig_request->auth_user_request);
-	    else if (orig_request->extacl_user)
-		username = orig_request->extacl_user;
-	    snprintf(loginbuf, sizeof(loginbuf), "%s%s", username, orig_request->peer_login + 1);
-	    httpHeaderPutStrf(hdr_out, HDR_AUTHORIZATION, "Basic %s",
-		base64_encode(loginbuf));
-	} else {
-	    /* Fixed login string */
-	    httpHeaderPutStrf(hdr_out, HDR_AUTHORIZATION, "Basic %s",
-		base64_encode(orig_request->peer_login));
-	}
-    }
+    /* Fixup authentication headers magics (plain relaying is dealt with above) */
+    httpFixupAuthentication(request, orig_request, hdr_in, hdr_out, flags);
+
     /* append Cache-Control, add max-age if not there already */
     {
 	HttpHdrCc *cc = httpHeaderGetCc(hdr_in);
