@@ -1145,7 +1145,7 @@ httpFixupAuthentication(request_t * request, request_t * orig_request, const Htt
     }
     /* external_acl provided credentials */
     if (orig_request->extacl_user && orig_request->extacl_passwd &&
-	(strcmp(orig_request->peer_login, "PASS") == 0 || strcmp(orig_request->peer_login, "PROXYPASS"))) {
+	(strcmp(orig_request->peer_login, "PASS") == 0 || strcmp(orig_request->peer_login, "PROXYPASS") == 0)) {
 	char loginbuf[256];
 	snprintf(loginbuf, sizeof(loginbuf), "%s:%s", orig_request->extacl_user, orig_request->extacl_passwd);
 	httpHeaderPutStrf(hdr_out, header, "Basic %s",
