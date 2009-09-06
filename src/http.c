@@ -289,7 +289,7 @@ httpCachableReply(HttpStateData * httpState)
 	return 0;
     if (EBIT_TEST(cc_mask, CC_NO_CACHE) && !REFRESH_OVERRIDE(ignore_no_cache))
 	return 0;
-    if (EBIT_TEST(cc_mask, CC_NO_STORE))
+    if (EBIT_TEST(cc_mask, CC_NO_STORE) && !REFRESH_OVERRIDE(ignore_no_store))
 	return 0;
     if (httpState->request->flags.auth_sent) {
 	/*

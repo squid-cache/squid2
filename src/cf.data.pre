@@ -3079,6 +3079,7 @@ DOC_START
 		 reload-into-ims
 		 ignore-reload
 		 ignore-no-cache
+		 ignore-no-store
 		 ignore-must-revalidate
 		 ignore-private
 		 ignore-auth
