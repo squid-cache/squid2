@@ -1,11 +1,11 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.21">
- <TITLE>Squid 2.7.STABLE6 release notes</TITLE>
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.50">
+ <TITLE>Squid 2.7.STABLE7 release notes</TITLE>
 </HEAD>
 <BODY>
-<H1>Squid 2.7.STABLE6 release notes</H1>
+<H1>Squid 2.7.STABLE7 release notes</H1>
 
 <H2>Squid Developers</H2>$Id$
 <HR>
@@ -55,6 +55,9 @@ Squid is a WWW Cache application developed by the Web Caching community.</EM>
 
 <P>
 <H2><A NAME="toc9">9.</A> <A HREF="#s9">Key changes in squid-2.7.STABLE6</A></H2>
+
+<P>
+<H2><A NAME="toc10">10.</A> <A HREF="#s10">Key changes in squid-2.7.STABLE7</A></H2>
 
 
 <HR>
@@ -136,42 +139,68 @@ outside Squid and needing to separate cache hits from misses.</LI>
 
 <P>
 <DL>
-<DT><B>acl myportname</B><DD><P>new acl matching the incoming port name</P>
+<DT><B>acl myportname</B><DD>
+<P>new acl matching the incoming port name</P>
 
 <DT><B>authenticate_ip_shortcircuit_ttl</B><DD>
-<DT><B>authenticate_ip_shortcircuit_access</B><DD><P>controls the new IP based authentication cache.</P>
+
+<DT><B>authenticate_ip_shortcircuit_access</B><DD>
+<P>controls the new IP based authentication cache.</P>
 
 <DT><B>zph_mode</B><DD>
+
 <DT><B>zph_local</B><DD>
+
 <DT><B>zph_sibling</B><DD>
+
 <DT><B>zph_parent</B><DD>
-<DT><B>zph_option</B><DD><P>controls the Zero Penalty Hit support</P>
 
-<DT><B>update_headers</B><DD><P>optimization to skip updating on-disk headers</P>
+<DT><B>zph_option</B><DD>
+<P>controls the Zero Penalty Hit support</P>
 
-<DT><B>logfile_daemon</B><DD><P>new log file daemon support</P>
+<DT><B>update_headers</B><DD>
+<P>optimization to skip updating on-disk headers</P>
 
-<DT><B>netdb_filename</B><DD><P>sas hardcoded to the first cache_dir</P>
+<DT><B>logfile_daemon</B><DD>
+<P>new log file daemon support</P>
+
+<DT><B>netdb_filename</B><DD>
+<P>sas hardcoded to the first cache_dir</P>
 <DT><B>storeurl_rewrite_program</B><DD>
+
 <DT><B>storeurl_rewrite_children</B><DD>
+
 <DT><B>storeurl_rewrite_concurrency</B><DD>
+
 <DT><B>storeurl_access</B><DD>
+
 <P>controls the new store URL rewrite functionality</P>
 
 <DT><B>rewrite_access</B><DD>
-<DT><B>rewrite</B><DD><P>controls the new builtin URL rewrite functionality</P>
+
+<DT><B>rewrite</B><DD>
+<P>controls the new builtin URL rewrite functionality</P>
 
 <DT><B>max_stale</B><DD>
+
 <DT><B>server_http11</B><DD>
-<DT><B>ignore_expect_100</B><DD><P>Experimental HTTP/1.1 support knobs</P>
 
-<DT><B>external_refresh_check</B><DD><P>new helper to allow custom cache validations in accelerator setups</P>
+<DT><B>ignore_expect_100</B><DD>
+<P>Experimental HTTP/1.1 support knobs</P>
 
-<DT><B>ignore_ims_on_miss</B><DD><P>optimization mainly targeted for accelerator setups</P>
-<DT><B>max_filedescriptors</B><DD><P>can now be set runtime. Was previously hardcoded at build time and further limited by ulimit</P>
-<DT><B>accept_filter</B><DD><P>optimization to avoid waking Squid up until a request has been received</P>
-<DT><B>incoming_rate</B><DD><P>new tuning knob for high traffic conditions</P>
-<DT><B>zero_buffers</B><DD><P>tuning knob to disable a new optimization</P>
+<DT><B>external_refresh_check</B><DD>
+<P>new helper to allow custom cache validations in accelerator setups</P>
+
+<DT><B>ignore_ims_on_miss</B><DD>
+<P>optimization mainly targeted for accelerator setups</P>
+<DT><B>max_filedescriptors</B><DD>
+<P>can now be set runtime. Was previously hardcoded at build time and further limited by ulimit</P>
+<DT><B>accept_filter</B><DD>
+<P>optimization to avoid waking Squid up until a request has been received</P>
+<DT><B>incoming_rate</B><DD>
+<P>new tuning knob for high traffic conditions</P>
+<DT><B>zero_buffers</B><DD>
+<P>tuning knob to disable a new optimization</P>
 </DL>
 </P>
 
@@ -180,29 +209,43 @@ outside Squid and needing to separate cache hits from misses.</LI>
 
 <P>
 <DL>
-<DT><B>cache</B><DD><P>Suggested defaults modified</P>
-<DT><B>cache_dir</B><DD><P>the "read-only" option has been renamed to "no-store" to better reflect the functionality</P>
-<DT><B>cache_peer</B><DD><P>new multicast-siblings option, enabling multicast ICP sibling relations</P>
+<DT><B>cache</B><DD>
+<P>Suggested defaults modified</P>
+<DT><B>cache_dir</B><DD>
+<P>the "read-only" option has been renamed to "no-store" to better reflect the functionality</P>
+<DT><B>cache_peer</B><DD>
+<P>new multicast-siblings option, enabling multicast ICP sibling relations</P>
 <P>new idle=n option to keep a minimum pool of idle connections</P>
 <P>new http11 option to enable experimental HTTP/1.1 support</P>
-<DT><B>external_acl_type</B><DD><P>New %URI format tag</P>
-<DT><B>acl</B><DD><P>Suggested defaults cleaned up, defines a new "localnet" acl with RFC1918 addresses</P>
+<DT><B>external_acl_type</B><DD>
+<P>New %URI format tag</P>
+<DT><B>acl</B><DD>
+<P>Suggested defaults cleaned up, defines a new "localnet" acl with RFC1918 addresses</P>
 <P>new "myportname" acl type matching the http_port name</P>
-<DT><B>icp_access</B><DD><P>Suggested defaults cleaned up, now requires configuration to use ICP</P>
-<DT><B>htcp_access</B><DD><P>Suggested defaults cleaned up, now requires configuration to use HTCP</P>
-<DT><B>http_access</B><DD><P>Suggested defaults cleaned up, using a new "localnet" acl.</P>
-<DT><B>http_port</B><DD><P>Accelerator mode options cleaned up (accel, defaultsite, vport, vhost and combinations thereof)</P>
+<DT><B>icp_access</B><DD>
+<P>Suggested defaults cleaned up, now requires configuration to use ICP</P>
+<DT><B>htcp_access</B><DD>
+<P>Suggested defaults cleaned up, now requires configuration to use HTCP</P>
+<DT><B>http_access</B><DD>
+<P>Suggested defaults cleaned up, using a new "localnet" acl.</P>
+<DT><B>http_port</B><DD>
+<P>Accelerator mode options cleaned up (accel, defaultsite, vport, vhost and combinations thereof)</P>
 <P>new "allow-direct" option</P>
 <P>new "act-as-origin" option</P>
 <P>new "http11" option (experimental)</P>
 <P>new "name=" option</P>
 <P>nee "keepalive=" option</P>
-<DT><B>https_port</B><DD><P>See http_port.</P>
-<DT><B>logformat</B><DD><P>New format codes: oa (Our outgoing IP address), rp (Request URL-Path), sn (Unique sequence number)</P>
-<DT><B>refresh_pattern</B><DD><P>Several new options: stale-while-revalidate, ignore-stale-while-revalidate, max-stale, negative-ttl</P>
+<DT><B>https_port</B><DD>
+<P>See http_port.</P>
+<DT><B>logformat</B><DD>
+<P>New format codes: oa (Our outgoing IP address), rp (Request URL-Path), sn (Unique sequence number)</P>
+<DT><B>refresh_pattern</B><DD>
+<P>Several new options: stale-while-revalidate, ignore-stale-while-revalidate, max-stale, negative-ttl</P>
 <P>Suggested defaults adjusted to match the changes in the cache directive.</P>
-<DT><B>url_rewrite_program</B><DD><P>Future protocol change adding key=value pairs after the requests</P>
-<DT><B>forwarded_for</B><DD><P>Has several new modes, allowing one to finetune how/if the requesting
+<DT><B>url_rewrite_program</B><DD>
+<P>Future protocol change adding key=value pairs after the requests</P>
+<DT><B>forwarded_for</B><DD>
+<P>Has several new modes, allowing one to finetune how/if the requesting
 client IP should be forwarded in X-Forwarded-For</P>
 </DL>
 </P>
@@ -213,11 +256,17 @@ client IP should be forwarded in X-Forwarded-For</P>
 <P>
 <DL>
 <DT><B>incoming_icp_average</B><DD>
+
 <DT><B>incoming_http_average</B><DD>
+
 <DT><B>incoming_dns_average</B><DD>
+
 <DT><B>min_icp_poll_cnt</B><DD>
+
 <DT><B>min_dns_poll_cnt</B><DD>
-<DT><B>min_http_poll_cnt</B><DD><P>the above tuning knobs no longer have any effect and has been removed.</P>
+
+<DT><B>min_http_poll_cnt</B><DD>
+<P>the above tuning knobs no longer have any effect and has been removed.</P>
 </DL>
 </P>
 
@@ -354,6 +403,7 @@ redirect_program c:/winnt/system32/cmd.exe /C c:/squid/libexec/redir.cmd
 <LI>When Squid runs in command line mode, the launching user account must have administrative privilege on the system</LI>
 <LI>"Start parameters" in the Windows 2000/XP/2003 Service applet cannot be used</LI>
 <LI>Building with MinGW, when the configure option --enable-truncate is used, Squid cannot run on Windows NT, only Windows 2000 and later are supported</LI>
+<LI>On Windows Vista and later, User Account Control (UAC) must be disabled before running service installation</LI>
 </UL>
 </P>
 
@@ -486,6 +536,22 @@ ScriptAlias /squid/cgi-bin/ "c:/squid/libexec/"
 <LI>Various documentation fixes</LI>
 <LI>See also the list of 
 <A HREF="http://www.squid-cache.org/Versions/v2/2.7/changesets/SQUID_2_7_STABLE6.html">squid-2.7.STABLE6 changes</A> and the 
+<A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
+</UL>
+</P>
+
+<H2><A NAME="s10">10.</A> <A HREF="#toc10">Key changes in squid-2.7.STABLE7</A></H2>
+
+<P>
+<UL>
+<LI>Hang in 100% CPU if using external_acl_type or access_log format %{header:;item}</LI>
+<LI>wbinfo_group.pl false positives under certain conditions</LI>
+<LI>several memory leaks fixed</LI>
+<LI>documentation corrections</LI>
+<LI>Max URL size increased to 8192</LI>
+<LI>And many other minor bugfixes</LI>
+<LI>See also the list of 
+<A HREF="http://www.squid-cache.org/Versions/v2/2.7/changesets/SQUID_2_7_STABLE7.html">squid-2.7.STABLE7 changes</A> and the 
 <A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
 </UL>
 </P>

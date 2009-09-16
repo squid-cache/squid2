@@ -1,3 +1,49 @@
+Changes to squid-2.7.STABLE7 (17 September 2009)
+	- Bug #2661 - Solaris /dev/poll support broken with EINVAL
+	- Clarify external_acl_type %{Header} documentation slightly
+	- Bug #2482: Remove mem_obj->old_entry in async code to avoid deep ctx
+	  errors
+	- GCC-4.x cleanups
+	- Bug #2605: Don't call setsid() on helper childs when running in
+	  daemon mode
+	- Windows port: Fix PSAPI.DLL usage, is always available on Windows NT
+	  and later
+	- Windows port: Added support for Windows 7, Windows Server 2008 R2
+	  and later
+	- Bug #2602: increase MAX_URL to 8192
+	- The debug mode option '-d' was not documented in LDAP helpers usage
+	  message
+	- Windows port: Added a note about installation on Windows Vista and
+	  later
+	- Bug #2642: Remove duplicate peerMonitorInit() on reconfigure
+	- Bug #2515: Final chunk parsing errors on FreeBSD6+
+	- Bug #2647: Reprioritise override-* and stale-while-revalidate
+	- Windows port: Fix improper access permissions to registry and DNS
+	  parsing from registry
+	- Windows port: Fix getservbyname() usage abuse.
+	- Bug #2672: cacheMemMaxSize 32-bit overflow during snmpwalk
+	- Bug #2691: store_url memory leak
+	- Accept PUT/POST requests without an entity-body
+	- Plug request_t + HttpStateData memory leak on PUT/POST requests with
+	  early response
+	- Bug #2710: squid_kerb_auth non-terminated string
+	- Bug #2369: squid traffic counter 32-bit overflow
+	- Bug #2080: wbinfo_group.pl - false positive under certain conditions
+	- Bug #2739: DNS resolver option ndots can't be parsed from
+	  resolv.conf
+	- Windows port: fix mswin_negotiate_auth.exe crash when executing a
+	  LocalCall authentication with verbose deBug #enabled
+	- Add 0.0.0.0 as an to_localhost address
+	- Windows port: Update mswin_check_ad_group to version 2.0
+	- Windows port: There is no "-P" command line option into
+	  mswin_check_ad_group helper.
+	- Correct Valgrind mempool protection
+	- Bug #2451: Correct length handling on 304 responses
+	- Bug #2541: Hang in 100% CPU loop while extacting header details
+	  using a delimiter other than comma (external_acl_type,
+	  access_log_format, external_refresh_check)
+	- Bug #2768 - squid_ldap_group -K argument parsing error
+
 Changes to squid-2.7.STABLE6 (4 February 2009)
 	- Bug #2494: Fix tproxy url in configure
 	- Correct latency measurements
