@@ -10,17 +10,18 @@ SPNEGO = spnegohelp/derparse.c spnegohelp/derparse.h spnegohelp/Makefile spnegoh
 SOURCE = squid_kerb_auth.c base64.c base64.h
 EXTRA_DIST = readme.txt do.sh
 
-if HAVE_SPNEGO
-squid_kerb_auth_SOURCES = $(SOURCE)
-else
 squid_kerb_auth_SOURCES = $(SOURCE) $(SPNEGO)
-endif
 
-AM_CPPFLAGS = $(KERBINCS) -I$(srcdir)/spnegohelp -I.  -I$(top_srcdir)/include
-#-I$(top_srcdir)/src
+CPPFLAGS = $(KERBINC) -I$(srcdir)/spnegohelp -I.
+#-I$(top_srcdir)/include -I$(top_srcdir)/src
 LDADD = $(KERBLIBS)
 #-L$(top_builddir)/lib -lmiscutil $(XTRA_LIBS)
 
+# HEIMDAL
+#KERBINC = -DHEIMDAL -I/usr/include/heimdal
+#KERBLIBS = -lgssapi -lkrb5 -lcom_err -lasn1 -lroken
+
 # MIT
-KERBINCS = @KRB5INCS@
-KERBLIBS = @KRB5LIBS@
+KERBINC = 
+KERBLIBS = -lgssapi_krb5 -lkrb5 -lcom_err
+

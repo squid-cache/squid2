@@ -1587,7 +1587,6 @@ if test "$ac_cv_path_PERL" = "none"; then
 	echo "Please install Perl and then re-run configure"
 	exit 1
 fi
-AM_CONDITIONAL(HAVE_SPNEGO, test x"$ac_cv_have_spnego" = x"yes" )
 
 case "$host" in
     *-hp-hpux*)
