@@ -282,7 +282,7 @@ memPoolAlloc(MemPool * pool)
 	    struct mempool_cookie *cookie = (void *) (((unsigned char *) obj) + pool->real_obj_size);
 	    assert(cookie->cookie == MEMPOOL_COOKIE(obj));
 	    assert(cookie->pool == pool);
-	    (void) VALGRIND_MAKE_MEM_NOACCESS(cookie, sizeof(cookie));
+	    (void) VALGRIND_MAKE_MEM_NOACCESS(cookie, sizeof(*cookie));
 	}
 #endif
     } else {
@@ -296,7 +296,7 @@ memPoolAlloc(MemPool * pool)
 	    cookie = (struct mempool_cookie *) (((unsigned char *) obj) + pool->real_obj_size);
 	    cookie->cookie = MEMPOOL_COOKIE(obj);
 	    cookie->pool = pool;
-	    (void) VALGRIND_MAKE_MEM_NOACCESS(cookie, sizeof(cookie));
+	    (void) VALGRIND_MAKE_MEM_NOACCESS(cookie, sizeof(*cookie));
 	}
 #else
 	if (Config.onoff.zero_buffers || pool->flags.dozero)
@@ -319,7 +319,7 @@ memPoolFree(MemPool * pool, void *obj)
 #if DEBUG_MEMPOOL
     {
 	struct mempool_cookie *cookie = (void *) (((unsigned char *) obj) + pool->real_obj_size);
-	(void) VALGRIND_MAKE_MEM_DEFINED(cookie, sizeof(cookie));
+	(void) VALGRIND_MAKE_MEM_DEFINED(cookie, sizeof(*cookie));
 	assert(cookie->cookie == MEMPOOL_COOKIE(obj));
 	assert(cookie->pool == pool);
     }
