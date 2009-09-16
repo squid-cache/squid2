@@ -1,6 +1,6 @@
 <!doctype linuxdoc system>
 <article>
-<title>Squid 2.6.STABLE22 release notes</title>
+<title>Squid 2.6.STABLE23 release notes</title>
 <author>Squid Developers</author>
 <date>$Id$</date>
 
@@ -736,6 +736,20 @@ ScriptAlias /squid/cgi-bin/ "c:/squid/libexec/"
 	<item>See also the list of <url
 		url="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE22.html"
 			name="squid-2.6.STABLE22 changes"> and the <url url="ChangeLog"
+				name="ChangeLog"> file for details.
+</itemize>
+
+<sect>Key changes squid-2.6.STABLE22 to 2.6.STABLE23
+
+<p>
+<itemize>
+	<item>Hang in 100% CPU if using external_acl_type or access_log format %{header:;item}
+	<item>wbinfo_group.pl false positives under certain conditions
+	<item>documentation corrections
+	<item>And many other minor bugfixes
+	<item>See also the list of <url
+		url="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE23.html"
+			name="squid-2.6.STABLE23 changes"> and the <url url="ChangeLog"
 				name="ChangeLog"> file for details.
 </itemize>
 

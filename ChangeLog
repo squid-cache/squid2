@@ -1,3 +1,29 @@
+Changes to squid-2.6.STABLE23 (17 September 2009)
+	- Bug #2494: Fix tproxy url in configure
+	- Add in some better documentation for override-expire.
+	- Fix Bug #2661 - Solaris /dev/poll support broken with EINVAL
+	- Clarify external_acl_type %{Header} sightly
+	- Cosmetic change to make GCC happy
+	- Windows port: Fix PSAPI.DLL usage, is always available on Windows NT
+	  and later
+	- Windows port: Added support for Windows 7, Windows Server 2008 R2
+	  and later
+	- The debug mode option '-d' was not documented in LDAP helpers usage
+	  message
+	- Windows port: Added a note about installation on Windows Vista and
+	  later
+	- Bug #2642: Remove duplicate peerMonitorInit() on reconfigure
+	- Bug #2672: cacheMemMaxSize 32-bit overflow during snmpwalk
+	- Accept PUT/POST requests without an entity-body
+	- Bug #2369: squid traffic counter 32-bit overflow
+	- Bug #2080: wbinfo_group.pl - false positive under certain conditions
+	- Bug #2739: DNS resolver option ndots can't be parsed from
+	  resolv.conf
+	- Bug #2541: Hang in 100% CPU loop while extacting header details
+	  using a delimiter other than comma (external_acl_type,
+	  access_log_format, external_refresh_check)
+	- Bug #2768 - squid_ldap_group argument parsing error
+
 Changes to squid-2.6.STABLE22 (19 October 2008)
 	- Bug #2396: Correct the opening of the PF device file.
 	- Make --with-large-files and --with-build-envirnment=default play
