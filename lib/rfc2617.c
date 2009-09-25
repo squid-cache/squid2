@@ -161,7 +161,7 @@ DigestCalcResponse(
     SQUID_MD5Update(&Md5Ctx, pszMethod, strlen(pszMethod));
     SQUID_MD5Update(&Md5Ctx, ":", 1);
     SQUID_MD5Update(&Md5Ctx, pszDigestUri, strlen(pszDigestUri));
-    if (strcasecmp(pszQop, "auth-int") == 0) {
+    if (pszQop && strcasecmp(pszQop, "auth-int") == 0) {
 	SQUID_MD5Update(&Md5Ctx, ":", 1);
 	SQUID_MD5Update(&Md5Ctx, HEntity, HASHHEXLEN);
     }
@@ -175,7 +175,7 @@ DigestCalcResponse(
     SQUID_MD5Update(&Md5Ctx, ":", 1);
     SQUID_MD5Update(&Md5Ctx, pszNonce, strlen(pszNonce));
     SQUID_MD5Update(&Md5Ctx, ":", 1);
-    if (*pszQop) {
+    if (pszQop && *pszQop) {
 	SQUID_MD5Update(&Md5Ctx, pszNonceCount, strlen(pszNonceCount));
 	SQUID_MD5Update(&Md5Ctx, ":", 1);
 	SQUID_MD5Update(&Md5Ctx, pszCNonce, strlen(pszCNonce));
