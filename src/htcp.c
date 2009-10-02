@@ -1288,6 +1288,7 @@ htcpClear(StoreEntry * e, const char *uri, request_t * req, method_t * method, p
     if (htcpInSocket < 0)
 	return;
 
+    memset(&stuff, 0, sizeof(stuff));
     old_squid_format = p->options.htcp_oldsquid;
     memset(&flags, '\0', sizeof(flags));
     snprintf(vbuf, sizeof(vbuf), "%d/%d",
