@@ -166,6 +166,7 @@ krb5_create_cache(char *kf, char *pn)
 
 #define KT_PATH_MAX 256
 #define MAX_RENEW_TIME "365d"
+#define DEFAULT_SKEW (krb5_deltat) 600
 
     static char *keytab_filename = NULL, *principal_name = NULL;
     static krb5_keytab keytab = 0;
@@ -183,7 +184,8 @@ krb5_create_cache(char *kf, char *pn)
     krb5_deltat rlife;
 #if HAVE_PROFILE_H
     profile_t profile;
-#else
+#endif
+#if HAVE_HEIMDAL_KERBEROS
     krb5_kdc_flags flags;
     krb5_realm *client_realm;
 #endif
@@ -250,12 +252,12 @@ krb5_create_cache(char *kf, char *pn)
 	    debug(11, 5) ("Error while getting clockskew : %s\n", error_message(code));
 	    return (1);
 	}
-#else
-#if HAVE_KRB5_GET_MAX_TIME_SKEW
+#elif HAVE_KRB5_GET_MAX_TIME_SKEW && HAVE_HEIMDAL_KERBEROS
 	skew = krb5_get_max_time_skew(kparam.context);
-#else
+#elif HAVE_MAX_SKEW_IN_KRB5_CONTEXT && HAVE_HEIMDAL_KERBEROS
 	skew = kparam.context->max_skew;
-#endif
+#else
+	skew = DEFAULT_SKEW;
 #endif
 
 	if (!kf) {
