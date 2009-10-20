@@ -977,7 +977,7 @@ modifiedSince(StoreEntry * entry, request_t * request)
 static void
 clientPurgeRequest(clientHttpRequest * http)
 {
-    StoreEntry *entry;
+    StoreEntry *entry = NULL;
     ErrorState *err = NULL;
     HttpReply *r;
     http_status status = HTTP_NOT_FOUND;
