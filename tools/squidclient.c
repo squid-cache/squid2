@@ -83,31 +83,10 @@
 #endif
 
 #include "util.h"
+#include "squid_types.h"
 
 #ifndef BUFSIZ
 #define BUFSIZ 8192
-#endif
-
-#ifndef PRId64
-#ifdef _SQUID_MSWIN_		/* Windows native port using MSVCRT */
-#define PRId64 "I64d"
-#elif SIZEOF_INT64_T > SIZEOF_LONG
-#define PRId64 "lld"
-#else
-#define PRId64 "ld"
-#endif
-#endif
-
-#if SIZEOF_INT64_T > SIZEOF_LONG && HAVE_STRTOLL
-typedef int64_t squid_off_t;
-#define SIZEOF_SQUID_OFF_T SIZEOF_INT64_T
-#define PRINTF_OFF_T PRId64
-#define strto_off_t (int64_t)strtoll
-#else
-typedef long squid_off_t;
-#define SIZEOF_SQUID_OFF_T SIZEOF_LONG
-#define PRINTF_OFF_T "ld"
-#define strto_off_t strtol
 #endif
 
 typedef void SIGHDLR(int sig);
