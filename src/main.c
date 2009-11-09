@@ -549,7 +549,8 @@ mainInitialize(void)
 	Config.Port.icp = (u_short) icpPortNumOverride;
 
     _db_init(Config.Log.log, Config.debugOptions);
-    fd_open(fileno(debug_log), FD_LOG, Config.Log.log);
+    if (debug_log != stderr)
+	fd_open(fileno(debug_log), FD_LOG, Config.Log.log);
 #if MEM_GEN_TRACE
     log_trace_init("/tmp/squid.alloc");
 #endif
