@@ -2658,8 +2658,10 @@ clientMaxBodySize(request_t * request, clientHttpRequest * http, HttpReply * rep
     aclChecklistCacheInit(checklist);
     for (bs = (body_size *) Config.ReplyBodySize.head; bs; bs = (body_size *) bs->node.next) {
 	if (aclMatchAclList(bs->acl_list, checklist)) {
-	    debug(58, 3) ("clientMaxBodySize: Setting maxBodySize to %ld\n", (long int) http->maxBodySize);
-	    http->maxBodySize = bs->maxsize;
+	    if (bs->maxsize != -1) {
+		debug(58, 3) ("clientMaxBodySize: Setting maxBodySize to %ld\n", (long int) http->maxBodySize);
+		http->maxBodySize = bs->maxsize;
+	    }
 	    break;
 	}
     }
@@ -2682,10 +2684,12 @@ clientDelayMaxBodySize(request_t * request, clientHttpRequest * http, HttpReply 
     aclChecklistCacheInit(checklist);
     for (dbs = (delay_body_size *) Config.DelayBodySize.head; dbs; dbs = (delay_body_size *) dbs->node.next) {
 	if (aclMatchAclList(dbs->acl_list, checklist) == 1) {
-	    debug(58, 3) ("clientDelayMaxBodySize: Setting delayMaxBodySize to %ld\n",
-		(long int) http->delayMaxBodySize);
-	    http->delayMaxBodySize = dbs->maxsize;
-	    http->delayAssignedPool = dbs->pool;
+	    if (http->delayMaxBodySize != -1) {
+		debug(58, 3) ("clientDelayMaxBodySize: Setting delayMaxBodySize to %ld\n",
+		    (long int) http->delayMaxBodySize);
+		http->delayMaxBodySize = dbs->maxsize;
+		http->delayAssignedPool = dbs->pool;
+	    }
 	    break;
 	}
     }
@@ -2738,8 +2742,10 @@ clientMaxRequestBodyDelayForwardSize(request_t * request, clientHttpRequest * ht
     /* Calculate it */
     for (bs = (body_size *) Config.RequestBodyDelayForwardSize.head; bs; bs = (body_size *) bs->node.next) {
 	if (aclMatchAclList(bs->acl_list, checklist) == 1) {
-	    debug(33, 2) ("clientMaxRequestBodyDelayForwardSize: Setting maxRequestBodyDelayForwardSize to %ld\n", (long int) http->maxRequestBodyDelayForwardSize);
-	    http->maxRequestBodyDelayForwardSize = bs->maxsize;
+	    if (bs->maxsize != -1) {
+		debug(33, 2) ("clientMaxRequestBodyDelayForwardSize: Setting maxRequestBodyDelayForwardSize to %ld\n", (long int) http->maxRequestBodyDelayForwardSize);
+		http->maxRequestBodyDelayForwardSize = bs->maxsize;
+	    }
 	    break;
 	}
     }
@@ -2761,8 +2767,10 @@ clientMaxRequestBodySize(request_t * request, clientHttpRequest * http)
     aclChecklistCacheInit(checklist);
     for (bs = (body_size *) Config.RequestBodySize.head; bs; bs = (body_size *) bs->node.next) {
 	if (aclMatchAclList(bs->acl_list, checklist) == 1) {
-	    debug(58, 3) ("clientMaxRequestBodySize: Setting maxRequestBodySize to %ld\n", (long int) http->maxRequestBodySize);
-	    http->maxRequestBodySize = bs->maxsize;
+	    if (bs->maxsize != -1) {
+		debug(58, 3) ("clientMaxRequestBodySize: Setting maxRequestBodySize to %ld\n", (long int) http->maxRequestBodySize);
+		http->maxRequestBodySize = bs->maxsize;
+	    }
 	    break;
 	}
     }
