@@ -899,17 +899,16 @@ DOC_START
 DOC_END
 
 NAME: reply_body_max_size
-COMMENT: bytes allow|deny acl acl...
+COMMENT: size acl acl...
 TYPE: body_size_t
 DEFAULT: none
-DEFAULT_IF_NONE: 0 allow all
 LOC: Config.ReplyBodySize
 DOC_START
 	This option specifies the maximum size of a reply body in bytes.
 	It can be used to prevent users from downloading very large files,
 	such as MP3's and movies. When the reply headers are received,
-	the reply_body_max_size lines are processed, and the first line with
-	a result of "allow" is used as the maximum body size for this reply.
+	the reply_body_max_size lines are processed, and the first matching
+	line with is used as the maximum body size for this reply.
 	This size is checked twice. First when we get the reply headers,
 	we check the content-length value.  If the content length value exists
 	and is larger than the allowed size, the request is denied and the
@@ -923,7 +922,9 @@ DOC_START
 	partial responses and give them out as hits.  You should NOT
 	use this option if you have downstream caches.
 
-	If you set this parameter to zero (the default), there will be
+	size is specified with unit, i.e. 4 MB
+
+	If you set this parameter to none (the default), there will be
 	no limit imposed.
 DOC_END
 
@@ -3367,31 +3368,31 @@ DOC_START
 DOC_END
 
 NAME: request_body_max_size
-COMMENT: bytes allow|deny acl acl...
+COMMENT: size [acl acl...]
 TYPE: body_size_t
 DEFAULT: none
-DEFAULT_IF_NONE: 0 allow all
 LOC: Config.RequestBodySize
 DOC_START
 	This option specifies the maximum size of a request body in bytes.
 	It can be used to prevent users from uploading very large files. When
 	the request headers are received, the request_body_max_size lines are
-	processed, and the first line with a result of "allow" is used as the
-	maximum body size for this request.  This size is checked against the
+	processed, and the first matching line is used as the maximum body
+	size for this request.  This size is checked against the
 	content-length value in the request headers.  If the content length
 	value is larger than the allowed size, the request is denied and the
 	user receives an error message that says "the request or reply is too
 	large."
 
-	If you set this parameter to zero (the default), there will be
+	size is specified with unit, i.e. 4 MB
+
+	If you set this parameter to "none" (the default), there will be
 	no limit imposed.
 DOC_END
 
 NAME: request_body_delay_forward_size
-COMMENT: bytes allow|deny acl acl ..
+COMMENT: size [acl acl...]
 TYPE: body_size_t
 DEFAULT: none
-DEFAULT_IF_NONE: 0 allow all
 LOC: Config.RequestBodyDelayForwardSize
 DOC_START
 	By default, Squid will begin forwarding a request immediately, before
@@ -3403,8 +3404,7 @@ DOC_START
 	This option delays forwarding the request until a certain amount
 	of request body data is available.
 
-	The default is to immediately forward the request without waiting for
-	any request body to be received. This is the old default.
+	size is specified with unit, i.e. 4 MB
 
 	To use this feature, configure an ACL to match on the request (so
 	URL, request headers, etc - not the reply headers, they're not available
@@ -3413,13 +3413,8 @@ DOC_START
 	If the whole request body is read in before the specified limit is reached,
 	the request will be forwarded.
 
-	Make sure that you configure a default "allow all" rule if you set any rules
-	to delay forwarding so request forwarding will still happen if no rules are
-	matched.
-
-	ie,
-
-	request_body_delay_forward_size 0 allow all
+	If size is set to "none" (the default) then the request is immediately
+	forwarded without waiting for any request body to be received.
 DOC_END
 
 NAME: broken_posts
@@ -4337,24 +4332,27 @@ DOC_START
 DOC_END
 
 NAME: delay_body_max_size
-COMMENT: bytes delay_pool allow|deny acl acl...
+COMMENT: size delay_pool acl acl...
 TYPE: delay_body_size_t
 IFDEF: DELAY_POOLS
 DEFAULT: none
 LOC: Config.DelayBodySize
 DOC_START
-        This option allows for a limit to be placed on replies before the
+	This option allows for a limit to be placed on replies before the
 	request is placed in a delay pool. It operates on the HTTP request,
 	not the HTTP reply.
 
-        It can be used to prevent users from downloading very large files at
-        high speed. When the delay headers are received, the reply_body_max_size
-        lines are processed, and the first line with a result of "allow" is used
-        as the maximum body size for this reply to be unassigned in delay_pool.
-	The client connection is inserted into the delay pool once the amount
-	of data sent to the client exceeds the value specified.
+	It can be used to prevent users from downloading very large files
+	at high speed. When the response headers are received, the
+	delay_body_max_size lines are processed, and the first matching
+	line is used as the maximum body size for this reply before
+	it gets assigned to the specified pool
 
-	There will be no limit imposed by a rule if the "bytes" value is set to 0.
+	The size is specified with unit, i.e. 4 MB
+
+	To make exceptions where the request should not be reassigned to
+	a delay pool specify the keyword none as bytes value and no
+	delay_pool value (one argument less in such case)
 DOC_END
 
 

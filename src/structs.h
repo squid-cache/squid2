@@ -238,13 +238,13 @@ struct _header_mangler {
 
 struct _body_size {
     dlink_node node;
-    acl_access *access_list;
+    acl_list *acl_list;
     squid_off_t maxsize;
 };
 
 struct _delay_body_size {
     dlink_node node;
-    acl_access *access_list;
+    acl_list *acl_list;
     squid_off_t maxsize;
     ushort pool;
 };

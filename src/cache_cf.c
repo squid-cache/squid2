@@ -301,27 +301,6 @@ GetShort(void)
     return xatos(token);
 }
 
-static squid_off_t
-GetOffT(void)
-{
-    char *token = strtok(NULL, w_space);
-    char *end;
-    squid_off_t i;
-    if (token == NULL)
-	self_destruct();
-    i = strto_off_t(token, &end, 0);
-#if SIZEOF_SQUID_OFF_T <= 4
-    {
-	double d = strtod(token, NULL);
-	if (d > INT_MAX)
-	    end = token;
-    }
-#endif
-    if (end == token)
-	self_destruct();
-    return i;
-}
-
 static void
 update_maxobjsize(void)
 {
@@ -2645,8 +2624,8 @@ parse_body_size_t(dlink_list * bodylist)
     body_size *bs;
     CBDATA_INIT_TYPE(body_size);
     bs = cbdataAlloc(body_size);
-    bs->maxsize = GetOffT();
-    aclParseAccessLine(&bs->access_list);
+    parse_b_size_t(&bs->maxsize);
+    aclParseAclList(&bs->acl_list);
 
     dlinkAddTail(bs, &bs->node, bodylist);
 }
@@ -2661,7 +2640,7 @@ parse_delay_body_size_t(dlink_list * bodylist)
     ushort pool;
     CBDATA_INIT_TYPE(delay_body_size);
     dbs = cbdataAlloc(delay_body_size);
-    dbs->maxsize = GetOffT();
+    parse_b_size_t(&dbs->maxsize);
 
     parse_ushort(&pool);
     if (pool < 1 || pool > Config.Delay.pools) {
@@ -2669,7 +2648,7 @@ parse_delay_body_size_t(dlink_list * bodylist)
 	return;
     }
     dbs->pool = pool - 1;
-    aclParseAccessLine(&dbs->access_list);
+    aclParseAclList(&dbs->acl_list);
 
     dlinkAddTail(dbs, &dbs->node, bodylist);
 }
@@ -2679,22 +2658,14 @@ static void
 dump_body_size_t(StoreEntry * entry, const char *name, dlink_list bodylist)
 {
     body_size *bs;
-    bs = (body_size *) bodylist.head;
-    while (bs) {
-	acl_list *l;
-	acl_access *head = bs->access_list;
-	while (head != NULL) {
-	    storeAppendPrintf(entry, "%s %" PRINTF_OFF_T " %s", name, bs->maxsize,
-		head->allow ? "Allow" : "Deny");
-	    for (l = head->acl_list; l != NULL; l = l->next) {
-		storeAppendPrintf(entry, " %s%s",
-		    l->op ? null_string : "!",
-		    l->acl->name);
-	    }
-	    storeAppendPrintf(entry, "\n");
-	    head = head->next;
-	}
-	bs = (body_size *) bs->node.next;
+    for (bs = (body_size *) bodylist.head; bs; bs = (body_size *) bs->node.next) {
+	storeAppendPrintf(entry, "%s ", name);
+	if (bs->maxsize != -1)
+	    storeAppendPrintf(entry, "%" PRINTF_OFF_T, bs->maxsize);
+	else
+	    storeAppendPrintf(entry, "none");
+	dump_acl_list(entry, bs->acl_list);
+	storeAppendPrintf(entry, "\n");
     }
 }
 
@@ -2703,23 +2674,14 @@ static void
 dump_delay_body_size_t(StoreEntry * entry, const char *name, dlink_list bodylist)
 {
     delay_body_size *dbs;
-    dbs = (delay_body_size *) bodylist.head;
-    while (dbs) {
-	acl_list *l;
-	acl_access *head = dbs->access_list;
-	while (head != NULL) {
-	    storeAppendPrintf(entry, "%s %" PRINTF_OFF_T " %u %s",
-		name, dbs->maxsize, dbs->pool,
-		head->allow ? "Allow" : "Deny");
-	    for (l = head->acl_list; l != NULL; l = l->next) {
-		storeAppendPrintf(entry, " %s%s",
-		    l->op ? null_string : "!",
-		    l->acl->name);
-	    }
-	    storeAppendPrintf(entry, "\n");
-	    head = head->next;
-	}
-	dbs = (delay_body_size *) dbs->node.next;
+    for (dbs = (delay_body_size *) bodylist.head; dbs; dbs = (delay_body_size *) dbs->node.next) {
+	storeAppendPrintf(entry, "%s ", name);
+	if (dbs->maxsize != -1)
+	    storeAppendPrintf(entry, "%" PRINTF_OFF_T " %u", dbs->maxsize, dbs->pool);
+	else
+	    storeAppendPrintf(entry, "none");
+	dump_acl_list(entry, dbs->acl_list);
+	storeAppendPrintf(entry, "\n");
     }
 }
 #endif
@@ -2731,7 +2693,7 @@ free_body_size_t(dlink_list * bodylist)
     bs = (body_size *) bodylist->head;
     while (bs) {
 	bs->maxsize = 0;
-	aclDestroyAccessList(&bs->access_list);
+	aclDestroyAclList(&bs->acl_list);
 	tempnode = (body_size *) bs->node.next;
 	dlinkDelete(&bs->node, bodylist);
 	cbdataFree(bs);
@@ -2748,7 +2710,7 @@ free_delay_body_size_t(dlink_list * bodylist)
     while (dbs) {
 	dbs->maxsize = 0;
 	dbs->pool = 0;
-	aclDestroyAccessList(&dbs->access_list);
+	aclDestroyAclList(&dbs->acl_list);
 	tempnode = (delay_body_size *) dbs->node.next;
 	dlinkDelete(&dbs->node, bodylist);
 	cbdataFree(dbs);
@@ -2758,11 +2720,13 @@ free_delay_body_size_t(dlink_list * bodylist)
 #endif
 
 
+#if UNUSED_CODE
 static int
 check_null_body_size_t(dlink_list bodylist)
 {
     return bodylist.head == NULL;
 }
+#endif
 
 static void
 parse_kb_size_t(squid_off_t * var)

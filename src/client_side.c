@@ -2653,21 +2653,17 @@ clientMaxBodySize(request_t * request, clientHttpRequest * http, HttpReply * rep
     aclCheck_t *checklist;
     if (http->log_type == LOG_TCP_DENIED)
 	return;
-    bs = (body_size *) Config.ReplyBodySize.head;
-    while (bs) {
-	checklist = clientAclChecklistCreate(bs->access_list, http);
-	checklist->reply = reply;
-	if (aclCheckFast(bs->access_list, checklist)) {
-	    /* deny - skip this entry */
-	    bs = (body_size *) bs->node.next;
-	} else {
-	    /* Allow - use this entry */
-	    http->maxBodySize = bs->maxsize;
-	    bs = NULL;
+    checklist = clientAclChecklistCreate(NULL, http);
+    checklist->reply = reply;
+    aclChecklistCacheInit(checklist);
+    for (bs = (body_size *) Config.ReplyBodySize.head; bs; bs = (body_size *) bs->node.next) {
+	if (aclMatchAclList(bs->acl_list, checklist)) {
 	    debug(58, 3) ("clientMaxBodySize: Setting maxBodySize to %ld\n", (long int) http->maxBodySize);
+	    http->maxBodySize = bs->maxsize;
+	    break;
 	}
-	aclChecklistFree(checklist);
     }
+    aclChecklistFree(checklist);
 }
 
 #if DELAY_POOLS
@@ -2681,26 +2677,20 @@ clientDelayMaxBodySize(request_t * request, clientHttpRequest * http, HttpReply 
     aclCheck_t *checklist;
     if (http->log_type == LOG_TCP_DENIED)
 	return;
-    dbs = (delay_body_size *) Config.DelayBodySize.head;
-    while (dbs) {
-	checklist = clientAclChecklistCreate(dbs->access_list, http);
-
-	checklist->reply = reply;
-	if (1 != aclCheckFast(dbs->access_list, checklist)) {
-	    /* deny - skip this entry */
-	    dbs = (delay_body_size *) dbs->node.next;
-	} else {
-	    /* Allow - use this entry */
-	    http->delayMaxBodySize = dbs->maxsize;
-	    http->delayAssignedPool = dbs->pool;
-	    dbs = NULL;
+    checklist = clientAclChecklistCreate(NULL, http);
+    checklist->reply = reply;
+    aclChecklistCacheInit(checklist);
+    for (dbs = (delay_body_size *) Config.DelayBodySize.head; dbs; dbs = (delay_body_size *) dbs->node.next) {
+	if (aclMatchAclList(dbs->acl_list, checklist) == 1) {
 	    debug(58, 3) ("clientDelayMaxBodySize: Setting delayMaxBodySize to %ld\n",
 		(long int) http->delayMaxBodySize);
+	    http->delayMaxBodySize = dbs->maxsize;
+	    http->delayAssignedPool = dbs->pool;
+	    break;
 	}
-	aclChecklistFree(checklist);
     }
+    aclChecklistFree(checklist);
 }
-
 #endif
 
 static int
@@ -2742,21 +2732,18 @@ clientMaxRequestBodyDelayForwardSize(request_t * request, clientHttpRequest * ht
     if (http->maxRequestBodyDelayForwardSize)
 	return http->maxRequestBodyDelayForwardSize;
 
+    checklist = clientAclChecklistCreate(NULL, http);
+    aclChecklistCacheInit(checklist);
+
     /* Calculate it */
-    bs = (body_size *) Config.RequestBodyDelayForwardSize.head;
-    while (bs) {
-	checklist = clientAclChecklistCreate(bs->access_list, http);
-	if (aclCheckFast(bs->access_list, checklist) != 1) {
-	    /* deny - skip this entry */
-	    bs = (body_size *) bs->node.next;
-	} else {
-	    /* Allow - use this entry */
-	    http->maxRequestBodyDelayForwardSize = bs->maxsize;
-	    bs = NULL;
+    for (bs = (body_size *) Config.RequestBodyDelayForwardSize.head; bs; bs = (body_size *) bs->node.next) {
+	if (aclMatchAclList(bs->acl_list, checklist) == 1) {
 	    debug(33, 2) ("clientMaxRequestBodyDelayForwardSize: Setting maxRequestBodyDelayForwardSize to %ld\n", (long int) http->maxRequestBodyDelayForwardSize);
+	    http->maxRequestBodyDelayForwardSize = bs->maxsize;
+	    break;
 	}
-	aclChecklistFree(checklist);
     }
+    aclChecklistFree(checklist);
     return http->maxRequestBodyDelayForwardSize;
 }
 
@@ -2770,21 +2757,16 @@ clientMaxRequestBodySize(request_t * request, clientHttpRequest * http)
     aclCheck_t *checklist;
     if (http->log_type == LOG_TCP_DENIED)
 	return;
-    bs = (body_size *) Config.RequestBodySize.head;
-    http->maxRequestBodySize = 0;
-    while (bs) {
-	checklist = clientAclChecklistCreate(bs->access_list, http);
-	if (aclCheckFast(bs->access_list, checklist) != 1) {
-	    /* deny - skip this entry */
-	    bs = (body_size *) bs->node.next;
-	} else {
-	    /* Allow - use this entry */
-	    http->maxRequestBodySize = bs->maxsize;
-	    bs = NULL;
+    checklist = clientAclChecklistCreate(NULL, http);
+    aclChecklistCacheInit(checklist);
+    for (bs = (body_size *) Config.RequestBodySize.head; bs; bs = (body_size *) bs->node.next) {
+	if (aclMatchAclList(bs->acl_list, checklist) == 1) {
 	    debug(58, 3) ("clientMaxRequestBodySize: Setting maxRequestBodySize to %ld\n", (long int) http->maxRequestBodySize);
+	    http->maxRequestBodySize = bs->maxsize;
+	    break;
 	}
-	aclChecklistFree(checklist);
     }
+    aclChecklistFree(checklist);
 }
 
 static int
