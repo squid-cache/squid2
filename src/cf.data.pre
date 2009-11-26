@@ -3120,6 +3120,11 @@ DOC_START
 		from a server, only a client, though plenty of servers
 		send it anyway.
 
+		ignore-no-store ignores any ``Cache-Control: no-store''
+		headers received from a server. Doing this VIOLATES
+		the HTTP standard. Enabling this feature could make you
+		liable for problems which it causes.
+
 		ignore-must-revalidate ignores any 
 		``Cache-Control: must-revalidate`` headers received from
 		a server. Doing this VIOLATES the HTTP standard. Enabling
