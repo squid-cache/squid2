@@ -31,6 +31,10 @@
  *
  * History:
  *
+ * Version 2.1
+ * 20-09-2009 Guido Serassio
+ *              Added explicit Global Catalog query
+ *
  * Version 2.0
  * 20-07-2009 Guido Serassio
  *              Global groups support rewritten, now is based on ADSI.
@@ -78,11 +82,17 @@ int _wcsicmp(const wchar_t *, const wchar_t *);
 #include <adsiid.h>
 #include <iads.h>
 #include <adshlp.h>
+#include <adserr.h>
 #include <lm.h>
 #include <dsrole.h>
 #include <sddl.h>
 
 #include "util.h"
+
+enum ADSI_PATH {
+    LDAP_MODE,
+    GC_MODE
+} ADSI_Path;
 
 #define BUFSIZE 8192		/* the stdin buffer size */
 int use_global = 0;
@@ -275,13 +285,16 @@ My_NameTranslate(wchar_t * name, int in_format, int out_format)
 
 
 wchar_t *
-GetLDAPPath(wchar_t * Base_DN)
+GetLDAPPath(wchar_t * Base_DN, int query_mode)
 {
     wchar_t *wc;
 
     wc = (wchar_t *) xmalloc((wcslen(Base_DN) + 8) * sizeof(wchar_t));
 
-    wcscpy(wc, L"LDAP://");
+    if (query_mode == LDAP_MODE)
+	wcscpy(wc, L"LDAP://");
+    else
+	wcscpy(wc, L"GC://");
     wcscat(wc, Base_DN);
 
     return wc;
@@ -412,11 +425,19 @@ Recursive_Memberof(IADs * pObj)
 		wchar_t *Group_Path;
 		IADs *pGrp;
 
-		Group_Path = GetLDAPPath(var.n1.n2.n3.bstrVal);
+		Group_Path = GetLDAPPath(var.n1.n2.n3.bstrVal, GC_MODE);
 		hr = ADsGetObject(Group_Path, &IID_IADs, (void **) &pGrp);
 		if (SUCCEEDED(hr)) {
 		    hr = Recursive_Memberof(pGrp);
 		    pGrp->lpVtbl->Release(pGrp);
+		    safe_free(Group_Path);
+		    Group_Path = GetLDAPPath(var.n1.n2.n3.bstrVal, LDAP_MODE);
+		    hr = ADsGetObject(Group_Path, &IID_IADs, (void **) &pGrp);
+		    if (SUCCEEDED(hr)) {
+			hr = Recursive_Memberof(pGrp);
+			pGrp->lpVtbl->Release(pGrp);
+		    } else
+			debug("Recursive_Memberof: ERROR ADsGetObject for %S failed: %s\n", Group_Path, Get_WIN32_ErrorMessage(hr));
 		} else
 		    debug("Recursive_Memberof: ERROR ADsGetObject for %S failed: %s\n", Group_Path, Get_WIN32_ErrorMessage(hr));
 		safe_free(Group_Path);
@@ -432,22 +453,38 @@ Recursive_Memberof(IADs * pObj)
 			    wchar_t *Group_Path;
 			    IADs *pGrp;
 
-			    Group_Path = GetLDAPPath(elem.n1.n2.n3.bstrVal);
+			    Group_Path = GetLDAPPath(elem.n1.n2.n3.bstrVal, GC_MODE);
 			    hr = ADsGetObject(Group_Path, &IID_IADs, (void **) &pGrp);
 			    if (SUCCEEDED(hr)) {
 				hr = Recursive_Memberof(pGrp);
 				pGrp->lpVtbl->Release(pGrp);
+				safe_free(Group_Path);
+				Group_Path = GetLDAPPath(elem.n1.n2.n3.bstrVal, LDAP_MODE);
+				hr = ADsGetObject(Group_Path, &IID_IADs, (void **) &pGrp);
+				if (SUCCEEDED(hr)) {
+				    hr = Recursive_Memberof(pGrp);
+				    pGrp->lpVtbl->Release(pGrp);
+				    safe_free(Group_Path);
+				} else
+				    debug("Recursive_Memberof: ERROR ADsGetObject for %S failed: %s\n", Group_Path, Get_WIN32_ErrorMessage(hr));
 			    } else
 				debug("Recursive_Memberof: ERROR ADsGetObject for %S failed: %s\n", Group_Path, Get_WIN32_ErrorMessage(hr));
 			    safe_free(Group_Path);
 			}
 			VariantClear(&elem);
+		    } else {
+			debug("Recursive_Memberof: ERROR SafeArrayGetElement failed: %s\n", Get_WIN32_ErrorMessage(hr));
+			VariantClear(&elem);
 		    }
 		    ++lBound;
 		}
-	    }
+	    } else
+		debug("Recursive_Memberof: ERROR SafeArrayGetxBound failed: %s\n", Get_WIN32_ErrorMessage(hr));
 	}
 	VariantClear(&var);
+    } else {
+	if (hr != E_ADS_PROPERTY_NOT_FOUND)
+	    debug("Recursive_Memberof: ERROR getting memberof attribute: %s\n", Get_WIN32_ErrorMessage(hr));
     }
     return hr;
 }
@@ -624,9 +661,7 @@ Valid_Global_Groups(char *UserName, const char **Groups)
     }
     wszGroups = build_groups_DN_array(Groups, NTDomain);
 
-    User_LDAP_path = GetLDAPPath(User_DN);
-
-    safe_free(User_DN);
+    User_LDAP_path = GetLDAPPath(User_DN, GC_MODE);
 
     hr = ADsGetObject(User_LDAP_path, &IID_IADs, (void **) &pUser);
     if (SUCCEEDED(hr)) {
@@ -638,18 +673,33 @@ Valid_Global_Groups(char *UserName, const char **Groups)
 	    debug("Valid_Global_Groups: cannot get Primary Group for '%s'.\n", User);
 	else {
 	    add_User_Group(User_PrimaryGroup);
-	    User_PrimaryGroup_Path = GetLDAPPath(User_PrimaryGroup);
+	    User_PrimaryGroup_Path = GetLDAPPath(User_PrimaryGroup, GC_MODE);
 	    hr = ADsGetObject(User_PrimaryGroup_Path, &IID_IADs, (void **) &pGrp);
 	    if (SUCCEEDED(hr)) {
 		hr = Recursive_Memberof(pGrp);
 		pGrp->lpVtbl->Release(pGrp);
+		safe_free(User_PrimaryGroup_Path);
+		User_PrimaryGroup_Path = GetLDAPPath(User_PrimaryGroup, LDAP_MODE);
+		hr = ADsGetObject(User_PrimaryGroup_Path, &IID_IADs, (void **) &pGrp);
+		if (SUCCEEDED(hr)) {
+		    hr = Recursive_Memberof(pGrp);
+		    pGrp->lpVtbl->Release(pGrp);
+		} else
+		    debug("Valid_Global_Groups: ADsGetObject for %S failed, ERROR: %s\n", User_PrimaryGroup_Path, Get_WIN32_ErrorMessage(hr));
 	    } else
 		debug("Valid_Global_Groups: ADsGetObject for %S failed, ERROR: %s\n", User_PrimaryGroup_Path, Get_WIN32_ErrorMessage(hr));
-
 	    safe_free(User_PrimaryGroup_Path);
 	}
 	hr = Recursive_Memberof(pUser);
 	pUser->lpVtbl->Release(pUser);
+	safe_free(User_LDAP_path);
+	User_LDAP_path = GetLDAPPath(User_DN, LDAP_MODE);
+	hr = ADsGetObject(User_LDAP_path, &IID_IADs, (void **) &pUser);
+	if (SUCCEEDED(hr)) {
+	    hr = Recursive_Memberof(pUser);
+	    pUser->lpVtbl->Release(pUser);
+	} else
+	    debug("Valid_Global_Groups: ADsGetObject for %S failed, ERROR: %s\n", User_LDAP_path, Get_WIN32_ErrorMessage(hr));
 
 	tmp = User_Groups;
 	while (*tmp) {
@@ -662,6 +712,7 @@ Valid_Global_Groups(char *UserName, const char **Groups)
     } else
 	debug("Valid_Global_Groups: ADsGetObject for %S failed, ERROR: %s\n", User_LDAP_path, Get_WIN32_ErrorMessage(hr));
 
+    safe_free(User_DN);
     safe_free(User_LDAP_path);
     safe_free(User_PrimaryGroup);
     tmp = wszGroups;
@@ -815,10 +866,10 @@ main(int argc, char *argv[])
 	rfc1738_unescape(username);
 
 	if ((use_global ? Valid_Global_Groups(username, groups) : Valid_Local_Groups(username, groups))) {
-	    printf("OK\n");
+	    SEND("OK");
 	} else {
 	  error:
-	    printf("ERR\n");
+	    SEND("ERR");
 	}
 	err = 0;
     }
