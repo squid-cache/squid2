@@ -950,6 +950,11 @@ htcpHandleClr(htcpDataHeader * hdr, char *buf, int sz, struct sockaddr_in *from)
 	debug(31, 3) ("htcpHandleClr: htcpUnpackSpecifier failed\n");
 	return;
     }
+    if (!s->request) {
+	debug(31, 2) ("htcpHandleTstRequest: failed to parse request\n");
+	htcpFreeSpecifier(s);
+	return;
+    }
     if (!htcpAccessCheck(Config.accessList.htcp_clr, s, from)) {
 	debug(31, 2) ("htcpHandleClr: Access denied\n");
 	htcpFreeSpecifier(s);
