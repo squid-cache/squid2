@@ -1,3 +1,16 @@
+Changes to squid-2.7.STABLE8 <13 Febrary 2010)
+
+	- Bug #2458: reply_body_max_size incorrectly documented
+	- Bug #2858: Segment violation in HTCP
+	- Bug #2773: Segfault in RFC2069 Digest authantication
+	- 64-bit filesize issue in squidclient if trying to post a file > 2GB
+	- Improve %nn parser to better deal with certain odd %nn sequences
+	- Segmentation fault if failed to open cache.log
+	- Bug #2819: const correctness errors in dns_internal.c
+	- Handle DNS header-only packets as invalid. (CVE-2010-0308)
+	- Windows port: Updated mswin_ad_group native helper to version 2.1
+	- Cosmetic change to keep GCC happy
+
 Changes to squid-2.7.STABLE7 (17 September 2009)
 	- Bug #2661 - Solaris /dev/poll support broken with EINVAL
 	- Clarify external_acl_type %{Header} documentation slightly
@@ -53,20 +66,6 @@ Changes to squid-2.7.STABLE6 (4 February 2009)
 	  authenticate_ip_shortcircuit_ttl
 	- Add in some better documentation for override-expire.
 
-Changes to squid-2.6.STABLE22 (19 October 2008)
-	- Bug #2396: Correct the opening of the PF device file.
-	- Make --with-large-files and --with-build-envirnment=default play
-	  nice together
-	- Workaround for Linux-2.6.24 & 2.6.25 netfiler_ipv4.h include header
-	  __u32 problem
-	- Make dns_nameserver work when using --disable-internal-dns on glibc
-	  based systems
-	- Bug #2426: Increase negotiate auth token buffer size
-	- Bug #2427: squid_ldap_group -h reports the old % codes for -f
-	- Bug #2477: swap.state permission issues if crashing during "squid -k
-	  reconfigure"
-	- Windows port: Fix build error using latest MinGW runtime.
-
 Changes to squid-2.7.STABLE5 (17 October 2008)
 	- Bug #2439: configuration file contains non-ASCII characters
 	- Bug #2441: Shut down store url rewrite helpers on squid -k
@@ -116,30 +115,6 @@ Changes to squid-2.7.STABLE4 (8 August 2008)
 	  ineffective
 	- More changes to deal properly with aborted requests
 	- Bug #2427: squid_ldap_group -h reports the old % codes for -f
-
-Changes to squid-2.6.STABLE21 (27 June 2008)
-
-	- Bug #2350: Bugs in Linux kernel capabilities code
-	- Bug #2241: weights not applied properly in round-robin peer
-	  selection
-	- Off by one error in DNS label decompression could cause valid DNS
-	  messages to be rejected
-	- logformat docs contain extra whitespace
-	- Reject ridiculously large ASN.1 lengths
-	- Fix SNMP reporting of counters with a value > 0xFF80000
-	- Correct spelling of WCCPv2 dst_port_hash to match the source
-	- Plug some "squid -k reconfigure" memory leaks. Mostly SSL related.
-	- Bug #1993: Memory leak in http_reply_access deny processing
-	- Bug #2122: In some situations collapsed_forwarding could leak
-	  private information
-	- Bug #2376: Round-Robin becomes unbalanced when a peer dies and comes
-	  back
-	- Bug #2387: The calculation of the number of hash buckets need to
-	  account for the memory size, not only disk size
-	- Bug #2393: DNS requests retried indefinitely at full speed on failed
-	  TCP connection
-	- Bug #2393: DNS retransmit queue could get hold up
-	- Correct socket syscalls statistics in commResetFD()
 
 Changes to squid-2.7.STABLE3 (25 June 2008)
 
