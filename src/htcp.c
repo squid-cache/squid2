@@ -988,11 +988,6 @@ htcpHandleClr(htcpDataHeader * hdr, char *buf, int sz, struct sockaddr_in *from)
 	htcpFreeSpecifier(s);
 	return;
     }
-    if (!s->request) {
-	debug(31, 2) ("htcpHandleTstRequest: failed to parse request\n");
-	htcpFreeSpecifier(s);
-	return;
-    }
     if (!htcpAccessCheck(Config.accessList.htcp_clr, s, from)) {
 	debug(31, 2) ("htcpHandleClr: Access denied\n");
 	htcpLogHtcp(from->sin_addr, hdr->opcode, LOG_UDP_DENIED, 0, s->uri);
