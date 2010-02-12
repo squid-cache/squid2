@@ -1173,6 +1173,7 @@ authenticateDigestDecodeAuth(auth_user_request_t * auth_user_request, const char
 		p++;
 	    /* quote mark */
 	    p++;
+	    safe_free(username);
 	    username = xstrndup(p, strchr(p, '"') + 1 - p);
 	    debug(29, 9) ("authDigestDecodeAuth: Found Username '%s'\n", username);
 	} else if (!strncmp(item, "realm", ilen)) {
@@ -1181,6 +1182,7 @@ authenticateDigestDecodeAuth(auth_user_request_t * auth_user_request, const char
 		p++;
 	    /* quote mark */
 	    p++;
+	    safe_free(digest_request->realm);
 	    digest_request->realm = xstrndup(p, strchr(p, '"') + 1 - p);
 	    debug(29, 9) ("authDigestDecodeAuth: Found realm '%s'\n", digest_request->realm);
 	} else if (!strncmp(item, "qop", ilen)) {
@@ -1190,6 +1192,7 @@ authenticateDigestDecodeAuth(auth_user_request_t * auth_user_request, const char
 	    if (*p == '\"')
 		/* quote mark */
 		p++;
+	    safe_free(digest_request->qop);
 	    digest_request->qop = xstrndup(p, strcspn(p, "\" \t\r\n()<>@,;:\\/[]?={}") + 1);
 	    debug(29, 9) ("authDigestDecodeAuth: Found qop '%s'\n", digest_request->qop);
 	} else if (!strncmp(item, "algorithm", ilen)) {
@@ -1199,6 +1202,7 @@ authenticateDigestDecodeAuth(auth_user_request_t * auth_user_request, const char
 	    if (*p == '\"')
 		/* quote mark */
 		p++;
+	    safe_free(digest_request->algorithm);
 	    digest_request->algorithm = xstrndup(p, strcspn(p, "\" \t\r\n()<>@,;:\\/[]?={}") + 1);
 	    debug(29, 9) ("authDigestDecodeAuth: Found algorithm '%s'\n", digest_request->algorithm);
 	} else if (!strncmp(item, "uri", ilen)) {
@@ -1207,6 +1211,7 @@ authenticateDigestDecodeAuth(auth_user_request_t * auth_user_request, const char
 		p++;
 	    /* quote mark */
 	    p++;
+	    safe_free(digest_request->uri);
 	    digest_request->uri = xstrndup(p, strchr(p, '"') + 1 - p);
 	    debug(29, 9) ("authDigestDecodeAuth: Found uri '%s'\n", digest_request->uri);
 	} else if (!strncmp(item, "nonce", ilen)) {
@@ -1215,6 +1220,7 @@ authenticateDigestDecodeAuth(auth_user_request_t * auth_user_request, const char
 		p++;
 	    /* quote mark */
 	    p++;
+	    safe_free(digest_request->nonceb64);
 	    digest_request->nonceb64 = xstrndup(p, strchr(p, '"') + 1 - p);
 	    debug(29, 9) ("authDigestDecodeAuth: Found nonce '%s'\n", digest_request->nonceb64);
 	} else if (!strncmp(item, "nc", ilen)) {
@@ -1229,6 +1235,7 @@ authenticateDigestDecodeAuth(auth_user_request_t * auth_user_request, const char
 		p++;
 	    /* quote mark */
 	    p++;
+	    safe_free(digest_request->cnonce);
 	    digest_request->cnonce = xstrndup(p, strchr(p, '"') + 1 - p);
 	    debug(29, 9) ("authDigestDecodeAuth: Found cnonce '%s'\n", digest_request->cnonce);
 	} else if (!strncmp(item, "response", ilen)) {
@@ -1237,6 +1244,7 @@ authenticateDigestDecodeAuth(auth_user_request_t * auth_user_request, const char
 		p++;
 	    /* quote mark */
 	    p++;
+	    safe_free(digest_request->response);
 	    digest_request->response = xstrndup(p, strchr(p, '"') + 1 - p);
 	    debug(29, 9) ("authDigestDecodeAuth: Found response '%s'\n", digest_request->response);
 	}
