@@ -25,7 +25,7 @@ a Windows 2000 SP4 member of an Active Directory Domain.
 When running in Active Directory Global mode, all types of Active Directory 
 security groups are supported:
 - Domain Global
-- Domain Local
+- Domain Local from user's domain
 - Universal
 and Active Directory group nesting is fully supported.
 
@@ -86,7 +86,10 @@ and the DomainUsers files will contain only the following line:
 
 "Domain Users"
 
-NOTES: 
+NOTES:
+- When running in Active Directory Global mode, for better performance,
+  all Domain Controllers of the Active Directory forest should be configured
+  as Global Catalog.
 - When running in local mode, the standard group name comparison is case
   sensitive, so group name must be specified with same case as in the
   local SAM database.
