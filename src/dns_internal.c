@@ -318,7 +318,7 @@ static void
 idnsParseWIN32SearchList(const char *Separator)
 {
     char *t;
-    char *token;
+    const char *token;
     HKEY hndKey;
 
     if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, REG_TCPIP_PARA, 0, KEY_QUERY_VALUE, &hndKey) == ERROR_SUCCESS) {
@@ -351,9 +351,9 @@ idnsParseWIN32SearchList(const char *Separator)
 	}
 	RegCloseKey(hndKey);
     }
-    if (npc == 0 && ((const char *) t = getMyHostname())) {
-	t = strchr(t, '.');
-	if (t)
+    if (npc == 0 && (token = getMyHostname())) {
+	token = strchr(token, '.');
+	if (token)
 	    idnsAddPathComponent(t + 1);
     }
 }
