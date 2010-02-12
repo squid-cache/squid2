@@ -1137,6 +1137,7 @@ wccp2HandleUdp(int sock, void *not_used)
 		break;
 	    default:
 		fatalf("Unknown Wccp2 assignment method\n");
+		return;		/* Keep GCC happy, thinks cache_address may be used uninitialized otherwise */
 	    }
 
 	    /* Update the cache list */
