@@ -286,7 +286,9 @@ rfc1035NameUnpack(const char *buf, size_t sz, int *off, unsigned short *rdlength
     size_t len;
     assert(ns > 0);
     do {
-	assert((*off) < sz);
+	if ((*off) >= sz) {
+	    return 1;
+	}
 	c = *(buf + (*off));
 	if (c > 191) {
 	    /* blasted compression */
