@@ -41,18 +41,6 @@ typedef unsigned int swap_status_t;
 typedef signed int sfileno;
 typedef signed int sdirno;
 
-#if SIZEOF_INT64_T > SIZEOF_LONG && HAVE_STRTOLL
-typedef int64_t squid_off_t;
-#define SIZEOF_SQUID_OFF_T SIZEOF_INT64_T
-#define PRINTF_OFF_T PRId64
-#define strto_off_t (int64_t)strtoll
-#else
-typedef long squid_off_t;
-#define SIZEOF_SQUID_OFF_T SIZEOF_LONG
-#define PRINTF_OFF_T "ld"
-#define strto_off_t strtol
-#endif
-
 #if LARGE_CACHE_FILES
 typedef squid_off_t squid_file_sz;
 #define SIZEOF_SQUID_FILE_SZ SIZEOF_SQUID_OFF_T
