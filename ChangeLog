@@ -1,3 +1,15 @@
+Changes to squid-2.6.STABLE24 (13 February 2010)
+
+	- Bug #2365: cachemgr.cgi fails to HTML encode config dumps properly
+	- Bug #2458: reply_body_max_size incorrectly documented
+	- Bug #2858: Segment violation in HTCP
+	- Improve %nn parser to better deal with certain odd %nn sequences
+	- Segmentation fault if failed to open cache.log
+	- Handle DNS header-only packets as invalid. (CVE-2010-0308)
+	- Cosmetic change to keep GCC happy
+	- Bug #2773: Segfault in RFC2069 Digest authantication
+	- Bug #2819: const correctness errors in dns_internal.c
+
 Changes to squid-2.6.STABLE23 (17 September 2009)
 	- Bug #2494: Fix tproxy url in configure
 	- Add in some better documentation for override-expire.

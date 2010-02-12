@@ -1,6 +1,6 @@
 <!doctype linuxdoc system>
 <article>
-<title>Squid 2.6.STABLE23 release notes</title>
+<title>Squid 2.6.STABLE22 release notes</title>
 <author>Squid Developers</author>
 <date>$Id$</date>
 
@@ -752,6 +752,22 @@ ScriptAlias /squid/cgi-bin/ "c:/squid/libexec/"
 			name="squid-2.6.STABLE23 changes"> and the <url url="ChangeLog"
 				name="ChangeLog"> file for details.
 </itemize>
+
+<sect>Key changes squid-2.6.STABLE23 to 2.6.STABLE24
+<p>
+<itemize>
+	<item>Bug #2365: cachemgr.cgi fails to HTML encode config dumps properly
+	<item>Bug #2858: Segment violation in HTCP
+	<item>Improve %nn parser to better deal with certain odd %nn sequences
+	<item>Handle DNS header-only packets as invalid. (CVE-2010-0308)
+	<item>Bug #2773: Segfault in RFC2069 Digest authantication
+	<item>And many other minor bugfixes
+	<item>See also the list of <url
+		url="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE24.html"
+			name="squid-2.6.STABLE24 changes"> and the <url url="ChangeLog"
+				name="ChangeLog"> file for details.
+</itemize>
+
 
 </article>
 
