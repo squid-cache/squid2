@@ -354,7 +354,7 @@ idnsParseWIN32SearchList(const char *Separator)
     if (npc == 0 && (token = getMyHostname())) {
 	token = strchr(token, '.');
 	if (token)
-	    idnsAddPathComponent(t + 1);
+	    idnsAddPathComponent(token + 1);
     }
 }
 
