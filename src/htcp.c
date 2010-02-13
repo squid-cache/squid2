@@ -984,7 +984,7 @@ htcpHandleClr(htcpDataHeader * hdr, char *buf, int sz, struct sockaddr_in *from)
     }
     if (!s->request) {
 	debug(31, 2) ("htcpHandleTstRequest: failed to parse request\n");
-	htcpLogHtcp(from->sin_addr, dhdr->opcode, LOG_UDP_INVALID, 0, dash_str);
+	htcpLogHtcp(from->sin_addr, hdr->opcode, LOG_UDP_INVALID, 0, dash_str);
 	htcpFreeSpecifier(s);
 	return;
     }
