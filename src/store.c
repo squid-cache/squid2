@@ -417,6 +417,7 @@ typedef struct {
     StoreEntry *oe;
     StoreEntry *e;
     store_client *sc;
+    char *store_url;
     char *url;
     char *key;
     char *vary_headers;
@@ -468,6 +469,7 @@ free_AddVaryState(void *data)
 	storeUnlockObject(state->oe);
 	state->oe = NULL;
     }
+    safe_free(state->store_url);
     safe_free(state->url);
     safe_free(state->key);
     safe_free(state->vary_headers);
@@ -711,7 +713,7 @@ storeAddVaryReadOld(void *data, char *buf, ssize_t size)
  * At leas one of key or etag must be specified, preferably both.
  */
 void
-storeAddVary(const char *url, const method_t method, const cache_key * key, const char *etag, const char *vary, const char *vary_headers, const char *accept_encoding)
+storeAddVary(const char *store_url, const char *url, const method_t method, const cache_key * key, const char *etag, const char *vary, const char *vary_headers, const char *accept_encoding)
 {
     AddVaryState *state;
     request_flags flags = null_request_flags;
@@ -725,13 +727,15 @@ storeAddVary(const char *url, const method_t method, const cache_key * key, cons
 	state->accept_encoding = xstrdup(accept_encoding);
     if (etag)
 	state->etag = xstrdup(etag);
-    state->oe = storeGetPublic(url, method);
+    state->oe = storeGetPublic(store_url ? store_url : url, method);
     debug(11, 2) ("storeAddVary: %s (%s) %s %s\n",
 	state->url, state->key, state->vary_headers, state->etag);
     if (state->oe)
 	storeLockObject(state->oe);
     flags.cachable = 1;
     state->e = storeCreateEntry(url, flags, method);
+    if (store_url)
+	state->e->mem_obj->store_url = xstrdup(store_url);
     httpReplySetHeaders(state->e->mem_obj->reply, HTTP_OK, "Internal marker object", "x-squid-internal/vary", -1, -1, squid_curtime + 100000);
     httpHeaderPutStr(&state->e->mem_obj->reply->header, HDR_VARY, vary);
     storeSetPublicKey(state->e);
@@ -1055,7 +1059,7 @@ storeSetPublicKey(StoreEntry * e)
 		strListAdd(&vary, strBuf(varyhdr), ',');
 	    stringClean(&varyhdr);
 #endif
-	    storeAddVary(mem->url, mem->method, newkey, httpHeaderGetStr(&mem->reply->header, HDR_ETAG), strBuf(vary), mem->vary_headers, mem->vary_encoding);
+	    storeAddVary(mem->store_url, mem->url, mem->method, newkey, httpHeaderGetStr(&mem->reply->header, HDR_ETAG), strBuf(vary), mem->vary_headers, mem->vary_encoding);
 	    stringClean(&vary);
 	}
     } else {
