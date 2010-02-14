@@ -23,7 +23,7 @@ Done:
 
 Pending backport:
 
-Changes to squid-2.7.STABLE8 <13 Febrary 2010)
+Changes to squid-2.7.STABLE8 <?? Febrary 2010)
 
 	- Bug #2458: reply_body_max_size incorrectly documented
 	- Bug #2858: Segment violation in HTCP
@@ -35,8 +35,11 @@ Changes to squid-2.7.STABLE8 <13 Febrary 2010)
 	- Handle DNS header-only packets as invalid. (CVE-2010-0308)
 	- Windows port: Updated mswin_ad_group native helper to version 2.1
 	- Cosmetic change to keep GCC happy
+	- Bug #2678 - storeurl_rewrite does not play nicely with vary
+	- Bug #2861 - only-if-cached request blocks if it collapsed into
+	  another request
 
-Changes to squid-2.6.STABLE24 (13 February 2010)
+Changes to squid-2.6.STABLE24 (?? February 2010)
 
 	- Bug #2365: cachemgr.cgi fails to HTML encode config dumps properly
 	- Bug #2458: reply_body_max_size incorrectly documented
