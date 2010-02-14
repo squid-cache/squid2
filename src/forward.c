@@ -55,6 +55,7 @@ static CNCB fwdConnectDone;
 static int fwdCheckRetry(FwdState * fwdState);
 static int fwdReforward(FwdState *);
 static void fwdRestart(void *);
+static void fwdStartFoo(int answer, void *);
 static void fwdStartFail(FwdState *);
 static void fwdLogReplyStatus(int tries, http_status status);
 static OBJH fwdStats;
@@ -897,27 +898,44 @@ void
 fwdStart(int fd, StoreEntry * e, request_t * r)
 {
     FwdState *fwdState;
-    int answer;
-    ErrorState *err;
+    fwdState = cbdataAlloc(FwdState);
+    aclCheck_t *ch;
+    fwdState->client_fd = fd;
+    fwdState->entry = e;
+    fwdState->request = r;	/* XXX: requestLink? */
     /*
      * client_addr == no_addr indicates this is an "internal" request
      * from peer_digest.c, asn.c, netdb.c, etc and should always
      * be allowed.  yuck, I know.
      */
     if (r->client_addr.s_addr != no_addr.s_addr && r->protocol != PROTO_INTERNAL && r->protocol != PROTO_CACHEOBJ) {
-	/*      
+	/*
 	 * Check if this host is allowed to fetch MISSES from us (miss_access)
 	 */
-	answer = aclCheckFastRequest(Config.accessList.miss, r);
-	if (answer == 0) {
-	    err_type page_id;
-	    page_id = aclGetDenyInfoPage(&Config.denyInfoList, AclMatchedName, 1);
-	    if (page_id == ERR_NONE)
-		page_id = ERR_FORWARDING_DENIED;
-	    err = errorCon(page_id, HTTP_FORBIDDEN, r);
-	    errorAppendEntry(e, err);
-	    return;
-	}
+	ch = aclChecklistCreate(Config.accessList.miss, r, NULL);
+	aclNBCheck(ch, fwdStartFoo, fwdState);
+    } else {
+	fwdStartFoo(1, fwdState);
+    }
+}
+
+void
+fwdStartFoo(int answer, void *data)
+{
+    FwdState *fwdState = data;
+    int fd = fwdState->client_fd;
+    request_t *r = fwdState->request;
+    StoreEntry *e = fwdState->entry;
+    ErrorState *err;
+    if (answer == 0) {
+	cbdataFree(fwdState);
+	err_type page_id;
+	page_id = aclGetDenyInfoPage(&Config.denyInfoList, AclMatchedName, 1);
+	if (page_id == ERR_NONE)
+	    page_id = ERR_FORWARDING_DENIED;
+	err = errorCon(page_id, HTTP_FORBIDDEN, r);
+	errorAppendEntry(e, err);
+	return;
     }
     debug(17, 3) ("fwdStart: '%s'\n", storeUrl(e));
     if (!e->mem_obj->request)
@@ -929,6 +947,7 @@ fwdStart(int fd, StoreEntry * e, request_t * r)
 	/* more yuck */
 	err = errorCon(ERR_SHUTTING_DOWN, HTTP_GATEWAY_TIMEOUT, r);
 	errorAppendEntry(e, err);
+	cbdataFree(fwdState);
 	return;
     }
     switch (r->protocol) {
@@ -936,20 +955,20 @@ fwdStart(int fd, StoreEntry * e, request_t * r)
 	 * Note, don't create fwdState for these requests
 	 */
     case PROTO_INTERNAL:
+	cbdataFree(fwdState);
 	internalStart(r, e);
 	return;
     case PROTO_CACHEOBJ:
+	cbdataFree(fwdState);
 	cachemgrStart(fd, r, e);
 	return;
     case PROTO_URN:
+	cbdataFree(fwdState);
 	urnStart(r, e);
 	return;
     default:
 	break;
     }
-    fwdState = cbdataAlloc(FwdState);
-    fwdState->entry = e;
-    fwdState->client_fd = fd;
     fwdState->server_fd = -1;
     fwdState->request = requestLink(r);
     fwdState->start = squid_curtime;
