@@ -3437,6 +3437,11 @@ clientProcessRequest2(clientHttpRequest * http)
 	return LOG_TCP_MISS;
     }
     if (EBIT_TEST(e->flags, KEY_EARLY_PUBLIC)) {
+	if (clientOnlyIfCached(http)) {
+	    debug(33, 3) ("clientProcessRequest2: collapsed only-if-cached MISS\n");
+	    http->entry = NULL;
+	    return LOG_TCP_MISS;
+	}
 	r->flags.collapsed = 1;	/* Don't trust the store entry */
     }
     if (EBIT_TEST(e->flags, ENTRY_SPECIAL)) {
