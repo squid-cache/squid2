@@ -628,7 +628,7 @@ clientHandleETagReply(void *data, HttpReply * rep)
 		vary = httpMakeVaryMark(request, rep);
 
 	    if (etag && vary) {
-		storeAddVary(url, entry->mem_obj->method, NULL, httpHeaderGetStr(&rep->header, HDR_ETAG), request->vary_hdr, request->vary_headers, strBuf(request->vary_encoding));
+		storeAddVary(entry->mem_obj->store_url, entry->mem_obj->url, entry->mem_obj->method, NULL, httpHeaderGetStr(&rep->header, HDR_ETAG), request->vary_hdr, request->vary_headers, strBuf(request->vary_encoding));
 	    }
 	}
 	clientHandleETagMiss(http);
