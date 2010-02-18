@@ -2763,6 +2763,7 @@ clientMaxRequestBodySize(request_t * request, clientHttpRequest * http)
     aclCheck_t *checklist;
     if (http->log_type == LOG_TCP_DENIED)
 	return;
+    http->maxRequestBodySize = 0;
     checklist = clientAclChecklistCreate(NULL, http);
     aclChecklistCacheInit(checklist);
     for (bs = (body_size *) Config.RequestBodySize.head; bs; bs = (body_size *) bs->node.next) {
