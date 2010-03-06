@@ -636,7 +636,6 @@ mainInitialize(void)
 #if USE_WCCPv2
     wccp2Init();
 #endif
-    serverConnectionsOpen();
     if (!opt_foreground_rebuild)
 	serverConnectionsOpen();
     neighbors_init();
