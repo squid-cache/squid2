@@ -429,6 +429,7 @@ extern int strListGetItem(const String * str, char del, const char **item, int *
 extern const char *getStringPrefix(const char *str, const char *end);
 extern int httpHeaderParseInt(const char *start, int *val);
 extern int httpHeaderParseSize(const char *start, squid_off_t * sz);
+extern int httpHeaderParseQuotedString(const char *start, String * val);
 extern int httpHeaderReset(HttpHeader * hdr);
 extern void httpHeaderAddClone(HttpHeader * hdr, const HttpHeaderEntry * e);
 #if STDC_HEADERS
