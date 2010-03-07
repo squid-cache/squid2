@@ -42,13 +42,15 @@
 
 #ifdef _SQUID_LINUX_
 #if HAVE_SYS_CAPABILITY_H
-#undef _POSIX_SOURCE
+#if LIBCAP_BROKEN
 /* Ugly glue to get around linux header madness colliding with glibc */
+#undef _POSIX_SOURCE
 #define _LINUX_TYPES_H
 #define _LINUX_FS_H
 typedef uint32_t __u32;
-#include <sys/capability.h>
 #endif
+#include <sys/capability.h>
+#endif /* HAVE_SYS_CAPABILITY_H */
 #endif
 
 #if HAVE_SYS_PRCTL_H
@@ -1323,7 +1325,7 @@ xusleep(unsigned int usec)
 void
 keepCapabilities(void)
 {
-#if HAVE_PRCTL && defined(PR_SET_KEEPCAPS) && HAVE_SYS_CAPABILITY_H
+#if HAVE_PRCTL && defined(PR_SET_KEEPCAPS) && USE_LIBCAP
     if (prctl(PR_SET_KEEPCAPS, 1, 0, 0, 0)) {
 	/* Silent failure unless TPROXY is required. Maybe not started as root */
 #if LINUX_TPROXY
@@ -1338,44 +1340,42 @@ keepCapabilities(void)
 static void
 restoreCapabilities(int keep)
 {
-#if defined(_SQUID_LINUX_) && HAVE_SYS_CAPABILITY_H
-#ifndef _LINUX_CAPABILITY_VERSION_1
-#define _LINUX_CAPABILITY_VERSION_1 _LINUX_CAPABILITY_VERSION
-#endif
-    cap_user_header_t head = xcalloc(1, sizeof(*head));
-    cap_user_data_t cap = xcalloc(1, sizeof(*cap));
-
-    head->version = _LINUX_CAPABILITY_VERSION_1;
-    if (capget(head, cap) != 0) {
-	debug(50, 1) ("Can't get current capabilities\n");
-	goto nocap;
-    }
-    if (head->version != _LINUX_CAPABILITY_VERSION_1) {
-	debug(50, 1) ("Invalid capability version %d (expected %d)\n", head->version, _LINUX_CAPABILITY_VERSION);
-	goto nocap;
-    }
-    head->pid = 0;
-
-    cap->inheritable = 0;
-    cap->effective = (1 << CAP_NET_BIND_SERVICE);
-#if LINUX_TPROXY
-    if (need_linux_tproxy)
-	cap->effective |= (1 << CAP_NET_ADMIN) | (1 << CAP_NET_BROADCAST);
-#endif
-    if (!keep)
-	cap->permitted &= cap->effective;
-    if (capset(head, cap) != 0) {
-	/* Silent failure unless TPROXY is required */
+#if USE_LIBCAP
+    cap_t caps;
+    if (keep)
+	caps = cap_get_proc();
+    else
+	caps = cap_init();
+    if (!caps) {
 #if LINUX_TPROXY
 	if (need_linux_tproxy)
 	    debug(50, 1) ("Error enabling needed capabilities. Will continue without tproxy support\n");
 	need_linux_tproxy = 0;
 #endif
+    } else {
+	int ncaps = 0;
+	int rc = 0;
+	cap_value_t cap_list[10];
+	cap_list[ncaps++] = CAP_NET_BIND_SERVICE;
+#if LINUX_TPROXY
+	if (need_linux_tproxy) {
+	    cap_list[ncaps++] = CAP_NET_ADMIN;
+	    cap_list[ncaps++] = CAP_NET_BROADCAST;
+	}
+#endif
+	cap_clear_flag(caps, CAP_EFFECTIVE);
+	rc |= cap_set_flag(caps, CAP_EFFECTIVE, ncaps, cap_list, CAP_SET);
+	rc |= cap_set_flag(caps, CAP_PERMITTED, ncaps, cap_list, CAP_SET);
+	if (rc || cap_set_proc(caps) != 0) {
+	    /* Silent failure unless TPROXY is required */
+#if LINUX_TPROXY
+	    if (need_linux_tproxy)
+		debug(50, 1) ("Error enabling needed capabilities. Will continue without tproxy support\n");
+	    need_linux_tproxy = 0;
+#endif
+	}
     }
-  nocap:
-    xfree(head);
-    xfree(cap);
-#else
+#else /* !USE_LIBCAP */
 #if LINUX_TPROXY
     if (need_linux_tproxy)
 	debug(50, 1) ("Missing needed capability support. Will continue without tproxy support\n");
