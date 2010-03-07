@@ -426,7 +426,7 @@ SSL_CTX *
 sslCreateServerContext(const char *certfile, const char *keyfile, int version, const char *cipher, const char *options, const char *flags, const char *clientCA, const char *CAfile, const char *CApath, const char *CRLfile, const char *dhfile, const char *context)
 {
     int ssl_error;
-    SSL_METHOD *method;
+    const SSL_METHOD *method;
     SSL_CTX *sslContext;
     long fl = ssl_parse_flags(flags);
 
@@ -587,7 +587,7 @@ SSL_CTX *
 sslCreateClientContext(const char *certfile, const char *keyfile, int version, const char *cipher, const char *options, const char *flags, const char *CAfile, const char *CApath, const char *CRLfile)
 {
     int ssl_error;
-    SSL_METHOD *method;
+    const SSL_METHOD *method;
     SSL_CTX *sslContext;
     long fl = ssl_parse_flags(flags);
 
