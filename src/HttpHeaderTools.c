@@ -414,6 +414,42 @@ httpHeaderStrCmp(const char *h1, const char *h2, int len)
 }
 #endif
 
+/**
+ * Parses a quoted-string field (RFC 2616 section 2.2), complains if
+ * something went wrong, returns non-zero on success.
+ * start should point at the first double-quote.
+ * RC TODO: This is too looose. We should honour the BNF and exclude CTL's
+ */
+int
+httpHeaderParseQuotedString(const char *start, String * val)
+{
+    const char *end, *pos;
+    stringClean(val);
+    if (*start != '"') {
+	debug(66, 2) ("failed to parse a quoted-string header field near '%s'\n", start);
+	return 0;
+    }
+    pos = start + 1;
+
+    while (*pos != '"') {
+	int quoted = (*pos == '\\');
+	if (quoted)
+	    pos++;
+	if (!*pos) {
+	    debug(66, 2) ("failed to parse a quoted-string header field near '%s'\n", start);
+	    stringClean(val);
+	    return 0;
+	}
+	end = pos + strcspn(pos + quoted, "\"\\") + quoted;
+	stringAppend(val, pos, end - pos);
+	pos = end;
+    }
+    /* Make sure it's defined even if empty "" */
+    if (!val->buf)
+	stringLimitInit(val, "", 0);
+    return 1;
+}
+
 /*
  * httpHdrMangle checks the anonymizer (header_access) configuration.
  * Returns 1 if the header is allowed.
