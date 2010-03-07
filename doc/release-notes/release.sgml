@@ -509,8 +509,12 @@ ScriptAlias /squid/cgi-bin/ "c:/squid/libexec/"
 <itemize>
 	<item>Bug #2858: Segment violation in HTCP
 	<item>Bug #2773: Segfault in RFC2069 Digest authantication
+	<item>Bug #2845: Crashes on malformed Digest authentication
+	<item>Bug #2367: Incorrect stale=true/false indications in Digest auth
+	      causing random auth popups.
 	<item>Improve %nn parser to better deal with certain odd %nn sequences
 	<item>Handle DNS header-only packets as invalid. (CVE-2010-0308)
+	<item>Bug #2678 - storeurl_rewrite does not play nicely with vary
 	<item>And many other minor bugfixes
 	<item>See also the list of <url
 		url="http://www.squid-cache.org/Versions/v2/2.7/changesets/SQUID_2_7_STABLE8.html"
