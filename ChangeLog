@@ -1,4 +1,4 @@
-Changes to squid-2.6.STABLE24 (13 February 2010)
+Changes to squid-2.6.STABLE24 (8 March 2010)
 
 	- Bug #2365: cachemgr.cgi fails to HTML encode config dumps properly
 	- Bug #2458: reply_body_max_size incorrectly documented
@@ -9,8 +9,14 @@ Changes to squid-2.6.STABLE24 (13 February 2010)
 	- Cosmetic change to keep GCC happy
 	- Bug #2773: Segfault in RFC2069 Digest authantication
 	- Bug #2819: const correctness errors in dns_internal.c
+	- Use libcap functions instead of raw kernel interface
+	- No need to sync the store on -k rotate, but instead it needs to be
+	  done in reconfigure
+	- const correctness in OpenSSL initialization
+	- Rework the http digest auth parser
 
 Changes to squid-2.6.STABLE23 (17 September 2009)
+
 	- Bug #2494: Fix tproxy url in configure
 	- Add in some better documentation for override-expire.
 	- Fix Bug #2661 - Solaris /dev/poll support broken with EINVAL
@@ -37,6 +43,7 @@ Changes to squid-2.6.STABLE23 (17 September 2009)
 	- Bug #2768 - squid_ldap_group argument parsing error
 
 Changes to squid-2.6.STABLE22 (19 October 2008)
+
 	- Bug #2396: Correct the opening of the PF device file.
 	- Make --with-large-files and --with-build-envirnment=default play
 	  nice together

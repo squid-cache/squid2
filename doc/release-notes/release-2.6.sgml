@@ -1,6 +1,6 @@
 <!doctype linuxdoc system>
 <article>
-<title>Squid 2.6.STABLE22 release notes</title>
+<title>Squid 2.6.STABLE24 release notes</title>
 <author>Squid Developers</author>
 <date>$Id$</date>
 
@@ -761,6 +761,9 @@ ScriptAlias /squid/cgi-bin/ "c:/squid/libexec/"
 	<item>Improve %nn parser to better deal with certain odd %nn sequences
 	<item>Handle DNS header-only packets as invalid. (CVE-2010-0308)
 	<item>Bug #2773: Segfault in RFC2069 Digest authantication
+	<item>Bug #2845: Crashes on malformed Digest authentication
+	<item>Bug #2367: Incorrect stale=true/false indications in Digest auth
+	      causing random auth popups.
 	<item>And many other minor bugfixes
 	<item>See also the list of <url
 		url="http://www.squid-cache.org/Versions/v2/2.6/changesets/SQUID_2_6_STABLE24.html"
