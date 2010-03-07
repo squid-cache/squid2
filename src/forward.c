@@ -897,9 +897,9 @@ fwdStartPeer(peer * p, StoreEntry * e, request_t * r)
 void
 fwdStart(int fd, StoreEntry * e, request_t * r)
 {
+    aclCheck_t *ch;
     FwdState *fwdState;
     fwdState = cbdataAlloc(FwdState);
-    aclCheck_t *ch;
     fwdState->client_fd = fd;
     fwdState->entry = e;
     fwdState->request = r;	/* XXX: requestLink? */
@@ -928,8 +928,8 @@ fwdStartFoo(int answer, void *data)
     StoreEntry *e = fwdState->entry;
     ErrorState *err;
     if (answer == 0) {
-	cbdataFree(fwdState);
 	err_type page_id;
+	cbdataFree(fwdState);
 	page_id = aclGetDenyInfoPage(&Config.denyInfoList, AclMatchedName, 1);
 	if (page_id == ERR_NONE)
 	    page_id = ERR_FORWARDING_DENIED;
