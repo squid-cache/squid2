@@ -2042,6 +2042,47 @@ if test $ac_cv_type_mtyp_t = no; then
   AC_DEFINE(mtyp_t, long, [message type for message queues])
  fi
 
+use_libcap=auto
+AC_ARG_WITH(libcap, AS_HELP_STRING([--without-libcap],[disable usage of Linux capabilities library to control privileges]),
+[ if test "x$withval" = "xyes" ; then
+    AC_MSG_RESULT(libcap forced enabled)
+    use_libcap=yes
+  else
+    AC_MSG_RESULT(libcap forced disabled)
+    use_libcap=no
+  fi
+])
+if test "x$use_libcap" != "xno"; then
+  # cap_clear_flag is the most recent libcap function we require
+  AC_CHECK_LIB(cap, cap_clear_flag)
+  if test "x$ac_cv_lib_cap_cap_clear_flag" = xyes; then
+    use_libcap=yes
+  else
+    if test "x$use_libcap" = "xyes"; then
+      AC_MSG_ERROR([libcap forced enabled but not available or not usable, requires libcap-2.09 or later])
+    fi
+    use_libcap=no
+  fi
+fi
+if test "x$use_libcap" = "xyes"; then
+  AC_DEFINE(USE_LIBCAP, 1, [use libcap to set capabilities required for TPROXY])
+  dnl Check for libcap headader breakage.
+  AC_CHECK_HEADERS(sys/capability.h)
+  AC_CACHE_CHECK([for operational libcap2 headers], squid_cv_sys_capability_works,
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+#include <stdlib.h>
+#include <stddef.h>
+#include <sys/capability.h>
+]], [[
+capget(NULL, NULL);
+capset(NULL, NULL);
+                   ]])],[squid_cv_sys_capability_works=yes],[squid_cv_sys_capability_works=no])
+  )
+  if test x$squid_cv_sys_capability_works != xyes; then
+    AC_DEFINE([LIBCAP_BROKEN],1,[if libcap2 headers are broken and clashing with glibc])
+  fi
+fi
+
 dnl Check for needed libraries
 AC_CHECK_LIB(nsl, main)
 AC_CHECK_LIB(socket, main)
@@ -2716,7 +2757,7 @@ fi
 
 dnl Linux-Netfilter support requires Linux 2.4 or newer kernel header files.
 dnl Shamelessly copied from above
-if test "$LINUX_NETFILTER" ; then
+if test "$LINUX_NETFILTER" = "yes"; then
     AC_MSG_CHECKING(if Linux 2.4 or newer kernel header files are installed)
     # hold on to your hats...
     if test "$ac_cv_header_linux_netfilter_ipv4_h" = "yes"; then
@@ -2734,9 +2775,9 @@ if test "$LINUX_NETFILTER" = "no" ; then
     sleep 10
 fi
 
-dnl Linux Netfilter/TPROXY support requires some specific header files
+dnl Linux Netfilter/TPROXY support requires some specific header files and libcap
 dnl Shamelessly copied from shamelessly copied from above
-if test "$LINUX_TPROXY" ; then
+if test "$LINUX_TPROXY"; then
     AC_MSG_CHECKING(if TPROXY header files are installed)
     # hold on to your hats...
     if test "$ac_cv_header_linux_netfilter_ipv4_ip_tproxy_h" = "yes" && test "$LINUX_NETFILTER" = "yes"; then
@@ -2747,6 +2788,11 @@ if test "$LINUX_TPROXY" ; then
 	AC_DEFINE(LINUX_TPROXY, 0, [Enable real Transparent Proxy support for Netfilter TPROXY.])
     fi
     AC_MSG_RESULT($LINUX_TPROXY)
+    if test "$use_libcap" != "yes"; then
+       AC_MSG_WARN([Missing needed capabilities (libcap or libcap2) for TPROXY])
+       LINUX_TPROXY="no"
+       sleep 10
+    fi
 fi
 if test "$LINUX_TPROXY" = "no" && test "$LINUX_NETFILTER" = "yes"; then
     echo "WARNING: Cannot find TPROXY headers, you need to patch your kernel with the"
