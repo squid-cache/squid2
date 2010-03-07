@@ -401,6 +401,7 @@ mainReconfigure(void)
     authenticateShutdown();
     externalAclShutdown();
     refreshCheckShutdown();
+    storeDirSync();		/* Flush pending I/O ops */
     storeDirCloseSwapLogs();
     storeLogClose();
     accessLogClose();
@@ -473,7 +474,6 @@ mainRotate(void)
     refreshCheckShutdown();
     _db_rotate_log();		/* cache.log */
     storeDirWriteCleanLogs(1);
-    storeDirSync();		/* Flush pending I/O ops */
     storeLogRotate();		/* store.log */
     accessLogRotate();		/* access.log */
     useragentRotateLog();	/* useragent.log */
