@@ -23,7 +23,7 @@ Done:
 
 Pending backport:
 
-Changes to squid-2.7.STABLE8 <?? Febrary 2010)
+Changes to squid-2.7.STABLE8 <8 March 2010)
 
 	- Bug #2458: reply_body_max_size incorrectly documented
 	- Bug #2858: Segment violation in HTCP
@@ -38,8 +38,13 @@ Changes to squid-2.7.STABLE8 <?? Febrary 2010)
 	- Bug #2678 - storeurl_rewrite does not play nicely with vary
 	- Bug #2861 - only-if-cached request blocks if it collapsed into
 	  another request
+	- Use libcap functions instead of raw kernel interface
+	- No need to sync the store on -k rotate, but instead it needs to be
+	  done in reconfigure
+	- const correctness in OpenSSL initialization
+	- Rework the http digest auth parser
 
-Changes to squid-2.6.STABLE24 (?? February 2010)
+Changes to squid-2.6.STABLE24 (8 March 2010)
 
 	- Bug #2365: cachemgr.cgi fails to HTML encode config dumps properly
 	- Bug #2458: reply_body_max_size incorrectly documented
@@ -50,8 +55,14 @@ Changes to squid-2.6.STABLE24 (?? February 2010)
 	- Cosmetic change to keep GCC happy
 	- Bug #2773: Segfault in RFC2069 Digest authantication
 	- Bug #2819: const correctness errors in dns_internal.c
+	- Use libcap functions instead of raw kernel interface
+	- No need to sync the store on -k rotate, but instead it needs to be
+	  done in reconfigure
+	- const correctness in OpenSSL initialization
+	- Rework the http digest auth parser
 
 Changes to squid-2.6.STABLE23 (17 September 2009)
+
 	- Bug #2494: Fix tproxy url in configure
 	- Add in some better documentation for override-expire.
 	- Fix Bug #2661 - Solaris /dev/poll support broken with EINVAL
@@ -78,6 +89,7 @@ Changes to squid-2.6.STABLE23 (17 September 2009)
 	- Bug #2768 - squid_ldap_group argument parsing error
 
 Changes to squid-2.7.STABLE7 (17 September 2009)
+
 	- Bug #2661 - Solaris /dev/poll support broken with EINVAL
 	- Clarify external_acl_type %{Header} documentation slightly
 	- Bug #2482: Remove mem_obj->old_entry in async code to avoid deep ctx
@@ -124,6 +136,7 @@ Changes to squid-2.7.STABLE7 (17 September 2009)
 	- Bug #2768 - squid_ldap_group -K argument parsing error
 
 Changes to squid-2.7.STABLE6 (4 February 2009)
+
 	- Bug #2494: Fix tproxy url in configure
 	- Correct latency measurements
 	- Correct upgrade_http0.9 example
@@ -133,6 +146,7 @@ Changes to squid-2.7.STABLE6 (4 February 2009)
 	- Add in some better documentation for override-expire.
 
 Changes to squid-2.6.STABLE22 (19 October 2008)
+
 	- Bug #2396: Correct the opening of the PF device file.
 	- Make --with-large-files and --with-build-envirnment=default play
 	  nice together
@@ -147,6 +161,7 @@ Changes to squid-2.6.STABLE22 (19 October 2008)
 	- Windows port: Fix build error using latest MinGW runtime.
 
 Changes to squid-2.7.STABLE5 (17 October 2008)
+
 	- Bug #2439: configuration file contains non-ASCII characters
 	- Bug #2441: Shut down store url rewrite helpers on squid -k
 	  reconfigure
@@ -167,6 +182,7 @@ Changes to squid-2.7.STABLE5 (17 October 2008)
 	- Windows port: Fix build error using latest MinGW runtime.
 
 Changes to squid-2.7.STABLE4 (8 August 2008)
+
 	- Bug #2387: The calculation of the number of hash buckets need to
 	  account for the memory size, not only disk size
 	- Bug #2393: DNS requests retried indefinitely at full speed on failed
