@@ -194,6 +194,9 @@
 /* Define to 1 if you have the `bsd' library (-lbsd). */
 #undef HAVE_LIBBSD
 
+/* Define to 1 if you have the `cap' library (-lcap). */
+#undef HAVE_LIBCAP
+
 /* Define to 1 if you have the <libc.h> header file. */
 #undef HAVE_LIBC_H
 
@@ -647,6 +650,9 @@
 /* Support large cache files > 2GB */
 #undef LARGE_CACHE_FILES
 
+/* if libcap2 headers are broken and clashing with glibc */
+#undef LIBCAP_BROKEN
+
 /* Enable support for Transparent Proxy on Linux (Netfilter) systems */
 #undef LINUX_NETFILTER
 
@@ -827,6 +833,9 @@
 
 /* Enable code for assiting in finding memory leaks. Hacker stuff only. */
 #undef USE_LEAKFINDER
+
+/* use libcap to set capabilities required for TPROXY */
+#undef USE_LIBCAP
 
 /* Define this to make use of the OpenSSL libraries for MD5 calculation rather
    than Squid's own MD5 implementation or if building with SSL encryption
