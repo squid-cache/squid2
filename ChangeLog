@@ -1,4 +1,4 @@
-Changes to squid-2.7.STABLE8 <8 March 2010)
+Changes to squid-2.7.STABLE8 <10 March 2010)
 
 	- Bug #2458: reply_body_max_size incorrectly documented
 	- Bug #2858: Segment violation in HTCP
