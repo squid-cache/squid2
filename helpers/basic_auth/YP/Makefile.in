@@ -57,7 +57,8 @@ am_yp_auth_OBJECTS = yp_auth.$(OBJEXT) nis_support.$(OBJEXT)
 yp_auth_OBJECTS = $(am_yp_auth_OBJECTS)
 yp_auth_LDADD = $(LDADD)
 am__DEPENDENCIES_1 =
-yp_auth_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
+yp_auth_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/include
 depcomp = $(SHELL) $(top_srcdir)/cfgaux/depcomp
 am__depfiles_maybe = depfiles
@@ -130,6 +131,7 @@ MKDIR = @MKDIR@
 MKDIR_P = @MKDIR_P@
 MV = @MV@
 NEGOTIATE_AUTH_HELPERS = @NEGOTIATE_AUTH_HELPERS@
+NIS_LIBS = @NIS_LIBS@
 NTLM_AUTH_HELPERS = @NTLM_AUTH_HELPERS@
 OBJEXT = @OBJEXT@
 OPT_DEFAULT_HOSTS = @OPT_DEFAULT_HOSTS@
@@ -214,7 +216,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 yp_auth_SOURCES = yp_auth.c nis_support.h nis_support.c
-LDADD = -L$(top_builddir)/lib -lmiscutil $(CRYPTLIB) $(XTRA_LIBS)
+LDADD = -L$(top_builddir)/lib -lmiscutil $(CRYPTLIB) $(NIS_LIBS) $(XTRA_LIBS)
 INCLUDES = -I$(top_srcdir)/include
 all: all-am
 
