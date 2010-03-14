@@ -42,8 +42,8 @@ DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
 	cfgaux/compile cfgaux/config.guess cfgaux/config.sub \
 	cfgaux/depcomp cfgaux/install-sh cfgaux/missing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
-	$(top_srcdir)/configure.in
+am__aclocal_m4_deps = $(top_srcdir)/m4/ax_lib_socket_nsl.m4 \
+	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
@@ -125,7 +125,6 @@ LIBS = @LIBS@
 LIBSASL = @LIBSASL@
 LIB_DB = @LIB_DB@
 LIB_EPOLL = @LIB_EPOLL@
-LIB_LBER = @LIB_LBER@
 LIB_LDAP = @LIB_LDAP@
 LIB_MALLOC = @LIB_MALLOC@
 LN = @LN@
@@ -137,6 +136,7 @@ MKDIR = @MKDIR@
 MKDIR_P = @MKDIR_P@
 MV = @MV@
 NEGOTIATE_AUTH_HELPERS = @NEGOTIATE_AUTH_HELPERS@
+NIS_LIBS = @NIS_LIBS@
 NTLM_AUTH_HELPERS = @NTLM_AUTH_HELPERS@
 OBJEXT = @OBJEXT@
 OPT_DEFAULT_HOSTS = @OPT_DEFAULT_HOSTS@
@@ -222,6 +222,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AUTOMAKE_OPTIONS = dist-bzip2 subdir-objects 1.5
+ACLOCAL_AMFLAGS = -I m4
 DIST_SUBDIRS = lib snmplib scripts src icons errors contrib doc helpers tools
 SUBDIRS = lib @makesnmplib@ scripts src icons errors doc helpers tools
 DISTCLEANFILES = include/stamp-h include/stamp-h[0-9]*
