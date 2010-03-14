@@ -14,4 +14,4 @@ digest_ldap_auth_SOURCES = digest_pw_auth.c \
 INCLUDES      = -I. -I$(top_builddir)/include -I$(top_srcdir)/include \
 		-I$(top_srcdir)/src/
 
-LDADD	= -L$(top_builddir)/lib -lmiscutil $(LIB_LDAP) $(LIB_LBER) $(CRYPTLIB) $(XTRA_LIBS) $(SSLLIB)
+LDADD	= -L$(top_builddir)/lib -lmiscutil $(LIB_LDAP) $(CRYPTLIB) $(XTRA_LIBS) $(SSLLIB)
