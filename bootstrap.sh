@@ -77,7 +77,7 @@ for dir in "" $SUBDIRS; do
 	    mkdir -p cfgaux
 
 	    # Bootstrap the autotool subsystems
-	    bootstrap aclocal$amver
+	    bootstrap aclocal$amver -I m4
 	    bootstrap autoheader$acver
 	    bootstrap automake$amver --foreign --add-missing --copy -f
 	    bootstrap autoconf$acver --force

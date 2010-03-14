@@ -11,5 +11,5 @@ man_MANS 			= squid_ldap_group.8
 EXTRA_DIST			= squid_ldap_group.8
 squid_ldap_group_SOURCES	= squid_ldap_group.c
 
-LDADD		= -L$(top_builddir)/lib -lmiscutil $(LIB_LDAP) $(LIB_LBER) @XTRA_LIBS@
+LDADD		= -L$(top_builddir)/lib -lmiscutil $(LIB_LDAP) @XTRA_LIBS@
 INCLUDES	= -I. -I$(top_builddir)/include -I$(top_srcdir)/include
