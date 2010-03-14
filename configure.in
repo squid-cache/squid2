@@ -2088,7 +2088,10 @@ fi
 
 AX_LIB_SOCKET_NSL
 
-AC_SEARCH_LIB([yp_match], [nsl])
+# yp_match is in libnsl on some systems, needed by helpers/basic_auth/YP
+saved_LIBS="$LIBS"
+AC_SEARCH_LIBS([yp_match], [nsl], [test "$ac_res" = "none required" || NIS_LIBS="$ac_res $NIS_LIBS";LIBS="$saved_LIBS"])
+AC_SUBST(NIS_LIBS)
 
 dnl Check for Winsock only on MinGW, on Cygwin we must use emulated BSD socket API
 	case "$host_os" in
@@ -2194,7 +2197,8 @@ esac
 dnl Check for libcrypt
 dnl Some of our helpers use crypt(3) which may be in libc, or in
 dnl libcrypt (eg FreeBSD)
-AC_SEARCH_LIBS(crypt, crypt, [CRYPTLIB="-lcrypt"])
+saved_LIBS="$LIBS"
+AC_SEARCH_LIBS([crypt], [crypt], [test "$ac_res" = "none required" || CRYPTLIB="$ac_res $CRYPTLIB";LIBS="$saved_LIBS"])
 AC_SUBST(CRYPTLIB)
 
 dnl Solaris10 provides MD5 natively through libmd5
@@ -2239,7 +2243,8 @@ fi
 
 LIB_EPOLL=''
 dnl Check for libepoll
-AC_SEARCH_LIBS([epoll_ctl], [epoll], [LIB_EPOLL="-lepoll"],,[-L ./lib])
+saved_LIBS="$LIBS"
+AC_SEARCH_LIBS([epoll_ctl], [epoll], [test "$ac_res" = "none required" || LIB_EPOLL="$ac_res $LIB_EPOLL";LIBS="$saved_LIBS"])
 AC_SUBST(LIB_EPOLL)
 
 dnl -lintl is needed on SCO version 3.2v4.2 for strftime()
