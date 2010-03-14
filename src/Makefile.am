@@ -278,7 +278,6 @@ squid_LDADD = \
 	@REPL_OBJS@ \
 	@STORE_OBJS@ \
 	@AUTH_OBJS@ \
-	@CRYPTLIB@ \
 	@REGEXLIB@ \
 	@SNMPLIB@ \
 	@LIB_MALLOC@ \
