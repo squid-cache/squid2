@@ -1,4 +1,10 @@
-Changes to squid-2.7.STABLE8 <10 March 2010)
+Changes to squid-2.7.STABLE9 (15 March 2010)
+
+	- 2.7.STABLE8 failed to compile with OpenSSL 0.9.8 on some systems
+	- failure to detect certain system libraries on some systems
+	  resulting in compilation errors
+
+Changes to squid-2.7.STABLE8 (10 March 2010)
 
 	- Bug #2458: reply_body_max_size incorrectly documented
 	- Bug #2858: Segment violation in HTCP

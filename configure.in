@@ -5,7 +5,7 @@ dnl  $Id$
 dnl
 dnl
 dnl
-AC_INIT(Squid Web Proxy, 2.7.STABLE8-CVS, http://bugs.squid-cache.org/, squid)
+AC_INIT(Squid Web Proxy, 2.7.STABLE9-CVS, http://bugs.squid-cache.org/, squid)
 AC_PREREQ(2.52)
 AM_CONFIG_HEADER(include/autoconf.h)
 AC_CONFIG_AUX_DIR(cfgaux)

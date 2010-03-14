@@ -1,6 +1,6 @@
 <!doctype linuxdoc system>
 <article>
-<title>Squid 2.7.STABLE8 release notes</title>
+<title>Squid 2.7.STABLE9 release notes</title>
 <author>Squid Developers</author>
 <date>$Id$
 
@@ -522,7 +522,20 @@ ScriptAlias /squid/cgi-bin/ "c:/squid/libexec/"
 				name="ChangeLog"> file for details.
 </itemize>
 
+<sect>Key changes in squid-2.7.STABLE9
 
+<p>This release has portability fixes only. No change in functionality.
+
+<itemize>
+	<item>OpenSSL related compilation issue on some systems introduced
+	      in 2.7.STABLE8.
+	<item>configure failed to detect certain system libraries on some
+	systems, resulting in compilation failures either in Squid or helpers.
+	<item>See also the list of <url
+		url="http://www.squid-cache.org/Versions/v2/2.7/changesets/SQUID_2_7_STABLE9.html"
+			name="squid-2.7.STABLE9 changes"> and the <url url="ChangeLog"
+				name="ChangeLog"> file for details.
+</itemize>
 
 </article>
 
