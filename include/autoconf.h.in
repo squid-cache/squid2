@@ -79,6 +79,9 @@
 /* Define to 1 if you have the <byteswap.h> header file. */
 #undef HAVE_BYTESWAP_H
 
+/* Define to 1 if you have the `cap_clear_flag' function. */
+#undef HAVE_CAP_CLEAR_FLAG
+
 /* Define to 1 if you have the `crypt' function. */
 #undef HAVE_CRYPT
 
@@ -188,26 +191,11 @@
 /* Define to 1 if you have the `kqueue' function. */
 #undef HAVE_KQUEUE
 
-/* Define to 1 if you have the `aio' library (-laio). */
-#undef HAVE_LIBAIO
-
-/* Define to 1 if you have the `bsd' library (-lbsd). */
-#undef HAVE_LIBBSD
-
-/* Define to 1 if you have the `cap' library (-lcap). */
-#undef HAVE_LIBCAP
-
 /* Define to 1 if you have the <libc.h> header file. */
 #undef HAVE_LIBC_H
 
-/* Define to 1 if you have the `dl' library (-ldl). */
-#undef HAVE_LIBDL
-
 /* Define to 1 if you have the `gnumalloc' library (-lgnumalloc). */
 #undef HAVE_LIBGNUMALLOC
-
-/* Define to 1 if you have the `intl' library (-lintl). */
-#undef HAVE_LIBINTL
 
 /* Define to 1 if you have the `m' library (-lm). */
 #undef HAVE_LIBM
@@ -215,23 +203,8 @@
 /* Define to 1 if you have the `malloc' library (-lmalloc). */
 #undef HAVE_LIBMALLOC
 
-/* Define to 1 if you have the `md' library (-lmd). */
-#undef HAVE_LIBMD
-
-/* Define to 1 if you have the `md5' library (-lmd5). */
-#undef HAVE_LIBMD5
-
-/* Define to 1 if you have the `nsl' library (-lnsl). */
-#undef HAVE_LIBNSL
-
 /* Define to 1 if you have the `pthread' library (-lpthread). */
 #undef HAVE_LIBPTHREAD
-
-/* Define to 1 if you have the `rt' library (-lrt). */
-#undef HAVE_LIBRT
-
-/* Define to 1 if you have the `socket' library (-lsocket). */
-#undef HAVE_LIBSOCKET
 
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
