@@ -810,12 +810,19 @@ clientGetsOldEntry(StoreEntry * new_entry, StoreEntry * old_entry, request_t * r
     /* If the ETag matches the clients If-None-Match, then return
      * the servers 304 reply
      */
-    if (httpHeaderHas(&new_entry->mem_obj->reply->header, HDR_ETAG) &&
-	httpHeaderHas(&request->header, HDR_IF_NONE_MATCH)) {
-	const char *etag = httpHeaderGetStr(&new_entry->mem_obj->reply->header, HDR_ETAG);
+    if (httpHeaderHas(&request->header, HDR_IF_NONE_MATCH)) {
 	String etags = httpHeaderGetList(&request->header, HDR_IF_NONE_MATCH);
-	int etag_match = strListIsMember(&etags, etag, ',');
+	int etag_match = 0;
+
+	if (httpHeaderHas(&new_entry->mem_obj->reply->header, HDR_ETAG)) {
+	    const char *etag = httpHeaderGetStr(&new_entry->mem_obj->reply->header, HDR_ETAG);
+	    etag_match = strListIsMember(&etags, etag, ',');
+	}
+	if (!etag_match && strListIsMember(&etags, "*", ','))
+	    etag_match = 1;
+
 	stringClean(&etags);
+
 	if (etag_match) {
 	    debug(33, 5) ("clientGetsOldEntry: NO, client If-None-Match\n");
 	    return 0;
@@ -2182,6 +2189,31 @@ clientAsyncRefresh(clientHttpRequest * http)
 }
 
 /*
+ * Internal helper function for If-(None-)Match logics
+ */
+static int
+checkIfMatch(request_t * request, MemObject * mem, http_hdr_type hdr)
+{
+    String req_etags;
+    const char *rep_etag;
+    int etag_match = 0;
+
+    if (mem->reply->sline.status != HTTP_OK) {
+	debug(33, 4) ("checkIfMatch: Reply code %d != 200\n",
+	    mem->reply->sline.status);
+	return -1;		/* Can't check */
+    }
+    rep_etag = httpHeaderGetStr(&mem->reply->header, HDR_ETAG);
+    req_etags = httpHeaderGetList(&request->header, hdr);
+    if (rep_etag)
+	etag_match = strListIsMember(&req_etags, rep_etag, ',');
+    if (!etag_match)
+	etag_match = strListIsMember(&req_etags, "*", ',');
+    stringClean(&req_etags);
+    return etag_match;
+}
+
+/*
  * clientCacheHit should only be called until the HTTP reply headers
  * have been parsed.  Normally this should be a single call, but
  * it might take more than one.  As soon as we have the headers,
@@ -2336,45 +2368,34 @@ clientCacheHit(void *data, HttpReply * rep)
 	return;
     }
     if (httpHeaderHas(&r->header, HDR_IF_MATCH)) {
-	const char *rep_etag = httpHeaderGetStr(&e->mem_obj->reply->header, HDR_ETAG);
-	int has_etag = 0;
-	if (rep_etag) {
-	    String req_etags = httpHeaderGetList(&http->request->header, HDR_IF_MATCH);
-	    has_etag = strListIsMember(&req_etags, rep_etag, ',');
-	    stringClean(&req_etags);
-	}
-	if (!has_etag) {
+	int etag_match = checkIfMatch(r, mem, HDR_IF_MATCH);
+
+	if (etag_match != 1) {
 	    /* The entity tags does not match. This cannot be a hit for this object.
 	     * Query the origin to see what should be done.
 	     */
+	    debug(33, 4) ("clientCacheHit: If-Match mismatch\n");
 	    http->log_type = LOG_TCP_MISS;
 	    clientProcessMiss(http);
 	    return;
 	}
     }
     if (httpHeaderHas(&r->header, HDR_IF_NONE_MATCH)) {
-	String req_etags;
-	const char *rep_etag = httpHeaderGetStr(&e->mem_obj->reply->header, HDR_ETAG);
-	int has_etag;
-	if (mem->reply->sline.status != HTTP_OK) {
-	    debug(33, 4) ("clientCacheHit: Reply code %d != 200\n",
-		mem->reply->sline.status);
+	int etag_match = checkIfMatch(r, mem, HDR_IF_NONE_MATCH);
+
+	if (etag_match == -1) {
+	    debug(33, 4) ("clientCacheHit: If-None-Match failure\n");
 	    http->log_type = LOG_TCP_MISS;
 	    clientProcessMiss(http);
 	    return;
 	}
-	if (rep_etag) {
-	    req_etags = httpHeaderGetList(&http->request->header, HDR_IF_NONE_MATCH);
-	    has_etag = strListIsMember(&req_etags, rep_etag, ',');
-	    stringClean(&req_etags);
-	    if (has_etag) {
-		debug(33, 4) ("clientCacheHit: If-None-Match matches\n");
-		if (is_modified == -1)
-		    is_modified = 0;
-	    } else {
-		debug(33, 4) ("clientCacheHit: If-None-Match mismatch\n");
-		is_modified = 1;
-	    }
+	if (etag_match) {
+	    debug(33, 4) ("clientCacheHit: If-None-Match matches\n");
+	    if (is_modified == -1)
+		is_modified = 0;
+	} else {
+	    debug(33, 4) ("clientCacheHit: If-None-Match mismatch\n");
+	    is_modified = 1;
 	}
     }
     if (r->flags.ims && mem->reply->sline.status == HTTP_OK) {
