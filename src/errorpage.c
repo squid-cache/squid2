@@ -596,6 +596,9 @@ errorConvert(char token, ErrorState * err)
 	else
 	    p = "[unknown]";
 	break;
+    case 'W':
+	p = "";
+	break;
     case 'z':
 	if (err->dnsserver_msg)
 	    p = err->dnsserver_msg;
