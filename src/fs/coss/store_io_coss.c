@@ -213,7 +213,10 @@ storeCossAllocate(SwapDir * SD, const StoreEntry * e, int which)
 	debug(79, 3) ("storeCossAllocate: %s: New offset - %" PRId64 "\n", stripePath(SD),
 	    (int64_t) cs->current_offset);
 	assert(cs->curstripe < (cs->numstripes - 1));
-	newmb = storeCossCreateMemBuf(SD, cs->curstripe + 1, checkf, &coll);
+	if (cs->curstripe < (cs->numstripes - 1))
+	    newmb = storeCossCreateMemBuf(SD, cs->curstripe + 1, checkf, &coll);
+	else
+	    newmb = storeCossCreateMemBuf(SD, 0, checkf, &coll);
 	cs->current_membuf = newmb;
 	if (newmb == NULL) {
 	    cs->sizerange_max = SD->max_objsize;
