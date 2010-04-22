@@ -1317,7 +1317,8 @@ authenticateDigestDecodeAuth(auth_user_request_t * auth_user_request, const char
     /* do we have a username ? */
     if (!username || username[0] == '\0') {
 	debug(29, 4) ("authenticateDigestDecode: Empty or not present username\n");
-	return authDigestLogUsername(auth_user_request, username);
+	authDigestLogUsername(auth_user_request, username);
+	return;
     }
     /* Sanity check of the username.
      * " can not be allowed in usernames until * the digest helper protocol
@@ -1325,28 +1326,33 @@ authenticateDigestDecodeAuth(auth_user_request_t * auth_user_request, const char
      */
     if (strchr(username, '"')) {
 	debug(29, 2) ("authenticateDigestDecode: Unacceptable username '%s'\n", username);
-	return authDigestLogUsername(auth_user_request, username);
+	authDigestLogUsername(auth_user_request, username);
+	return;
     }
     /* do we have a realm ? */
     if (!digest_request->realm || digest_request->realm[0] == '\0') {
 	debug(29, 2) ("authenticateDigestDecode: Empty or not present realm");
-	return authDigestLogUsername(auth_user_request, username);
+	authDigestLogUsername(auth_user_request, username);
+	return;
     }
     /* and a nonce? */
     if (!digest_request->nonceb64 || digest_request->nonceb64[0] == '\0') {
 	debug(29, 2) ("authenticateDigestDecode: Empty or not present nonce");
-	return authDigestLogUsername(auth_user_request, username);
+	authDigestLogUsername(auth_user_request, username);
+	return;
     }
     /* we can't check the URI just yet. We'll check it in the
      * authenticate phase, but needs to be given */
     if (!digest_request->uri || digest_request->uri[0] == '\0') {
 	debug(29, 2) ("authenticateDigestDecode: Missing URI field");
-	return authDigestLogUsername(auth_user_request, username);
+	authDigestLogUsername(auth_user_request, username);
+	return;
     }
     /* is the response the correct length? */
     if (!digest_request->response || strlen(digest_request->response) != 32) {
 	debug(29, 2) ("authenticateDigestDecode: Response length invalid\n");
-	return authDigestLogUsername(auth_user_request, username);
+	authDigestLogUsername(auth_user_request, username);
+	return;
     }
     /* check the algorithm is present and supported */
     if (!digest_request->algorithm)
@@ -1354,7 +1360,8 @@ authenticateDigestDecodeAuth(auth_user_request_t * auth_user_request, const char
     else if (strcmp(digest_request->algorithm, "MD5")
 	&& strcmp(digest_request->algorithm, "MD5-sess")) {
 	debug(29, 2) ("authenticateDigestDecode: invalid algorithm specified!\n");
-	return authDigestLogUsername(auth_user_request, username);
+	authDigestLogUsername(auth_user_request, username);
+	return;
     }
     /* 2617 requirements, indicated by qop */
     if (digest_request->qop) {
@@ -1363,23 +1370,27 @@ authenticateDigestDecodeAuth(auth_user_request_t * auth_user_request, const char
 	if (strcmp(digest_request->qop, QOP_AUTH) != 0) {
 	    /* we received a qop option we didn't send */
 	    debug(29, 2) ("authenticateDigestDecode: Invalid qop option received\n");
-	    return authDigestLogUsername(auth_user_request, username);
+	    authDigestLogUsername(auth_user_request, username);
+	    return;
 	}
 	/* check cnonce */
 	if (!digest_request->cnonce || digest_request->cnonce[0] == '\0') {
 	    debug(29, 2) ("authenticateDigestDecode: Missing cnonce field\n");
-	    return authDigestLogUsername(auth_user_request, username);
+	    authDigestLogUsername(auth_user_request, username);
+	    return;
 	}
 	/* check nc */
 	if (strlen(digest_request->nc) != 8 || strspn(digest_request->nc, "0123456789abcdefABCDEF") != 8) {
 	    debug(29, 2) ("authenticateDigestDecode: invalid nonce count\n");
-	    return authDigestLogUsername(auth_user_request, username);
+	    authDigestLogUsername(auth_user_request, username);
+	    return;
 	}
     } else {
 	/* cnonce and nc both require qop */
 	if (digest_request->cnonce || digest_request->nc) {
 	    debug(29, 2) ("authenticateDigestDecode: missing qop!\n");
-	    return authDigestLogUsername(auth_user_request, username);
+	    authDigestLogUsername(auth_user_request, username);
+	    return;
 	}
     }
 
@@ -1391,7 +1402,8 @@ authenticateDigestDecodeAuth(auth_user_request_t * auth_user_request, const char
 	/* we couldn't find a matching nonce! */
 	debug(29, 2) ("authenticateDigestDecode: Unexpected or invalid nonce received\n");
 	digest_request->flags.credentials_ok = 3;
-	return authDigestLogUsername(auth_user_request, username);
+	authDigestLogUsername(auth_user_request, username);
+	return;
     }
     digest_request->nonce = nonce;
     authDigestNonceLink(nonce);
@@ -1399,7 +1411,8 @@ authenticateDigestDecodeAuth(auth_user_request_t * auth_user_request, const char
     /* check that we're not being hacked / the username hasn't changed */
     if (nonce->auth_user && strcmp(username, authenticateUserUsername(nonce->auth_user))) {
 	debug(29, 2) ("authenticateDigestDecode: Username for the nonce does not equal the username for the request\n");
-	return authDigestLogUsername(auth_user_request, username);
+	authDigestLogUsername(auth_user_request, username);
+	return;
     }
     /* the method we'll check at the authenticate step as well */
 
