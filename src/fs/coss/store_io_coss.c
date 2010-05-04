@@ -166,10 +166,10 @@ storeCossAllocate(SwapDir * SD, const StoreEntry * e, int which)
 
     /* Check to see if we need to allocate a membuf to start */
     if (cs->current_membuf == NULL) {
-	if (cs->curstripe < (cs->numstripes - 1))
-	    newmb = storeCossCreateMemBuf(SD, cs->curstripe + 1, checkf, &coll);
-	else
-	    newmb = storeCossCreateMemBuf(SD, 0, checkf, &coll);
+	int nextstripe = cs->curstripe + 1;
+	if (nextstripe >= cs->numstripes)
+	    nextstripe = 0;
+	newmb = storeCossCreateMemBuf(SD, nextstripe, checkf, &coll);
 
 	cs->current_membuf = newmb;
 	if (newmb == NULL) {
@@ -178,50 +178,43 @@ storeCossAllocate(SwapDir * SD, const StoreEntry * e, int which)
 	}
 	cs->current_offset = cs->current_membuf->diskstart;
 
-	/* Check if we have overflowed the disk .. */
-    } else if ((cs->current_offset + allocsize) > ((off_t) SD->max_size << 10)) {
-	/*
-	 * tried to allocate past the end of the disk, so wrap
-	 * back to the beginning
-	 */
-	coss_stats.disk_overflows++;
-	cs->current_membuf->flags.full = 1;
-	cs->numfullstripes++;
-	cs->current_membuf->diskend = cs->current_offset;
-	storeCossMaybeWriteMemBuf(SD, cs->current_membuf);
-	/* cs->current_membuf may be invalid at this point */
-	cs->current_offset = 0;	/* wrap back to beginning */
-	debug(79, 2) ("storeCossAllocate: %s: wrap to 0\n", stripePath(SD));
-
-	newmb = storeCossCreateMemBuf(SD, 0, checkf, &coll);
-	cs->current_membuf = newmb;
-	if (newmb == NULL) {
-	    cs->sizerange_max = SD->max_objsize;
-	    return -1;
-	}
-	/* Check if we have overflowed the MemBuf */
-    } else if ((cs->current_offset + allocsize) >= cs->current_membuf->diskend) {
+    } else if ((cs->current_offset + allocsize) > cs->current_membuf->diskend) {
 	/*
 	 * Skip the blank space at the end of the stripe. start over.
 	 */
+	int nextstripe = cs->curstripe + 1;
 	coss_stats.stripe_overflows++;
 	cs->current_membuf->flags.full = 1;
 	cs->numfullstripes++;
-	cs->current_offset = cs->current_membuf->diskend;
+	/* Check if we have overflowed the disk .. */
+	if (nextstripe >= cs->numstripes) {
+	    /*
+	     * tried to allocate past the end of the disk, so wrap
+	     * back to the beginning
+	     */
+	    debug(79, 2) ("storeCossAllocate: %s: wrap to 0\n", stripePath(SD));
+	    nextstripe = 0;	/* wrap back to beginning */
+	    coss_stats.disk_overflows++;
+#if LOOKS_WRONG
+	    /* Original disk wrap code also had this, but looks wrong to
+	     * me as it leaves garbage at the end of the disk. Either we
+	     * should do it in both cases, or not at all
+	     */
+	    cs->current_membuf->diskend = cs->current_offset;
+#endif
+	}
 	storeCossMaybeWriteMemBuf(SD, cs->current_membuf);
 	/* cs->current_membuf may be invalid at this point */
 	debug(79, 3) ("storeCossAllocate: %s: New offset - %" PRId64 "\n", stripePath(SD),
 	    (int64_t) cs->current_offset);
-	assert(cs->curstripe < (cs->numstripes - 1));
-	if (cs->curstripe < (cs->numstripes - 1))
-	    newmb = storeCossCreateMemBuf(SD, cs->curstripe + 1, checkf, &coll);
-	else
-	    newmb = storeCossCreateMemBuf(SD, 0, checkf, &coll);
+	assert(nextstripe < cs->numstripes);
+	newmb = storeCossCreateMemBuf(SD, nextstripe, checkf, &coll);
 	cs->current_membuf = newmb;
 	if (newmb == NULL) {
 	    cs->sizerange_max = SD->max_objsize;
 	    return -1;
 	}
+	cs->current_offset = cs->current_membuf->diskstart;
     }
     /* If we didn't get a collision, then update the current offset and return it */
     if (coll == 0) {
