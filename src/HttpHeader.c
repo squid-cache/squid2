@@ -864,7 +864,7 @@ httpHeaderGetByNameListMember(const HttpHeader * hdr, const char *name, const ch
     header = httpHeaderGetByName(hdr, name);
 
     while (strListGetItem(&header, separator, &item, &ilen, &pos)) {
-	if (strncmp(item, member, mlen) == 0 && item[mlen] == '=') {
+	if (strncasecmp(item, member, mlen) == 0 && item[mlen] == '=') {
 	    stringAppend(&result, item + mlen + 1, ilen - mlen - 1);
 	    break;
 	}
@@ -892,7 +892,7 @@ httpHeaderGetListMember(const HttpHeader * hdr, http_hdr_type id, const char *me
     header = httpHeaderGetStrOrList(hdr, id);
 
     while (strListGetItem(&header, separator, &item, &ilen, &pos)) {
-	if (strncmp(item, member, mlen) == 0 && item[mlen] == '=') {
+	if (strncasecmp(item, member, mlen) == 0 && item[mlen] == '=') {
 	    stringAppend(&result, item + mlen + 1, ilen - mlen - 1);
 	    break;
 	}
