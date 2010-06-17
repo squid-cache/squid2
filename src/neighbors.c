@@ -1532,7 +1532,7 @@ neighborsHtcpClear(StoreEntry * e, const char *uri, request_t * req, method_t * 
     peer *p;
     int i;
 
-    debug(15, 1) ("neighborsHtcpClear: clear reason: %d\n", reason);
+    debug(15, 3) ("neighborsHtcpClear: clear reason: %d\n", reason);
     for (i = 0, p = Config.peers; i++ < Config.npeers; p = p->next) {
 	if (!p->options.htcp) {
 	    continue;
