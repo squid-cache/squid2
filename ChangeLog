@@ -20,6 +20,10 @@ Done:
 	  copying of data.
 	- Foreground rebuilding now finishes the entire rebuild before it
 	  starts accepting requests.
+	- Bug 2950: HTTP responses with no Date, Last-modified or expired can
+	  now be cached (given an appropriate refresh_pattern). Previously we
+	  were not caching them in case of an infinite loop in cache farms:
+	  however Squid adds Date: headers now which remove that concern.
 
 Pending backport:
 

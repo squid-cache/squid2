@@ -330,19 +330,8 @@ httpCachableReply(HttpStateData * httpState)
 	 */
 	if (!refreshIsCachable(httpState->entry) && !REFRESH_OVERRIDE(store_stale))
 	    return 0;
-	/* don't cache objects from peers w/o LMT, Date, or Expires */
-	/* check that is it enough to check headers @?@ */
-	if (rep->date > -1)
-	    return 1;
-	else if (rep->last_modified > -1)
-	    return 1;
-	else if (!httpState->peer)
-	    return 1;
-	/* @?@ (here and 302): invalid expires header compiles to squid_curtime */
-	else if (rep->expires > -1)
-	    return 1;
 	else
-	    return 0;
+	    return 1;
 	/* NOTREACHED */
 	break;
 	/* Responses that only are cacheable if the server says so */
