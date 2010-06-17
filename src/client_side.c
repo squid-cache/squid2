@@ -2105,6 +2105,8 @@ clientAsyncDone(clientAsyncRefreshRequest * async)
 	accessLogLog(&al, ch);
     aclChecklistFree(ch);
     storeClientUnregister(async->sc, async->entry, async);
+    storeUnlockObject(async->entry->mem_obj->old_entry);
+    async->entry->mem_obj->old_entry = NULL;
     storeUnlockObject(async->entry);
     storeUnlockObject(async->old_entry);
     requestUnlink(async->request);
@@ -2158,6 +2160,8 @@ clientAsyncRefresh(clientHttpRequest * http)
     async->entry = storeCreateEntry(url,
 	request->flags,
 	request->method);
+    async->entry->mem_obj->old_entry = async->old_entry;
+    storeLockObject(async->entry->mem_obj->old_entry);
     async->sc = storeClientRegister(async->entry, async);
     request->etags = NULL;	/* Should always be null as this was a cache hit, but just in case.. */
     httpHeaderDelById(&request->header, HDR_RANGE);
