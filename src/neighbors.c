@@ -1543,7 +1543,7 @@ neighborsHtcpClear(StoreEntry * e, const char *uri, request_t * req, method_t * 
 	if (p->options.htcp_no_purge_clr && reason == HTCP_CLR_PURGE) {
 	    continue;
 	}
-	debug(15, 1) ("neighborsHtcpClear: sending CLR to %s:%d\n", inet_ntoa(p->in_addr.sin_addr), ntohs(p->in_addr.sin_port));
+	debug(15, 3) ("neighborsHtcpClear: sending CLR to %s:%d\n", inet_ntoa(p->in_addr.sin_addr), ntohs(p->in_addr.sin_port));
 	htcpClear(e, uri, req, method, p, reason);
     }
 }
