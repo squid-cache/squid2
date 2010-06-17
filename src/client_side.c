@@ -2160,6 +2160,8 @@ clientAsyncRefresh(clientHttpRequest * http)
     async->entry = storeCreateEntry(url,
 	request->flags,
 	request->method);
+    if (request->store_url)
+	storeEntrySetStoreUrl(async->entry, request->store_url);
     async->entry->mem_obj->old_entry = async->old_entry;
     storeLockObject(async->entry->mem_obj->old_entry);
     async->sc = storeClientRegister(async->entry, async);
