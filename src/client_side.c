@@ -3204,6 +3204,7 @@ clientCheckHeaderDone(clientHttpRequest * http)
 	    comm_write_set_delaypool(http->conn->fd, http->delayid);
 #endif
     } else {
+	memBufClean(&mb);
 	storeClientRef(http->sc, http->entry,
 	    http->out.offset,
 	    http->out.offset,
