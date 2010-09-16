@@ -1,6 +1,6 @@
 
 /*
- * $Id$
+ * $Id: client_side.c,v 1.807 2010/09/16 22:30:33 hno Exp $
  *
  * DEBUG: section 33    Client-side Routines
  * AUTHOR: Duane Wessels
@@ -4079,23 +4079,25 @@ parseHttpRequest(ConnStateData * conn, HttpMsgBuf * hmsg, method_t ** method_p, 
 	    /* Fully qualified URL. Nothing special to do */
 	} else if (conn->port->accel) {
 	    const char *host = NULL;
-	    int port;
+	    int port = 0;
 	    size_t url_sz;
-	    if (vport > 0)
-		port = vport;
-	    else
-		port = htons(http->conn->me.sin_port);
-	    if (vhost && (t = mime_get_header(req_hdr, "Host")))
+	    if (vhost && (t = mime_get_header(req_hdr, "Host"))) {
 		host = t;
-	    else if (conn->port->defaultsite)
+	    } else if (conn->port->defaultsite) {
 		host = conn->port->defaultsite;
-	    else if (vport == -1)
+	    } else if (vport) {
 		host = inet_ntoa(http->conn->me.sin_addr);
-	    else
+		if (vport > 0)
+		    port = vport;
+		else
+		    port = htons(http->conn->me.sin_port);
+	    } else {
 		host = getMyHostname();
+		port = htons(http->conn->me.sin_port);
+	    }
 	    url_sz = strlen(url) + 32 + Config.appendDomainLen + strlen(host);
 	    http->uri = xcalloc(url_sz, 1);
-	    if (strchr(host, ':'))
+	    if (!port)
 		snprintf(http->uri, url_sz, "%s://%s%s",
 		    conn->port->protocol, host, url);
 	    else
