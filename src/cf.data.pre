@@ -1,6 +1,6 @@
 
 #
-# $Id$
+# $Id: cf.data.pre,v 1.511 2010/12/01 08:53:26 hno Exp $
 #
 # SQUID Web Proxy Cache          http://www.squid-cache.org/
 # ----------------------------------------------------------
@@ -2157,13 +2157,13 @@ DOC_START
 
 	no-store, no new objects should be stored to this cache_dir
 
-	min-size=n, refers to the min object size this storedir will accept.
-	It's used to restrict a storedir to only store large objects
-	(e.g. aufs) while other storedirs are optimized for smaller objects
-	(e.g. COSS). Defaults to 0.
+	min-size=n, refers to the min object size in bytes this cache_dir
+	will accept.  It's used to restrict a cache_dir to only store
+	large objects (e.g. aufs) while other storedirs are optimized
+	for smaller objects (e.g. COSS). Defaults to 0.
 
-	max-size=n, refers to the max object size this storedir supports.
-	It is used to initially choose the storedir to dump the object.
+	max-size=n, refers to the max object size in bytes this cache_dir
+	supports.  It is used to select the cache_dir to store the object.
 	Note: To make optimal use of the max-size limits you should order
 	the cache_dir lines with the smallest max-size value first and the
 	ones with no max-size specification last.
