@@ -880,7 +880,10 @@ CFLAGS
 LDFLAGS
 LIBS
 CPPFLAGS
-CPP'
+CPP
+CPPFLAGS
+CPP
+CPPFLAGS'
 
 
 # Initialize some variables set by options.
