@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: check_group.c,v 1.6 2010/12/21 13:49:09 hno Exp $
  *
  * This is a helper for the external ACL interface for Squid Cache
  * Copyright (C) 2002 Rodrigo Albani de Campos (rodrigo@geekbunker.org)
@@ -29,6 +29,10 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
  *
  * Change Log:
+ * 2010-02-24 hno
+ * Removed group number limitation and fixed related uninitialized
+ * pointer reference (Bug #2813)
+ *
  * Revision 1.7  2004/08/15 00:29:33  hno
  * helper protocol changed to URL-escaped strings in Squid-3.0
  *
@@ -64,8 +68,6 @@
 #include <ctype.h>
 
 #define BUFSIZE 8192		/* the stdin buffer size */
-#define MAX_GROUP 10		/* maximum number of groups specified 
-				 * on the command line */
 
 /* 
  * Verify if user´s primary group matches groupname
@@ -138,8 +140,8 @@ main(int argc, char *argv[])
 {
     char *user, *suser, *p;
     char buf[BUFSIZE];
-    char *grents[MAX_GROUP];
-    int check_pw = 0, ch, i = 0, j = 0, strip_dm = 0;
+    char **grents = NULL;
+    int check_pw = 0, ch, ngroups = 0, i, j = 0, strip_dm = 0;
 
     /* make standard output line buffered */
     setvbuf(stdout, NULL, _IOLBF, 0);
@@ -154,19 +156,11 @@ main(int argc, char *argv[])
 	    check_pw = 1;
 	    break;
 	case 'g':
-	    grents[i] = calloc(strlen(optarg) + 1, sizeof(char));
-	    strcpy(grents[i], optarg);
-	    if (i < MAX_GROUP) {
-		i++;
-	    } else {
-		fprintf(stderr,
-		    "Exceeded maximum number of allowed groups (%i)\n", i);
-		exit(1);
-	    }
+	    grents = (char **) realloc(grents, sizeof(*grents) * (ngroups + 1));
+	    grents[ngroups++] = optarg;
 	    break;
 	case '?':
 	    if (isprint(optopt)) {
-
 		fprintf(stderr, "Unknown option '-%c'.\n", optopt);
 	    } else {
 		fprintf(stderr, "Unknown option character `\\x%x'.\n", optopt);
@@ -178,7 +172,7 @@ main(int argc, char *argv[])
 	}
     }
     if (optind < argc) {
-	fprintf(stderr, "Unknown option '%s'\n", argv[optind]);
+	fprintf(stderr, "FATAL: Unknown option '%s'\n", argv[optind]);
 	usage(argv[0]);
 	exit(1);
     }
@@ -186,9 +180,9 @@ main(int argc, char *argv[])
 	j = 0;
 	if ((p = strchr(buf, '\n')) == NULL) {
 	    /* too large message received.. skip and deny */
-	    fprintf(stderr, "%s: ERROR: Too large: %s\n", argv[0], buf);
+	    fprintf(stderr, "ERROR: %s: Too large: %s\n", argv[0], buf);
 	    while (fgets(buf, sizeof(buf), stdin)) {
-		fprintf(stderr, "%s: ERROR: Too large..: %s\n", argv[0], buf);
+		fprintf(stderr, "ERROR: %s: Too large..: %s\n", argv[0], buf);
 		if (strchr(buf, '\n') != NULL)
 		    break;
 	    }
@@ -210,13 +204,12 @@ main(int argc, char *argv[])
 		rfc1738_unescape(p);
 		if (check_pw == 1)
 		    j += validate_user_pw(user, p);
-
 		j += validate_user_gr(user, p);
 	    }
 	}
 
 	/* check groups supplied on the command line */
-	for (i = 0; grents[i] != NULL; i++) {
+	for (i = 0; i < ngroups; i++) {
 	    if (check_pw == 1) {
 		j += validate_user_pw(user, grents[i]);
 	    }
