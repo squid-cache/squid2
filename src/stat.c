@@ -1,6 +1,6 @@
 
 /*
- * $Id$
+ * $Id: stat.c,v 1.392 2011/01/27 13:54:06 amosjeffries Exp $
  *
  * DEBUG: section 18    Cache Manager Statistics
  * AUTHOR: Harvest Derived
@@ -266,6 +266,8 @@ statStoreEntry(MemBuf * mb, StoreEntry * e)
 	memBufPrintf(mb, "\tinmem_hi: %" PRINTF_OFF_T "\n", mem->inmem_hi);
 	memBufPrintf(mb, "\tswapout: %" PRINTF_OFF_T " bytes queued\n",
 	    mem->swapout.queue_offset);
+	if (mem->vary_headers)
+	    memBufPrintf(mb, "\tvary_headers: %s\n", mem->vary_headers);
 	if (mem->swapout.sio)
 	    memBufPrintf(mb, "\tswapout: %" PRINTF_OFF_T " bytes written\n",
 		storeOffset(mem->swapout.sio));
