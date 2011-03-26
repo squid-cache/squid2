@@ -21,6 +21,7 @@
 
 #include "msntauth.h"
 #include "valid.h"
+#include "util.h"
 
 /* Path to configuration file */
 #ifndef SYSCONFDIR

@@ -1,6 +1,6 @@
 
 /*
- * $Id$
+ * $Id: squid.h,v 1.248 2011/03/26 23:39:37 amosjeffries Exp $
  *
  * AUTHOR: Duane Wessels
  *
@@ -277,11 +277,6 @@
 #endif
 
 #define SQUIDHOSTNAMELEN 256
-
-#define SQUID_MAXPATHLEN 256
-#ifndef MAXPATHLEN
-#define MAXPATHLEN SQUID_MAXPATHLEN
-#endif
 
 #if !HAVE_GETRUSAGE
 #if defined(_SQUID_HPUX_)

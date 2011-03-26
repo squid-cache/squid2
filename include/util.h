@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: util.h,v 1.71 2011/03/26 23:39:36 amosjeffries Exp $
  *
  * AUTHOR: Harvest Derived
  *
@@ -46,6 +46,11 @@
 
 #if !defined(SQUIDHOSTNAMELEN)
 #define SQUIDHOSTNAMELEN 256
+#endif
+
+#define SQUID_MAXPATHLEN 256
+#ifndef MAXPATHLEN
+#define MAXPATHLEN SQUID_MAXPATHLEN
 #endif
 
 #if defined(_SQUID_FREEBSD_)

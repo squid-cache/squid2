@@ -1,6 +1,6 @@
 
 /*
- * $Id$
+ * $Id: structs.h,v 1.580 2011/03/26 23:39:37 amosjeffries Exp $
  *
  *
  * SQUID Web Proxy Cache          http://www.squid-cache.org/
@@ -36,6 +36,7 @@
 
 #include "config.h"
 #include "splay.h"
+#include "util.h"
 
 #define PEER_MULTICAST_SIBLINGS 1
 

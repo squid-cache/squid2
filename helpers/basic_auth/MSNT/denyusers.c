@@ -17,6 +17,7 @@
 #include <string.h>
 #include "usersfile.h"
 #include "msntauth.h"
+#include "util.h"
 
 static usersfile DenyUsers;
 static int init = 0;
