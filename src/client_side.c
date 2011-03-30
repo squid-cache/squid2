@@ -1,6 +1,6 @@
 
 /*
- * $Id: client_side.c,v 1.807 2010/09/16 22:30:33 hno Exp $
+ * $Id: client_side.c,v 1.808 2011/03/30 00:14:21 amosjeffries Exp $
  *
  * DEBUG: section 33    Client-side Routines
  * AUTHOR: Duane Wessels
@@ -2540,7 +2540,7 @@ clientPackRangeHdr(const HttpReply * rep, const HttpHdrRangeSpec * spec, String 
     httpHeaderClean(&hdr);
 
     /* append <crlf> (we packed a header, not a reply) */
-    memBufPrintf(mb, crlf);
+    memBufPrintf(mb, "\r\n");
 }
 
 /*
