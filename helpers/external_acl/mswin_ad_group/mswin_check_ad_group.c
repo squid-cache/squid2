@@ -31,6 +31,10 @@
  *
  * History:
  *
+ * Version 2.2
+ * 28-02-2011 Guido Serassio
+ *              Added support for UPN usernames
+ *
  * Version 2.1
  * 20-09-2009 Guido Serassio
  *              Added explicit Global Catalog query
@@ -167,7 +171,7 @@ Get_primaryGroup(IADs * pUser)
     VariantInit(&var);
 
     /* Get the primaryGroupID property */
-    hr = pUser->lpVtbl->Get(pUser, L"primaryGroupID", &var);
+    hr = pUser->lpVtbl->Get(pUser, L "primaryGroupID", &var);
     if (SUCCEEDED(hr)) {
 	User_primaryGroupID = var.n1.n2.n3.uintVal;
     } else {
@@ -178,7 +182,7 @@ Get_primaryGroup(IADs * pUser)
     VariantClear(&var);
 
     /*Get the objectSid property */
-    hr = pUser->lpVtbl->Get(pUser, L"objectSid", &var);
+    hr = pUser->lpVtbl->Get(pUser, L "objectSid", &var);
     if (SUCCEEDED(hr)) {
 	PSID pObjectSID;
 	LPBYTE pByte = NULL;
@@ -255,7 +259,7 @@ My_NameTranslate(wchar_t * name, int in_format, int out_format)
 	/* This is a fatal error */
 	exit(1);
     }
-    hr = pNto->lpVtbl->Init(pNto, ADS_NAME_INITTYPE_GC, L"");
+    hr = pNto->lpVtbl->Init(pNto, ADS_NAME_INITTYPE_GC, L "");
     if (FAILED(hr)) {
 	debug("My_NameTranslate: cannot initialise NameTranslate API, ERROR: %s\n", Get_WIN32_ErrorMessage(hr));
 	pNto->lpVtbl->Release(pNto);
@@ -292,9 +296,9 @@ GetLDAPPath(wchar_t * Base_DN, int query_mode)
     wc = (wchar_t *) xmalloc((wcslen(Base_DN) + 8) * sizeof(wchar_t));
 
     if (query_mode == LDAP_MODE)
-	wcscpy(wc, L"LDAP://");
+	wcscpy(wc, L "LDAP://");
     else
-	wcscpy(wc, L"GC://");
+	wcscpy(wc, L "GC://");
     wcscat(wc, Base_DN);
 
     return wc;
@@ -418,7 +422,7 @@ Recursive_Memberof(IADs * pObj)
     HRESULT hr;
 
     VariantInit(&var);
-    hr = pObj->lpVtbl->Get(pObj, L"memberOf", &var);
+    hr = pObj->lpVtbl->Get(pObj, L "memberOf", &var);
     if (SUCCEEDED(hr)) {
 	if (VT_BSTR == var.n1.n2.vt) {
 	    if (add_User_Group(var.n1.n2.n3.bstrVal)) {
@@ -612,11 +616,43 @@ Valid_Local_Groups(char *UserName, const char **Groups)
 }
 
 
+
+char *
+Convert_UPN(char *UPN_Name, char *NT4_Name, int Len_Max)
+{
+    WCHAR wszUser[DNLEN + UNLEN + 2];	/* Unicode user name */
+    wchar_t *User_NT4;
+
+    if (strchr(UPN_Name, '@') == NULL) {
+	strncpy(NT4_Name, UPN_Name, Len_Max);
+    } else {
+
+	/* Convert ANSI User Name to Unicode */
+	MultiByteToWideChar(CP_ACP, 0, UPN_Name,
+	    Len_Max, wszUser,
+	    sizeof(wszUser) / sizeof(wszUser[0]));
+
+	/* Get Pre Windows 2000 logon name of User */
+	if ((User_NT4 = My_NameTranslate(wszUser, ADS_NAME_TYPE_USER_PRINCIPAL_NAME, ADS_NAME_TYPE_NT4)) == NULL) {
+	    debug("Valid_Global_Groups: cannot get pre-Windows 2000 logon name for '%s'.\n", UPN_Name);
+	    NT4_Name = NULL;
+	}
+	/* Convert Unicode User Name to ANSI */
+	WideCharToMultiByte(CP_ACP, 0, User_NT4, -1,
+	    NT4_Name, Len_Max, NULL, NULL);
+	safe_free(User_NT4);
+    }
+
+    return NT4_Name;
+}
+
+
 /* returns 1 on success, 0 on failure */
 int
 Valid_Global_Groups(char *UserName, const char **Groups)
 {
     int result = 0;
+    int input_format = 0;
     WCHAR wszUser[DNLEN + UNLEN + 2];	/* Unicode user name */
     char NTDomain[DNLEN + UNLEN + 2];
 
@@ -629,7 +665,9 @@ Valid_Global_Groups(char *UserName, const char **Groups)
     IADs *pUser;
     HRESULT hr;
 
-    strncpy(NTDomain, UserName, sizeof(NTDomain));
+
+    if (Convert_UPN(UserName, NTDomain, sizeof(NTDomain)) == NULL)
+	return result;
 
     for (j = 0; j < strlen(NTV_VALID_DOMAIN_SEPARATOR); j++) {
 	if ((domain_qualify = strchr(NTDomain, NTV_VALID_DOMAIN_SEPARATOR[j])) != NULL)

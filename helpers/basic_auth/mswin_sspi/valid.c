@@ -1,5 +1,5 @@
 /*
- * mswin_auth -  Version 2.0
+ * mswin_auth -  Version 2.01
  * 
  * Modified to act as a Squid authenticator module.
  * Removed all Pike stuff.
@@ -41,6 +41,7 @@ const char *errormsg;
 
 const char NTV_SERVER_ERROR_MSG[] = "Internal server errror";
 const char NTV_GROUP_ERROR_MSG[] = "User not allowed to use this cache";
+const char NTV_UPN_GROUP_ERROR_MSG[] = "UPN group membership cannot be verified";
 const char NTV_LOGON_ERROR_MSG[] = "No such user or wrong password";
 const char NTV_VALID_DOMAIN_SEPARATOR[] = "\\/";
 
@@ -49,9 +50,9 @@ int
 Valid_Group(char *UserName, char *Group)
 {
     int result = FALSE;
-    WCHAR wszUserName[256];	/* Unicode user name */
+    WCHAR wszUserName[UNLEN + 1];	/* Unicode user name */
 
-    WCHAR wszGroup[256];	/* Unicode Group */
+    WCHAR wszGroup[UNLEN + 1];	/* Unicode Group */
 
     LPLOCALGROUP_USERS_INFO_0 pBuf;
     LPLOCALGROUP_USERS_INFO_0 pTmpBuf;
@@ -129,11 +130,12 @@ int
 Valid_User(char *UserName, char *Password, char *Group)
 {
     int result = NTV_SERVER_ERROR;
+    int is_UPN = 0;
     size_t i;
-    char NTDomain[256];
+    char NTDomain[DNLEN + UNLEN + 2];
     char *domain_qualify = NULL;
-    char DomainUser[256];
-    char User[256];
+    char DomainUser[UNLEN + 1];
+    char User[DNLEN + UNLEN + 2];
 
     errormsg = NTV_SERVER_ERROR_MSG;
     strncpy(NTDomain, UserName, sizeof(NTDomain));
@@ -143,10 +145,15 @@ Valid_User(char *UserName, char *Password, char *Group)
 	    break;
     }
     if (domain_qualify == NULL) {
-	strcpy(User, NTDomain);
-	strcpy(NTDomain, Default_NTDomain);
+	strncpy(User, NTDomain, UNLEN);
+	if (strchr(NTDomain, '@') == NULL)
+	    strncpy(NTDomain, Default_NTDomain, DNLEN);
+	else {
+	    strcpy(NTDomain, "");
+	    is_UPN = 1;
+	}
     } else {
-	strcpy(User, domain_qualify + 1);
+	strncpy(User, domain_qualify + 1, UNLEN);
 	domain_qualify[0] = '\0';
     }
     /* Log the client on to the local computer. */
@@ -156,12 +163,19 @@ Valid_User(char *UserName, char *Password, char *Group)
 	debug("%s\n", errormsg);
     } else {
 	result = NTV_NO_ERROR;
+
+	if (is_UPN && (UseAllowedGroup || UseDisallowedGroup)) {
+	    result = NTV_GROUP_ERROR;
+	    errormsg = NTV_UPN_GROUP_ERROR_MSG;
+	    debug("%s\n", errormsg);
+	    return result;
+	}
 	if (strcmp(NTDomain, NTV_DEFAULT_DOMAIN) == 0)
-	    strcpy(DomainUser, User);
+	    strncpy(DomainUser, User, UNLEN);
 	else {
-	    strcpy(DomainUser, NTDomain);
+	    strncpy(DomainUser, NTDomain, DNLEN);
 	    strcat(DomainUser, "\\");
-	    strcat(DomainUser, User);
+	    strncat(DomainUser, User, UNLEN);
 	}
 	if (UseAllowedGroup) {
 	    if (!Valid_Group(DomainUser, NTAllowedGroup)) {

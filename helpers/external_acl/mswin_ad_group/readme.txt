@@ -1,5 +1,5 @@
 
-This is the readme.txt file for mswin_check_ad_group 2.0, an external
+This is the readme.txt file for mswin_check_ad_group 2.2, an external
 helper for the External ACL Scheme for Squid.
 
 
@@ -8,6 +8,7 @@ basic, NTLM or Negotiate) based on Windows Active Directory domain users.
 It reads from the standard input the domain username and a list of groups
 and tries to match it against the groups membership of the specified
 username.
+UPN syntax (user@domain.tld) for username is supported.
 
 Two running mode are available:
 

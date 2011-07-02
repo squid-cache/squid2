@@ -1,5 +1,5 @@
 /*
- * mswin_auth -  Version 2.0
+ * mswin_auth -  Version 2.01
  * 
  * Returns OK for a successful authentication, or ERR upon error.
  * 
