@@ -1,6 +1,6 @@
 
 /*
- * $Id$
+ * $Id: redirect.c,v 1.106 2011/08/26 21:54:33 hno Exp $
  *
  * DEBUG: section 85   Store URL Redirector
  * AUTHOR: Adrian Chadd; based on redirect.c by Duane Wessels
@@ -448,7 +448,7 @@ internalRedirectProcessURL(clientHttpRequest * req, rewritetoken * head)
 
 	if (do_ulong) {
 	    char tmpstr[12];
-	    int nbytes = snprintf(tmpstr, 12, "%lu", ulong);
+	    int nbytes = snprintf(tmpstr, 12, ulong_fmt, ulong);
 	    assert(nbytes > 0);
 	    dev = xreacat(dev, &len, tmpstr, nbytes);
 	} else {
