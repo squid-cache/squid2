@@ -1,6 +1,6 @@
 
 /*
- * $Id: client_side.c,v 1.808 2011/03/30 00:14:21 amosjeffries Exp $
+ * $Id: client_side.c,v 1.809 2011/08/26 21:56:58 hno Exp $
  *
  * DEBUG: section 33    Client-side Routines
  * AUTHOR: Duane Wessels
@@ -3912,7 +3912,6 @@ parseHttpRequest(ConnStateData * conn, HttpMsgBuf * hmsg, method_t ** method_p, 
     char *url = urlbuf;
     const char *req_hdr = NULL;
     http_version_t http_ver;
-    size_t header_sz;		/* size of headers, not including first line */
     size_t prefix_sz;		/* size of whole request (req-line + headers) */
     size_t req_sz;
     method_t *method;
@@ -3978,7 +3977,6 @@ parseHttpRequest(ConnStateData * conn, HttpMsgBuf * hmsg, method_t ** method_p, 
      */
     /* XXX re-evaluate all of these values and use whats in hmsg instead! */
     req_hdr = hmsg->buf + hmsg->r_len;
-    header_sz = hmsg->h_len;
     debug(33, 3) ("parseHttpRequest: req_hdr = {%s}\n", req_hdr);
 
     prefix_sz = req_sz;

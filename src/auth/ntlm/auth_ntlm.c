@@ -1,6 +1,6 @@
 
 /*
- * $Id$
+ * $Id: auth_ntlm.c,v 1.43 2011/08/26 21:57:01 hno Exp $
  *
  * DEBUG: section 29    NTLM Authenticator
  * AUTHOR: Robert Collins
@@ -657,14 +657,12 @@ authenticateNTLMAuthenticateUser(auth_user_request_t * auth_user_request, reques
     const char *proxy_auth, *blob;
     auth_user_t *auth_user;
     ntlm_request_t *ntlm_request;
-    ntlm_user_t *ntlm_user;
 
     auth_user = auth_user_request->auth_user;
     assert(auth_user);
     assert(auth_user->auth_type == AUTH_NTLM);
     assert(auth_user->scheme_data != NULL);
     assert(auth_user_request->scheme_data != NULL);
-    ntlm_user = auth_user->scheme_data;
     ntlm_request = auth_user_request->scheme_data;
     /* Check that we are in the client side, where we can generate
      * auth challenges */

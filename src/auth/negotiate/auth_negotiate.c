@@ -1,6 +1,6 @@
 
 /*
- * $Id$
+ * $Id: auth_negotiate.c,v 1.14 2011/08/26 21:57:00 hno Exp $
  *
  * DEBUG: section 29    Negotiate Authenticator
  * AUTHOR: Robert Collins
@@ -701,14 +701,12 @@ authenticateNegotiateAuthenticateUser(auth_user_request_t * auth_user_request, r
     const char *proxy_auth, *blob;
     auth_user_t *auth_user;
     negotiate_request_t *negotiate_request;
-    negotiate_user_t *negotiate_user;
 
     auth_user = auth_user_request->auth_user;
     assert(auth_user);
     assert(auth_user->auth_type == AUTH_NEGOTIATE);
     assert(auth_user->scheme_data != NULL);
     assert(auth_user_request->scheme_data != NULL);
-    negotiate_user = auth_user->scheme_data;
     negotiate_request = auth_user_request->scheme_data;
     /* Check that we are in the client side, where we can generate
      * auth challenges */

@@ -1,6 +1,6 @@
 
 /*
- * $Id$
+ * $Id: neighbors.c,v 1.335 2011/08/26 21:56:59 hno Exp $
  *
  * DEBUG: section 15    Neighbor Routines
  * AUTHOR: Harvest Derived
@@ -642,7 +642,6 @@ neighborsDigestSelect(request_t * request)
 {
     peer *best_p = NULL;
 #if USE_CACHE_DIGESTS
-    const cache_key *key;
     int best_rtt = 0;
     int choice_count = 0;
     int ichoice_count = 0;
@@ -651,7 +650,6 @@ neighborsDigestSelect(request_t * request)
     int i;
     if (!request->flags.hierarchical)
 	return NULL;
-    key = storeKeyPublicByRequest(request);
     for (i = 0, p = first_ping; i++ < Config.npeers; p = p->next) {
 	lookup_t lookup;
 	if (!p)

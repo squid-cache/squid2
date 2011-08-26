@@ -1,6 +1,6 @@
 
 /*
- * $Id$
+ * $Id: fqdncache.c,v 1.159 2011/08/26 21:56:59 hno Exp $
  *
  * DEBUG: section 35    FQDN Cache
  * AUTHOR: Harvest Derived
@@ -333,12 +333,11 @@ fqdncacheHandleReply(void *data, char *reply)
 fqdncacheHandleReply(void *data, rfc1035_rr * answers, int na, const char *error_message)
 #endif
 {
-    int n;
     generic_cbdata *c = data;
     fqdncache_entry *f = c->data;
     cbdataFree(c);
     c = NULL;
-    n = ++FqdncacheStats.replies;
+    FqdncacheStats.replies += 1;
     statHistCount(&statCounter.dns.svc_time,
 	tvSubMsec(f->request_time, current_time));
 #if USE_DNSSERVERS

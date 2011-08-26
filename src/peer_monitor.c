@@ -1,6 +1,6 @@
 
 /*
- * $Id$
+ * $Id: peer_monitor.c,v 1.13 2011/08/26 21:56:59 hno Exp $
  *
  * DEBUG: section ??    Peer monitoring
  * AUTHOR: Henrik Nordstrom
@@ -86,7 +86,6 @@ static void
 peerMonitorFetchReplyHeaders(void *data, mem_node_ref nr, ssize_t size)
 {
     PeerMonitor *pm = data;
-    const char *buf = NULL;
     http_status status;
     HttpReply *reply;
 
@@ -96,8 +95,6 @@ peerMonitorFetchReplyHeaders(void *data, mem_node_ref nr, ssize_t size)
 	goto completed;
     if (!cbdataValid(pm->peer))
 	goto completed;
-
-    buf = nr.node->data + nr.offset;
 
     reply = pm->running.e->mem_obj->reply;
     assert(reply);

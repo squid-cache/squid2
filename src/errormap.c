@@ -1,6 +1,6 @@
 
 /*
- * $Id$
+ * $Id: errormap.c,v 1.8 2011/08/26 21:56:59 hno Exp $
  *
  * DEBUG: section ??    Error Beautifier
  * AUTHOR: Henrik Nordstrom
@@ -111,7 +111,6 @@ static void
 errorMapFetchHeaders(void *data, mem_node_ref nr, ssize_t size)
 {
     ErrorMapState *state = data;
-    const char *buf = NULL;
     HttpReply *reply;
     http_status status;
 
@@ -121,8 +120,6 @@ errorMapFetchHeaders(void *data, mem_node_ref nr, ssize_t size)
 	goto abort;
     if (!cbdataValid(state->callback_data))
 	goto abort;
-
-    buf = nr.node->data + nr.offset;
 
     reply = state->e->mem_obj->reply;
 

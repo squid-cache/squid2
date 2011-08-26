@@ -1,6 +1,6 @@
 
 /*
- * $Id$
+ * $Id: store.c,v 1.603 2011/08/26 21:56:59 hno Exp $
  *
  * DEBUG: section 20    Storage Manager
  * AUTHOR: Harvest Derived
@@ -647,7 +647,7 @@ storeAddVaryReadOld(void *data, mem_node_ref nr, ssize_t size)
     /* size should never exceed what we asked for; just make sure first */
     assert(size + state->buf_offset <= state->buf_size);
     /* Copy in the data before we do anything else */
-    memcpy(state->buf + state->buf_offset, nr.node->data + nr.offset, size);
+    memcpy(state->buf + state->buf_offset, buf, size);
 
     if (EBIT_TEST(state->e->flags, ENTRY_ABORTED)) {
 	debug(11, 1) ("storeAddVaryReadOld: New index aborted at %d (%d)\n", (int) state->seen_offset, (int) size);

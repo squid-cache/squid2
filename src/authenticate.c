@@ -1,6 +1,6 @@
 
 /*
- * $Id$
+ * $Id: authenticate.c,v 1.55 2011/08/26 21:56:58 hno Exp $
  *
  * DEBUG: section 29    Authenticator
  * AUTHOR: Duane Wessels
@@ -333,7 +333,6 @@ authenticateAuthUserRequestFindByIp(const struct in_addr ipaddr)
 {
     time_t delta = Config.authenticateIpShortcircuitTTL;
     auth_user_request_ip_hash_t *hash_entry;
-    auth_user_request_t *auth_user_request = NULL;
 
     if (!auth_user_request_ip_hash)
 	return NULL;
@@ -342,7 +341,6 @@ authenticateAuthUserRequestFindByIp(const struct in_addr ipaddr)
     if (!hash_entry)
 	return NULL;
 
-    auth_user_request = hash_entry->auth_user_request;
     if (hash_entry->last_seen + delta < squid_curtime) {
 	authenticateAuthUserRequestUnlinkIp(ipaddr);
 	return NULL;
