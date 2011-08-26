@@ -1,6 +1,6 @@
 
 /*
- * $Id$
+ * $Id: gopher.c,v 1.183 2011/08/26 21:51:11 hno Exp $
  *
  * DEBUG: section 10    Gopher
  * AUTHOR: Harvest Derived
@@ -314,8 +314,6 @@ gopherToHTML(GopherStateData * gopherState, char *inbuf, int len)
 	gopherState->HTML_header_added = 1;
 	return;
     }
-    inbuf[len] = '\0';
-
     if (!gopherState->HTML_header_added) {
 	if (gopherState->conversion == HTML_CSO_RESULT)
 	    gopherHTMLHeader(entry, "CSO Search Result", NULL);
@@ -325,66 +323,41 @@ gopherToHTML(GopherStateData * gopherState, char *inbuf, int len)
 	gopherState->HTML_header_added = 1;
 	gopherState->HTML_pre = 1;
     }
-    while ((pos != NULL) && (pos < inbuf + len)) {
-
+    while (pos < inbuf + len) {
+	int llen;
+	int left = len - (pos - inbuf);
+	lpos = memchr(pos, '\n', left);
+	if (lpos) {
+	    lpos++;		/* Next line is after \n */
+	    llen = lpos - pos;
+	} else {
+	    llen = left;
+	}
+	if (gopherState->len + llen >= TEMP_BUF_SIZE) {
+	    debug(10, 1) ("gopherToHTML: Buffer overflow. Lost some data on URL: %s\n",
+		storeUrl(entry));
+	    llen = TEMP_BUF_SIZE - gopherState->len - 1;
+	}
+	if (!lpos) {
+	    /* there is no complete line in inbuf */
+	    /* copy it to temp buffer */
+	    /* note: llen is adjusted above */
+	    xmemcpy(gopherState->buf + gopherState->len, pos, llen);
+	    gopherState->len += llen;
+	    break;
+	}
 	if (gopherState->len != 0) {
 	    /* there is something left from last tx. */
-	    xstrncpy(line, gopherState->buf, gopherState->len + 1);
-	    if (gopherState->len + len > TEMP_BUF_SIZE) {
-		debug(10, 1) ("gopherToHTML: Buffer overflow. Lost some data on URL: %s\n",
-		    storeUrl(entry));
-		len = TEMP_BUF_SIZE - gopherState->len;
-	    }
-	    lpos = (char *) memccpy(line + gopherState->len, inbuf, '\n', len);
-	    if (lpos)
-		*lpos = '\0';
-	    else {
-		/* there is no complete line in inbuf */
-		/* copy it to temp buffer */
-		if (gopherState->len + len > TEMP_BUF_SIZE) {
-		    debug(10, 1) ("gopherToHTML: Buffer overflow. Lost some data on URL: %s\n",
-			storeUrl(entry));
-		    len = TEMP_BUF_SIZE - gopherState->len;
-		}
-		xmemcpy(gopherState->buf + gopherState->len, inbuf, len);
-		gopherState->len += len;
-		return;
-	    }
-
-	    /* skip one line */
-	    pos = (char *) memchr(pos, '\n', len);
-	    if (pos)
-		pos++;
-
-	    /* we're done with the remain from last tx. */
+	    xmemcpy(line, gopherState->buf, gopherState->len);
+	    xmemcpy(line + gopherState->len, pos, llen);
+	    llen += gopherState->len;
 	    gopherState->len = 0;
-	    *(gopherState->buf) = '\0';
 	} else {
-
-	    lpos = (char *) memccpy(line, pos, '\n', len - (pos - inbuf));
-	    if (lpos)
-		*lpos = '\0';
-	    else {
-		/* there is no complete line in inbuf */
-		/* copy it to temp buffer */
-		if ((len - (pos - inbuf)) > TEMP_BUF_SIZE) {
-		    debug(10, 1) ("gopherToHTML: Buffer overflow. Lost some data on URL: %s\n",
-			storeUrl(entry));
-		    len = TEMP_BUF_SIZE;
-		}
-		if (len > (pos - inbuf)) {
-		    xmemcpy(gopherState->buf, pos, len - (pos - inbuf));
-		    gopherState->len = len - (pos - inbuf);
-		}
-		break;
-	    }
-
-	    /* skip one line */
-	    pos = (char *) memchr(pos, '\n', len);
-	    if (pos)
-		pos++;
-
+	    xmemcpy(line, pos, llen);
 	}
+	line[llen + 1] = '\0';
+	/* move input to next line */
+	pos = lpos;
 
 	/* at this point. We should have one line in buffer to process */
 
