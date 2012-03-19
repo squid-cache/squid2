@@ -1,6 +1,6 @@
 
 /*
- * $Id: client_side.c,v 1.809 2011/08/26 21:56:58 hno Exp $
+ * $Id: client_side.c,v 1.810 2012/03/19 18:43:42 hno Exp $
  *
  * DEBUG: section 33    Client-side Routines
  * AUTHOR: Duane Wessels
@@ -2335,13 +2335,21 @@ clientCacheHit(void *data, HttpReply * rep)
 	    return;
 	}
     case VARY_RESTART:
-	/* Used on collapsed requests when the main request wasn't
-	 * compatible. Resart processing from the beginning.
-	 */
-	safe_free(r->vary_hdr);
-	safe_free(r->vary_headers);
-	clientProcessRequest(http);
-	return;
+	{
+	    /* Used on collapsed requests when the main request wasn't
+	     * compatible. Restart processing from the beginning.
+	     */
+	    store_client *sc = http->sc;
+	    http->sc = NULL;
+	    http->entry = NULL;
+	    safe_free(r->vary_hdr);
+	    safe_free(r->vary_headers);
+	    clientProcessRequest(http);
+	    if (sc)
+		storeClientUnregister(sc, e, http);
+	    storeUnlockObject(e);
+	    return;
+	}
     case VARY_CANCEL:
 	/* varyEvaluateMatch found a object loop. Process as miss */
 	debug(33, 1) ("clientCacheHit: Vary object loop!\n");
